@@ -1,0 +1,32 @@
+[user]
+  name = Nate Berkopec
+  email = nate.berkopec@gmail.com
+	signingkey = C85159D1D1496A315A7E01466BF45F815F702663
+[push]
+  default = simple
+	followTags = true
+[github]
+  user = nateberkopec
+[credential]
+	helper = osxkeychain
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	required = true
+	process = git-lfs filter-process
+[commit]
+	gpgsign = true
+[color]
+	ui = true
+[alias]
+	commend = commit --amend --no-edit
+	please = push --force-with-lease
+[gpg]
+	program = gpg
+[core]
+	editor = codium -w
+	excludesfile = /Users/nateberkopec/.gitignore
+[pull]
+	rebase = false
+[init]
+	defaultBranch = main

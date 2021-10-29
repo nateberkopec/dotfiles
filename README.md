@@ -12,4 +12,13 @@ bash bin/strap.sh
 
 ## Step 2
 
-That's it.
+Sneakernet your:
+
+1. GNUPG data
+1. Bitwarden vault
+1. SSH Keys
+1. Arc install
+1. VMWare Fusion beta
+1. NixOS VM
+
+

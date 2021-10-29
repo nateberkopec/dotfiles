@@ -1,0 +1,34 @@
+#!/bin/sh
+# Install all dotfiles into the home directory
+
+if [ -L "$0" ]
+then
+  SCRIPTSETUP="$(readlink "$0")"
+else
+  SCRIPTSETUP="$0"
+fi
+
+DOTFILESDIRREL=$(dirname $SCRIPTSETUP)
+cd $DOTFILESDIRREL/..
+DOTFILESDIR=$(pwd -P)
+
+for DOTFILE in *; do
+  HOMEFILE="$HOME/.$DOTFILE"
+  [ -d $DOTFILE ] && DOTFILE="$DOTFILE/"
+  DIRFILE="$DOTFILESDIR/$DOTFILE"
+
+  # Don't try to install documentation/script files
+  echo $DOTFILE | egrep -q '(^script/$|\.txt$|\.md$)' && continue
+
+  # Remove .sh extensions
+  echo $DOTFILE | grep -q '\.sh' &&
+       HOMEFILE="$HOME/.$(echo $DOTFILE | sed -e 's/\.sh//')"
+
+  cp -rv "$DIRFILE" "$HOMEFILE"
+done
+
+HOMEDOTFILES="$HOME/.dotfiles"
+if [ "$DOTFILESDIR" != "$HOMEDOTFILES" ]
+then
+  ln -sf "$DOTFILESDIR" "$HOMEDOTFILES"
+fi
