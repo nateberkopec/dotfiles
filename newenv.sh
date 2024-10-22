@@ -80,7 +80,7 @@ echo "Installing Amethyst window manager..."
 brew install --cask amethyst
 
 echo "Configuring Amethyst..."
-cp $DOTFILES_DIR/amethyst/com.googlecode.iterm2.plist ~/Library/Preferences/
+cp $DOTFILES_DIR/amethyst/com.amethyst.Amethyst.plist  ~/Library/Preferences/
 
 # Install GitHub Desktop
 echo "Installing GitHub Desktop..."
