@@ -110,5 +110,11 @@ brew install --cask alfred
 echo "Configuring Alfred..."
 cp $DOTFILES_DIR/alfred/*  ~/Library/Preferences/
 
+echo "Installing asdf..."
+brew install asdf
+
+echo "Installing direnv..."
+brew install direnv
+
 echo "Installation complete! Please restart your terminal for all changes to take effect."
 echo "Note: You may need to manually set your iTerm2 theme through the preferences menu."
