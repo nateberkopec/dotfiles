@@ -1,0 +1,14 @@
+4ops.terraform
+castwide.solargraph
+dbaeumer.vscode-eslint
+eamodio.gitlens
+esbenp.prettier-vscode
+graphql.vscode-graphql
+graphql.vscode-graphql-syntax
+misogi.ruby-rubocop
+ms-vscode.wordcount
+pascalreitermann93.vscode-yaml-sort
+rvest.vs-code-prettier-eslint
+shopify.ruby-lsp
+streetsidesoftware.code-spell-checker
+vscodevim.vim

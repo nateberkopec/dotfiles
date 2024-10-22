@@ -1,0 +1,33 @@
+{
+  "editor.renderWhitespace": "trailing",
+  "editor.rulers": [80],
+  "editor.unicodeHighlight.nonBasicASCII": false,
+  "editor.wordWrapColumn": 80,
+  "extensions.ignoreRecommendations": true,
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true,
+  "git.confirmSync": false,
+  "git.openRepositoryInParentFolders": "always",
+  "[markdown]": {
+    "editor.wordWrap": "wordWrapColumn",
+    "editor.defaultFormatter": "rvest.vs-code-prettier-eslint"
+    // "editor.quickSuggestions": false
+  },
+  "[yaml]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "rubyLsp.rubyVersionManager": {
+    "identifier": "asdf"
+  },
+  "rubyLsp.formatter": "auto",
+  "rubyLsp.enableExperimentalFeatures": false,
+  "vscode-yaml-sort.customSortKeywords_2": ["name"],
+  "gitlens.advanced.messages": {
+    "suppressRebaseSwitchToTextWarning": true,
+    "suppressIntegrationDisconnectedTooManyFailedRequestsWarning": true
+  },
+  "cSpell.userWords": [
+    "Babylist",
+    "speedshop"
+  ]
+}

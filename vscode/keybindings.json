@@ -1,0 +1,10 @@
+// Place your key bindings in this file to override the defaults
+[
+    {
+    "key": "cmd+enter",
+    "command": "runCommands",
+    "args": {
+        "commands": ["git.commitAll", "git.sync"]
+    }
+}
+]
