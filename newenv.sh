@@ -116,5 +116,29 @@ brew install asdf
 echo "Installing direnv..."
 brew install direnv
 
+# Install asdf if not already installed
+if ! command -v asdf &> /dev/null; then
+    echo "Installing asdf..."
+    brew install asdf
+
+    # Add to Fish config (create file if it doesn't exist)
+    mkdir -p ~/.config/fish/conf.d
+    echo "source $(brew --prefix asdf)/libexec/asdf.fish" > ~/.config/fish/conf.d/asdf.fish
+else
+    echo "asdf already installed, skipping..."
+fi
+
+# Add Ruby plugin if not already added
+if ! asdf plugin list | grep -q "ruby"; then
+    echo "Adding Ruby plugin to asdf..."
+    asdf plugin add ruby
+fi
+
+# Install latest stable Ruby
+echo "Installing latest stable Ruby..."
+latest_ruby=$(asdf latest ruby)
+asdf install ruby $latest_ruby
+asdf global ruby $latest_ruby
+
 echo "Installation complete! Please restart your terminal for all changes to take effect."
 echo "Note: You may need to manually set your iTerm2 theme through the preferences menu."

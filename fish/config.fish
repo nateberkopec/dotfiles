@@ -4,6 +4,8 @@ end
 fish_add_path /opt/homebrew/opt/libpq/bin
 fish_add_path ~/bin
 
+set -g fish_greeting
+
 zoxide init fish | source
 complete -c z -f -k -a "(zoxide query -l)"
 alias cd z
