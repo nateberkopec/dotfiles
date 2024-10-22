@@ -63,6 +63,19 @@ if backup_if_changed "$HOME/Library/Preferences/com.runningwithcrayons.Alfred.pl
     changes_made=true
 fi
 
+# Update oh-my-fish configurations
+if backup_if_changed "$HOME/.config/omf/bundle" "$DOTFILES_DIR/omf/bundle"; then
+    changes_made=true
+fi
+
+if backup_if_changed "$HOME/.config/omf/channel" "$DOTFILES_DIR/omf/channel"; then
+    changes_made=true
+fi
+
+if backup_if_changed "$HOME/.config/omf/theme" "$DOTFILES_DIR/omf/theme"; then
+    changes_made=true
+fi
+
 # Update VSCode settings
 VSCODE_DIR="$HOME/Library/Application Support/Code/User"
 if backup_if_changed "$VSCODE_DIR/settings.json" "$DOTFILES_DIR/vscode/settings.json"; then
