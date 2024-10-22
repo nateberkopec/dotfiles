@@ -56,6 +56,27 @@ mkdir -p ~/.config/fish
 cp $DOTFILES_DIR/fish/config.fish ~/.config/fish/
 cp -R $DOTFILES_DIR/fish/functions ~/.config/fish/ 2>/dev/null || true
 
+# Install oh-my-fish if not present
+if [ ! -d "$HOME/.local/share/omf" ]; then
+    echo "Installing oh-my-fish..."
+    curl https://raw.githubusercontent.com/oh-my-fish/oh-my-fish/master/bin/install > install
+    fish -c "fish install --noninteractive"
+    rm install
+else
+    echo "oh-my-fish already installed, skipping..."
+fi
+
+# Set up omf configuration
+echo "Configuring oh-my-fish..."
+mkdir -p ~/.config/omf
+cp -r "$DOTFILES_DIR/omf/"* ~/.config/omf/
+
+# Install the theme and plugins from bundle
+fish -c "omf install"
+
+# Open/install fonts
+find ~/.dotfiles/fonts -type f \( -name "*.ttf" -o -name "*.otf" \) -exec open {} \;
+
 echo "Installing zoxide..."
 brew install zoxide
 
