@@ -18,7 +18,7 @@ echo "Updating dotfiles repository..."
 backup_if_changed() {
     local source=$1
     local dest=$2
-    
+
     if [ -f "$source" ]; then
         if [ ! -f "$dest" ] || ! cmp -s "$source" "$dest"; then
             echo "Updating $(basename "$dest")..."
@@ -50,6 +50,11 @@ if backup_if_changed "$HOME/Library/Preferences/com.googlecode.iterm2.plist" "$D
     changes_made=true
 fi
 
+# Update iTerm2 preferences
+if backup_if_changed "$HOME/Library/Preferences/com.amethyst.Amethyst.plist" "$DOTFILES_DIR/amethyst/com.amethyst.Amethyst.plist"; then
+    changes_made=true
+fi
+
 # Update VSCode settings
 VSCODE_DIR="$HOME/Library/Application Support/Code/User"
 if backup_if_changed "$VSCODE_DIR/settings.json" "$DOTFILES_DIR/vscode/settings.json"; then
@@ -76,15 +81,15 @@ fi
 if [ "$changes_made" = true ]; then
     echo "Changes detected, updating git repository..."
     cd "$DOTFILES_DIR"
-    
+
     # Check if there are any changes to commit
     if ! git diff --quiet || ! git diff --staged --quiet; then
         # Get current timestamp for commit message
         timestamp=$(date "+%Y-%m-%d %H:%M:%S")
-        
+
         git add .
         git commit -m "Update dotfiles - $timestamp"
-        
+
         # Check if remote exists and push
         if git remote get-url origin >/dev/null 2>&1; then
             echo "Pushing changes to remote repository..."
@@ -92,7 +97,7 @@ if [ "$changes_made" = true ]; then
         else
             echo "No remote repository configured. Changes committed locally only."
         fi
-        
+
         echo "Dotfiles updated successfully!"
     else
         echo "No changes to commit."
