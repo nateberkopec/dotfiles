@@ -90,19 +90,25 @@ brew install --cask github
 echo "Installing Visual Studio Code..."
 brew install --cask visual-studio-code
 
-# # Copy VSCode settings
-# echo "Configuring VSCode..."
-# mkdir -p ~/Library/Application\ Support/Code/User
-# cp $DOTFILES_DIR/vscode/settings.json ~/Library/Application\ Support/Code/User/
-# cp $DOTFILES_DIR/vscode/keybindings.json ~/Library/Application\ Support/Code/User/
+# Copy VSCode settings
+echo "Configuring VSCode..."
+mkdir -p ~/Library/Application\ Support/Code/User
+cp $DOTFILES_DIR/vscode/settings.json ~/Library/Application\ Support/Code/User/
+cp $DOTFILES_DIR/vscode/keybindings.json ~/Library/Application\ Support/Code/User/
 
-# # Install VSCode extensions from file if it exists
-# if [ -f "$DOTFILES_DIR/vscode/extensions.txt" ]; then
-#     echo "Installing VSCode extensions..."
-#     while IFS= read -r extension; do
-#         code --install-extension "$extension"
-#     done < "$DOTFILES_DIR/vscode/extensions.txt"
-# fi
+# Install VSCode extensions from file if it exists
+if [ -f "$DOTFILES_DIR/vscode/extensions.txt" ]; then
+    echo "Installing VSCode extensions..."
+    while IFS= read -r extension; do
+        code --install-extension "$extension"
+    done < "$DOTFILES_DIR/vscode/extensions.txt"
+fi
 
-# echo "Installation complete! Please restart your terminal for all changes to take effect."
-# echo "Note: You may need to manually set your iTerm2 theme through the preferences menu."
+echo "Installing Alfred 5..."
+brew install --cask alfred
+
+echo "Configuring Alfred..."
+cp $DOTFILES_DIR/alfred/*  ~/Library/Preferences/
+
+echo "Installation complete! Please restart your terminal for all changes to take effect."
+echo "Note: You may need to manually set your iTerm2 theme through the preferences menu."

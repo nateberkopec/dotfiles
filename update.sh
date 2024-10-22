@@ -50,8 +50,16 @@ if backup_if_changed "$HOME/Library/Preferences/com.googlecode.iterm2.plist" "$D
     changes_made=true
 fi
 
-# Update iTerm2 preferences
+# Update Amethyst preferences
 if backup_if_changed "$HOME/Library/Preferences/com.amethyst.Amethyst.plist" "$DOTFILES_DIR/amethyst/com.amethyst.Amethyst.plist"; then
+    changes_made=true
+fi
+
+# Update Alfred preferences
+if backup_if_changed "$HOME/Library/Preferences/com.runningwithcrayons.Alfred-Preferences.plist" "$DOTFILES_DIR/alfred/com.runningwithcrayons.Alfred-Preferences.plist"; then
+    changes_made=true
+fi
+if backup_if_changed "$HOME/Library/Preferences/com.runningwithcrayons.Alfred.plist" "$DOTFILES_DIR/alfred/com.runningwithcrayons.Alfred.plist"; then
     changes_made=true
 fi
 
