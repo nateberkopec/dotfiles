@@ -107,6 +107,10 @@ cp $DOTFILES_DIR/amethyst/com.amethyst.Amethyst.plist  ~/Library/Preferences/
 echo "Installing GitHub Desktop..."
 brew install --cask github
 
+# Copy Git global configuration
+echo "Configuring Git global settings..."
+cp $DOTFILES_DIR/git/.gitconfig ~/.gitconfig
+
 # Install Visual Studio Code
 echo "Installing Visual Studio Code..."
 brew install --cask visual-studio-code

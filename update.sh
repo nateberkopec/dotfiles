@@ -85,6 +85,11 @@ if backup_if_changed "$VSCODE_DIR/keybindings.json" "$DOTFILES_DIR/vscode/keybin
     changes_made=true
 fi
 
+# Update Git global configuration
+if backup_if_changed "$HOME/.gitconfig" "$DOTFILES_DIR/git/.gitconfig"; then
+    changes_made=true
+fi
+
 # Update VSCode extensions list
 if command -v code >/dev/null; then
     temp_extensions=$(mktemp)

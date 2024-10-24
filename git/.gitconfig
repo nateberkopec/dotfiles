@@ -1,0 +1,30 @@
+[user]
+	name = Nate Berkopec
+	email = nate.berkopec@gmail.com
+[push]
+  default = simple
+        followTags = true
+	autoSetupRemote = true
+[github]
+  user = nateberkopec
+[credential]
+        helper = osxkeychain
+[filter "lfs"]
+        clean = git-lfs clean -- %f
+        smudge = git-lfs smudge -- %f
+        required = true
+        process = git-lfs filter-process
+[color]
+        ui = true
+[alias]
+        commend = commit --amend --no-edit
+        please = push --force-with-lease
+        co-main = "!f() { git checkout main || git checkout master; }; f"
+        co = checkout
+[core]
+        excludesfile = /Users/nateberkopec/.gitignore
+	editor = code -w
+[pull]
+        rebase = false
+[init]
+        defaultBranch = main
