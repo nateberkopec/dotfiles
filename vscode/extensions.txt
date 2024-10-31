@@ -3,6 +3,9 @@ castwide.solargraph
 dbaeumer.vscode-eslint
 eamodio.gitlens
 esbenp.prettier-vscode
+github.copilot
+github.copilot-chat
+github.vscode-pull-request-github
 graphql.vscode-graphql
 graphql.vscode-graphql-syntax
 misogi.ruby-rubocop

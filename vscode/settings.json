@@ -27,8 +27,33 @@
     "suppressIntegrationDisconnectedTooManyFailedRequestsWarning": true
   },
   "cSpell.userWords": [
+    "andon",
+    "autoscale",
     "Babylist",
+    "Berkopec",
+    "codegen",
+    "dynos",
+    "failpoint",
+    "footgun",
+    "frontends",
     "hudu",
-    "speedshop"
+    "jemalloc",
+    "Judoscale",
+    "MALLOC",
+    "Memcachier",
+    "mortemable",
+    "nplusone",
+    "packwerk",
+    "Repli",
+    "repros",
+    "sidekiq",
+    "sidekiqswarm",
+    "speedshop",
+    "srcset",
+    "Terraforming",
+    "Theo",
+    "upsert",
+    "wargame",
+    "whiteboarding"
   ]
 }
