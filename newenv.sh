@@ -74,8 +74,16 @@ cp -r "$DOTFILES_DIR/omf/"* ~/.config/omf/
 # Install the theme and plugins from bundle
 fish -c "omf install"
 
-# Open/install fonts
-find ~/.dotfiles/fonts -type f \( -name "*.ttf" -o -name "*.otf" \) -exec open {} \;
+# Open/install fonts only if they are not already installed
+for font in ~/.dotfiles/fonts/*.{ttf,otf}; do
+    font_name=$(basename "$font")
+    if ! fc-list | grep -q "$font_name"; then
+        echo "Installing font: $font_name"
+        open "$font"
+    else
+        echo "Font $font_name is already installed, skipping..."
+    fi
+done
 
 echo "Installing zoxide..."
 brew install zoxide
