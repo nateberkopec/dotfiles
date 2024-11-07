@@ -13,6 +13,9 @@ zoxide init fish | source
 complete -c z -f -k -a "(zoxide query -l)"
 alias cd z
 alias be="bundle exec"
+function mosh 
+  command mosh --predict=experimental $argv
+end
 
 source /opt/homebrew/opt/asdf/libexec/asdf.fish
 direnv hook fish | source
