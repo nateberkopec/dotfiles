@@ -115,6 +115,10 @@ cp $DOTFILES_DIR/amethyst/com.amethyst.Amethyst.plist  ~/Library/Preferences/
 echo "Installing GitHub Desktop..."
 brew install --cask github
 
+# Install GH Cli   
+echo "Installing gh..."
+brew install gh
+
 # Copy Git global configuration
 echo "Configuring Git global settings..."
 cp $DOTFILES_DIR/git/.gitconfig ~/.gitconfig
