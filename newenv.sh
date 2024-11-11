@@ -17,26 +17,6 @@ else
     echo "Homebrew already installed, updating..."
     brew update
 fi
-
-# Install Fish shell
-echo "Installing Fish shell..."
-brew install fish
-
-# Change default shell to Fish
-FISH_PATH=$(which fish)
-if ! grep -q $FISH_PATH /etc/shells; then
-    echo "Adding Fish to allowed shells..."
-    echo $FISH_PATH | sudo tee -a /etc/shells
-fi
-
-# Change default shell to Fish only if it's not already the default
-if ! dscl . -read ~/ UserShell | grep -q "$FISH_PATH"; then
-    echo "Changing default shell to Fish..."
-    chsh -s "$FISH_PATH"
-else
-    echo "Fish is already the default shell, skipping..."
-fi
-
 # Clone dotfiles repo (replace URL with your actual dotfiles repo)
 DOTFILES_REPO="https://github.com/nateberkopec/dotfiles.git"
 DOTFILES_DIR="$HOME/.dotfiles"
@@ -49,41 +29,6 @@ else
     cd $DOTFILES_DIR
     git pull
 fi
-
-# Copy Fish config
-echo "Setting up Fish configuration..."
-mkdir -p ~/.config/fish
-cp $DOTFILES_DIR/fish/config.fish ~/.config/fish/
-cp -R $DOTFILES_DIR/fish/functions ~/.config/fish/ 2>/dev/null || true
-
-# Install oh-my-fish if not present
-if [ ! -d "$HOME/.local/share/omf" ]; then
-    echo "Installing oh-my-fish..."
-    curl https://raw.githubusercontent.com/oh-my-fish/oh-my-fish/master/bin/install > install
-    fish -c "fish install --noninteractive"
-    rm install
-else
-    echo "oh-my-fish already installed, skipping..."
-fi
-
-# Set up omf configuration
-echo "Configuring oh-my-fish..."
-mkdir -p ~/.config/omf
-cp -r "$DOTFILES_DIR/omf/"* ~/.config/omf/
-
-# Install the theme and plugins from bundle
-fish -c "omf install"
-
-# Open/install fonts only if they are not already installed
-for font in ~/.dotfiles/fonts/*.{ttf,otf}; do
-    font_name=$(basename "$font")
-    if ! fc-list | grep -q "$font_name"; then
-        echo "Installing font: $font_name"
-        open "$font"
-    else
-        echo "Font $font_name is already installed, skipping..."
-    fi
-done
 
 echo "Installing zoxide..."
 brew install zoxide
@@ -172,6 +117,61 @@ echo "Installing latest stable Ruby..."
 latest_ruby=$(asdf latest ruby)
 asdf install ruby $latest_ruby
 asdf global ruby $latest_ruby
+
+# Install Fish shell
+echo "Installing Fish shell..."
+brew install fish
+
+# Change default shell to Fish
+FISH_PATH=$(which fish)
+if ! grep -q $FISH_PATH /etc/shells; then
+    echo "Adding Fish to allowed shells..."
+    echo $FISH_PATH | sudo tee -a /etc/shells
+fi
+
+# Change default shell to Fish only if it's not already the default
+if ! dscl . -read ~/ UserShell | grep -q "$FISH_PATH"; then
+    echo "Changing default shell to Fish..."
+    chsh -s "$FISH_PATH"
+else
+    echo "Fish is already the default shell, skipping..."
+fi
+
+# Copy Fish config
+echo "Setting up Fish configuration..."
+mkdir -p ~/.config/fish
+cp $DOTFILES_DIR/fish/config.fish ~/.config/fish/
+cp -R $DOTFILES_DIR/fish/functions ~/.config/fish/ 2>/dev/null || true
+
+
+# Install oh-my-fish if not present
+if [ ! -d "$HOME/.local/share/omf" ]; then
+    echo "Installing oh-my-fish..."
+    curl https://raw.githubusercontent.com/oh-my-fish/oh-my-fish/master/bin/install > install
+    fish -c "fish install --noninteractive"
+    rm install
+else
+    echo "oh-my-fish already installed, skipping..."
+fi
+
+# Set up omf configuration
+echo "Configuring oh-my-fish..."
+mkdir -p ~/.config/omf
+cp -r "$DOTFILES_DIR/omf/"* ~/.config/omf/
+
+# Install the theme and plugins from bundle
+fish -c "omf install"
+
+# Open/install fonts only if they are not already installed
+for font in ~/.dotfiles/fonts/*.{ttf,otf}; do
+    font_name=$(basename "$font")
+    if ! fc-list | grep -q "$font_name"; then
+        echo "Installing font: $font_name"
+        open "$font"
+    else
+        echo "Font $font_name is already installed, skipping..."
+    fi
+done
 
 echo "Installation complete! Please restart your terminal for all changes to take effect."
 echo "Note: You may need to manually set your iTerm2 theme through the preferences menu."
