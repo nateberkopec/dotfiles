@@ -60,7 +60,7 @@ cp $DOTFILES_DIR/amethyst/com.amethyst.Amethyst.plist  ~/Library/Preferences/
 echo "Installing GitHub Desktop..."
 brew install --cask github
 
-# Install GH Cli   
+# Install GH Cli
 echo "Installing gh..."
 brew install gh
 
@@ -166,6 +166,7 @@ cp -r "$DOTFILES_DIR/omf/"* ~/.config/omf/
 # Install the theme and plugins from bundle
 fish -c "omf install"
 
+brew install fontconfig
 # Open/install fonts only if they are not already installed
 for font in ~/.dotfiles/fonts/*.{ttf,otf}; do
     font_name=$(basename "$font")
