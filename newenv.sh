@@ -98,6 +98,9 @@ brew install asdf
 echo "Installing direnv..."
 brew install direnv
 
+echo "Installing 1Password..."
+brew install --cask 1password/tap/1password-cli
+
 # Install asdf if not already installed
 if ! command -v asdf &> /dev/null; then
     echo "Installing asdf..."

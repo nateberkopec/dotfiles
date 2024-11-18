@@ -10,8 +10,10 @@
   "git.openRepositoryInParentFolders": "always",
   "[markdown]": {
     "editor.wordWrap": "wordWrapColumn",
-    "editor.defaultFormatter": "rvest.vs-code-prettier-eslint"
+    "editor.defaultFormatter": "rvest.vs-code-prettier-eslint",
     // "editor.quickSuggestions": false
+    "editor.wordWrapColumn": 80,
+    "editor.wrappingIndent": "same"
   },
   "[yaml]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
@@ -52,8 +54,18 @@
     "srcset",
     "Terraforming",
     "Theo",
+    "unindexed",
     "upsert",
     "wargame",
     "whiteboarding"
-  ]
+  ],
+  "github.copilot.enable": {
+    "*": true,
+    "git-commit": false
+  },
+  "remote.SSH.showLoginTerminal": true,
+  "remote.SSH.useLocalServer": false,
+  "remote.SSH.remotePlatform": {
+    "MBP-Server.local": "macOS"
+  }
 }
