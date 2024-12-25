@@ -125,6 +125,10 @@ latest_ruby=$(asdf latest ruby)
 asdf install ruby $latest_ruby
 asdf global ruby $latest_ruby
 
+# Install OrbStack
+echo "Installing Orbstack..."
+brew install orbstack
+
 # Install Fish shell
 echo "Installing Fish shell..."
 brew install fish
