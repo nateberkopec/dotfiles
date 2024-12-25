@@ -101,6 +101,10 @@ brew install direnv
 echo "Installing 1Password..."
 brew install --cask 1password/tap/1password-cli
 
+# Install Rust, for YJIT
+echo "Installing Rust..."
+brew install rust
+
 # Install latest stable Ruby
 echo "Installing latest stable Ruby..."
 mise use --global ruby@latest
