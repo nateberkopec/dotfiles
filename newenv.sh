@@ -40,6 +40,9 @@ brew install ghostty
 mkdir -p $HOME/Library/Application\ Support/com.mitchellh.ghostty/
 cp $DOTFILES_DIR/ghostty/config $HOME/Library/Application\ Support/com.mitchellh.ghostty
 
+# Install bat
+brew install bat
+
 # Install Arc browser if not already installed
 if [ ! -d "/Applications/Arc.app" ]; then
     echo "Installing Arc browser..."
