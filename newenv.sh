@@ -38,7 +38,7 @@ echo "Installing Ghostty..."
 brew install ghostty
 
 mkdir -p $HOME/Library/Application\ Support/com.mitchellh.ghostty/
-cp $DOTFILES_DIR/ghostty/config ~/Library/Application\ Support/com.mitchellh.ghostty/config
+cp $DOTFILES_DIR/ghostty/config $HOME/Library/Application\ Support/com.mitchellh.ghostty
 
 # Install Arc browser if not already installed
 if [ ! -d "/Applications/Arc.app" ]; then
@@ -171,4 +171,3 @@ for font in ~/.dotfiles/fonts/*.{ttf,otf}; do
 done
 
 echo "Installation complete! Please restart your terminal for all changes to take effect."
-echo "Note: You may need to manually set your iTerm2 theme through the preferences menu."
