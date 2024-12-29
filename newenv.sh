@@ -37,6 +37,7 @@ brew install zoxide
 echo "Installing Ghostty..."
 brew install ghostty
 
+mkdir -p $HOME/Library/Application\ Support/com.mitchellh.ghostty/
 cp $DOTFILES_DIR/ghostty/config ~/Library/Application\ Support/com.mitchellh.ghostty/config
 
 # Install Arc browser if not already installed
