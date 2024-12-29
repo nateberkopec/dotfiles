@@ -30,18 +30,14 @@ else
     git pull
 fi
 
-echo "Installing zoxide..."
-brew install zoxide
+# Combine brew install commands
+brew install zoxide ghostty bat gh rust mise direnv fish orbstack fontconfig
 
-# Install Ghostty
-echo "Installing Ghostty..."
-brew install ghostty
+# Install cask applications
+brew install --cask amethyst github visual-studio-code alfred 1password 1password/tap/1password-cli
 
 mkdir -p $HOME/Library/Application\ Support/com.mitchellh.ghostty/
 cp $DOTFILES_DIR/ghostty/config $HOME/Library/Application\ Support/com.mitchellh.ghostty
-
-# Install bat
-brew install bat
 
 # Install Arc browser if not already installed
 if [ ! -d "/Applications/Arc.app" ]; then
@@ -51,28 +47,12 @@ else
     echo "Arc browser is already installed, skipping..."
 fi
 
-# Install Amethyst
-echo "Installing Amethyst window manager..."
-brew install --cask amethyst
-
 echo "Configuring Amethyst..."
 cp $DOTFILES_DIR/amethyst/com.amethyst.Amethyst.plist  ~/Library/Preferences/
-
-# Install GitHub Desktop
-echo "Installing GitHub Desktop..."
-brew install --cask github
-
-# Install GH Cli
-echo "Installing gh..."
-brew install gh
 
 # Copy Git global configuration
 echo "Configuring Git global settings..."
 cp $DOTFILES_DIR/git/.gitconfig ~/.gitconfig
-
-# Install Visual Studio Code
-echo "Installing Visual Studio Code..."
-brew install --cask visual-studio-code
 
 # Copy VSCode settings
 echo "Configuring VSCode..."
@@ -88,38 +68,12 @@ if [ -f "$DOTFILES_DIR/vscode/extensions.txt" ]; then
     done < "$DOTFILES_DIR/vscode/extensions.txt"
 fi
 
-echo "Installing Alfred 5..."
-brew install --cask alfred
-
 echo "Configuring Alfred..."
 cp $DOTFILES_DIR/alfred/*  ~/Library/Preferences/
 
-echo "Installing mise..."
-brew install mise
-
-echo "Installing direnv..."
-brew install direnv
-
-echo "Installing 1Password..."
-brew install --cask 1password
-brew install --cask 1password/tap/1password-cli
-
-# Install Rust, for YJIT
-echo "Installing Rust..."
-brew install rust
-
-# Install latest stable Ruby
 echo "Installing latest stable Ruby..."
 mise use --global ruby@latest
 mise install ruby@latest
-
-# Install OrbStack
-echo "Installing Orbstack..."
-brew install orbstack
-
-# Install Fish shell
-echo "Installing Fish shell..."
-brew install fish
 
 # Change default shell to Fish
 FISH_PATH=$(which fish)
@@ -142,7 +96,6 @@ mkdir -p ~/.config/fish
 cp $DOTFILES_DIR/fish/config.fish ~/.config/fish/
 cp -R $DOTFILES_DIR/fish/functions ~/.config/fish/ 2>/dev/null || true
 
-
 # Install oh-my-fish if not present
 if [ ! -d "$HOME/.local/share/omf" ]; then
     echo "Installing oh-my-fish..."
@@ -161,7 +114,6 @@ cp -r "$DOTFILES_DIR/omf/"* ~/.config/omf/
 # Install the theme and plugins from bundle
 fish -c "omf install"
 
-brew install fontconfig
 # Open/install fonts only if they are not already installed
 for font in ~/.dotfiles/fonts/*.{ttf,otf}; do
     font_name=$(basename "$font")
