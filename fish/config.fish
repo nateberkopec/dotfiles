@@ -21,7 +21,7 @@ end
 alias mosh-mbp "mosh --server='SHELL=/opt/homebrew/bin/fish /opt/homebrew/bin/mosh-server' nateberkopec@MBP-Server.local"
 alias mosh-mbp-tmux "mosh --server='SHELL=/opt/homebrew/bin/fish /opt/homebrew/bin/mosh-server' nateberkopec@MBP-Server.local -- /opt/homebrew/bin/tmux new-session -A -s main"
 
-~/.local/bin/mise activate fish | source
+mise activate fish | source
 direnv hook fish | source
 
 functions --copy fish_prompt fish_prompt_original

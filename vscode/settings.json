@@ -71,5 +71,6 @@
   "remote.SSH.remotePlatform": {
     "MBP-Server.local": "macOS"
   },
+  "http.proxyStrictSSL":false,
   "chat.editing.alwaysSaveWithGeneratedChanges": true
 }
