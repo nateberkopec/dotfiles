@@ -18,10 +18,12 @@
   "[yaml]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
-  "rubyLsp.rubyVersionManager": {
-    "identifier": "asdf"
+  "rubyLsp.rubyVersionManager": "custom",
+  "rubyLsp.customRubyCommand": "eval \"$(mise env -s fish)\"",
+  "[ruby]": {
+    "editor.defaultFormatter": "Shopify.ruby-lsp"
   },
-  "rubyLsp.formatter": "auto",
+  "rubyLsp.formatter": "rubocop",
   "rubyLsp.enableExperimentalFeatures": false,
   "vscode-yaml-sort.customSortKeywords_2": ["name"],
   "gitlens.advanced.messages": {
@@ -57,7 +59,8 @@
     "unindexed",
     "upsert",
     "wargame",
-    "whiteboarding"
+    "whiteboarding",
+    "YJIT"
   ],
   "github.copilot.enable": {
     "*": true,
@@ -67,5 +70,6 @@
   "remote.SSH.useLocalServer": false,
   "remote.SSH.remotePlatform": {
     "MBP-Server.local": "macOS"
-  }
+  },
+  "chat.editing.alwaysSaveWithGeneratedChanges": true
 }

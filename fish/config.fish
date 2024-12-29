@@ -9,7 +9,6 @@ set -g fish_greeting
 set -x LANG en_US.UTF-8
 set -x LC_ALL en_US.UTF-8
 set -x MAKEFLAGS -j(nproc)
-set -x RUBY_CONFIGURE_OPTS '--enable-yjit'
 
 zoxide init fish | source
 complete -c z -f -k -a "(zoxide query -l)"
@@ -22,6 +21,7 @@ end
 alias mosh-mbp "mosh --server='SHELL=/opt/homebrew/bin/fish /opt/homebrew/bin/mosh-server' nateberkopec@MBP-Server.local"
 alias mosh-mbp-tmux "mosh --server='SHELL=/opt/homebrew/bin/fish /opt/homebrew/bin/mosh-server' nateberkopec@MBP-Server.local -- /opt/homebrew/bin/tmux new-session -A -s main"
 
+~/.local/bin/mise activate fish | source
 direnv hook fish | source
 
 functions --copy fish_prompt fish_prompt_original

@@ -33,13 +33,11 @@ fi
 echo "Installing zoxide..."
 brew install zoxide
 
-# Install and configure iTerm2
-echo "Installing iTerm2..."
-brew install --cask iterm2
+# Install Ghostty
+echo "Installing Ghostty..."
+brew install ghostty
 
-# Copy iTerm2 preferences
-echo "Configuring iTerm2..."
-cp $DOTFILES_DIR/iterm2/com.googlecode.iterm2.plist ~/Library/Preferences/
+cp $DOTFILES_DIR/ghostty/config ~/Library/Application\ Support/com.mitchellh.ghostty/config
 
 # Install Arc browser if not already installed
 if [ ! -d "/Applications/Arc.app" ]; then
@@ -99,6 +97,7 @@ echo "Installing direnv..."
 brew install direnv
 
 echo "Installing 1Password..."
+brew install --cask 1password
 brew install --cask 1password/tap/1password-cli
 
 # Install Rust, for YJIT

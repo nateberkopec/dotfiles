@@ -46,7 +46,7 @@ if [ -d "$HOME/.config/fish/functions" ]; then
 fi
 
 # Update iTerm2 preferences
-if backup_if_changed "$HOME/Library/Preferences/com.googlecode.iterm2.plist" "$DOTFILES_DIR/iterm2/com.googlecode.iterm2.plist"; then
+if backup_if_changed "$HOME/Library/Application\ Support/com.mitchellh.ghostty/config" "$DOTFILES_DIR/ghostty/config"; then
     changes_made=true
 fi
 
