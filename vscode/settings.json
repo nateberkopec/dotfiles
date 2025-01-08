@@ -72,5 +72,6 @@
     "MBP-Server.local": "macOS"
   },
   "http.proxyStrictSSL":false,
-  "chat.editing.alwaysSaveWithGeneratedChanges": true
+  "chat.editing.alwaysSaveWithGeneratedChanges": true,
+  "editor.guides.bracketPairs": "active"
 }
