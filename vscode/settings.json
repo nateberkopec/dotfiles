@@ -18,7 +18,9 @@
   "[yaml]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
-  "rubyLsp.rubyVersionManager": "custom",
+  "rubyLsp.rubyVersionManager": {
+    "identifier": "custom",
+  },
   "rubyLsp.customRubyCommand": "eval \"$(mise env -s fish)\"",
   "[ruby]": {
     "editor.defaultFormatter": "Shopify.ruby-lsp"
