@@ -31,7 +31,7 @@ else
 fi
 
 # Combine brew install commands
-brew install zoxide ghostty bat gh rust mise direnv fish orbstack fontconfig
+brew install zoxide ghostty bat gh rust mise direnv fish orbstack fontconfig libyaml
 
 # Install cask applications
 brew install --cask amethyst github visual-studio-code alfred 1password 1password/tap/1password-cli
