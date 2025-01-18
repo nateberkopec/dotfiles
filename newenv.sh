@@ -34,7 +34,7 @@ fi
 brew install zoxide ghostty bat gh rust mise direnv fish orbstack fontconfig libyaml coreutils
 
 # Install cask applications
-brew install --cask amethyst github visual-studio-code alfred 1password 1password/tap/1password-cli
+brew install --cask amethyst github visual-studio-code raycast 1password 1password/tap/1password-cli
 
 mkdir -p $HOME/Library/Application\ Support/com.mitchellh.ghostty/
 cp $DOTFILES_DIR/ghostty/config $HOME/Library/Application\ Support/com.mitchellh.ghostty
@@ -67,9 +67,6 @@ if [ -f "$DOTFILES_DIR/vscode/extensions.txt" ]; then
         code --install-extension "$extension"
     done < "$DOTFILES_DIR/vscode/extensions.txt"
 fi
-
-echo "Configuring Alfred..."
-cp $DOTFILES_DIR/alfred/*  ~/Library/Preferences/
 
 echo "Installing latest stable Ruby..."
 mise use --global ruby@latest
