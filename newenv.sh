@@ -112,7 +112,7 @@ cp -r "$DOTFILES_DIR/omf/"* ~/.config/omf/
 fish -c "omf install"
 
 # Open/install fonts only if they are not already installed
-for font in ~/.dotfiles/fonts/*.{ttf}; do
+for font in ~/.dotfiles/fonts/*.ttf; do
     font_name=$(basename "$font")
     if ! fc-list | grep -q "$font_name"; then
         echo "Installing font: $font_name"
