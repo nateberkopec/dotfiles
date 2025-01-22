@@ -19,7 +19,19 @@ brew_quiet() {
     fi
 }
 
+# Software update function
+softwareupdate_quiet() {
+    if [ "${DEBUG:-false}" = "true" ]; then
+        sudo softwareupdate -i -a
+    else
+        sudo softwareupdate -i -a >/dev/null 2>&1
+    fi
+}
+
 debug "Starting macOS development environment setup..."
+
+debug "Checking for macOS updates..."
+softwareupdate_quiet
 
 # Check if Homebrew is installed
 if ! command -v brew &> /dev/null; then
