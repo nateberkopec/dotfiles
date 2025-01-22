@@ -62,7 +62,15 @@ fi
 brew_quiet install zoxide ghostty bat gh rust mise direnv fish orbstack fontconfig libyaml coreutils
 
 # Install cask applications
-brew_quiet install --cask amethyst github visual-studio-code raycast 1password 1password/tap/1password-cli
+brew_quiet install --cask amethyst github visual-studio-code raycast
+
+# Install 1Password if not already installed
+if [ ! -d "/Applications/1Password.app" ]; then
+    debug "Installing 1Password..."
+    brew_quiet install --cask 1password 1password/tap/1password-cli
+else
+    debug "1Password is already installed, skipping..."
+fi
 
 mkdir -p $HOME/Library/Application\ Support/com.mitchellh.ghostty/
 cp $DOTFILES_DIR/ghostty/config $HOME/Library/Application\ Support/com.mitchellh.ghostty
