@@ -23,10 +23,13 @@
   },
   "rubyLsp.customRubyCommand": "eval \"$(mise env -s fish)\"",
   "[ruby]": {
-    "editor.defaultFormatter": "Shopify.ruby-lsp"
+    "editor.defaultFormatter": "Shopify.ruby-lsp",
+    "editor.formatOnSave": true, // Format files automatically when saving
+    "editor.tabSize": 2, // Use 2 spaces for indentation
+    "editor.insertSpaces": true, // Use spaces and not tabs for indentantion
+    "editor.semanticHighlighting.enabled": true, // Enable semantic highlighting
+    "editor.formatOnType": true // Enable formatting while typing
   },
-  "rubyLsp.formatter": "rubocop",
-  "rubyLsp.enableExperimentalFeatures": false,
   "vscode-yaml-sort.customSortKeywords_2": ["name"],
   "gitlens.advanced.messages": {
     "suppressRebaseSwitchToTextWarning": true,
@@ -75,5 +78,8 @@
   },
   "http.proxyStrictSSL":false,
   "chat.editing.alwaysSaveWithGeneratedChanges": true,
-  "editor.guides.bracketPairs": "active"
+  "editor.guides.bracketPairs": "active",
+  "cSpell.enabledFileTypes": {
+    "*": false
+  }
 }
