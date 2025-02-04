@@ -28,7 +28,6 @@ direnv hook fish | source
 functions --copy fish_prompt fish_prompt_original
 
 function fish_prompt
-  gh_client_notes
   echo -n $gh_status_indicator
   fish_prompt_original
 end
