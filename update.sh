@@ -55,14 +55,6 @@ if backup_if_changed "$HOME/Library/Preferences/com.amethyst.Amethyst.plist" "$D
     changes_made=true
 fi
 
-# Update Alfred preferences
-if backup_if_changed "$HOME/Library/Preferences/com.runningwithcrayons.Alfred-Preferences.plist" "$DOTFILES_DIR/alfred/com.runningwithcrayons.Alfred-Preferences.plist"; then
-    changes_made=true
-fi
-if backup_if_changed "$HOME/Library/Preferences/com.runningwithcrayons.Alfred.plist" "$DOTFILES_DIR/alfred/com.runningwithcrayons.Alfred.plist"; then
-    changes_made=true
-fi
-
 # Update oh-my-fish configurations
 if backup_if_changed "$HOME/.config/omf/bundle" "$DOTFILES_DIR/omf/bundle"; then
     changes_made=true
