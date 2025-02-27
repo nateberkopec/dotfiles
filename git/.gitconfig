@@ -28,3 +28,5 @@
         rebase = false
 [init]
         defaultBranch = main
+[branch]
+	sort = -committerdate
