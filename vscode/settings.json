@@ -10,7 +10,7 @@
   "git.openRepositoryInParentFolders": "always",
   "[markdown]": {
     "editor.wordWrap": "wordWrapColumn",
-    "editor.defaultFormatter": "rvest.vs-code-prettier-eslint",
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
     // "editor.quickSuggestions": false
     "editor.wordWrapColumn": 80,
     "editor.wrappingIndent": "same"
@@ -19,9 +19,9 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "rubyLsp.rubyVersionManager": {
-    "identifier": "custom",
+    "identifier": "custom"
   },
-  "rubyLsp.customRubyCommand": "eval \"$(mise env -s fish)\"",
+  "rubyLsp.customRubyCommand": "eval \"$(mise env -s bash)\"",
   "[ruby]": {
     "editor.defaultFormatter": "Shopify.ruby-lsp",
     "editor.formatOnSave": true, // Format files automatically when saving
@@ -76,10 +76,11 @@
   "remote.SSH.remotePlatform": {
     "MBP-Server.local": "macOS"
   },
-  "http.proxyStrictSSL":false,
+  "http.proxyStrictSSL": false,
   "chat.editing.alwaysSaveWithGeneratedChanges": true,
   "editor.guides.bracketPairs": "active",
   "cSpell.enabledFileTypes": {
     "*": false
-  }
+  },
+  "terminal.external.osxExec": "Ghostty.app"
 }

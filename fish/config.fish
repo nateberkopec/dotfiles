@@ -31,3 +31,7 @@ function fish_prompt
   echo -n $gh_status_indicator
   fish_prompt_original
 end
+
+# Added by OrbStack: command-line tools and integration
+# This won't be added again if you remove it.
+source ~/.orbstack/shell/init2.fish 2>/dev/null || :
