@@ -33,6 +33,8 @@ debug "Starting macOS development environment setup..."
 debug "Checking for macOS updates..."
 softwareupdate_quiet
 
+defaults -currentHost write -g AppleFontSmoothing -int 0
+
 # Check if Homebrew is installed
 if ! command -v brew &> /dev/null; then
     debug "Installing Homebrew..."
