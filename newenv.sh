@@ -51,6 +51,21 @@ fi
 DOTFILES_REPO="https://github.com/nateberkopec/dotfiles.git"
 DOTFILES_DIR="$HOME/.dotfiles"
 
+# Check if 1Password CLI (op) is available
+if command -v op &> /dev/null; then
+    debug "1Password CLI found, unlocking SSH key..."
+
+    # Sign in to 1Password if needed and add SSH key
+    op signin --account 'my.1password.com' >/dev/null 2>&1 || true
+
+    op item get "Main SSH Key (id_rsa)" --format=json | jq -r '.fields[] | select(.label == "private key") | .value' | ssh-add -
+
+    # Setup trap to clear keys when script exits
+    trap 'debug "Clearing SSH keys from agent..."; ssh-add -D' EXIT
+else
+    debug "1Password CLI not found, skipping SSH key setup"
+fi
+
 if [ ! -d "$DOTFILES_DIR" ]; then
     debug "Cloning dotfiles repository..."
     git clone $DOTFILES_REPO $DOTFILES_DIR
