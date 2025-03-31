@@ -61,7 +61,13 @@ if command -v op &> /dev/null; then
 
     # Sign in to 1Password if needed and add SSH key
     op signin --account 'my.1password.com' >/dev/null 2>&1 || true
-
+    # Check if jq is installed, install it if not
+    if ! command -v jq &> /dev/null; then
+        debug "Installing jq..."
+        brew_quiet install jq
+    else
+        debug "jq already installed"
+    fi
     op item get "Main SSH Key (id_rsa)" --format=json | jq -r '.fields[] | select(.label == "private key") | .value' | ssh-add -
 
     # Setup trap to clear keys when script exits
