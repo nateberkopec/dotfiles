@@ -30,8 +30,12 @@ softwareupdate_quiet() {
 
 debug "Starting macOS development environment setup..."
 
-debug "Checking for macOS updates..."
-softwareupdate_quiet
+if groups | grep -q admin; then
+    debug "User has admin rights, checking for macOS updates..."
+    softwareupdate_quiet
+else
+    debug "User doesn't have admin rights, skipping macOS updates..."
+fi
 
 defaults -currentHost write -g AppleFontSmoothing -int 0
 
