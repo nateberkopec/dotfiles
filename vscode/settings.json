@@ -82,5 +82,6 @@
   "cSpell.enabledFileTypes": {
     "*": false
   },
-  "terminal.external.osxExec": "Ghostty.app"
+  "terminal.external.osxExec": "Ghostty.app",
+  "editor.accessibilitySupport": "off"
 }
