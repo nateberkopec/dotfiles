@@ -89,7 +89,7 @@ fi
 brew_quiet install zoxide ghostty bat gh rust mise direnv fish orbstack fontconfig libyaml coreutils
 
 # Install cask applications
-brew_quiet install --cask amethyst github visual-studio-code raycast
+brew_quiet install --cask amethyst github visual-studio-code raycast keycastr
 
 # Install 1Password if not already installed
 if [ ! -d "/Applications/1Password.app" ]; then
