@@ -1,6 +1,7 @@
 [user]
 	name = Nate Berkopec
 	email = nate.berkopec@gmail.com
+	signingkey = 19616755F4328D71
 [push]
   default = simple
         followTags = true
@@ -8,7 +9,7 @@
 [github]
   user = nateberkopec
 [credential]
-        helper = osxkeychain
+	helper = osxkeychain
 [filter "lfs"]
         clean = git-lfs clean -- %f
         smudge = git-lfs smudge -- %f
@@ -30,3 +31,7 @@
         defaultBranch = main
 [branch]
 	sort = -committerdate
+[commit]
+	gpgsign = true
+[gpg]
+	program = gpg

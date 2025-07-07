@@ -191,6 +191,18 @@ automatically-unhide-macos-hidden-apps = false
     # See: https://nikitabobko.github.io/AeroSpace/commands#mode
     alt-shift-semicolon = 'mode service'
 
+    alt-shift-cmd-ctrl-e = 'macos-native-fullscreen'
+    alt-shift-cmd-ctrl-w = 'macos-native-minimize'
+    alt-shift-cmd-ctrl-a = 'layout tiles horizontal'
+    alt-shift-cmd-ctrl-s = 'layout tiles vertical'
+    alt-shift-cmd-ctrl-d = 'move-node-to-monitor left'
+    alt-shift-cmd-ctrl-f = 'move-node-to-monitor right'
+    alt-shift-cmd-ctrl-up = 'join-with up'
+    alt-shift-cmd-ctrl-right = 'join-with right'
+    alt-shift-cmd-ctrl-left = 'join-with left'
+    alt-shift-cmd-ctrl-down = 'join-with down'
+    alt-shift-cmd-ctrl-r = 'flatten-workspace-tree'
+
 # 'service' binding mode declaration.
 # See: https://nikitabobko.github.io/AeroSpace/guide#binding-modes
 [mode.service.binding]
