@@ -45,13 +45,13 @@ if [ -d "$HOME/.config/fish/functions" ]; then
     fi
 fi
 
-# Update iTerm2 preferences
+# Update terminal preferences
 if backup_if_changed "$HOME/Library/Application\ Support/com.mitchellh.ghostty/config" "$DOTFILES_DIR/ghostty/config"; then
     changes_made=true
 fi
 
-# Update Amethyst preferences
-if backup_if_changed "$HOME/Library/Preferences/com.amethyst.Amethyst.plist" "$DOTFILES_DIR/amethyst/com.amethyst.Amethyst.plist"; then
+# Update Aerospace preferences
+if backup_if_changed "$HOME/.aerospace.toml" "$DOTFILES_DIR/aerospace/.aerospace.toml"; then
     changes_made=true
 fi
 
