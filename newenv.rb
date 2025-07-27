@@ -141,12 +141,14 @@ end
 
 class SetFontSmoothingStep < Step
   def run
+    debug 'Disabling font smoothing for better text rendering...'
     execute('defaults -currentHost write -g AppleFontSmoothing -int 0')
   end
 end
 
 class DisableDisplaysHaveSpacesStep < Step
   def run
+    debug 'Configuring Spaces to span across multiple displays...'
     execute('defaults write com.apple.spaces spans-displays -bool true && killall SystemUIServer')
   end
 end
@@ -170,7 +172,7 @@ end
 
 class UpdateHomebrewStep < Step
   def run
-    debug 'Updating Homebrew...'
+    debug 'Updating Homebrew package definitions...'
     brew_quiet('update')
   end
 end
@@ -211,6 +213,8 @@ end
 
 class InstallPackagesStep < Step
   def run
+    debug 'Installing command-line tools and applications via Homebrew...'
+
     packages = %w[zoxide ghostty bat gh rust mise direnv fish orbstack fontconfig libyaml coreutils]
     brew_quiet("install #{packages.join(' ')}")
 
@@ -244,6 +248,7 @@ end
 
 class ConfigureApplicationsStep < Step
   def run
+    debug 'Configuring application settings and preferences...'
     configure_ghostty
     configure_aerospace
     configure_git
@@ -253,6 +258,7 @@ class ConfigureApplicationsStep < Step
   private
 
   def configure_ghostty
+    debug 'Configuring Ghostty terminal...'
     ghostty_dir = File.expand_path('~/Library/Application Support/com.mitchellh.ghostty/')
     FileUtils.mkdir_p(ghostty_dir)
     FileUtils.cp("#{@dotfiles_dir}/ghostty/config", ghostty_dir)
@@ -309,17 +315,18 @@ end
 
 class SetFishDefaultShellStep < Step
   def should_run?
+    if ci_or_noninteractive?
+      debug 'Skipping default shell change (chsh) in CI/non-interactive environment'
+      return false
+    end
+
     fish_path = `which fish`.strip
     current_shell = execute('dscl . -read ~/ UserShell', quiet: true)
     !current_shell.include?(fish_path)
   end
 
   def run
-    if ci_or_noninteractive?
-      debug 'Skipping default shell change (chsh) in CI/non-interactive environment'
-      return
-    end
-
+    debug 'Setting Fish as the default shell...'
     fish_path = `which fish`.strip
 
     unless File.readlines('/etc/shells').any? { |line| line.strip == fish_path }
@@ -368,14 +375,15 @@ end
 
 class InstallFontsStep < Step
   def should_run?
+    if ci_or_noninteractive?
+      debug 'Skipping font installation (requires GUI) in CI/non-interactive environment'
+      return false
+    end
+
     font_dir = "#{@dotfiles_dir}/fonts"
-    return false unless Dir.exist?(font_dir)
-    
     font_files = Dir.glob("#{font_dir}/*.ttf")
-    return false if font_files.empty?
-    
     installed_fonts = execute('fc-list', quiet: true)
-    
+
     font_files.any? do |font_path|
       font_name = File.basename(font_path)
       !installed_fonts.include?(font_name)
@@ -383,13 +391,8 @@ class InstallFontsStep < Step
   end
 
   def run
-    if ci_or_noninteractive?
-      debug 'Skipping font installation (requires GUI) in CI/non-interactive environment'
-      return
-    end
-
     font_dir = "#{@dotfiles_dir}/fonts"
-    
+
     Dir.glob("#{font_dir}/*.ttf").each do |font_path|
       font_name = File.basename(font_path)
       debug "Installing font: #{font_name}"
