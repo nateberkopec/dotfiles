@@ -5,8 +5,10 @@ Personal configuration files for my development environment.
 ## Structure
 ```
 .
-├── amethyst/
-│   └── com.amethyst.Amethyst.plist
+├── bin/
+│   └── setup                    # Main setup script (recommended)
+├── aerospace/
+│   └── .aerospace.toml
 ├── fish/
 │   ├── config.fish
 │   └── functions/
@@ -20,8 +22,9 @@ Personal configuration files for my development environment.
 │   ├── settings.json
 │   ├── keybindings.json
 │   └── extensions.txt
-└── fonts/
-    └── *.ttf
+├── fonts/
+│   └── *.ttf
+└── newenv.rb                    # Ruby setup script
 ```
 
 ## Installation
@@ -31,22 +34,39 @@ Personal configuration files for my development environment.
    git clone https://github.com/nateberkopec/dotfiles.git ~/.dotfiles
    ```
 
-2. Run the setup script:
+2. Run the setup script (recommended):
    ```bash
-   ./newenv.sh
+   cd ~/.dotfiles
+   ./bin/setup
    ```
+
+   The setup script automatically detects your Ruby version and bootstraps a modern Ruby environment if needed.
 
    To see detailed output during installation:
    ```bash
-   DEBUG=true ./newenv.sh
+   DEBUG=true ./bin/setup
    ```
+
+### Alternative Setup Methods
+
+For advanced users, you can run the setup scripts directly:
+
+**Bash version:**
+```bash
+./newenv.sh
+```
+
+**Ruby version (requires Ruby >= 3.4):**
+```ruby
+ruby newenv.rb
+```
 
 ## What Gets Installed
 
 - System updates via macOS Software Update
 - Homebrew and essential packages
 - Development tools: VSCode, Ghostty, Fish shell, Mise
-- Applications: Arc, Amethyst, Raycast, 1Password
+- Applications: Arc, Aerospace, Raycast, 1Password
 - Ruby (latest stable version)
 - Oh My Fish and configurations
 - Custom fonts
@@ -61,8 +81,8 @@ Personal configuration files for my development environment.
 - Settings and keybindings automatically configured
 - Extensions installed from extensions.txt
 
-### Amethyst
-- Window management preferences configured automatically
+### Aerospace
+- Tiling window manager configured with .aerospace.toml
 
 ### Git
 - Global git configuration applied
