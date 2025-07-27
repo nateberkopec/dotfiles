@@ -106,7 +106,7 @@ class MacDevSetup
 
     debug '1Password CLI found, unlocking SSH key...'
 
-    execute('op signin --account "my.1password.com"', quiet: true) rescue nil
+    execute('op signin --account "my.1password.com"', quiet: true)
 
     unless command_exists?('jq')
       debug 'Installing jq...'
@@ -120,8 +120,10 @@ class MacDevSetup
     private_key = ssh_key_data['fields'].find { |f| f['label'] == 'private key' }['value']
 
     IO.popen('ssh-add -', 'w') { |io| io.write(private_key) }
-  rescue
-    debug '1Password CLI not found or failed, skipping SSH key setup'
+  rescue StandardError => e
+    puts e
+    puts e.message
+    raise 'Failed to set up SSH key from 1Password. Ensure the 1Password CLI is installed and configured correctly.' unless @debug
   end
 
   def setup_signal_handlers
@@ -254,7 +256,7 @@ class MacDevSetup
     FileUtils.mkdir_p(fish_config_dir)
 
     FileUtils.cp("#{@dotfiles_dir}/fish/config.fish", fish_config_dir)
-    FileUtils.cp_r("#{@dotfiles_dir}/fish/functions", fish_config_dir) rescue nil
+    FileUtils.cp_r("#{@dotfiles_dir}/fish/functions", fish_config_dir)
 
     install_oh_my_fish
   end
