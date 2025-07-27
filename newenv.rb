@@ -37,7 +37,7 @@ class Step
     puts message if @debug
   end
 
-  def execute(command, quiet: !@debug, sudo: false)
+  def execute(command, quiet: !@debug, sudo: false, capture_output: false)
     if sudo && ci_or_noninteractive?
       debug "Skipping sudo command in CI/non-interactive environment: #{command}"
       return ""
@@ -46,7 +46,7 @@ class Step
     cmd = sudo ? "sudo #{command}" : command
     debug "Executing: #{cmd}"
 
-    if quiet && !@debug
+    if quiet || capture_output
       stdout, stderr, status = Open3.capture3(cmd)
       raise "Command failed: #{cmd}\n#{stderr}" unless status.success?
       stdout
@@ -191,7 +191,7 @@ class SetupSSHKeysStep < Step
 
     execute('op signin --account "my.1password.com"', quiet: true)
 
-    ssh_key_json = execute('op item get "Main SSH Key (id_rsa)" --format=json', quiet: true)
+    ssh_key_json = execute('op item get "Main SSH Key (id_rsa)" --format=json', capture_output: true)
     ssh_key_data = JSON.parse(ssh_key_json)
     private_key = ssh_key_data['fields'].find { |f| f['label'] == 'private key' }['value']
 
@@ -291,7 +291,7 @@ class ConfigureApplicationsStep < Step
     return unless File.exist?(extensions_file)
 
     debug 'Installing VSCode extensions...'
-    installed_extensions = execute('code --list-extensions', quiet: true).split("\n")
+    installed_extensions = execute('code --list-extensions', capture_output: true).split("\n")
 
     File.readlines(extensions_file).each do |extension|
       extension = extension.strip
@@ -321,7 +321,7 @@ class SetFishDefaultShellStep < Step
     end
 
     fish_path = `which fish`.strip
-    current_shell = execute('dscl . -read ~/ UserShell', quiet: true)
+    current_shell = execute('dscl . -read ~/ UserShell', capture_output: true)
     !current_shell.include?(fish_path)
   end
 
@@ -382,7 +382,7 @@ class InstallFontsStep < Step
 
     font_dir = "#{@dotfiles_dir}/fonts"
     font_files = Dir.glob("#{font_dir}/*.ttf")
-    installed_fonts = execute('fc-list', quiet: true)
+    installed_fonts = execute('fc-list', capture_output: true)
 
     font_files.any? do |font_path|
       font_name = File.basename(font_path)
