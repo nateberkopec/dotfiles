@@ -191,6 +191,17 @@ automatically-unhide-macos-hidden-apps = false
     # See: https://nikitabobko.github.io/AeroSpace/commands#mode
     alt-shift-semicolon = 'mode service'
 
+    alt-shift-cmd-ctrl-t = '''exec-and-forget osascript -e '
+    tell application "Ghostty"
+        if it is running then
+            activate
+            tell application "System Events" to keystroke "n" using {command down}
+        else
+            activate
+        end if
+    end tell'
+    '''
+
     alt-shift-cmd-ctrl-e = 'macos-native-fullscreen'
     alt-shift-cmd-ctrl-w = 'macos-native-minimize'
     alt-shift-cmd-ctrl-a = 'layout tiles horizontal'
