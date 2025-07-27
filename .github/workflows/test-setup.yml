@@ -17,6 +17,10 @@ jobs:
       
     - name: Run setup script
       id: setup
+      env:
+        DEBUG: true
+        CI: true
+        NONINTERACTIVE: true
       run: |
         cd ${{ github.workspace }}
         chmod +x bin/setup

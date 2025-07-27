@@ -38,6 +38,11 @@ class Step
   end
 
   def execute(command, quiet: !@debug, sudo: false)
+    if sudo && ci_or_noninteractive?
+      debug "Skipping sudo command in CI/non-interactive environment: #{command}"
+      return ""
+    end
+
     cmd = sudo ? "sudo #{command}" : command
     debug "Executing: #{cmd}"
 
@@ -56,6 +61,10 @@ class Step
 
   def brew_quiet(command)
     execute("brew #{command}", quiet: !@debug)
+  end
+
+  def ci_or_noninteractive?
+    ENV['CI'] || ENV['NONINTERACTIVE']
   end
 end
 
@@ -168,6 +177,10 @@ end
 
 class SetupSSHKeysStep < Step
   def should_run?
+    if ci_or_noninteractive?
+      debug 'Skipping 1Password SSH key setup in CI/non-interactive environment'
+      return false
+    end
     command_exists?('op')
   end
 
@@ -302,6 +315,11 @@ class SetFishDefaultShellStep < Step
   end
 
   def run
+    if ci_or_noninteractive?
+      debug 'Skipping default shell change (chsh) in CI/non-interactive environment'
+      return
+    end
+
     fish_path = `which fish`.strip
 
     unless File.readlines('/etc/shells').any? { |line| line.strip == fish_path }
@@ -365,6 +383,11 @@ class InstallFontsStep < Step
   end
 
   def run
+    if ci_or_noninteractive?
+      debug 'Skipping font installation (requires GUI) in CI/non-interactive environment'
+      return
+    end
+
     font_dir = "#{@dotfiles_dir}/fonts"
     
     Dir.glob("#{font_dir}/*.ttf").each do |font_path|

@@ -1,6 +1,5 @@
 4ops.terraform
 anthropic.claude-code
-anysphere.remote-containers
 castwide.solargraph
 dbaeumer.vscode-eslint
 eamodio.gitlens
