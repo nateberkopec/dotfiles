@@ -49,12 +49,7 @@ Personal configuration files for my development environment.
 
 ### Alternative Setup Methods
 
-For advanced users, you can run the setup scripts directly:
-
-**Bash version:**
-```bash
-./newenv.sh
-```
+For advanced users, you can run the Ruby setup script directly:
 
 **Ruby version (requires Ruby >= 3.4):**
 ```ruby
