@@ -5,35 +5,30 @@ require 'json'
 require 'open3'
 require 'shellwords'
 
-class MacDevSetup
-  def initialize
-    @debug = ENV['DEBUG'] == 'true'
-    @dotfiles_repo = 'https://github.com/nateberkopec/dotfiles.git'
-    @dotfiles_dir = File.expand_path('~/.dotfiles')
-    @home = ENV['HOME']
+class Step
+  @@steps = []
 
-    setup_signal_handlers
+  def self.inherited(subclass)
+    @@steps << subclass
+  end
+
+  def self.all_steps
+    @@steps
+  end
+
+  def initialize(debug:, dotfiles_repo:, dotfiles_dir:, home:)
+    @debug = debug
+    @dotfiles_repo = dotfiles_repo
+    @dotfiles_dir = dotfiles_dir
+    @home = home
+  end
+
+  def should_run?
+    true
   end
 
   def run
-    debug 'Starting macOS development environment setup...'
-
-    update_macos if user_has_admin_rights?
-    set_font_smoothing
-    disable_displays_have_spaces
-    install_homebrew
-    setup_ssh_keys
-    clone_dotfiles
-    install_packages
-    configure_applications
-    install_ruby
-    setup_fish_shell
-    install_fonts
-
-    puts 'Installation complete! Please restart your terminal for all changes to take effect.'
-  rescue => e
-    puts "Error: #{e.message}"
-    exit 1
+    raise NotImplementedError, 'Subclasses must implement #run'
   end
 
   private
@@ -59,71 +54,53 @@ class MacDevSetup
     system("command -v #{command} >/dev/null 2>&1")
   end
 
-  def user_has_admin_rights?
-    groups = `groups`.strip
-    groups.include?('admin')
-  end
-
-  def update_macos
-    if user_has_admin_rights?
-      debug 'User has admin rights, checking for macOS updates...'
-      execute('softwareupdate -i -a', sudo: true, quiet: true)
-    else
-      debug "User doesn't have admin rights, skipping macOS updates..."
-    end
-  end
-
-  def set_font_smoothing
-    execute('defaults -currentHost write -g AppleFontSmoothing -int 0')
-  end
-
-  def disable_displays_have_spaces
-    execute('defaults write com.apple.spaces spans-displays -bool true && killall SystemUIServer')
-  end
-
-  def install_homebrew
-    unless command_exists?('brew')
-      debug 'Installing Homebrew...'
-      execute('/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"')
-
-      File.open(File.expand_path('~/.zprofile'), 'a') do |f|
-        f.puts 'eval "$(/opt/homebrew/bin/brew shellenv)"'
-      end
-
-      execute('eval "$(/opt/homebrew/bin/brew shellenv)"')
-    else
-      debug 'Homebrew already installed, updating...'
-      brew_quiet('update')
-    end
-  end
-
   def brew_quiet(command)
     execute("brew #{command}", quiet: !@debug)
   end
+end
 
-  def setup_ssh_keys
-    return unless command_exists?('op')
+class MacDevSetup
+  attr_reader :dotfiles_repo, :dotfiles_dir, :home
 
-    debug '1Password CLI found, unlocking SSH key...'
+  def initialize
+    @debug = ENV['DEBUG'] == 'true'
+    @dotfiles_repo = 'https://github.com/nateberkopec/dotfiles.git'
+    @dotfiles_dir = File.expand_path('~/.dotfiles')
+    @home = ENV['HOME']
 
-    execute('op signin --account "my.1password.com"', quiet: true)
+    setup_signal_handlers
+  end
 
-    unless command_exists?('jq')
-      debug 'Installing jq...'
-      brew_quiet('install jq')
-    else
-      debug 'jq already installed'
+  def run
+    debug 'Starting macOS development environment setup...'
+
+    step_params = {
+      debug: @debug,
+      dotfiles_repo: @dotfiles_repo,
+      dotfiles_dir: @dotfiles_dir,
+      home: @home
+    }
+
+    Step.all_steps.each do |step_class|
+      step = step_class.new(**step_params)
+      next unless step.should_run?
+      step.run
     end
 
-    ssh_key_json = execute('op item get "Main SSH Key (id_rsa)" --format=json', quiet: true)
-    ssh_key_data = JSON.parse(ssh_key_json)
-    private_key = ssh_key_data['fields'].find { |f| f['label'] == 'private key' }['value']
+    puts 'Installation complete! Please restart your terminal for all changes to take effect.'
+  rescue => e
+    puts "Error: #{e.message}"
+    exit 1
+  end
 
-    IO.popen('ssh-add -', 'w') { |io| io.write(private_key) }
-  rescue StandardError => e
-    puts e
-    puts e.message
-    raise 'Failed to set up SSH key from 1Password. Ensure the 1Password CLI is installed and configured correctly.' unless @debug
+  private
+
+  def debug(message)
+    puts message if @debug
+  end
+
+  def command_exists?(command)
+    system("command -v #{command} >/dev/null 2>&1")
   end
 
   def setup_signal_handlers
@@ -133,7 +110,82 @@ class MacDevSetup
     end
   end
 
-  def clone_dotfiles
+end
+
+class UpdateMacOSStep < Step
+  def should_run?
+    user_has_admin_rights? && STDIN.tty?
+  end
+
+  def run
+    debug 'User has admin rights, checking for macOS updates...'
+    execute('softwareupdate -i -a', sudo: true, quiet: true)
+  end
+
+  private
+
+  def user_has_admin_rights?
+    groups = `groups`.strip
+    groups.include?('admin')
+  end
+end
+
+class SetFontSmoothingStep < Step
+  def run
+    execute('defaults -currentHost write -g AppleFontSmoothing -int 0')
+  end
+end
+
+class DisableDisplaysHaveSpacesStep < Step
+  def run
+    execute('defaults write com.apple.spaces spans-displays -bool true && killall SystemUIServer')
+  end
+end
+
+class InstallHomebrewStep < Step
+  def should_run?
+    !command_exists?('brew')
+  end
+
+  def run
+    debug 'Installing Homebrew...'
+    execute('/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"')
+
+    File.open(File.expand_path('~/.zprofile'), 'a') do |f|
+      f.puts 'eval "$(/opt/homebrew/bin/brew shellenv)"'
+    end
+
+    execute('eval "$(/opt/homebrew/bin/brew shellenv)"')
+  end
+end
+
+class UpdateHomebrewStep < Step
+  def run
+    debug 'Updating Homebrew...'
+    brew_quiet('update')
+  end
+end
+
+class SetupSSHKeysStep < Step
+  def should_run?
+    command_exists?('op')
+  end
+
+  def run
+    debug '1Password CLI found, unlocking SSH key...'
+
+    execute('op signin --account "my.1password.com"', quiet: true)
+
+    ssh_key_json = execute('op item get "Main SSH Key (id_rsa)" --format=json', quiet: true)
+    ssh_key_data = JSON.parse(ssh_key_json)
+    private_key = ssh_key_data['fields'].find { |f| f['label'] == 'private key' }['value']
+
+    IO.popen('ssh-add -', 'w') { |io| io.write(private_key) }
+  end
+end
+
+class CloneDotfilesStep < Step
+  def run
     if Dir.exist?(@dotfiles_dir)
       debug 'Dotfiles directory already exists, pulling latest changes...'
       Dir.chdir(@dotfiles_dir) { execute('git pull') }
@@ -142,8 +194,10 @@ class MacDevSetup
       execute("git clone #{@dotfiles_repo} #{@dotfiles_dir}")
     end
   end
+end
 
-  def install_packages
+class InstallPackagesStep < Step
+  def run
     packages = %w[zoxide ghostty bat gh rust mise direnv fish orbstack fontconfig libyaml coreutils]
     brew_quiet("install #{packages.join(' ')}")
 
@@ -153,6 +207,8 @@ class MacDevSetup
     install_1password
     install_arc_browser
   end
+
+  private
 
   def install_1password
     unless Dir.exist?('/Applications/1Password.app')
@@ -171,13 +227,17 @@ class MacDevSetup
       debug 'Arc browser is already installed, skipping...'
     end
   end
+end
 
-  def configure_applications
+class ConfigureApplicationsStep < Step
+  def run
     configure_ghostty
     configure_aerospace
     configure_git
     configure_vscode
   end
+
+  private
 
   def configure_ghostty
     ghostty_dir = File.expand_path('~/Library/Application Support/com.mitchellh.ghostty/')
@@ -224,14 +284,24 @@ class MacDevSetup
       end
     end
   end
+end
 
-  def install_ruby
+class InstallRubyStep < Step
+  def run
     debug 'Installing latest stable Ruby...'
     execute('mise use --global ruby@latest')
     execute('mise install ruby@latest')
   end
+end
 
-  def setup_fish_shell
+class SetFishDefaultShellStep < Step
+  def should_run?
+    fish_path = `which fish`.strip
+    current_shell = execute('dscl . -read ~/ UserShell', quiet: true)
+    !current_shell.include?(fish_path)
+  end
+
+  def run
     fish_path = `which fish`.strip
 
     unless File.readlines('/etc/shells').any? { |line| line.strip == fish_path }
@@ -239,18 +309,13 @@ class MacDevSetup
       execute("echo #{fish_path} | sudo tee -a /etc/shells", sudo: true)
     end
 
-    current_shell = execute('dscl . -read ~/ UserShell', quiet: true)
-    unless current_shell.include?(fish_path)
-      debug 'Changing default shell to Fish...'
-      execute("chsh -s #{fish_path}")
-    else
-      debug 'Fish is already the default shell, skipping...'
-    end
-
-    configure_fish
+    debug 'Changing default shell to Fish...'
+    execute("chsh -s #{fish_path}")
   end
+end
 
-  def configure_fish
+class ConfigureFishStep < Step
+  def run
     debug 'Setting up Fish configuration...'
     fish_config_dir = File.expand_path('~/.config/fish')
     FileUtils.mkdir_p(fish_config_dir)
@@ -260,6 +325,8 @@ class MacDevSetup
 
     install_oh_my_fish
   end
+
+  private
 
   def install_oh_my_fish
     omf_dir = File.expand_path('~/.local/share/omf')
@@ -279,21 +346,31 @@ class MacDevSetup
 
     execute('fish -c "omf install"')
   end
+end
 
-  def install_fonts
+class InstallFontsStep < Step
+  def should_run?
     font_dir = "#{@dotfiles_dir}/fonts"
-    return unless Dir.exist?(font_dir)
-
+    return false unless Dir.exist?(font_dir)
+    
+    font_files = Dir.glob("#{font_dir}/*.ttf")
+    return false if font_files.empty?
+    
     installed_fonts = execute('fc-list', quiet: true)
+    
+    font_files.any? do |font_path|
+      font_name = File.basename(font_path)
+      !installed_fonts.include?(font_name)
+    end
+  end
 
+  def run
+    font_dir = "#{@dotfiles_dir}/fonts"
+    
     Dir.glob("#{font_dir}/*.ttf").each do |font_path|
       font_name = File.basename(font_path)
-      unless installed_fonts.include?(font_name)
-        debug "Installing font: #{font_name}"
-        execute("open #{Shellwords.escape(font_path)}")
-      else
-        debug "Font #{font_name} is already installed, skipping..."
-      end
+      debug "Installing font: #{font_name}"
+      execute("open #{Shellwords.escape(font_path)}")
     end
   end
 end
