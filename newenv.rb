@@ -34,8 +34,6 @@ class MacDevSetup
     end
 
     check_completion(step_params)
-
-    puts 'Installation complete! Please restart your terminal for all changes to take effect.'
   rescue => e
     puts "Error: #{e.message}"
     exit 1
