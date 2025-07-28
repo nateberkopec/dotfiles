@@ -7,7 +7,7 @@ class InstallHomebrewStep < Step
     debug 'Installing Homebrew...'
     execute('/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"')
 
-    File.open(File.expand_path('~/.zprofile'), 'a') do |f|
+    File.open(@config.expand_path('zprofile'), 'a') do |f|
       f.puts 'eval "$(/opt/homebrew/bin/brew shellenv)"'
     end
 

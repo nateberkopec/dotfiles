@@ -2,6 +2,7 @@ require 'fileutils'
 require 'json'
 require 'open3'
 require 'shellwords'
+require 'yaml'
 
 class Step
   @@steps = []
@@ -19,6 +20,7 @@ class Step
     @dotfiles_repo = dotfiles_repo
     @dotfiles_dir = dotfiles_dir
     @home = home
+    @config = ConfigLoader.new(dotfiles_dir)
   end
 
   def should_run?

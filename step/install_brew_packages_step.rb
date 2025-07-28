@@ -2,16 +2,16 @@ class InstallBrewPackagesStep < Step
   def run
     debug 'Installing command-line tools via Homebrew...'
 
-    packages = %w[zoxide ghostty bat gh rust mise direnv fish orbstack fontconfig libyaml coreutils]
+    packages = @config.packages['brew']['packages']
     brew_quiet("install #{packages.join(' ')}")
 
-    cask_packages = %w[nikitabobko/tap/aerospace github visual-studio-code raycast keycastr]
+    cask_packages = @config.packages['brew']['casks']
     brew_quiet("install --cask #{cask_packages.join(' ')}")
   end
 
   def complete?
-    packages = %w[zoxide bat gh rust mise direnv fish fontconfig libyaml coreutils]
-    cask_packages = %w[nikitabobko/tap/aerospace github visual-studio-code raycast keycastr ghostty orbstack]
+    packages = @config.packages['brew']['packages']
+    cask_packages = @config.packages['brew']['casks']
 
     installed_packages = execute('brew list --formula', capture_output: true, quiet: true).split("\n")
     installed_casks = execute('brew list --cask', capture_output: true, quiet: true).split("\n")

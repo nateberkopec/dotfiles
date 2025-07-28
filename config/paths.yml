@@ -1,0 +1,25 @@
+home_paths:
+  fish_config_dir: ~/.config/fish
+  fish_config_file: ~/.config/fish/config.fish
+  fish_functions_dir: ~/.config/fish/functions
+  gitconfig: ~/.gitconfig
+  aerospace_config: ~/.aerospace.toml
+  zprofile: ~/.zprofile
+
+application_paths:
+  ghostty_config_dir: ~/Library/Application Support/com.mitchellh.ghostty/
+  ghostty_config_file: ~/Library/Application Support/com.mitchellh.ghostty/config
+  
+  vscode_user_dir: ~/Library/Application Support/Code/User
+  vscode_settings: ~/Library/Application Support/Code/User/settings.json
+  vscode_keybindings: ~/Library/Application Support/Code/User/keybindings.json
+
+dotfiles_sources:
+  fish_config: fish/config.fish
+  fish_functions: fish/functions
+  ghostty_config: ghostty/config
+  aerospace_config: aerospace/.aerospace.toml
+  git_config: git/.gitconfig
+  vscode_settings: vscode/settings.json
+  vscode_keybindings: vscode/keybindings.json
+  vscode_extensions: vscode/extensions.txt

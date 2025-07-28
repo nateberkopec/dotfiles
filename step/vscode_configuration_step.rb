@@ -1,18 +1,18 @@
 class VSCodeConfigurationStep < Step
   def run
     debug 'Configuring VSCode...'
-    vscode_dir = File.expand_path('~/Library/Application Support/Code/User')
+    vscode_dir = @config.expand_path('vscode_user_dir', 'application_paths')
     FileUtils.mkdir_p(vscode_dir)
 
-    FileUtils.cp("#{@dotfiles_dir}/vscode/settings.json", vscode_dir)
-    FileUtils.cp("#{@dotfiles_dir}/vscode/keybindings.json", vscode_dir)
+    FileUtils.cp(@config.source_path('vscode_settings'), vscode_dir)
+    FileUtils.cp(@config.source_path('vscode_keybindings'), vscode_dir)
 
     install_vscode_extensions
   end
 
   def complete?
-    vscode_settings = File.expand_path('~/Library/Application Support/Code/User/settings.json')
-    vscode_keybindings = File.expand_path('~/Library/Application Support/Code/User/keybindings.json')
+    vscode_settings = @config.expand_path('vscode_settings', 'application_paths')
+    vscode_keybindings = @config.expand_path('vscode_keybindings', 'application_paths')
 
     File.exist?(vscode_settings) && File.exist?(vscode_keybindings)
   end
@@ -20,7 +20,7 @@ class VSCodeConfigurationStep < Step
   private
 
   def install_vscode_extensions
-    extensions_file = "#{@dotfiles_dir}/vscode/extensions.txt"
+    extensions_file = @config.source_path('vscode_extensions')
     return unless File.exist?(extensions_file)
 
     debug 'Installing VSCode extensions...'

@@ -7,9 +7,9 @@ class ConfigureApplicationsStep < Step
   end
 
   def complete?
-    ghostty_config = File.expand_path('~/Library/Application Support/com.mitchellh.ghostty/config')
-    aerospace_config = File.expand_path('~/.aerospace.toml')
-    git_config = File.expand_path('~/.gitconfig')
+    ghostty_config = @config.expand_path('ghostty_config_file', 'application_paths')
+    aerospace_config = @config.expand_path('aerospace_config')
+    git_config = @config.expand_path('gitconfig')
 
     File.exist?(ghostty_config) && File.exist?(aerospace_config) && File.exist?(git_config)
   end
@@ -18,20 +18,19 @@ class ConfigureApplicationsStep < Step
 
   def configure_ghostty
     debug 'Configuring Ghostty terminal...'
-    ghostty_dir = File.expand_path('~/Library/Application Support/com.mitchellh.ghostty/')
+    ghostty_dir = @config.expand_path('ghostty_config_dir', 'application_paths')
     FileUtils.mkdir_p(ghostty_dir)
-    FileUtils.cp("#{@dotfiles_dir}/ghostty/config", ghostty_dir)
+    FileUtils.cp(@config.source_path('ghostty_config'), ghostty_dir)
   end
 
   def configure_aerospace
     debug 'Configuring Aerospace...'
-    FileUtils.cp("#{@dotfiles_dir}/aerospace/.aerospace.toml",
-                 File.expand_path('~'))
+    FileUtils.cp(@config.source_path('aerospace_config'), @config.expand_path('aerospace_config'))
   end
 
   def configure_git
     debug 'Configuring Git global settings...'
-    FileUtils.cp("#{@dotfiles_dir}/git/.gitconfig", File.expand_path('~/.gitconfig'))
+    FileUtils.cp(@config.source_path('git_config'), @config.expand_path('gitconfig'))
   end
 
 end

@@ -2,6 +2,7 @@
 
 $LOAD_PATH.unshift(File.dirname(__FILE__))
 
+require 'config_loader'
 require 'step'
 Dir.glob(File.join(File.dirname(__FILE__), 'step', '*.rb')).each { |file| require file }
 
