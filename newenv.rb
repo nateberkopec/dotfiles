@@ -31,6 +31,10 @@ class Step
     raise NotImplementedError, 'Subclasses must implement #run'
   end
 
+  def complete?
+    raise NotImplementedError, 'Subclasses must implement #complete?'
+  end
+
   private
 
   def debug(message)
@@ -96,6 +100,8 @@ class MacDevSetup
       step.run
     end
 
+    check_completion(step_params)
+
     puts 'Installation complete! Please restart your terminal for all changes to take effect.'
   rescue => e
     puts "Error: #{e.message}"
@@ -103,6 +109,43 @@ class MacDevSetup
   end
 
   private
+
+  def check_completion(step_params)
+    puts "\nChecking step completion status:"
+    puts "=" * 40
+
+    failed_steps = []
+
+    Step.all_steps.each do |step_class|
+      step = step_class.new(**step_params)
+      step_name = step_class.name.gsub(/Step$/, '').gsub(/([A-Z])/, ' \1').strip
+
+      completion_status = step.complete?
+      status_symbol = case completion_status
+                     when true then "✓"
+                     when false then "✗"
+                     when nil then "-"
+                     end
+
+      status_text = case completion_status
+                   when true then "Complete"
+                   when false then "Failed/Incomplete"
+                   when nil then "Skipped"
+                   end
+
+      puts "#{status_symbol} #{step_name}: #{status_text}"
+
+      failed_steps << step_name if completion_status == false
+    end
+
+    puts "=" * 40
+
+    if failed_steps.any?
+      puts "Installation failed! The following steps were incomplete:"
+      failed_steps.each { |step| puts "  - #{step}" }
+      exit 1
+    end
+  end
 
   def debug(message)
     puts message if @debug
@@ -115,7 +158,7 @@ class MacDevSetup
   def setup_signal_handlers
     trap('EXIT') do
       debug 'Clearing SSH keys from agent...'
-      system('ssh-add -D') if command_exists?('ssh-add')
+      system('ssh-add -D 2>/dev/null') if command_exists?('ssh-add')
     end
   end
 
@@ -131,6 +174,14 @@ class UpdateMacOSStep < Step
     execute('softwareupdate -i -a', sudo: true, quiet: true)
   end
 
+  def complete?
+    return nil unless should_run?
+    output = execute('softwareupdate -l --no-scan', capture_output: true, quiet: true)
+    !output.include?('No new software available.')
+  rescue
+    false
+  end
+
   private
 
   def user_has_admin_rights?
@@ -144,12 +195,26 @@ class SetFontSmoothingStep < Step
     debug 'Disabling font smoothing for better text rendering...'
     execute('defaults -currentHost write -g AppleFontSmoothing -int 0')
   end
+
+  def complete?
+    output = execute('defaults -currentHost read -g AppleFontSmoothing', capture_output: true, quiet: true)
+    output.strip == '0'
+  rescue
+    false
+  end
 end
 
 class DisableDisplaysHaveSpacesStep < Step
   def run
     debug 'Configuring Spaces to span across multiple displays...'
     execute('defaults write com.apple.spaces spans-displays -bool true && killall SystemUIServer')
+  end
+
+  def complete?
+    output = execute('defaults read com.apple.spaces spans-displays', capture_output: true, quiet: true)
+    output.strip == '1'
+  rescue
+    false
   end
 end
 
@@ -168,12 +233,20 @@ class InstallHomebrewStep < Step
 
     execute('eval "$(/opt/homebrew/bin/brew shellenv)"')
   end
+
+  def complete?
+    command_exists?('brew')
+  end
 end
 
 class UpdateHomebrewStep < Step
   def run
     debug 'Updating Homebrew package definitions...'
     brew_quiet('update')
+  end
+
+  def complete?
+    true
   end
 end
 
@@ -195,7 +268,15 @@ class SetupSSHKeysStep < Step
     ssh_key_data = JSON.parse(ssh_key_json)
     private_key = ssh_key_data['fields'].find { |f| f['label'] == 'private key' }['value']
 
-    IO.popen('ssh-add -', 'w') { |io| io.write(private_key) }
+    IO.popen('ssh-add - 2>/dev/null', 'w') { |io| io.write(private_key) }
+  end
+
+  def complete?
+    return nil unless should_run?
+    output = execute('ssh-add -l', capture_output: true, quiet: true)
+    !output.include?('The agent has no identities')
+  rescue
+    false
   end
 end
 
@@ -208,6 +289,10 @@ class CloneDotfilesStep < Step
       debug 'Cloning dotfiles repository...'
       execute("git clone #{@dotfiles_repo} #{@dotfiles_dir}")
     end
+  end
+
+  def complete?
+    Dir.exist?(@dotfiles_dir) && Dir.exist?(File.join(@dotfiles_dir, '.git'))
   end
 end
 
@@ -223,6 +308,27 @@ class InstallPackagesStep < Step
 
     install_1password
     install_arc_browser
+  end
+
+  def complete?
+    packages = %w[zoxide bat gh rust mise direnv fish fontconfig libyaml coreutils]
+    cask_packages = %w[nikitabobko/tap/aerospace github visual-studio-code raycast keycastr ghostty orbstack]
+
+    installed_packages = execute('brew list --formula', capture_output: true, quiet: true).split("\n")
+    installed_casks = execute('brew list --cask', capture_output: true, quiet: true).split("\n")
+
+    packages_installed = packages.all? { |pkg| installed_packages.include?(pkg) }
+    cask_apps_installed = cask_packages.all? do |cask|
+      cask_name = cask.split('/').last
+      installed_casks.include?(cask_name)
+    end
+
+    onepass_installed = Dir.exist?('/Applications/1Password.app')
+    arc_installed = Dir.exist?('/Applications/Arc.app')
+    binding.irb
+    packages_installed && cask_apps_installed && onepass_installed && arc_installed
+  rescue
+    false
   end
 
   private
@@ -253,6 +359,17 @@ class ConfigureApplicationsStep < Step
     configure_aerospace
     configure_git
     configure_vscode
+  end
+
+  def complete?
+    ghostty_config = File.expand_path('~/Library/Application Support/com.mitchellh.ghostty/config')
+    aerospace_config = File.expand_path('~/.aerospace.toml')
+    git_config = File.expand_path('~/.gitconfig')
+    vscode_settings = File.expand_path('~/Library/Application Support/Code/User/settings.json')
+    vscode_keybindings = File.expand_path('~/Library/Application Support/Code/User/keybindings.json')
+
+    File.exist?(ghostty_config) && File.exist?(aerospace_config) &&
+    File.exist?(git_config) && File.exist?(vscode_settings) && File.exist?(vscode_keybindings)
   end
 
   private
@@ -311,6 +428,13 @@ class InstallRubyStep < Step
     execute('mise use --global ruby@latest')
     execute('mise install ruby@latest')
   end
+
+  def complete?
+    output = execute('mise current ruby', capture_output: true, quiet: true)
+    !output.strip.empty?
+  rescue
+    false
+  end
 end
 
 class SetFishDefaultShellStep < Step
@@ -337,6 +461,14 @@ class SetFishDefaultShellStep < Step
     debug 'Changing default shell to Fish...'
     execute("chsh -s #{fish_path}")
   end
+
+  def complete?
+    fish_path = `which fish`.strip
+    current_shell = execute('dscl . -read ~/ UserShell', capture_output: true, quiet: true)
+    current_shell.include?(fish_path)
+  rescue
+    false
+  end
 end
 
 class ConfigureFishStep < Step
@@ -349,6 +481,16 @@ class ConfigureFishStep < Step
     FileUtils.cp_r("#{@dotfiles_dir}/fish/functions", fish_config_dir)
 
     install_oh_my_fish
+  end
+
+  def complete?
+    fish_config = File.expand_path('~/.config/fish/config.fish')
+    fish_functions = File.expand_path('~/.config/fish/functions')
+    omf_dir = File.expand_path('~/.local/share/omf')
+    omf_config = File.expand_path('~/.config/omf')
+
+    File.exist?(fish_config) && Dir.exist?(fish_functions) &&
+    Dir.exist?(omf_dir) && Dir.exist?(omf_config)
   end
 
   private
@@ -398,6 +540,19 @@ class InstallFontsStep < Step
       debug "Installing font: #{font_name}"
       execute("open #{Shellwords.escape(font_path)}")
     end
+  end
+
+  def complete?
+    font_dir = "#{@dotfiles_dir}/fonts"
+    font_files = Dir.glob("#{font_dir}/*.ttf")
+    installed_fonts = execute('fc-list', capture_output: true, quiet: true)
+
+    font_files.all? do |font_path|
+      font_name = File.basename(font_path, '.ttf')
+      installed_fonts.include?(font_name)
+    end
+  rescue
+    false
   end
 end
 
