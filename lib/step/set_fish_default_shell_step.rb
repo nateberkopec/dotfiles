@@ -1,4 +1,7 @@
 class SetFishDefaultShellStep < Step
+  def self.depends_on
+    [InstallBrewPackagesStep]
+  end
   def should_run?
     if ci_or_noninteractive?
       debug 'Skipping default shell change (chsh) in CI/non-interactive environment'

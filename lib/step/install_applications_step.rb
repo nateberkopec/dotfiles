@@ -1,4 +1,7 @@
 class InstallApplicationsStep < Step
+  def self.depends_on
+    [InstallHomebrewStep]
+  end
   def run
     debug 'Installing applications...'
     @config.packages['applications'].each do |app|

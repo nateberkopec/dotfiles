@@ -1,4 +1,7 @@
 class ConfigureFishStep < Step
+  def self.depends_on
+    [InstallBrewPackagesStep, CloneDotfilesStep]
+  end
   def run
     debug 'Setting up Fish configuration...'
     fish_config_dir = @config.expand_path('fish_config_dir')

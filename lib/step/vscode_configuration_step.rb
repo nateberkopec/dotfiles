@@ -1,4 +1,7 @@
 class VSCodeConfigurationStep < Step
+  def self.depends_on
+    [InstallApplicationsStep, CloneDotfilesStep]
+  end
   def run
     debug 'Configuring VSCode...'
     vscode_dir = @config.expand_path('vscode_user_dir', 'application_paths')

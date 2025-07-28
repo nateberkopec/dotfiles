@@ -1,4 +1,7 @@
 class InstallOhMyFishStep < Step
+  def self.depends_on
+    [InstallBrewPackagesStep, CloneDotfilesStep]
+  end
   def run
     omf_dir = File.expand_path('~/.local/share/omf')
     unless Dir.exist?(omf_dir)

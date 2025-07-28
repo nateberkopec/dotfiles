@@ -1,14 +1,12 @@
 brew:
   packages:
     - zoxide
-    - ghostty
     - bat
     - gh
     - rust
     - mise
     - direnv
     - fish
-    - orbstack
     - fontconfig
     - libyaml
     - coreutils
@@ -19,6 +17,8 @@ brew:
     - visual-studio-code
     - raycast
     - keycastr
+    - ghostty
+    - orbstack
 
 applications:
   - name: 1Password

@@ -1,4 +1,7 @@
 class InstallBrewPackagesStep < Step
+  def self.depends_on
+    [InstallHomebrewStep]
+  end
   def run
     debug 'Installing command-line tools via Homebrew...'
 

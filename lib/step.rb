@@ -1,6 +1,7 @@
 require 'fileutils'
 require 'json'
 require 'open3'
+require 'set'
 require 'shellwords'
 require 'yaml'
 
@@ -11,8 +12,40 @@ class Step
     @@steps << subclass
   end
 
+  def self.depends_on
+    []
+  end
+
   def self.all_steps
-    @@steps
+    topological_sort(@@steps)
+  end
+
+  def self.topological_sort(steps)
+    visited = Set.new
+    temp_visited = Set.new
+    result = []
+
+    steps.each do |step|
+      visit(step, visited, temp_visited, result, steps) unless visited.include?(step)
+    end
+
+    result
+  end
+
+  def self.visit(step, visited, temp_visited, result, all_steps)
+    raise "Circular dependency detected involving #{step}" if temp_visited.include?(step)
+    return if visited.include?(step)
+
+    temp_visited.add(step)
+
+    step.depends_on.each do |dependency|
+      raise "Dependency #{dependency} not found in step list" unless all_steps.include?(dependency)
+      visit(dependency, visited, temp_visited, result, all_steps)
+    end
+
+    temp_visited.delete(step)
+    visited.add(step)
+    result << step
   end
 
   def initialize(debug:, dotfiles_repo:, dotfiles_dir:, home:)
