@@ -85,7 +85,7 @@ main() {
     cd "$DOTFILES_DIR"
     ruby newenv.rb
 
-    echo "Setup complete! Please restart your terminal for all changes to take effect."
+    echo "Installation complete! Please restart your terminal for all changes to take effect."
 }
 
-main "$@"Re
+main "$@"
