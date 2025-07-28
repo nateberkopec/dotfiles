@@ -83,7 +83,7 @@ main() {
     fi
 
     cd "$DOTFILES_DIR"
-    ruby newenv.rb
+    ruby lib/newenv.rb
 
     echo "Installation complete! Please restart your terminal for all changes to take effect."
 }

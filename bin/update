@@ -58,12 +58,12 @@ class DotfilesUpdater
 
   def update_fish_configs
     fish_config = File.expand_path('~/.config/fish/config.fish')
-    backup_if_changed(fish_config, "#{@dotfiles_dir}/fish/config.fish")
+    backup_if_changed(fish_config, "#{@dotfiles_dir}/files/fish/config.fish")
 
     functions_dir = File.expand_path('~/.config/fish/functions')
     if Dir.exist?(functions_dir)
       puts "Checking Fish functions..."
-      dest_functions = "#{@dotfiles_dir}/fish/functions"
+      dest_functions = "#{@dotfiles_dir}/files/fish/functions"
       
       if sync_directories(functions_dir, dest_functions)
         @changes_made = true
@@ -73,19 +73,19 @@ class DotfilesUpdater
 
   def update_ghostty_config
     ghostty_config = File.expand_path('~/Library/Application Support/com.mitchellh.ghostty/config')
-    backup_if_changed(ghostty_config, "#{@dotfiles_dir}/ghostty/config")
+    backup_if_changed(ghostty_config, "#{@dotfiles_dir}/files/ghostty/config")
   end
 
   def update_aerospace_config
     aerospace_config = File.expand_path('~/.aerospace.toml')
-    backup_if_changed(aerospace_config, "#{@dotfiles_dir}/aerospace/.aerospace.toml")
+    backup_if_changed(aerospace_config, "#{@dotfiles_dir}/files/aerospace/.aerospace.toml")
   end
 
   def update_omf_configs
     omf_configs = %w[bundle channel theme]
     omf_configs.each do |config|
       source = File.expand_path("~/.config/omf/#{config}")
-      backup_if_changed(source, "#{@dotfiles_dir}/omf/#{config}")
+      backup_if_changed(source, "#{@dotfiles_dir}/files/omf/#{config}")
     end
   end
 
@@ -93,13 +93,13 @@ class DotfilesUpdater
     vscode_dir = File.expand_path('~/Library/Application Support/Code/User')
     %w[settings.json keybindings.json].each do |config|
       source = "#{vscode_dir}/#{config}"
-      backup_if_changed(source, "#{@dotfiles_dir}/vscode/#{config}")
+      backup_if_changed(source, "#{@dotfiles_dir}/files/vscode/#{config}")
     end
   end
 
   def update_git_config
     gitconfig = File.expand_path('~/.gitconfig')
-    backup_if_changed(gitconfig, "#{@dotfiles_dir}/git/.gitconfig")
+    backup_if_changed(gitconfig, "#{@dotfiles_dir}/files/git/.gitconfig")
   end
 
   def update_vscode_extensions
@@ -108,7 +108,7 @@ class DotfilesUpdater
     stdout, _stderr, status = Open3.capture3('code --list-extensions')
     return unless status.success?
 
-    extensions_file = "#{@dotfiles_dir}/vscode/extensions.txt"
+    extensions_file = "#{@dotfiles_dir}/files/vscode/extensions.txt"
     current_extensions = stdout.strip
 
     if !File.exist?(extensions_file) || File.read(extensions_file).strip != current_extensions

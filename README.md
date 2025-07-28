@@ -6,25 +6,34 @@ Personal configuration files for my development environment.
 ```
 .
 ├── bin/
-│   └── setup                    # Main setup script (recommended)
-├── aerospace/
-│   └── .aerospace.toml
-├── fish/
-│   ├── config.fish
-│   └── functions/
-├── ghostty/
-│   └── config
-├── git/
-│   └── .gitconfig
-├── omf/
-│   └── bundle
-├── vscode/
-│   ├── settings.json
-│   ├── keybindings.json
-│   └── extensions.txt
-├── fonts/
-│   └── *.ttf
-└── newenv.rb                    # Ruby setup script
+│   ├── setup                    # Main setup script (recommended)
+│   └── update                   # Update dotfiles from local configs
+├── lib/
+│   ├── newenv.rb                # Main Ruby setup script
+│   ├── step.rb                  # Base step class
+│   ├── config_loader.rb         # Configuration management
+│   └── step/                    # Individual step implementations
+├── files/
+│   ├── aerospace/
+│   │   └── .aerospace.toml
+│   ├── fish/
+│   │   ├── config.fish
+│   │   └── functions/
+│   ├── ghostty/
+│   │   └── config
+│   ├── git/
+│   │   └── .gitconfig
+│   ├── omf/
+│   │   └── bundle
+│   ├── vscode/
+│   │   ├── settings.json
+│   │   ├── keybindings.json
+│   │   └── extensions.txt
+│   └── fonts/
+│       └── *.ttf
+└── config/
+    ├── packages.yml             # Package lists and application configs
+    └── paths.yml                # Path configurations
 ```
 
 ## Installation
@@ -53,7 +62,7 @@ For advanced users, you can run the Ruby setup script directly:
 
 **Ruby version (requires Ruby >= 3.4):**
 ```ruby
-ruby newenv.rb
+ruby lib/newenv.rb
 ```
 
 ## What Gets Installed
