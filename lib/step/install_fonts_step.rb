@@ -30,9 +30,17 @@ class InstallFontsStep < Step
     font_files = Dir.glob("#{font_dir}/*.ttf")
     installed_fonts = execute('fc-list', capture_output: true, quiet: true)
 
-    font_files.all? do |font_path|
+    all_fonts_installed = font_files.all? do |font_path|
       font_name = File.basename(font_path, '.ttf')
       installed_fonts.include?(font_name)
+    end
+
+    if all_fonts_installed
+      true
+    elsif ci_or_noninteractive?
+      nil
+    else
+      false
     end
   rescue
     false

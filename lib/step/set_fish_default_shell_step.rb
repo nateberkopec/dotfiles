@@ -29,7 +29,13 @@ class SetFishDefaultShellStep < Step
   def complete?
     fish_path = `which fish`.strip
     current_shell = execute('dscl . -read ~/ UserShell', capture_output: true, quiet: true)
-    current_shell.include?(fish_path)
+    if current_shell.include?(fish_path)
+      true
+    elsif ci_or_noninteractive?
+      nil
+    else
+      false
+    end
   rescue
     false
   end
