@@ -26,18 +26,8 @@ end
 alias mosh-mbp "mosh --server='SHELL=/opt/homebrew/bin/fish /opt/homebrew/bin/mosh-server' nateberkopec@MBP-Server.local"
 alias mosh-mbp-tmux "mosh --server='SHELL=/opt/homebrew/bin/fish /opt/homebrew/bin/mosh-server' nateberkopec@MBP-Server.local -- /opt/homebrew/bin/tmux new-session -A -s main"
 
-complete -c clientup -f -a "(ls /Users/nateberkopec/Documents/Code.nosync/business/client_notes/clients | sed 's/\.json\$//')"
-complete -c clientrepo -f -a "(ls /Users/nateberkopec/Documents/Code.nosync/business/client_notes/clients | sed 's/\.json\$//')"
-
 mise activate fish | source
 direnv hook fish | source
-
-functions --copy fish_prompt fish_prompt_original
-
-function fish_prompt
-  echo -n $gh_status_indicator
-  fish_prompt_original
-end
 
 # Added by OrbStack: command-line tools and integration
 # This won't be added again if you remove it.
