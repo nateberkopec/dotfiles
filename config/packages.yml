@@ -5,12 +5,11 @@ brew:
     - gh
     - rust
     - mise
-    - direnv
     - fish
     - fontconfig
     - libyaml
     - coreutils
-  
+
   casks:
     - nikitabobko/tap/aerospace
     - github
@@ -25,7 +24,7 @@ applications:
     path: /Applications/1Password.app
     brew_cask: 1password
     cli_tap: 1password/tap/1password-cli
-  
+
   - name: Arc
     path: /Applications/Arc.app
     brew_cask: arc
