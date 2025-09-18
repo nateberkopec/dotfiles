@@ -15,7 +15,6 @@ complete -c z -f -k -a "(zoxide query -l)"
 alias cd z
 alias be="bundle exec"
 alias cat bat
-alias claude="command claude --dangerously-skip-permissions"
 alias claude-safe="command claude"
 function mosh
   command mosh --predict=experimental $argv
