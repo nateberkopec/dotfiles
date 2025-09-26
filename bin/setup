@@ -14,20 +14,6 @@ debug() {
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DOTFILES_DIR="$(dirname "$SCRIPT_DIR")"
 
-# Check Ruby version
-check_ruby_version() {
-    if command -v ruby &> /dev/null; then
-        local ruby_version=$(ruby -e "puts RUBY_VERSION")
-        local major=$(echo $ruby_version | cut -d. -f1)
-        local minor=$(echo $ruby_version | cut -d. -f2)
-
-        if [ "$major" -gt 3 ] || ([ "$major" -eq 3 ] && [ "$minor" -ge 4 ]); then
-            return 0
-        fi
-    fi
-    return 1
-}
-
 # Homebrew install function
 brew_quiet() {
     if [ "${DEBUG:-false}" = "true" ]; then
@@ -37,11 +23,8 @@ brew_quiet() {
     fi
 }
 
-# Bootstrap minimal environment to get modern Ruby
-bootstrap_ruby() {
-    debug "Ruby version < 3.4 or not found. Bootstrapping minimal environment..."
-
-    # Install Homebrew if not present
+# Install Homebrew
+bootstrap_homebrew() {
     if ! command -v brew &> /dev/null; then
         debug "Installing Homebrew..."
         /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
@@ -53,8 +36,10 @@ bootstrap_ruby() {
         debug "Homebrew already installed, updating..."
         brew_quiet update
     fi
+}
 
-    # Install mise
+# Install mise
+bootstrap_mise() {
     if ! command -v mise &> /dev/null; then
         debug "Installing mise..."
         brew_quiet install mise
@@ -62,13 +47,24 @@ bootstrap_ruby() {
         debug "mise already installed"
     fi
 
-    # Install latest Ruby
+    eval "$(mise activate bash)"
+}
+
+# Install gum for better UI
+bootstrap_gum() {
+    if ! command -v gum &> /dev/null; then
+        debug "Installing gum..."
+        brew_quiet install gum
+    else
+        debug "gum already installed"
+    fi
+}
+
+# Bootstrap minimal environment to get modern Ruby
+bootstrap_ruby() {
     debug "Installing latest Ruby via mise..."
     mise use --global ruby@latest
     mise install ruby@latest
-
-    # Add mise to PATH for current session
-    eval "$(mise activate bash)"
 
     debug "Ruby bootstrap complete. Modern Ruby should now be available."
 }
@@ -76,11 +72,9 @@ bootstrap_ruby() {
 main() {
     debug "Starting macOS development environment setup..."
 
-    if check_ruby_version; then
-        debug "Ruby >= 3.4 found. Running full Ruby setup script..."
-    else
-        bootstrap_ruby
-    fi
+    bootstrap_homebrew
+    bootstrap_ruby
+    bootstrap_gum
 
     cd "$DOTFILES_DIR"
     ruby lib/newenv.rb

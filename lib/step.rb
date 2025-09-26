@@ -57,7 +57,7 @@ class Step
   end
 
   def should_run?
-    true
+    !complete?
   end
 
   def run
