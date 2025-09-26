@@ -1,9 +1,8 @@
-require 'fileutils'
-require 'json'
-require 'open3'
-require 'set'
-require 'shellwords'
-require 'yaml'
+require "fileutils"
+require "json"
+require "open3"
+require "shellwords"
+require "yaml"
 
 class Step
   @@steps = []
@@ -61,11 +60,11 @@ class Step
   end
 
   def run
-    raise NotImplementedError, 'Subclasses must implement #run'
+    raise NotImplementedError, "Subclasses must implement #run"
   end
 
   def complete?
-    raise NotImplementedError, 'Subclasses must implement #complete?'
+    raise NotImplementedError, "Subclasses must implement #complete?"
   end
 
   private
@@ -81,7 +80,7 @@ class Step
     end
 
     if sudo
-      step_name = self.class.name.gsub(/Step$/, '').gsub(/([A-Z])/, ' \1').strip
+      step_name = self.class.name.gsub(/Step$/, "").gsub(/([A-Z])/, ' \1').strip
       system(
         "gum", "style",
         "--foreground", "#ff6b6b",
@@ -122,6 +121,6 @@ class Step
   end
 
   def ci_or_noninteractive?
-    ENV['CI'] || ENV['NONINTERACTIVE']
+    ENV["CI"] || ENV["NONINTERACTIVE"]
   end
 end

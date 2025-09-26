@@ -4,13 +4,13 @@ class UpdateMacOSStep < Step
   end
 
   def run
-    debug 'User has admin rights, checking for macOS updates...'
-    execute('softwareupdate -i -a', sudo: true, quiet: true)
+    debug "User has admin rights, checking for macOS updates..."
+    execute("softwareupdate -i -a", sudo: true, quiet: true)
   end
 
   def complete?
-    output = execute('softwareupdate -l --no-scan', capture_output: true, quiet: true)
-    !output.include?('No new software available.')
+    output = execute("softwareupdate -l --no-scan", capture_output: true, quiet: true)
+    !output.include?("No new software available.")
   rescue
     false
   end
@@ -19,6 +19,6 @@ class UpdateMacOSStep < Step
 
   def user_has_admin_rights?
     groups = `groups`.strip
-    groups.include?('admin')
+    groups.include?("admin")
   end
 end

@@ -1,15 +1,15 @@
 #!/usr/bin/env ruby
 
-require 'fileutils'
-require 'open3'
-require 'digest'
+require "fileutils"
+require "open3"
+require "digest"
 
 class DotfilesUpdater
   def initialize
-    @dotfiles_dir = File.expand_path('~/.dotfiles')
-    @home = ENV['HOME']
+    @dotfiles_dir = File.expand_path("~/.dotfiles")
+    @home = ENV["HOME"]
     @changes_made = false
-    
+
     unless Dir.exist?(@dotfiles_dir)
       puts "Error: Dotfiles directory not found at #{@dotfiles_dir}"
       puts "Please run the initial setup script first."
@@ -19,7 +19,7 @@ class DotfilesUpdater
 
   def run
     puts "Updating dotfiles repository..."
-    
+
     update_fish_configs
     update_ghostty_config
     update_aerospace_config
@@ -27,7 +27,7 @@ class DotfilesUpdater
     update_vscode_configs
     update_git_config
     update_vscode_extensions
-    
+
     if @changes_made
       commit_and_push_changes
     else
@@ -39,32 +39,32 @@ class DotfilesUpdater
 
   def backup_if_changed(source, dest)
     return false unless File.exist?(source)
-    
+
     if !File.exist?(dest) || !files_identical?(source, dest)
       puts "Updating #{File.basename(dest)}..."
       FileUtils.cp(source, dest)
       @changes_made = true
       return true
     end
-    
+
     false
   end
 
   def files_identical?(file1, file2)
     return false unless File.exist?(file1) && File.exist?(file2)
-    
+
     Digest::MD5.file(file1).hexdigest == Digest::MD5.file(file2).hexdigest
   end
 
   def update_fish_configs
-    fish_config = File.expand_path('~/.config/fish/config.fish')
+    fish_config = File.expand_path("~/.config/fish/config.fish")
     backup_if_changed(fish_config, "#{@dotfiles_dir}/files/fish/config.fish")
 
-    functions_dir = File.expand_path('~/.config/fish/functions')
+    functions_dir = File.expand_path("~/.config/fish/functions")
     if Dir.exist?(functions_dir)
       puts "Checking Fish functions..."
       dest_functions = "#{@dotfiles_dir}/files/fish/functions"
-      
+
       if sync_directories(functions_dir, dest_functions)
         @changes_made = true
       end
@@ -72,12 +72,12 @@ class DotfilesUpdater
   end
 
   def update_ghostty_config
-    ghostty_config = File.expand_path('~/Library/Application Support/com.mitchellh.ghostty/config')
+    ghostty_config = File.expand_path("~/Library/Application Support/com.mitchellh.ghostty/config")
     backup_if_changed(ghostty_config, "#{@dotfiles_dir}/files/ghostty/config")
   end
 
   def update_aerospace_config
-    aerospace_config = File.expand_path('~/.aerospace.toml')
+    aerospace_config = File.expand_path("~/.aerospace.toml")
     backup_if_changed(aerospace_config, "#{@dotfiles_dir}/files/aerospace/.aerospace.toml")
   end
 
@@ -90,7 +90,7 @@ class DotfilesUpdater
   end
 
   def update_vscode_configs
-    vscode_dir = File.expand_path('~/Library/Application Support/Code/User')
+    vscode_dir = File.expand_path("~/Library/Application Support/Code/User")
     %w[settings.json keybindings.json].each do |config|
       source = "#{vscode_dir}/#{config}"
       backup_if_changed(source, "#{@dotfiles_dir}/files/vscode/#{config}")
@@ -98,14 +98,14 @@ class DotfilesUpdater
   end
 
   def update_git_config
-    gitconfig = File.expand_path('~/.gitconfig')
+    gitconfig = File.expand_path("~/.gitconfig")
     backup_if_changed(gitconfig, "#{@dotfiles_dir}/files/git/.gitconfig")
   end
 
   def update_vscode_extensions
-    return unless command_exists?('code')
+    return unless command_exists?("code")
 
-    stdout, _stderr, status = Open3.capture3('code --list-extensions')
+    stdout, _stderr, status = Open3.capture3("code --list-extensions")
     return unless status.success?
 
     extensions_file = "#{@dotfiles_dir}/files/vscode/extensions.txt"
@@ -122,10 +122,10 @@ class DotfilesUpdater
     return false unless Dir.exist?(source)
 
     FileUtils.mkdir_p(dest)
-    
+
     Dir.glob("#{source}/*").each do |source_file|
       dest_file = "#{dest}/#{File.basename(source_file)}"
-      
+
       if File.file?(source_file)
         unless File.exist?(dest_file) && files_identical?(source_file, dest_file)
           FileUtils.cp(source_file, dest_file)
@@ -133,7 +133,7 @@ class DotfilesUpdater
         end
       end
     end
-    
+
     false
   end
 
@@ -145,18 +145,18 @@ class DotfilesUpdater
     puts "Changes detected, updating git repository..."
     Dir.chdir(@dotfiles_dir)
 
-    stdout, _stderr, status = Open3.capture3('git status --porcelain')
+    stdout, _stderr, _ = Open3.capture3("git status --porcelain")
     return puts "No changes to commit." if stdout.empty?
 
-    timestamp = Time.now.strftime('%Y-%m-%d %H:%M:%S')
-    
-    system('git add .')
+    timestamp = Time.now.strftime("%Y-%m-%d %H:%M:%S")
+
+    system("git add .")
     system("git commit -m \"Update dotfiles - #{timestamp}\"")
 
-    stdout, _stderr, status = Open3.capture3('git remote get-url origin')
+    _, _stderr, status = Open3.capture3("git remote get-url origin")
     if status.success?
       puts "Pushing changes to remote repository..."
-      system('git push')
+      system("git push")
     else
       puts "No remote repository configured. Changes committed locally only."
     end
