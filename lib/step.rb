@@ -80,7 +80,15 @@ class Step
       return ""
     end
 
-    cmd = sudo ? "sudo #{command}" : command
+    if sudo
+      puts "\n🔒 Admin privileges required for: #{self.class.name.gsub(/Step$/, '').gsub(/([A-Z])/, ' \1').strip}"
+      puts "   Command: #{command}"
+      puts "   This is required to complete the setup process.\n"
+      cmd = "sudo #{command}"
+    else
+      cmd = command
+    end
+
     debug "Executing: #{cmd}"
 
     if quiet || capture_output
