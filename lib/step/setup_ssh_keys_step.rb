@@ -21,6 +21,7 @@ class SetupSSHKeysStep < Step
   end
 
   def complete?
+    return true if ci_or_noninteractive?
     command_exists?('op') && execute('op whoami')
   end
 end
