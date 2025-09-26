@@ -69,8 +69,6 @@ class MacDevSetup
       failed_steps << step_name if completion_status == false
     end
 
-    binding.irb
-
     csv_data = "Step,Status,Ran?\n" + table_data.join("\n")
     IO.popen(["gum", "table", "--border", "rounded", "--widths", "25,8,8", "--print"], "w") do |io|
       io.write(csv_data)
