@@ -81,9 +81,22 @@ class Step
     end
 
     if sudo
-      puts "\n🔒 Admin privileges required for: #{self.class.name.gsub(/Step$/, '').gsub(/([A-Z])/, ' \1').strip}"
-      puts "   Command: #{command}"
-      puts "   This is required to complete the setup process.\n"
+      step_name = self.class.name.gsub(/Step$/, '').gsub(/([A-Z])/, ' \1').strip
+      system(
+        "gum", "style",
+        "--foreground", "#ff6b6b",
+        "--border", "double",
+        "--align", "center",
+        "--width", "50",
+        "--margin", "1 0",
+        "--padding", "1 2",
+        "🔒 Admin Privileges Required",
+        step_name,
+        "",
+        "Command: #{command}",
+        "",
+        "This is required to complete setup"
+      )
       cmd = "sudo #{command}"
     else
       cmd = command

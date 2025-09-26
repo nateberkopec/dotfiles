@@ -1,6 +1,6 @@
 class UpdateMacOSStep < Step
   def should_run?
-    user_has_admin_rights? && STDIN.tty?
+    user_has_admin_rights? && !ci_or_noninteractive? && !complete?
   end
 
   def run
@@ -9,7 +9,6 @@ class UpdateMacOSStep < Step
   end
 
   def complete?
-    return nil unless should_run?
     output = execute('softwareupdate -l --no-scan', capture_output: true, quiet: true)
     !output.include?('No new software available.')
   rescue

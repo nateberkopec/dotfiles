@@ -73,6 +73,7 @@ main() {
     debug "Starting macOS development environment setup..."
 
     bootstrap_homebrew
+    bootstrap_mise
     bootstrap_ruby
     bootstrap_gum
 

@@ -3,7 +3,7 @@ class VSCodeConfigurationStep < Step
     [InstallApplicationsStep, CloneDotfilesStep]
   end
   def should_run?
-    !ci_or_noninteractive?
+    !ci_or_noninteractive? && !complete?
   end
 
   def run
@@ -19,7 +19,7 @@ class VSCodeConfigurationStep < Step
 
   def complete?
     return nil if ci_or_noninteractive?
-    
+
     vscode_settings = @config.expand_path('vscode_settings', 'application_paths')
     vscode_keybindings = @config.expand_path('vscode_keybindings', 'application_paths')
 
