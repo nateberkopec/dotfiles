@@ -29,11 +29,17 @@ class MacDevSetup
       home: @home
     }
 
+    puts ""
     Step.all_steps.each do |step_class|
       step = step_class.new(**step_params)
-      next unless step.should_run?
-      step.run
+      if step.should_run?
+        printf "X"
+        step.run
+      else
+        printf "."
+      end
     end
+    puts ""
 
     check_completion(step_params)
   rescue => e
@@ -44,39 +50,59 @@ class MacDevSetup
   private
 
   def check_completion(step_params)
-    puts "\nChecking step completion status:"
-    puts "=" * 40
-
     failed_steps = []
+    table_data = []
 
     Step.all_steps.each do |step_class|
       step = step_class.new(**step_params)
       step_name = step_class.name.gsub(/Step$/, '').gsub(/([A-Z])/, ' \1').strip
 
-      completion_status = step.complete?
+      completion_status = !!step.complete?
       status_symbol = case completion_status
                      when true then "✓"
                      when false then "✗"
-                     when nil then "-"
                      end
 
-      status_text = case completion_status
-                   when true then "Complete"
-                   when false then "Failed/Incomplete"
-                   when nil then "Skipped"
-                   end
+      ran_status = step.should_run? ? "Yes" : "No"
 
-      puts "#{status_symbol} #{step_name}: #{status_text}"
-
+      table_data << "#{step_name},#{status_symbol},#{ran_status}"
       failed_steps << step_name if completion_status == false
     end
 
-    puts "=" * 40
+    binding.irb
+
+    csv_data = "Step,Status,Ran?\n" + table_data.join("\n")
+    IO.popen(["gum", "table", "--border", "rounded", "--widths", "25,8,8", "--print"], "w") do |io|
+      io.write(csv_data)
+    end
 
     if failed_steps.any?
-      puts "Installation failed! The following steps were incomplete:"
-      failed_steps.each { |step| puts "  - #{step}" }
+      system(
+        "gum", "style",
+        "--foreground", "#ff5555",
+        "--border", "thick",
+        "--align", "center",
+        "--width", "60",
+        "--margin", "1 0",
+        "--padding", "1 2",
+        "❌ Installation Failed!",
+        "",
+        "Incomplete steps:",
+        *failed_steps.map { |step| "• #{step}" }
+      )
       exit 1
+    else
+      system(
+        "gum", "style",
+        "--foreground", "#50fa7b",
+        "--border", "rounded",
+        "--align", "center",
+        "--width", "50",
+        "--margin", "1 0",
+        "--padding", "1 2",
+        "🎉 All Steps Complete!",
+        "Setup successful"
+      )
     end
   end
 

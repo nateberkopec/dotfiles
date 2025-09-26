@@ -19,7 +19,7 @@ brew_quiet() {
     if [ "${DEBUG:-false}" = "true" ]; then
         brew "$@"
     else
-        brew "$@" >/dev/null
+        brew "$@" >/dev/null 2>&1
     fi
 }
 
@@ -63,8 +63,8 @@ bootstrap_gum() {
 # Bootstrap minimal environment to get modern Ruby
 bootstrap_ruby() {
     debug "Installing latest Ruby via mise..."
-    mise use --global ruby@latest
-    mise install ruby@latest
+    mise use --global ruby@latest >/dev/null
+    mise install ruby@latest >/dev/null
 
     debug "Ruby bootstrap complete. Modern Ruby should now be available."
 }
