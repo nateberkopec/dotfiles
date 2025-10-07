@@ -1,0 +1,16 @@
+1password
+1password-cli
+aerospace
+alfred
+amethyst
+basictex
+chromedriver
+ghostty
+github
+iterm2
+jordanbaird-ice
+keycastr
+orbstack
+raycast
+visual-studio-code
+wkhtmltopdf
