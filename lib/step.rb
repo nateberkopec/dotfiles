@@ -1,4 +1,5 @@
 require "fileutils"
+require "set"
 require "json"
 require "open3"
 require "shellwords"
@@ -65,6 +66,13 @@ class Step
 
   def complete?
     raise NotImplementedError, "Subclasses must implement #complete?"
+  end
+
+  # Optional: steps can implement update logic to sync
+  # configuration from the system back into the dotfiles repo.
+  # Default is a no-op.
+  def update
+    # no-op by default
   end
 
   private

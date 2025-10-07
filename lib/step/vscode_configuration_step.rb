@@ -23,6 +23,33 @@ class VSCodeConfigurationStep < Step
     File.exist?(vscode_settings) && File.exist?(vscode_keybindings)
   end
 
+  # Sync VSCode user settings and extensions list back into dotfiles
+  def update
+    settings_src = @config.expand_path("vscode_settings", "application_paths")
+    keybindings_src = @config.expand_path("vscode_keybindings", "application_paths")
+
+    settings_dest = @config.source_path("vscode_settings")
+    keybindings_dest = @config.source_path("vscode_keybindings")
+    extensions_dest = @config.source_path("vscode_extensions")
+
+    if settings_src && settings_dest && File.exist?(settings_src)
+      FileUtils.mkdir_p(File.dirname(settings_dest))
+      FileUtils.cp(settings_src, settings_dest)
+    end
+
+    if keybindings_src && keybindings_dest && File.exist?(keybindings_src)
+      FileUtils.mkdir_p(File.dirname(keybindings_dest))
+      FileUtils.cp(keybindings_src, keybindings_dest)
+    end
+
+    # Export installed extensions if VSCode CLI is present
+    if extensions_dest && command_exists?("code")
+      stdout = execute("code --list-extensions", capture_output: true)
+      FileUtils.mkdir_p(File.dirname(extensions_dest))
+      File.write(extensions_dest, stdout.strip + "\n")
+    end
+  end
+
   private
 
   def install_vscode_extensions

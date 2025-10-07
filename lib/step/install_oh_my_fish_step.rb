@@ -28,4 +28,20 @@ class InstallOhMyFishStep < Step
 
     Dir.exist?(omf_dir) && Dir.exist?(omf_config)
   end
+
+  # Sync OMF configs back into dotfiles repo
+  def update
+    omf_config_dir = File.expand_path("~/.config/omf")
+    dest_dir = File.join(@dotfiles_dir, "files", "omf")
+
+    return unless Dir.exist?(omf_config_dir)
+
+    FileUtils.mkdir_p(dest_dir)
+
+    %w[bundle channel theme].each do |file|
+      src = File.join(omf_config_dir, file)
+      dest = File.join(dest_dir, file)
+      FileUtils.cp(src, dest) if File.exist?(src)
+    end
+  end
 end
