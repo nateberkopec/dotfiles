@@ -51,7 +51,8 @@ class DotfilesUpdater
     return puts "No changes to commit." if stdout.empty?
 
     # Prefer the user's fish function if available
-    system("fish -c 'gc-ai'") || system("git add -A && git commit -m 'Update dotfiles from system'")
+    system("git add -A")
+    system("fish -c 'gc-ai'") || system("git commit -m 'Update dotfiles from system'")
 
     puts "Dotfiles updated successfully!"
   end
