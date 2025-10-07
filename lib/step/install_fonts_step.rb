@@ -45,4 +45,33 @@ class InstallFontsStep < Step
   rescue
     false
   end
+
+  # Sync selected fonts from the system back into the repo.
+  # This only refreshes fonts that already exist under files/fonts
+  # to avoid slurping the user's entire font library.
+  def update
+    dest_dir = File.join(@dotfiles_dir, "files", "fonts")
+    FileUtils.mkdir_p(dest_dir)
+
+    system_font_dirs = [
+      File.expand_path("~/Library/Fonts"),
+      "/Library/Fonts"
+    ].select { |d| Dir.exist?(d) }
+
+    # Only refresh fonts that are already tracked in the repo
+    tracked_fonts = Dir.glob(File.join(dest_dir, "*.{ttf,otf}"))
+    return if tracked_fonts.empty?
+
+    tracked_fonts.each do |tracked|
+      basename = File.basename(tracked)
+      src = system_font_dirs.map { |d| File.join(d, basename) }.find { |p| File.exist?(p) }
+      next unless src
+
+      begin
+        FileUtils.cp(src, File.join(dest_dir, basename))
+      rescue => e
+        debug "Failed to copy font #{basename}: #{e.message}"
+      end
+    end
+  end
 end
