@@ -5,4 +5,5 @@ macos-titlebar-proxy-icon = hidden
 font-feature = -calt
 font-feature = -liga
 font-feature = -dlig
-keybind = global:cmd+shift+ctrl+alt+q=toggle_quick_terminal
+keybind = global:alt+shift+cmd+ctrl+q=toggle_quick_terminal
+quick-terminal-screen = macos-menu-bar
