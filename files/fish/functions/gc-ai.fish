@@ -16,7 +16,7 @@ function gc-ai
     end
 
     # Parse arguments
-    argparse 'c/context' 'claude' -- $argv
+    argparse 'c/context' 'claude' 's/summary-only' -- $argv
     or return
 
     # Get the git diff
@@ -68,24 +68,29 @@ $context"
         set prompt "$base_prompt"
     end
 
-    # Function to clean up blank lines
+    # Function to clean up blank lines and remove markdown fences
     function clean_blank_lines
         set input_file $argv[1]
         set output_file (mktemp)
-        awk 'NF {p=1} p' $input_file | awk 'NF || !blank {print; blank=!NF}' > $output_file
+        # Remove markdown code fences and clean blank lines
+        sed '/^```$/d' $input_file | awk 'NF {p=1} p' | awk 'NF || !blank {print; blank=!NF}' > $output_file
         echo $output_file
     end
 
     # Function to add LLM disclaimer after first line
     function add_disclaimer
         set input_file $argv[1]
+        set summary_only $argv[2]
         set output_file (mktemp)
         set summary (head -n 1 $input_file)
 
         echo "$summary" > $output_file
         echo "" >> $output_file
         echo "This commit message was generated with the help of LLMs." >> $output_file
-        tail -n +2 $input_file >> $output_file
+
+        if test "$summary_only" != "summary-only"
+            tail -n +2 $input_file >> $output_file
+        end
 
         echo $output_file
     end
@@ -116,20 +121,30 @@ $context"
         set temp_file $cleaned_file
 
         # Add disclaimer for display and commit
-        set display_file (add_disclaimer $temp_file)
+        if set -q _flag_summary_only
+            set display_file (add_disclaimer $temp_file "summary-only")
+        else
+            set display_file (add_disclaimer $temp_file)
+        end
 
         # Show the generated message
         echo "Generated commit message:"
         bat -P -H 1 --style=changes,grid,numbers,snip $display_file
 
         # Let user choose what to do
-        set action (gum choose "Commit" "Edit" "Reroll" "Condense" "Cancel")
+        set action (gum choose "Commit" "Commit and Push" "Edit" "Reroll" "Condense" "Cancel")
 
         switch $action
             case "Commit"
                 git commit -F $display_file
                 rm $temp_file
                 rm $display_file
+                return 0
+            case "Commit and Push"
+                git commit -F $display_file
+                rm $temp_file
+                rm $display_file
+                git push
                 return 0
             case "Edit"
                 eval $EDITOR $display_file
