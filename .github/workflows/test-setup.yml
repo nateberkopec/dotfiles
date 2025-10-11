@@ -1,4 +1,4 @@
-name: Test Setup Script
+name: Test Dotfiles
 
 on:
   push:
@@ -15,26 +15,26 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Run setup script
-      id: setup
+    - name: Run dotfiles
+      id: run
       env:
         DEBUG: true
         CI: true
         NONINTERACTIVE: true
       run: |
         cd ${{ github.workspace }}
-        chmod +x bin/setup
-        ./bin/setup 2>&1 | tee setup_output.log
+        chmod +x bin/dot run
+        ./bin/dot run 2>&1 | tee output.log
 
     - name: Check for success message
       run: |
-        if grep -q "All Steps Complete!" setup_output.log; then
+        if grep -q "All Steps Complete!" output.log; then
           echo "✅ Setup completed successfully!"
           exit 0
         else
-          echo "❌ Setup did not complete successfully"
-          echo "--- Setup output ---"
-          cat setup_output.log
+          echo "❌ Dotfiles run did not complete successfully"
+          echo "--- Output ---"
+          cat output.log
           exit 1
         fi
 
@@ -42,6 +42,6 @@ jobs:
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: setup-log
-        path: setup_output.log
+        name: log
+        path: output.log
         retention-days: 7
