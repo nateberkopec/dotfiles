@@ -1,20 +1,13 @@
 #!/bin/bash
 
-# Exit on error
 set -e
 
-# Debug function
 debug() {
     if [ "${DEBUG:-false}" = "true" ]; then
         echo "$1"
     fi
 }
 
-# Get script directory
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-DOTFILES_DIR="$(dirname "$SCRIPT_DIR")"
-
-# Homebrew install function
 brew_quiet() {
     if [ "${DEBUG:-false}" = "true" ]; then
         brew "$@"
@@ -23,13 +16,11 @@ brew_quiet() {
     fi
 }
 
-# Install Homebrew
 bootstrap_homebrew() {
     if ! command -v brew &> /dev/null; then
         debug "Installing Homebrew..."
         /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
-        # Add Homebrew to PATH
         echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
         eval "$(/opt/homebrew/bin/brew shellenv)"
     else
@@ -38,7 +29,6 @@ bootstrap_homebrew() {
     fi
 }
 
-# Install mise
 bootstrap_mise() {
     if ! command -v mise &> /dev/null; then
         debug "Installing mise..."
@@ -50,7 +40,6 @@ bootstrap_mise() {
     eval "$(mise activate bash)"
 }
 
-# Install gum for better UI
 bootstrap_gum() {
     if ! command -v gum &> /dev/null; then
         debug "Installing gum..."
@@ -60,7 +49,6 @@ bootstrap_gum() {
     fi
 }
 
-# Bootstrap minimal environment to get modern Ruby
 bootstrap_ruby() {
     debug "Installing latest Ruby via mise..."
     mise use --global ruby@latest >/dev/null
@@ -70,17 +58,14 @@ bootstrap_ruby() {
 }
 
 main() {
-    debug "Starting macOS development environment setup..."
+    debug "Bootstrapping development environment..."
 
     bootstrap_homebrew
     bootstrap_mise
     bootstrap_ruby
     bootstrap_gum
 
-    cd "$DOTFILES_DIR"
-    ruby lib/newenv.rb
-
-    echo "Installation complete! Please restart your terminal for all changes to take effect."
+    debug "Bootstrap complete."
 }
 
 main "$@"

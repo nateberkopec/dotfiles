@@ -1,0 +1,63 @@
+#!/bin/bash
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DOTFILES_DIR="$(dirname "$SCRIPT_DIR")"
+
+cmd_run() {
+    "$SCRIPT_DIR/bootstrap"
+
+    cd "$DOTFILES_DIR"
+    ruby lib/run.rb
+}
+
+cmd_update() {
+    cd "$DOTFILES_DIR"
+    ruby lib/update.rb
+}
+
+cmd_help() {
+    cat <<EOF
+dot - Dotfiles management tool
+
+Usage: dot <command>
+
+Commands:
+  run       Set up development environment from scratch
+  update    Update dotfiles from the system
+  help      Show this help message
+
+Examples:
+  dot run           # Initial setup
+  dot update        # Update dotfiles
+  DEBUG=true dot run    # Run with debug output
+EOF
+}
+
+main() {
+    if [ $# -eq 0 ]; then
+        cmd_help
+        exit 1
+    fi
+
+    case "$1" in
+        run)
+            cmd_run
+            ;;
+        update)
+            cmd_update
+            ;;
+        help|--help|-h)
+            cmd_help
+            ;;
+        *)
+            echo "Error: Unknown command '$1'"
+            echo ""
+            cmd_help
+            exit 1
+            ;;
+    esac
+}
+
+main "$@"
