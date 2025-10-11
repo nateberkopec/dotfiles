@@ -9,27 +9,29 @@ Personal configuration files for my development environment.
    git clone https://github.com/nateberkopec/dotfiles.git ~/.dotfiles
    ```
 
-2. Run the setup script (recommended):
+2. Run the setup:
    ```bash
    cd ~/.dotfiles
-   ./bin/setup
+   ./bin/dot run
    ```
 
-   The setup script automatically detects your Ruby version and bootstraps a modern Ruby environment if needed.
+   The script automatically detects your Ruby version and bootstraps a modern Ruby environment if needed.
 
    To see detailed output during installation:
    ```bash
-   DEBUG=true ./bin/setup
+   DEBUG=true ./bin/dot run
    ```
 
-### Alternative Setup Methods
+## Usage
 
-For advanced users, you can run the Ruby setup script directly:
-
-**Ruby version (requires Ruby >= 3.4):**
-```ruby
-ruby lib/newenv.rb
+```bash
+dot <command>
 ```
+
+**Commands:**
+- `dot run` - Set up development environment from scratch
+- `dot update` - Update dotfiles from the system
+- `dot help` - Show help message
 
 ## What Gets Installed
 
