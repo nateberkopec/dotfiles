@@ -9,7 +9,7 @@ cmd_run() {
     "$SCRIPT_DIR/bootstrap"
 
     cd "$DOTFILES_DIR"
-    ruby lib/run.rb
+    ruby -r ./lib/run.rb -e 'MacDevSetup.new.run'
 }
 
 cmd_update() {
