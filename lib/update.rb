@@ -50,9 +50,9 @@ class DotfilesUpdater
     stdout, _stderr, _ = Open3.capture3("git status --porcelain")
     return puts "No changes to commit." if stdout.empty?
 
-    # Prefer the user's fish function if available
     system("git add -A")
-    system("fish -c 'gc-ai'") || system("git commit -m 'Update dotfiles from system'")
+    system("git diff --cached --stat")
+    system("gc-ai") || system("git commit -m 'Update dotfiles from system'")
 
     puts "Dotfiles updated successfully!"
   end
