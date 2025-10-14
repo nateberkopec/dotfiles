@@ -10,7 +10,9 @@ class SetupSSHKeysStep < Step
   def run
     debug "1Password CLI found, unlocking SSH key..."
 
-    execute('op signin --account "my.1password.com"', quiet: true)
+    unless signed_in?
+      execute('op signin --account "my.1password.com"', quiet: false)
+    end
 
     # TODO: is this still required?
     ssh_key_json = execute('op item get "Main SSH Key (id_rsa)" --format=json', capture_output: true)
@@ -22,6 +24,12 @@ class SetupSSHKeysStep < Step
 
   def complete?
     return true if ci_or_noninteractive?
-    command_exists?("op") && execute("op whoami")
+    command_exists?("op") && signed_in?
+  end
+
+  private
+
+  def signed_in?
+    system("op whoami >/dev/null 2>&1")
   end
 end
