@@ -14,7 +14,7 @@ cmd_run() {
 
 cmd_update() {
     cd "$DOTFILES_DIR"
-    ruby lib/update.rb
+    ruby -r ./lib/update.rb -e 'DotfilesUpdater.new.run'
 }
 
 cmd_help() {
