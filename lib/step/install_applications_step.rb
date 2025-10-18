@@ -26,10 +26,12 @@ class InstallApplicationsStep < Step
     else
       debug "Installing #{app["name"]}..."
 
+      appdir_flag = user_has_admin_rights? ? "" : "--appdir=~/Applications"
+
       if app["cli_tap"]
-        brew_quiet("install --cask #{app["brew_cask"]} #{app["cli_tap"]}")
+        brew_quiet("install --cask #{appdir_flag} #{app["brew_cask"]} #{app["cli_tap"]}")
       else
-        brew_quiet("install --cask #{app["brew_cask"]}")
+        brew_quiet("install --cask #{appdir_flag} #{app["brew_cask"]}")
       end
     end
   end
