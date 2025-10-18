@@ -9,7 +9,7 @@ cmd_run() {
     "$SCRIPT_DIR/bootstrap"
 
     cd "$DOTFILES_DIR"
-    ruby -r ./lib/dotfiles.rb -e 'Dotfiles.new.run'
+    ruby -r ./lib/dotfiles.rb -e 'Dotfiles::Runner.new.run'
 }
 
 cmd_update() {
