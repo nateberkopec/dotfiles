@@ -37,6 +37,27 @@ class ConfigureFishStep < Step
     config_matches && functions_match
   end
 
+  # Sync current Fish config back into dotfiles
+  def update
+    fish_config_file = @config.expand_path("fish_config_file")
+    fish_functions_dir = @config.expand_path("fish_functions_dir")
+
+    dest_config = @config.source_path("fish_config")
+    dest_functions = @config.source_path("fish_functions")
+
+    return unless fish_config_file && fish_functions_dir && dest_config && dest_functions
+
+    FileUtils.mkdir_p(File.dirname(dest_config))
+    FileUtils.cp(fish_config_file, dest_config) if File.exist?(fish_config_file)
+
+    FileUtils.mkdir_p(dest_functions)
+    if Dir.exist?(fish_functions_dir)
+      Dir.glob(File.join(fish_functions_dir, "*")) do |src|
+        FileUtils.cp(src, File.join(dest_functions, File.basename(src))) if File.file?(src)
+      end
+    end
+  end
+
   private
 
   def files_match?(source_file, dest_file)
@@ -58,26 +79,5 @@ class ConfigureFishStep < Step
   def file_hash(file_path)
     require "digest"
     Digest::SHA256.file(file_path).hexdigest
-  end
-
-  # Sync current Fish config back into dotfiles
-  def update
-    fish_config_file = @config.expand_path("fish_config_file")
-    fish_functions_dir = @config.expand_path("fish_functions_dir")
-
-    dest_config = @config.source_path("fish_config")
-    dest_functions = @config.source_path("fish_functions")
-
-    return unless fish_config_file && fish_functions_dir && dest_config && dest_functions
-
-    FileUtils.mkdir_p(File.dirname(dest_config))
-    FileUtils.cp(fish_config_file, dest_config) if File.exist?(fish_config_file)
-
-    FileUtils.mkdir_p(dest_functions)
-    if Dir.exist?(fish_functions_dir)
-      Dir.glob(File.join(fish_functions_dir, "*")) do |src|
-        FileUtils.cp(src, File.join(dest_functions, File.basename(src))) if File.file?(src)
-      end
-    end
   end
 end

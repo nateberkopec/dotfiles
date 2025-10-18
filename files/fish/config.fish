@@ -16,7 +16,6 @@ complete -c z -f -k -a "(zoxide query -l)"
 alias cd z
 alias be="bundle exec"
 alias cat bat
-alias claude-safe="command claude"
 function mosh
   command mosh --predict=experimental $argv
 end
@@ -26,7 +25,6 @@ if test -f ~/.config/fish/private.fish
 end
 
 alias mosh-mbp "mosh --server='SHELL=/opt/homebrew/bin/fish /opt/homebrew/bin/mosh-server' nateberkopec@MBP-Server.local"
-alias mosh-mbp-tmux "mosh --server='SHELL=/opt/homebrew/bin/fish /opt/homebrew/bin/mosh-server' nateberkopec@MBP-Server.local -- /opt/homebrew/bin/tmux new-session -A -s main"
 
 mise activate fish | source
 

@@ -1,4 +1,30 @@
 function gc-ai
+    # Parse arguments first to check for help
+    argparse 'h/help' 'c/context' 'claude' 's/summary-only' 'no-gpg-sign' 'no-verify' -- $argv
+    or return
+
+    # Show help if requested
+    if set -q _flag_help
+        echo "gc-ai - AI-powered git commit message generator"
+        echo ""
+        echo "Usage: gc-ai [OPTIONS]"
+        echo ""
+        echo "Options:"
+        echo "  -h, --help          Show this help message"
+        echo "  -c, --context       Prompt for additional context about the change"
+        echo "  --claude            Get context from current Claude session"
+        echo "  -s, --summary-only  Only include summary line, skip detailed description"
+        echo "  --no-gpg-sign       Skip GPG signing of the commit"
+        echo "  --no-verify         Skip pre-commit and commit-msg hooks"
+        echo ""
+        echo "Examples:"
+        echo "  gc-ai                    Generate commit message for staged changes"
+        echo "  gc-ai -c                 Include additional context via prompt"
+        echo "  gc-ai --no-verify        Skip pre-commit hooks"
+        echo "  gc-ai -c --no-gpg-sign   Combine multiple options"
+        return 0
+    end
+
     # Check required dependencies
     if not command -q gum
         echo "Error: gum is not installed. Install it from https://github.com/charmbracelet/gum"
@@ -13,19 +39,6 @@ function gc-ai
     if not command -q llm
         echo "Error: llm is not installed. Install it from https://llm.datasette.io/"
         return 1
-    end
-
-    # Parse arguments
-    argparse 'c/context' 'claude' 's/summary-only' 'no-gpg-sign' 'no-verify' -- $argv
-    or return
-
-    # Build git commit flags
-    set commit_flags
-    if set -q _flag_no_gpg_sign
-        set commit_flags $commit_flags --no-gpg-sign
-    end
-    if set -q _flag_no_verify
-        set commit_flags $commit_flags --no-verify
     end
 
     # Get the git diff
@@ -104,6 +117,15 @@ $context"
         echo $output_file
     end
 
+    # Build git commit options
+    set git_commit_options
+    if set -q _flag_no_gpg_sign
+        set git_commit_options $git_commit_options --no-gpg-sign
+    end
+    if set -q _flag_no_verify
+        set git_commit_options $git_commit_options --no-verify
+    end
+
     # Loop to allow rerolls
     while true
         # Generate commit message and save to temp file to preserve newlines
@@ -145,19 +167,19 @@ $context"
 
         switch $action
             case "Commit"
-                git commit $commit_flags -F $display_file
+                git commit -F $display_file $git_commit_options
                 rm $temp_file
                 rm $display_file
                 return 0
             case "Commit and Push"
-                git commit $commit_flags -F $display_file
+                git commit -F $display_file $git_commit_options
                 rm $temp_file
                 rm $display_file
                 git push
                 return 0
             case "Edit"
                 eval $EDITOR $display_file
-                git commit $commit_flags -F $display_file
+                git commit -F $display_file $git_commit_options
                 rm $temp_file
                 rm $display_file
                 return 0
