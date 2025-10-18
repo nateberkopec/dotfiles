@@ -179,7 +179,6 @@ class MacDevSetup
 
   def setup_signal_handlers
     trap("EXIT") do
-      debug "Clearing SSH keys from agent..."
       system("ssh-add -D 2>/dev/null") if command_exists?("ssh-add")
     end
   end

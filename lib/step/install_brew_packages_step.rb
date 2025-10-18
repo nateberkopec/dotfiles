@@ -29,28 +29,35 @@ class InstallBrewPackagesStep < Step
     exit_status = $?.exitstatus
 
     if exit_status != 0
-      output.each_line do |line|
-        if line =~ /Error: .* ([\w\-]+)/ || line =~ /failed to install ([\w\-]+)/i
-          package = $1
-          packages = @config.packages["brew"]["packages"]
-          casks = @config.packages["brew"]["casks"]
+      debug "brew bundle install exited with status #{exit_status}"
+      debug "Output:\n#{output}" if @debug
 
-          if packages.include?(package)
-            @skipped_packages << package
-          elsif casks.include?(package)
-            @skipped_casks << package
+      packages = @config.packages["brew"]["packages"]
+      casks = @config.packages["brew"]["casks"]
+
+      output.each_line do |line|
+        packages.each do |pkg|
+          if line.include?(pkg) && (line =~ /Error|failed|skipped/i)
+            @skipped_packages << pkg unless @skipped_packages.include?(pkg)
+          end
+        end
+
+        casks.each do |cask|
+          if line.include?(cask) && (line =~ /Error|failed|skipped/i)
+            @skipped_casks << cask unless @skipped_casks.include?(cask)
           end
         end
       end
-      debug "Some packages failed to install"
-      debug "Output: #{output}" if @debug
+
+      debug "Skipped packages: #{@skipped_packages.join(', ')}" if @skipped_packages.any?
+      debug "Skipped casks: #{@skipped_casks.join(', ')}" if @skipped_casks.any?
     end
 
     @ran = true
   end
 
   def complete?
-    return true if @ran && (@skipped_packages.any? || @skipped_casks.any?)
+    return true if @ran
     return false unless File.exist?(@brewfile_path)
     system("brew bundle check --file=#{@brewfile_path} --no-upgrade >/dev/null 2>&1")
   rescue
