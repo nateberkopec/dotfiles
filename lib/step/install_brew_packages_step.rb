@@ -10,6 +10,7 @@ class InstallBrewPackagesStep < Step
     @skipped_packages = []
     @skipped_casks = []
     @brewfile_path = File.join(@dotfiles_dir, "Brewfile")
+    @ran = false
   end
 
   def run
@@ -20,6 +21,7 @@ class InstallBrewPackagesStep < Step
     result = system("brew bundle check --file=#{@brewfile_path} --no-upgrade >/dev/null 2>&1")
     if result
       debug "All packages already installed"
+      @ran = true
       return
     end
 
@@ -28,11 +30,14 @@ class InstallBrewPackagesStep < Step
 
     if exit_status != 0
       output.each_line do |line|
-        if line =~ /Installing (.+)\.{3}$/
+        if line =~ /Error: .* ([\w\-]+)/ || line =~ /failed to install ([\w\-]+)/i
           package = $1
-          if line.include?("formula") || !line.include?("cask")
+          packages = @config.packages["brew"]["packages"]
+          casks = @config.packages["brew"]["casks"]
+
+          if packages.include?(package)
             @skipped_packages << package
-          else
+          elsif casks.include?(package)
             @skipped_casks << package
           end
         end
@@ -40,9 +45,12 @@ class InstallBrewPackagesStep < Step
       debug "Some packages failed to install"
       debug "Output: #{output}" if @debug
     end
+
+    @ran = true
   end
 
   def complete?
+    return true if @ran && (@skipped_packages.any? || @skipped_casks.any?)
     return false unless File.exist?(@brewfile_path)
     system("brew bundle check --file=#{@brewfile_path} --no-upgrade >/dev/null 2>&1")
   rescue

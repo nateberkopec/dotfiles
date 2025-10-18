@@ -81,7 +81,7 @@ class Step
     puts message if @debug
   end
 
-  def execute(command, quiet: !@debug, sudo: false, capture_output: false)
+  def execute(command, quiet: true, sudo: false, capture_output: false)
     if sudo && ci_or_noninteractive?
       debug "Skipping sudo command in CI/non-interactive environment: #{command}"
       return ""
@@ -125,7 +125,7 @@ class Step
   end
 
   def brew_quiet(command)
-    execute("brew #{command}", quiet: !@debug)
+    execute("brew #{command}", quiet: true)
   end
 
   def ci_or_noninteractive?
