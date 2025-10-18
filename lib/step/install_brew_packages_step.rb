@@ -23,7 +23,8 @@ class InstallBrewPackagesStep < Step
       return
     end
 
-    output = `brew bundle install --file=#{@brewfile_path} 2>&1`
+    cask_opts = user_has_admin_rights? ? "" : "--appdir=~/Applications"
+    output = `HOMEBREW_CASK_OPTS="#{cask_opts}" brew bundle install --file=#{@brewfile_path} 2>&1`
     exit_status = $?.exitstatus
 
     packages = @config.packages["brew"]["packages"]
