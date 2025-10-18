@@ -13,25 +13,49 @@ cmd_run() {
 }
 
 cmd_update() {
+    local git_flags=""
+
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --no-gpg-sign)
+                git_flags="$git_flags --no-gpg-sign"
+                shift
+                ;;
+            --no-verify)
+                git_flags="$git_flags --no-verify"
+                shift
+                ;;
+            *)
+                shift
+                ;;
+        esac
+    done
+
     cd "$DOTFILES_DIR"
-    ruby -r ./lib/update.rb -e 'DotfilesUpdater.new.run'
+    GIT_COMMIT_FLAGS="$git_flags" ruby -r ./lib/update.rb -e 'DotfilesUpdater.new.run'
 }
 
 cmd_help() {
     cat <<EOF
 dot - Dotfiles management tool
 
-Usage: dot <command>
+Usage: dot <command> [options]
 
 Commands:
   run       Set up development environment from scratch
   update    Update dotfiles from the system
   help      Show this help message
 
+Options (for update command):
+  --no-gpg-sign    Skip GPG signing when committing
+  --no-verify      Skip git pre-commit and commit-msg hooks
+
 Examples:
-  dot run           # Initial setup
-  dot update        # Update dotfiles
-  DEBUG=true dot run    # Run with debug output
+  dot run                              # Initial setup
+  dot update                           # Update dotfiles
+  dot update --no-gpg-sign             # Update without GPG signing
+  dot update --no-gpg-sign --no-verify # Update without GPG or hooks
+  DEBUG=true dot run                   # Run with debug output
 EOF
 }
 
@@ -46,7 +70,8 @@ main() {
             cmd_run
             ;;
         update)
-            cmd_update
+            shift
+            cmd_update "$@"
             ;;
         help|--help|-h)
             cmd_help

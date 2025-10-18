@@ -16,8 +16,17 @@ function gc-ai
     end
 
     # Parse arguments
-    argparse 'c/context' 'claude' 's/summary-only' -- $argv
+    argparse 'c/context' 'claude' 's/summary-only' 'no-gpg-sign' 'no-verify' -- $argv
     or return
+
+    # Build git commit flags
+    set commit_flags
+    if set -q _flag_no_gpg_sign
+        set commit_flags $commit_flags --no-gpg-sign
+    end
+    if set -q _flag_no_verify
+        set commit_flags $commit_flags --no-verify
+    end
 
     # Get the git diff
     set diff (git diff --cached)
@@ -136,19 +145,19 @@ $context"
 
         switch $action
             case "Commit"
-                git commit -F $display_file
+                git commit $commit_flags -F $display_file
                 rm $temp_file
                 rm $display_file
                 return 0
             case "Commit and Push"
-                git commit -F $display_file
+                git commit $commit_flags -F $display_file
                 rm $temp_file
                 rm $display_file
                 git push
                 return 0
             case "Edit"
                 eval $EDITOR $display_file
-                git commit -F $display_file
+                git commit $commit_flags -F $display_file
                 rm $temp_file
                 rm $display_file
                 return 0
