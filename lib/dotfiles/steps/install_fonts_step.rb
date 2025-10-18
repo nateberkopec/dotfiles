@@ -1,4 +1,4 @@
-class InstallFontsStep < Step
+class Dotfiles::Step::InstallFontsStep < Dotfiles::Step
   def should_run?
     if ci_or_noninteractive?
       debug "Skipping font installation (requires GUI) in CI/non-interactive environment"

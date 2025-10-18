@@ -1,10 +1,10 @@
-class VSCodeConfigurationStep < Step
+class Dotfiles::Step::VSCodeConfigurationStep < Dotfiles::Step
   def self.display_name
     "VS Code Configuration"
   end
 
   def self.depends_on
-    [InstallApplicationsStep, CloneDotfilesStep]
+    [Dotfiles::Step::InstallApplicationsStep, Dotfiles::Step::CloneDotfilesStep]
   end
 
   def run

@@ -1,6 +1,6 @@
-class SetFishDefaultShellStep < Step
+class Dotfiles::Step::SetFishDefaultShellStep < Dotfiles::Step
   def self.depends_on
-    [InstallBrewPackagesStep]
+    [Dotfiles::Step::InstallBrewPackagesStep]
   end
 
   def run

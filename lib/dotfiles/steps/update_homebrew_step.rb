@@ -1,6 +1,6 @@
-class UpdateHomebrewStep < Step
+class Dotfiles::Step::UpdateHomebrewStep < Dotfiles::Step
   def self.depends_on
-    [InstallHomebrewStep]
+    [Dotfiles::Step::InstallHomebrewStep]
   end
 
   def run

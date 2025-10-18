@@ -1,4 +1,4 @@
-class DisableDisplaysHaveSpacesStep < Step
+class Dotfiles::Step::DisableDisplaysHaveSpacesStep < Dotfiles::Step
   def run
     debug "Configuring Spaces to span across multiple displays..."
     execute("defaults write com.apple.spaces spans-displays -bool true && killall SystemUIServer")

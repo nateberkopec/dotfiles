@@ -1,4 +1,4 @@
-class UpdateMacOSStep < Step
+class Dotfiles::Step::UpdateMacOSStep < Dotfiles::Step
   def self.display_name
     "Update macOS"
   end

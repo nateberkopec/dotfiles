@@ -1,6 +1,6 @@
-class ConfigureFishStep < Step
+class Dotfiles::Step::ConfigureFishStep < Dotfiles::Step
   def self.depends_on
-    [InstallBrewPackagesStep, CloneDotfilesStep]
+    [Dotfiles::Step::InstallBrewPackagesStep, Dotfiles::Step::CloneDotfilesStep]
   end
 
   def run

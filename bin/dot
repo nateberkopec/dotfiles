@@ -32,7 +32,7 @@ cmd_update() {
     done
 
     cd "$DOTFILES_DIR"
-    GIT_COMMIT_FLAGS="$git_flags" ruby -r ./lib/update.rb -e 'DotfilesUpdater.new.run'
+    GIT_COMMIT_FLAGS="$git_flags" ruby -r ./lib/dotfiles/updater.rb -e 'Dotfiles::Updater.new.run'
 }
 
 cmd_help() {

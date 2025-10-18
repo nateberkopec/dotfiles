@@ -1,4 +1,4 @@
-class ConfigureApplicationsStep < Step
+class Dotfiles::Step::ConfigureApplicationsStep < Dotfiles::Step
   def run
     debug "Configuring application settings and preferences..."
     configure_ghostty

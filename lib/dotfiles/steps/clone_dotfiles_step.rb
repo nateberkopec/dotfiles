@@ -1,4 +1,4 @@
-class CloneDotfilesStep < Step
+class Dotfiles::Step::CloneDotfilesStep < Dotfiles::Step
   def run
     if Dir.exist?(@dotfiles_dir)
       debug "Dotfiles directory already exists, pulling latest changes..."

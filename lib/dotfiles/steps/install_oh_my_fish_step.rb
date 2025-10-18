@@ -1,6 +1,6 @@
-class InstallOhMyFishStep < Step
+class Dotfiles::Step::InstallOhMyFishStep < Dotfiles::Step
   def self.depends_on
-    [InstallBrewPackagesStep, CloneDotfilesStep]
+    [Dotfiles::Step::InstallBrewPackagesStep, Dotfiles::Step::CloneDotfilesStep]
   end
 
   def run
@@ -38,7 +38,7 @@ class InstallOhMyFishStep < Step
 
     FileUtils.mkdir_p(dest_dir)
 
-    %w[bundle channel theme].each do |file|
+    %w[Dotfiles::Step::bundle, Dotfiles::Step::channel, Dotfiles::Step::theme].each do |file|
       src = File.join(omf_config_dir, file)
       dest = File.join(dest_dir, file)
       FileUtils.cp(src, dest) if File.exist?(src)

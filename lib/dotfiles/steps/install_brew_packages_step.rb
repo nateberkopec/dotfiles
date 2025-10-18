@@ -1,8 +1,8 @@
-class InstallBrewPackagesStep < Step
+class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
   attr_reader :skipped_packages, :skipped_casks
 
   def self.depends_on
-    [InstallHomebrewStep]
+    [Dotfiles::Step::InstallHomebrewStep]
   end
 
   def initialize(**kwargs)
