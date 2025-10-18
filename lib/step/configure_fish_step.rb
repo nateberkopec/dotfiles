@@ -11,12 +11,12 @@ class ConfigureFishStep < Step
 
     FileUtils.mkdir_p(fish_config_dir)
 
-    FileUtils.cp(@config.source_path("fish_config"), fish_config_file, verbose: true)
+    FileUtils.cp(@config.source_path("fish_config"), fish_config_file)
 
     FileUtils.mkdir_p(fish_functions_dir)
     FileUtils.rm_rf(Dir.glob(File.join(fish_functions_dir, "*")))
     Dir.glob(File.join(@config.source_path("fish_functions"), "*")).each do |src|
-      FileUtils.cp(src, fish_functions_dir, verbose: true)
+      FileUtils.cp(src, fish_functions_dir)
     end
   end
 
