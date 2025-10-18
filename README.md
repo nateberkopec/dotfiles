@@ -33,31 +33,41 @@ dot <command>
 - `dot update` - Update dotfiles from the system
 - `dot help` - Show help message
 
-## What Gets Installed
+## How It Works: Steps
 
-- System updates via macOS Software Update
-- Homebrew and essential packages
-- Development tools: VSCode, Ghostty, Fish shell, Mise
-- Applications: Arc, Aerospace, Raycast, 1Password
-- Ruby (latest stable version)
-- Oh My Fish and configurations
-- Custom fonts
+The setup process is organized into modular Steps. Each step is a Ruby class that inherits from the `Step` base class and implements a specific part of the setup process.
 
-## Configuration
+### Step Interface
 
-### Fish Shell
-- Set as default shell with custom functions and configurations
-- Oh My Fish installed with custom bundle
+Steps must implement these methods:
 
-### VSCode
-- Settings and keybindings automatically configured
-- Extensions installed from extensions.txt
+- `run` - Executes the setup action
+- `complete?` - Returns true if the step has already been completed
+- `update` (optional) - Syncs configuration from the system back to the dotfiles repo
 
-### Aerospace
-- Tiling window manager configured with .aerospace.toml
+Steps can also define:
 
-### Git
-- Global git configuration applied
+- `self.depends_on` - Returns an array of step classes that must run first
+- `should_run?` - Returns true if the step should execute (default: `!complete?`)
 
-### Ghostty
-- Terminal configuration automatically installed
+### Available Steps
+
+For details on what each step does, see the implementations in `lib/step/`:
+
+- `clone_dotfiles_step.rb`
+- `configure_applications_step.rb`
+- `configure_fish_step.rb`
+- `disable_displays_have_spaces_step.rb`
+- `install_applications_step.rb`
+- `install_brew_packages_step.rb`
+- `install_fonts_step.rb`
+- `install_homebrew_step.rb`
+- `install_oh_my_fish_step.rb`
+- `set_fish_default_shell_step.rb`
+- `set_font_smoothing_step.rb`
+- `setup_ssh_keys_step.rb`
+- `update_homebrew_step.rb`
+- `update_macos_step.rb`
+- `vscode_configuration_step.rb`
+
+Steps are executed in dependency order, automatically sorted by their `depends_on` declarations.
