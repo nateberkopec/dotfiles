@@ -9,11 +9,11 @@ class Dotfiles::Step::VSCodeConfigurationStep < Dotfiles::Step
 
   def run
     debug "Configuring VSCode..."
-    vscode_dir = @config.expand_path("vscode_user_dir", "application_paths")
+    vscode_dir = app_path("vscode_user_dir")
     FileUtils.mkdir_p(vscode_dir)
 
-    FileUtils.cp(@config.source_path("vscode_settings"), vscode_dir)
-    FileUtils.cp(@config.source_path("vscode_keybindings"), vscode_dir)
+    FileUtils.cp(dotfiles_source("vscode_settings"), vscode_dir)
+    FileUtils.cp(dotfiles_source("vscode_keybindings"), vscode_dir)
 
     install_vscode_extensions
   end
@@ -21,17 +21,17 @@ class Dotfiles::Step::VSCodeConfigurationStep < Dotfiles::Step
   def complete?
     return true if ci_or_noninteractive?
 
-    vscode_settings = @config.expand_path("vscode_settings", "application_paths")
-    vscode_keybindings = @config.expand_path("vscode_keybindings", "application_paths")
+    vscode_settings = app_path("vscode_settings")
+    vscode_keybindings = app_path("vscode_keybindings")
 
     File.exist?(vscode_settings) && File.exist?(vscode_keybindings)
   end
 
   def update
-    copy_if_exists(@config.expand_path("vscode_settings", "application_paths"), @config.source_path("vscode_settings"))
-    copy_if_exists(@config.expand_path("vscode_keybindings", "application_paths"), @config.source_path("vscode_keybindings"))
+    copy_if_exists(app_path("vscode_settings"), dotfiles_source("vscode_settings"))
+    copy_if_exists(app_path("vscode_keybindings"), dotfiles_source("vscode_keybindings"))
 
-    extensions_dest = @config.source_path("vscode_extensions")
+    extensions_dest = dotfiles_source("vscode_extensions")
     if extensions_dest && command_exists?("code")
       stdout = execute("code --list-extensions", capture_output: true)
       FileUtils.mkdir_p(File.dirname(extensions_dest))
@@ -42,7 +42,7 @@ class Dotfiles::Step::VSCodeConfigurationStep < Dotfiles::Step
   private
 
   def install_vscode_extensions
-    extensions_file = @config.source_path("vscode_extensions")
+    extensions_file = dotfiles_source("vscode_extensions")
     return unless File.exist?(extensions_file)
 
     debug "Installing VSCode extensions..."

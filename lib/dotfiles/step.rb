@@ -57,7 +57,7 @@ class Dotfiles
       @dotfiles_repo = dotfiles_repo
       @dotfiles_dir = dotfiles_dir
       @home = home
-      @config = ConfigLoader.new(dotfiles_dir)
+      @config = Config.new(dotfiles_dir)
       @ran = false
     end
 
@@ -157,6 +157,21 @@ class Dotfiles
       output.strip == expected_value
     rescue
       false
+    end
+
+    def home_path(key)
+      path = @config.paths.dig("home_paths", key.to_s)
+      path ? File.expand_path(path) : nil
+    end
+
+    def app_path(key)
+      path = @config.paths.dig("application_paths", key.to_s)
+      path ? File.expand_path(path) : nil
+    end
+
+    def dotfiles_source(key)
+      source = @config.paths.dig("dotfiles_sources", key.to_s)
+      source ? File.join(@dotfiles_dir, source) : nil
     end
   end
 end

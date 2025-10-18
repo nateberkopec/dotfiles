@@ -5,17 +5,17 @@ class Dotfiles::Step::ConfigureFishStep < Dotfiles::Step
 
   def run
     debug "Setting up Fish configuration..."
-    fish_config_dir = @config.expand_path("fish_config_dir")
-    fish_config_file = @config.expand_path("fish_config_file")
-    fish_functions_dir = @config.expand_path("fish_functions_dir")
+    fish_config_dir = home_path("fish_config_dir")
+    fish_config_file = home_path("fish_config_file")
+    fish_functions_dir = home_path("fish_functions_dir")
 
     FileUtils.mkdir_p(fish_config_dir)
 
-    FileUtils.cp(@config.source_path("fish_config"), fish_config_file)
+    FileUtils.cp(dotfiles_source("fish_config"), fish_config_file)
 
     FileUtils.mkdir_p(fish_functions_dir)
     FileUtils.rm_rf(Dir.glob(File.join(fish_functions_dir, "*")))
-    Dir.glob(File.join(@config.source_path("fish_functions"), "*")).each do |src|
+    Dir.glob(File.join(dotfiles_source("fish_functions"), "*")).each do |src|
       FileUtils.cp(src, fish_functions_dir)
     end
   end
@@ -23,13 +23,13 @@ class Dotfiles::Step::ConfigureFishStep < Dotfiles::Step
   def complete?
     require "digest"
 
-    fish_config_file = @config.expand_path("fish_config_file")
-    fish_functions_dir = @config.expand_path("fish_functions_dir")
+    fish_config_file = home_path("fish_config_file")
+    fish_functions_dir = home_path("fish_functions_dir")
 
     return false unless File.exist?(fish_config_file) && Dir.exist?(fish_functions_dir)
 
-    source_config = @config.source_path("fish_config")
-    source_functions = @config.source_path("fish_functions")
+    source_config = dotfiles_source("fish_config")
+    source_functions = dotfiles_source("fish_functions")
 
     config_matches = files_match?(source_config, fish_config_file)
     functions_match = directories_match?(source_functions, fish_functions_dir)
@@ -39,11 +39,11 @@ class Dotfiles::Step::ConfigureFishStep < Dotfiles::Step
 
   # Sync current Fish config back into dotfiles
   def update
-    fish_config_file = @config.expand_path("fish_config_file")
-    fish_functions_dir = @config.expand_path("fish_functions_dir")
+    fish_config_file = home_path("fish_config_file")
+    fish_functions_dir = home_path("fish_functions_dir")
 
-    dest_config = @config.source_path("fish_config")
-    dest_functions = @config.source_path("fish_functions")
+    dest_config = dotfiles_source("fish_config")
+    dest_functions = dotfiles_source("fish_functions")
 
     return unless fish_config_file && fish_functions_dir && dest_config && dest_functions
 
