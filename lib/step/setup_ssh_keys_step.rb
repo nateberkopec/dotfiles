@@ -1,31 +1,54 @@
 class SetupSSHKeysStep < Step
+  SSH_CONFIG_PATH = File.expand_path("~/.ssh/config")
+  OP_AGENT_PATH = "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
+
+  attr_reader :needs_manual_setup
+
+  def initialize(**kwargs)
+    super
+    @needs_manual_setup = false
+  end
+
   def should_run?
     if ci_or_noninteractive?
-      debug "Skipping 1Password SSH key setup in CI/non-interactive environment"
+      debug "Skipping 1Password SSH agent setup in CI/non-interactive environment"
       return false
     end
     !complete?
   end
 
   def run
-    debug "1Password CLI found, unlocking SSH key..."
+    debug "Setting up 1Password SSH agent..."
 
-    # TODO: is this still required?
-    ssh_key_json = execute('op item get "Main SSH Key (id_rsa)" --format=json', capture_output: true)
-    ssh_key_data = JSON.parse(ssh_key_json)
-    private_key = ssh_key_data["fields"].find { |f| f["label"] == "private key" }["value"]
+    FileUtils.mkdir_p(File.dirname(SSH_CONFIG_PATH))
 
-    IO.popen("ssh-add - 2>/dev/null", "w") { |io| io.write(private_key) }
+    if File.exist?(SSH_CONFIG_PATH)
+      config_content = File.read(SSH_CONFIG_PATH)
+      unless config_content.include?("IdentityAgent")
+        File.open(SSH_CONFIG_PATH, "a") do |f|
+          f.puts
+          f.puts "Host *"
+          f.puts "  IdentityAgent \"#{OP_AGENT_PATH}\""
+        end
+        debug "Added 1Password SSH agent to #{SSH_CONFIG_PATH}"
+        @needs_manual_setup = true
+      end
+    else
+      File.write(SSH_CONFIG_PATH, <<~CONFIG)
+        Host *
+          IdentityAgent "#{OP_AGENT_PATH}"
+      CONFIG
+      File.chmod(0600, SSH_CONFIG_PATH)
+      debug "Created #{SSH_CONFIG_PATH} with 1Password SSH agent"
+      @needs_manual_setup = true
+    end
   end
 
   def complete?
     return true if ci_or_noninteractive?
-    command_exists?("op") && signed_in?
-  end
+    return false unless File.exist?(SSH_CONFIG_PATH)
 
-  private
-
-  def signed_in?
-    system("op whoami >/dev/null 2>&1")
+    config_content = File.read(SSH_CONFIG_PATH)
+    config_content.include?("IdentityAgent") && config_content.include?("1password")
   end
 end

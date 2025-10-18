@@ -57,6 +57,7 @@ class MacDevSetup
     table_data = []
     skipped_homebrew_packages = []
     skipped_homebrew_casks = []
+    needs_1password_setup = false
 
     Step.all_steps.each_with_index do |step_class, i|
       step = step_instances[i]
@@ -79,11 +80,32 @@ class MacDevSetup
       if step.respond_to?(:skipped_casks) && step.skipped_casks.any?
         skipped_homebrew_casks.concat(step.skipped_casks)
       end
+      if step.respond_to?(:needs_manual_setup) && step.needs_manual_setup
+        needs_1password_setup = true
+      end
     end
 
     csv_data = "Step,Status,Ran?\n" + table_data.join("\n")
     IO.popen(["gum", "table", "--border", "rounded", "--widths", "25,8,8", "--print"], "w") do |io|
       io.write(csv_data)
+    end
+
+    if needs_1password_setup
+      system(
+        "gum", "style",
+        "--foreground", "#00aaff",
+        "--border", "rounded",
+        "--align", "left",
+        "--width", "60",
+        "--margin", "1 0",
+        "--padding", "1 2",
+        "ℹ️  1Password SSH Agent Setup Required",
+        "",
+        "To complete SSH setup:",
+        "1. Open 1Password app",
+        "2. Go to Settings → Developer",
+        "3. Enable 'Use the SSH agent'"
+      )
     end
 
     if skipped_homebrew_packages.any? || skipped_homebrew_casks.any?
