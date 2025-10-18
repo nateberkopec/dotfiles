@@ -52,22 +52,6 @@ Steps can also define:
 
 ### Available Steps
 
-For details on what each step does, see the implementations in `lib/step/`:
-
-- `clone_dotfiles_step.rb`
-- `configure_applications_step.rb`
-- `configure_fish_step.rb`
-- `disable_displays_have_spaces_step.rb`
-- `install_applications_step.rb`
-- `install_brew_packages_step.rb`
-- `install_fonts_step.rb`
-- `install_homebrew_step.rb`
-- `install_oh_my_fish_step.rb`
-- `set_fish_default_shell_step.rb`
-- `set_font_smoothing_step.rb`
-- `setup_ssh_keys_step.rb`
-- `update_homebrew_step.rb`
-- `update_macos_step.rb`
-- `vscode_configuration_step.rb`
+For details on what each step does, see the implementations in [lib/step/](lib/step/).
 
 Steps are executed in dependency order, automatically sorted by their `depends_on` declarations.
