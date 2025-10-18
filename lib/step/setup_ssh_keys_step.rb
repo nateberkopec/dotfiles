@@ -42,7 +42,7 @@ class SetupSSHKeysStep < Step
         Host *
           IdentityAgent "#{OP_AGENT_PATH}"
       CONFIG
-      File.chmod(0600, SSH_CONFIG_PATH)
+      File.chmod(0o600, SSH_CONFIG_PATH)
       debug "Created #{SSH_CONFIG_PATH} with 1Password SSH agent"
       @needs_manual_setup = true
     end

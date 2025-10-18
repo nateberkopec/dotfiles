@@ -39,8 +39,8 @@ class InstallBrewPackagesStep < Step
     if exit_status != 0
       debug "brew bundle install exited with status #{exit_status}"
       debug "Output:\n#{output}" if @debug
-      debug "Skipped packages: #{@skipped_packages.join(', ')}" if @skipped_packages.any?
-      debug "Skipped casks: #{@skipped_casks.join(', ')}" if @skipped_casks.any?
+      debug "Skipped packages: #{@skipped_packages.join(", ")}" if @skipped_packages.any?
+      debug "Skipped casks: #{@skipped_casks.join(", ")}" if @skipped_casks.any?
     end
   end
 

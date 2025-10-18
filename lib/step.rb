@@ -1,5 +1,4 @@
 require "fileutils"
-require "set"
 require "json"
 require "open3"
 require "shellwords"

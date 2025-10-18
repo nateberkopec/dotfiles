@@ -14,7 +14,7 @@ class ConfigureApplicationsStep < Step
     File.exist?(ghostty_config) && File.exist?(aerospace_config) && File.exist?(git_config)
   end
 
-    def update
+  def update
     # Ghostty
     ghostty_src = @config.expand_path("ghostty_config_file", "application_paths")
     ghostty_dest = @config.source_path("ghostty_config")
