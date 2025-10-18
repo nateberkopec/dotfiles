@@ -1,4 +1,8 @@
 class UpdateMacOSStep < Step
+  def self.display_name
+    "Update macOS"
+  end
+
   def should_run?
     user_has_admin_rights? && !ci_or_noninteractive? && !complete?
   end

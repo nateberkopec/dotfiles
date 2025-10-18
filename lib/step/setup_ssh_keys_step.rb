@@ -2,6 +2,10 @@ class SetupSSHKeysStep < Step
   SSH_CONFIG_PATH = File.expand_path("~/.ssh/config")
   OP_AGENT_PATH = "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
 
+  def self.display_name
+    "Setup SSH Keys"
+  end
+
   attr_reader :needs_manual_setup
 
   def initialize(**kwargs)

@@ -1,4 +1,8 @@
 class VSCodeConfigurationStep < Step
+  def self.display_name
+    "VS Code Configuration"
+  end
+
   def self.depends_on
     [InstallApplicationsStep, CloneDotfilesStep]
   end

@@ -62,7 +62,7 @@ class MacDevSetup
 
     Step.all_steps.each_with_index do |step_class, i|
       step = step_instances[i]
-      step_name = step_class.name.gsub(/Step$/, "").gsub(/([A-Z])/, ' \1').strip
+      step_name = step_class.display_name
 
       completion_status = !!step.complete?
       status_symbol = case completion_status
