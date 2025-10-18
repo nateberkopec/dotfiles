@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 
-require_relative "loader"
+require_relative "dotfiles/step"
+Dir.glob(File.join(__dir__, "dotfiles", "steps", "*.rb")).sort.each { |file| require file }
 
 class ConfigLoader
   def initialize(dotfiles_dir)
