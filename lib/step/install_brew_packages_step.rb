@@ -26,27 +26,18 @@ class InstallBrewPackagesStep < Step
     output = `brew bundle install --file=#{@brewfile_path} 2>&1`
     exit_status = $?.exitstatus
 
+    packages = @config.packages["brew"]["packages"]
+    casks = @config.packages["brew"]["casks"]
+
+    installed_formulae = `brew list --formula 2>/dev/null`.split("\n")
+    installed_casks = `brew list --cask 2>/dev/null`.split("\n")
+
+    @skipped_packages = packages.reject { |pkg| installed_formulae.include?(pkg) }
+    @skipped_casks = casks.reject { |cask| installed_casks.include?(cask) }
+
     if exit_status != 0
       debug "brew bundle install exited with status #{exit_status}"
       debug "Output:\n#{output}" if @debug
-
-      packages = @config.packages["brew"]["packages"]
-      casks = @config.packages["brew"]["casks"]
-
-      output.each_line do |line|
-        packages.each do |pkg|
-          if line.include?(pkg) && (line =~ /Error|failed|skipped/i)
-            @skipped_packages << pkg unless @skipped_packages.include?(pkg)
-          end
-        end
-
-        casks.each do |cask|
-          if line.include?(cask) && (line =~ /Error|failed|skipped/i)
-            @skipped_casks << cask unless @skipped_casks.include?(cask)
-          end
-        end
-      end
-
       debug "Skipped packages: #{@skipped_packages.join(', ')}" if @skipped_packages.any?
       debug "Skipped casks: #{@skipped_casks.join(', ')}" if @skipped_casks.any?
     end
