@@ -23,7 +23,7 @@ jobs:
         NONINTERACTIVE: true
       run: |
         cd ${{ github.workspace }}
-        chmod +x bin/dot run
+        chmod +x bin/dot
         ./bin/dot run 2>&1 | tee output.log
 
     - name: Check for success message
