@@ -6,17 +6,58 @@ class ConfigureFishStep < Step
   def run
     debug "Setting up Fish configuration..."
     fish_config_dir = @config.expand_path("fish_config_dir")
+    fish_config_file = @config.expand_path("fish_config_file")
+    fish_functions_dir = @config.expand_path("fish_functions_dir")
+
     FileUtils.mkdir_p(fish_config_dir)
 
-    FileUtils.cp(@config.source_path("fish_config"), fish_config_dir)
-    FileUtils.cp_r(@config.source_path("fish_functions"), fish_config_dir)
+    FileUtils.cp(@config.source_path("fish_config"), fish_config_file, verbose: true)
+
+    FileUtils.mkdir_p(fish_functions_dir)
+    FileUtils.rm_rf(Dir.glob(File.join(fish_functions_dir, "*")))
+    Dir.glob(File.join(@config.source_path("fish_functions"), "*")).each do |src|
+      FileUtils.cp(src, fish_functions_dir, verbose: true)
+    end
   end
 
   def complete?
-    fish_config = @config.expand_path("fish_config_file")
-    fish_functions = @config.expand_path("fish_functions_dir")
+    require "digest"
 
-    File.exist?(fish_config) && Dir.exist?(fish_functions)
+    fish_config_file = @config.expand_path("fish_config_file")
+    fish_functions_dir = @config.expand_path("fish_functions_dir")
+
+    return false unless File.exist?(fish_config_file) && Dir.exist?(fish_functions_dir)
+
+    source_config = @config.source_path("fish_config")
+    source_functions = @config.source_path("fish_functions")
+
+    config_matches = files_match?(source_config, fish_config_file)
+    functions_match = directories_match?(source_functions, fish_functions_dir)
+
+    config_matches && functions_match
+  end
+
+  private
+
+  def files_match?(source_file, dest_file)
+    return false unless File.exist?(dest_file)
+    file_hash(source_file) == file_hash(dest_file)
+  end
+
+  def directories_match?(source_dir, dest_dir)
+    source_files = Dir.glob(File.join(source_dir, "*")).sort
+    dest_files = Dir.glob(File.join(dest_dir, "*")).sort
+
+    return false unless source_files.map { |f| File.basename(f) } == dest_files.map { |f| File.basename(f) }
+
+    source_files.zip(dest_files).all? do |source, dest|
+      files_match?(source, dest)
+    end
+  end
+
+  def file_hash(file_path)
+    require "digest"
+    Digest::SHA256.file(file_path).hexdigest
   end
 
   # Sync current Fish config back into dotfiles
