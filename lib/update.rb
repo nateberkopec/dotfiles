@@ -53,13 +53,9 @@ class DotfilesUpdater
     system("git add -A")
     system("git diff --cached --stat")
 
-    gc_ai_cmd = "gc-ai"
-    git_commit_cmd = "git commit -m 'Update dotfiles from system'"
-
-    if ENV["GIT_COMMIT_FLAGS"]
-      gc_ai_cmd += " #{ENV['GIT_COMMIT_FLAGS']}"
-      git_commit_cmd = "git commit #{ENV['GIT_COMMIT_FLAGS']} -m 'Update dotfiles from system'"
-    end
+    gc_ai_flags = ENV["GIT_COMMIT_FLAGS"] || ""
+    gc_ai_cmd = "fish -c 'gc-ai #{gc_ai_flags}'"
+    git_commit_cmd = "git commit #{gc_ai_flags} -m 'Update dotfiles from system'"
 
     system(gc_ai_cmd) || system(git_commit_cmd)
 
