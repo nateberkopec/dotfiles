@@ -1,8 +1,5 @@
 require "fileutils"
-require "json"
 require "open3"
-require "shellwords"
-require "yaml"
 
 class Dotfiles
   class Step

@@ -1,10 +1,12 @@
 #!/usr/bin/env ruby
 
-require_relative "dotfiles/config"
-require_relative "dotfiles/step"
+$LOAD_PATH.unshift(File.expand_path("dotfiles", __dir__))
+
+require "config"
+require "step"
 Dir.glob(File.join(__dir__, "dotfiles", "steps", "*.rb")).sort.each { |file| require file }
-require_relative "dotfiles/runner"
-require_relative "dotfiles/updater"
+require "runner"
+require "updater"
 
 class Dotfiles
   def self.debug(message)

@@ -1,10 +1,7 @@
-#!/usr/bin/env ruby
-
 require "fileutils"
 require "open3"
-
-require_relative "config"
-require_relative "step"
+require "config"
+require "step"
 Dir.glob(File.join(__dir__, "steps", "*.rb")).sort.each { |file| require file }
 
 class Dotfiles
