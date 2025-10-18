@@ -29,7 +29,7 @@ dot <command>
 ```
 
 **Commands:**
-- `dot run` - Set up development environment from scratch
+- `dot run` - Set up development environment. Idempotent - safe to run on an already-configured system. Only runs steps that haven't been completed.
 - `dot update` - Update dotfiles from the system
 - `dot help` - Show help message
 
