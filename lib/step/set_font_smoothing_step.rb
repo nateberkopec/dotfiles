@@ -5,9 +5,6 @@ class SetFontSmoothingStep < Step
   end
 
   def complete?
-    output = execute("defaults -currentHost read -g AppleFontSmoothing", capture_output: true, quiet: true)
-    output.strip == "0"
-  rescue
-    false
+    defaults_read_equals?("defaults -currentHost read -g AppleFontSmoothing", "0")
   end
 end

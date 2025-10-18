@@ -150,4 +150,11 @@ class Step
     FileUtils.mkdir_p(File.dirname(dest))
     FileUtils.cp(src, dest)
   end
+
+  def defaults_read_equals?(command, expected_value)
+    output = execute(command, capture_output: true, quiet: true)
+    output.strip == expected_value
+  rescue
+    false
+  end
 end

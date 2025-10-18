@@ -5,9 +5,6 @@ class DisableDisplaysHaveSpacesStep < Step
   end
 
   def complete?
-    output = execute("defaults read com.apple.spaces spans-displays", capture_output: true, quiet: true)
-    output.strip == "1"
-  rescue
-    false
+    defaults_read_equals?("defaults read com.apple.spaces spans-displays", "1")
   end
 end
