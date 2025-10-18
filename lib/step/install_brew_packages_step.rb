@@ -14,34 +14,43 @@ class InstallBrewPackagesStep < Step
 
   def run
     debug "Installing command-line tools via Homebrew..."
-
     generate_brewfile
+    return if packages_already_installed?
 
+    output, exit_status = install_packages
+    update_skipped_lists
+    log_installation_results(output, exit_status)
+  end
+
+  def packages_already_installed?
     result = system("brew bundle check --file=#{@brewfile_path} --no-upgrade >/dev/null 2>&1")
-    if result
-      debug "All packages already installed"
-      return
-    end
+    debug "All packages already installed" if result
+    result
+  end
 
+  def install_packages
     cask_opts = user_has_admin_rights? ? "" : "--appdir=~/Applications"
     output = `HOMEBREW_CASK_OPTS="#{cask_opts}" brew bundle install --file=#{@brewfile_path} 2>&1`
-    exit_status = $?.exitstatus
+    [output, $?.exitstatus]
+  end
 
+  def update_skipped_lists
     packages = @config.packages["brew"]["packages"]
     casks = @config.packages["brew"]["casks"]
-
     installed_formulae = `brew list --formula 2>/dev/null`.split("\n")
     installed_casks = `brew list --cask 2>/dev/null`.split("\n")
 
     @skipped_packages = packages.reject { |pkg| installed_formulae.include?(pkg) }
     @skipped_casks = casks.reject { |cask| installed_casks.include?(cask) }
+  end
 
-    if exit_status != 0
-      debug "brew bundle install exited with status #{exit_status}"
-      debug "Output:\n#{output}" if @debug
-      debug "Skipped packages: #{@skipped_packages.join(", ")}" if @skipped_packages.any?
-      debug "Skipped casks: #{@skipped_casks.join(", ")}" if @skipped_casks.any?
-    end
+  def log_installation_results(output, exit_status)
+    return if exit_status == 0
+
+    debug "brew bundle install exited with status #{exit_status}"
+    debug "Output:\n#{output}" if @debug
+    debug "Skipped packages: #{@skipped_packages.join(", ")}" if @skipped_packages.any?
+    debug "Skipped casks: #{@skipped_casks.join(", ")}" if @skipped_casks.any?
   end
 
   def complete?

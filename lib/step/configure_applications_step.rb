@@ -15,29 +15,9 @@ class ConfigureApplicationsStep < Step
   end
 
   def update
-    # Ghostty
-    ghostty_src = @config.expand_path("ghostty_config_file", "application_paths")
-    ghostty_dest = @config.source_path("ghostty_config")
-    if ghostty_src && ghostty_dest && File.exist?(ghostty_src)
-      FileUtils.mkdir_p(File.dirname(ghostty_dest))
-      FileUtils.cp(ghostty_src, ghostty_dest)
-    end
-
-    # Aerospace
-    aerospace_src = @config.expand_path("aerospace_config")
-    aerospace_dest = @config.source_path("aerospace_config")
-    if aerospace_src && aerospace_dest && File.exist?(aerospace_src)
-      FileUtils.mkdir_p(File.dirname(aerospace_dest))
-      FileUtils.cp(aerospace_src, aerospace_dest)
-    end
-
-    # Git
-    git_src = @config.expand_path("gitconfig")
-    git_dest = @config.source_path("git_config")
-    if git_src && git_dest && File.exist?(git_src)
-      FileUtils.mkdir_p(File.dirname(git_dest))
-      FileUtils.cp(git_src, git_dest)
-    end
+    copy_if_exists(@config.expand_path("ghostty_config_file", "application_paths"), @config.source_path("ghostty_config"))
+    copy_if_exists(@config.expand_path("aerospace_config"), @config.source_path("aerospace_config"))
+    copy_if_exists(@config.expand_path("gitconfig"), @config.source_path("git_config"))
   end
 
   private

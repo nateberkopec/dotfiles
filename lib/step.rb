@@ -144,4 +144,10 @@ class Step
     groups = `groups`.strip
     groups.include?("admin")
   end
+
+  def copy_if_exists(src, dest)
+    return unless src && dest && File.exist?(src)
+    FileUtils.mkdir_p(File.dirname(dest))
+    FileUtils.cp(src, dest)
+  end
 end

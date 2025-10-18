@@ -30,7 +30,7 @@ jobs:
       run: |
         FLOG_OUTPUT=$(bundle exec flog -a lib)
         echo "$FLOG_OUTPUT"
-        MAX_SCORE=$(echo "$FLOG_OUTPUT" | grep -E '^\s+[0-9]+\.[0-9]+:' | head -1 | awk '{print $1}')
+        MAX_SCORE=$(echo "$FLOG_OUTPUT" | grep -E '^\s+[0-9]+\.[0-9]+:.*#' | awk '{print $1}' | sort -nr | head -1)
         if [ ! -z "$MAX_SCORE" ]; then
           if (( $(echo "$MAX_SCORE > $FLOG_THRESHOLD" | bc -l) )); then
             echo "flog failed: highest complexity ($MAX_SCORE) exceeds threshold ($FLOG_THRESHOLD)"
