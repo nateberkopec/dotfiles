@@ -48,17 +48,16 @@ class Dotfiles
     def check_completion(step_params, step_instances)
       result = collect_step_results(step_instances)
       display_results_table(result[:table_data])
-      display_1password_notice if result[:needs_1password_setup]
-      display_homebrew_warnings(result[:skipped_packages], result[:skipped_casks])
+      display_warnings(result[:warnings])
+      display_notices(result[:notices])
       display_final_status(result[:failed_steps])
     end
 
     def collect_step_results(step_instances)
       failed_steps = []
       table_data = []
-      skipped_packages = []
-      skipped_casks = []
-      needs_1password_setup = false
+      warnings = []
+      notices = []
 
       Dotfiles::Step.all_steps.each_with_index do |step_class, i|
         step = step_instances[i]
@@ -70,12 +69,11 @@ class Dotfiles
         table_data << "#{step_name},#{status_symbol},#{ran_status}"
         failed_steps << step_name unless completion_status
 
-        skipped_packages.concat(step.skipped_packages) if step.respond_to?(:skipped_packages) && step.skipped_packages.any?
-        skipped_casks.concat(step.skipped_casks) if step.respond_to?(:skipped_casks) && step.skipped_casks.any?
-        needs_1password_setup = true if step.respond_to?(:needs_manual_setup) && step.needs_manual_setup
+        warnings.concat(step.warnings)
+        notices.concat(step.notices)
       end
 
-      {failed_steps: failed_steps, table_data: table_data, skipped_packages: skipped_packages, skipped_casks: skipped_casks, needs_1password_setup: needs_1password_setup}
+      {failed_steps: failed_steps, table_data: table_data, warnings: warnings, notices: notices}
     end
 
     def display_results_table(table_data)
@@ -85,23 +83,19 @@ class Dotfiles
       end
     end
 
-    def display_1password_notice
-      system("gum", "style", "--foreground", "#00aaff", "--border", "rounded", "--align", "left", "--width", "60", "--margin", "1 0", "--padding", "1 2", "ℹ️  1Password SSH Agent Setup Required", "", "To complete SSH setup:", "1. Open 1Password app", "2. Go to Settings → Developer", "3. Enable 'Use the SSH agent'")
+    def display_warnings(warnings)
+      display_messages(warnings, "#ffaa00")
     end
 
-    def display_homebrew_warnings(packages, casks)
-      return unless packages.any? || casks.any?
-
-      warning_lines = ["⚠️  Homebrew Installation Skipped", "", "No admin rights detected."]
-      warning_lines.concat(build_package_warnings(packages, "Skipped formulae:"))
-      warning_lines.concat(build_package_warnings(casks, "Skipped casks:"))
-
-      system("gum", "style", "--foreground", "#ffaa00", "--border", "rounded", "--align", "left", "--width", "60", "--margin", "1 0", "--padding", "1 2", *warning_lines)
+    def display_notices(notices)
+      display_messages(notices, "#00aaff")
     end
 
-    def build_package_warnings(packages, header)
-      return [] unless packages.any?
-      ["", header] + packages.map { |pkg| "• #{pkg}" }
+    def display_messages(messages, color)
+      messages.each do |msg|
+        message_lines = [msg[:title], "", msg[:message]]
+        system("gum", "style", "--foreground", color, "--border", "rounded", "--align", "left", "--width", "60", "--margin", "1 0", "--padding", "1 2", *message_lines)
+      end
     end
 
     def display_final_status(failed_steps)

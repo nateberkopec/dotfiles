@@ -56,10 +56,22 @@ class Dotfiles
       @home = home
       @config = Config.new(dotfiles_dir)
       @ran = false
+      @warnings = []
+      @notices = []
     end
+
+    attr_reader :warnings, :notices
 
     def ran?
       @ran
+    end
+
+    def add_warning(title:, message:)
+      @warnings << {title: title, message: message}
+    end
+
+    def add_notice(title:, message:)
+      @notices << {title: title, message: message}
     end
 
     def should_run?

@@ -1,14 +1,10 @@
 class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
-  attr_reader :skipped_packages, :skipped_casks
-
   def self.depends_on
     [Dotfiles::Step::InstallHomebrewStep]
   end
 
   def initialize(**kwargs)
     super
-    @skipped_packages = []
-    @skipped_casks = []
     @brewfile_path = File.join(@dotfiles_dir, "Brewfile")
   end
 
@@ -18,7 +14,7 @@ class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
     return if packages_already_installed?
 
     output, exit_status = install_packages
-    update_skipped_lists
+    check_skipped_packages
     log_installation_results(output, exit_status)
   end
 
@@ -34,14 +30,27 @@ class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
     [output, $?.exitstatus]
   end
 
-  def update_skipped_lists
+  def check_skipped_packages
     packages = @config.packages["brew"]["packages"]
     casks = @config.packages["brew"]["casks"]
     installed_formulae = `brew list --formula 2>/dev/null`.split("\n")
     installed_casks = `brew list --cask 2>/dev/null`.split("\n")
 
-    @skipped_packages = packages.reject { |pkg| installed_formulae.include?(pkg) }
-    @skipped_casks = casks.reject { |cask| installed_casks.include?(cask) }
+    skipped_packages = packages.reject { |pkg| installed_formulae.include?(pkg) }
+    skipped_casks = casks.reject { |cask| installed_casks.include?(cask) }
+
+    if skipped_packages.any? || skipped_casks.any?
+      warning_lines = ["No admin rights detected."]
+      warning_lines << "\nSkipped formulae:" if skipped_packages.any?
+      warning_lines.concat(skipped_packages.map { |pkg| "• #{pkg}" })
+      warning_lines << "\nSkipped casks:" if skipped_casks.any?
+      warning_lines.concat(skipped_casks.map { |cask| "• #{cask}" })
+
+      add_warning(
+        title: "⚠️  Homebrew Installation Skipped",
+        message: warning_lines.join("\n")
+      )
+    end
   end
 
   def log_installation_results(output, exit_status)
@@ -49,8 +58,6 @@ class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
 
     debug "brew bundle install exited with status #{exit_status}"
     debug "Output:\n#{output}" if @debug
-    debug "Skipped packages: #{@skipped_packages.join(", ")}" if @skipped_packages.any?
-    debug "Skipped casks: #{@skipped_casks.join(", ")}" if @skipped_casks.any?
   end
 
   def complete?

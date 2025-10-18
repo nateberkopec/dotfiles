@@ -6,13 +6,6 @@ class Dotfiles::Step::SetupSSHKeysStep < Dotfiles::Step
     "Setup SSH Keys"
   end
 
-  attr_reader :needs_manual_setup
-
-  def initialize(**kwargs)
-    super
-    @needs_manual_setup = false
-  end
-
   def should_run?
     if ci_or_noninteractive?
       debug "Skipping 1Password SSH agent setup in CI/non-interactive environment"
@@ -26,6 +19,7 @@ class Dotfiles::Step::SetupSSHKeysStep < Dotfiles::Step
 
     FileUtils.mkdir_p(File.dirname(SSH_CONFIG_PATH))
 
+    needs_setup = false
     if File.exist?(SSH_CONFIG_PATH)
       config_content = File.read(SSH_CONFIG_PATH)
       unless config_content.include?("IdentityAgent")
@@ -35,7 +29,7 @@ class Dotfiles::Step::SetupSSHKeysStep < Dotfiles::Step
           f.puts "  IdentityAgent \"#{OP_AGENT_PATH}\""
         end
         debug "Added 1Password SSH agent to #{SSH_CONFIG_PATH}"
-        @needs_manual_setup = true
+        needs_setup = true
       end
     else
       File.write(SSH_CONFIG_PATH, <<~CONFIG)
@@ -44,7 +38,14 @@ class Dotfiles::Step::SetupSSHKeysStep < Dotfiles::Step
       CONFIG
       File.chmod(0o600, SSH_CONFIG_PATH)
       debug "Created #{SSH_CONFIG_PATH} with 1Password SSH agent"
-      @needs_manual_setup = true
+      needs_setup = true
+    end
+
+    if needs_setup
+      add_notice(
+        title: "ℹ️  1Password SSH Agent Setup Required",
+        message: "To complete SSH setup:\n1. Open 1Password app\n2. Go to Settings → Developer\n3. Enable 'Use the SSH agent'"
+      )
     end
   end
 
