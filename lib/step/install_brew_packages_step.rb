@@ -23,7 +23,7 @@ class InstallBrewPackagesStep < Step
       return
     end
 
-    output = `brew bundle install --file=#{@brewfile_path} --no-lock 2>&1`
+    output = `brew bundle install --file=#{@brewfile_path} 2>&1`
     exit_status = $?.exitstatus
 
     if exit_status != 0
