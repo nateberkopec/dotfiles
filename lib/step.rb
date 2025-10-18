@@ -54,6 +54,11 @@ class Step
     @dotfiles_dir = dotfiles_dir
     @home = home
     @config = ConfigLoader.new(dotfiles_dir)
+    @ran = false
+  end
+
+  def ran?
+    @ran
   end
 
   def should_run?

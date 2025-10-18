@@ -37,6 +37,7 @@ class MacDevSetup
       step_instances << step
       if step.should_run?
         printf "X"
+        step.instance_variable_set(:@ran, true)
         step.run
       else
         printf "."
@@ -69,7 +70,7 @@ class MacDevSetup
       when false then "✗"
       end
 
-      ran_status = step.should_run? ? "Yes" : "No"
+      ran_status = step.ran? ? "Yes" : "No"
 
       table_data << "#{step_name},#{status_symbol},#{ran_status}"
       failed_steps << step_name if completion_status == false
