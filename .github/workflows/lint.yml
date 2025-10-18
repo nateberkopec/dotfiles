@@ -7,8 +7,11 @@ on:
     branches: [ main ]
 
 jobs:
-  standardrb:
+  lint:
     runs-on: ubuntu-latest
+    env:
+      FLOG_THRESHOLD: 50
+      FLAY_THRESHOLD: 100
 
     steps:
     - name: Checkout repository
@@ -22,3 +25,27 @@ jobs:
 
     - name: Run standardrb
       run: bundle exec standardrb
+
+    - name: Run flog
+      run: |
+        FLOG_OUTPUT=$(bundle exec flog -a lib)
+        echo "$FLOG_OUTPUT"
+        MAX_SCORE=$(echo "$FLOG_OUTPUT" | grep -E '^\s+[0-9]+\.[0-9]+:' | head -1 | awk '{print $1}')
+        if [ ! -z "$MAX_SCORE" ]; then
+          if (( $(echo "$MAX_SCORE > $FLOG_THRESHOLD" | bc -l) )); then
+            echo "flog failed: highest complexity ($MAX_SCORE) exceeds threshold ($FLOG_THRESHOLD)"
+            exit 1
+          fi
+        fi
+        echo "flog passed (max complexity: $MAX_SCORE, threshold: $FLOG_THRESHOLD)"
+
+    - name: Run flay
+      run: |
+        FLAY_OUTPUT=$(bundle exec flay lib)
+        echo "$FLAY_OUTPUT"
+        FLAY_SCORE=$(echo "$FLAY_OUTPUT" | grep "Total score" | awk '{print $6}')
+        if [ ! -z "$FLAY_SCORE" ] && [ "$FLAY_SCORE" -gt "$FLAY_THRESHOLD" ]; then
+          echo "flay failed: duplication score ($FLAY_SCORE) exceeds threshold ($FLAY_THRESHOLD)"
+          exit 1
+        fi
+        echo "flay passed (duplication score: $FLAY_SCORE, threshold: $FLAY_THRESHOLD)"
