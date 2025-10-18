@@ -27,6 +27,7 @@ coreutils
 curl
 dav1d
 docker-credential-helper
+doppler
 double-conversion
 edencommon
 epubcheck

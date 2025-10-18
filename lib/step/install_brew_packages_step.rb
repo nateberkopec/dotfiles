@@ -52,27 +52,6 @@ class InstallBrewPackagesStep < Step
   end
 
   def update
-    return unless command_exists?("brew")
-
-    dest_dir = File.join(@dotfiles_dir, "files", "brew")
-    FileUtils.mkdir_p(dest_dir)
-
-    brewfile_dest = File.join(@dotfiles_dir, "Brewfile")
-    system("brew bundle dump --file=#{brewfile_dest} --force --no-vscode >/dev/null 2>&1")
-
-    begin
-      formulae = execute("brew list --formula", capture_output: true, quiet: true)
-      File.write(File.join(dest_dir, "formulae.txt"), formulae.strip + "\n")
-    rescue => e
-      debug "Failed to export brew formulae: #{e.message}"
-    end
-
-    begin
-      casks = execute("brew list --cask", capture_output: true, quiet: true)
-      File.write(File.join(dest_dir, "casks.txt"), casks.strip + "\n")
-    rescue => e
-      debug "Failed to export brew casks: #{e.message}"
-    end
   end
 
   private

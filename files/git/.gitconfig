@@ -22,6 +22,8 @@
         please = push --force-with-lease
         co-main = "!f() { git checkout main || git checkout master; }; f"
         co = checkout
+        wt = "!f() { git worktree add .worktrees/$1 $1; }; f"
+        wtn = "!f() { git worktree add -b $1 .worktrees/$1; }; f"
 [core]
         excludesfile = /Users/nateberkopec/.gitignore
 	editor = code -w
