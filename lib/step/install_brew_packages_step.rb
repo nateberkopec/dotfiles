@@ -9,54 +9,54 @@ class InstallBrewPackagesStep < Step
     super
     @skipped_packages = []
     @skipped_casks = []
+    @brewfile_path = File.join(@dotfiles_dir, "Brewfile")
   end
 
   def run
-    unless user_has_admin_rights?
-      @skipped_packages = @config.packages["brew"]["packages"]
-      @skipped_casks = @config.packages["brew"]["casks"]
-      debug "Skipping Homebrew package installation: no admin rights"
-      debug "Skipped packages: #{@skipped_packages.join(", ")}"
-      debug "Skipped casks: #{@skipped_casks.join(", ")}"
+    debug "Installing command-line tools via Homebrew..."
+
+    generate_brewfile
+
+    result = system("brew bundle check --file=#{@brewfile_path} --no-upgrade >/dev/null 2>&1")
+    if result
+      debug "All packages already installed"
       return
     end
 
-    debug "Installing command-line tools via Homebrew..."
+    output = `brew bundle install --file=#{@brewfile_path} --no-lock 2>&1`
+    exit_status = $?.exitstatus
 
-    packages = @config.packages["brew"]["packages"]
-    brew_quiet("install #{packages.join(" ")}")
-
-    cask_packages = @config.packages["brew"]["casks"]
-    brew_quiet("install --cask #{cask_packages.join(" ")}")
+    if exit_status != 0
+      output.each_line do |line|
+        if line =~ /Installing (.+)\.{3}$/
+          package = $1
+          if line.include?("formula") || !line.include?("cask")
+            @skipped_packages << package
+          else
+            @skipped_casks << package
+          end
+        end
+      end
+      debug "Some packages failed to install"
+      debug "Output: #{output}" if @debug
+    end
   end
 
   def complete?
-    return true if @skipped_packages.any? || @skipped_casks.any?
-
-    packages = @config.packages["brew"]["packages"]
-    cask_packages = @config.packages["brew"]["casks"]
-
-    installed_packages = execute("brew list --formula", capture_output: true, quiet: true).split("\n")
-    installed_casks = execute("brew list --cask", capture_output: true, quiet: true).split("\n")
-
-    packages_installed = packages.all? { |pkg| installed_packages.include?(pkg) }
-    cask_apps_installed = cask_packages.all? do |cask|
-      cask_name = cask.split("/").last
-      installed_casks.include?(cask_name)
-    end
-
-    packages_installed && cask_apps_installed
+    return false unless File.exist?(@brewfile_path)
+    system("brew bundle check --file=#{@brewfile_path} --no-upgrade >/dev/null 2>&1")
   rescue
     false
   end
 
-  # Export currently installed brew formulae and casks back into the repo
-  # for reference and future installs.
   def update
     return unless command_exists?("brew")
 
     dest_dir = File.join(@dotfiles_dir, "files", "brew")
     FileUtils.mkdir_p(dest_dir)
+
+    brewfile_dest = File.join(@dotfiles_dir, "Brewfile")
+    system("brew bundle dump --file=#{brewfile_dest} --force --no-vscode >/dev/null 2>&1")
 
     begin
       formulae = execute("brew list --formula", capture_output: true, quiet: true)
@@ -71,5 +71,18 @@ class InstallBrewPackagesStep < Step
     rescue => e
       debug "Failed to export brew casks: #{e.message}"
     end
+  end
+
+  private
+
+  def generate_brewfile
+    packages = @config.packages["brew"]["packages"]
+    cask_packages = @config.packages["brew"]["casks"]
+
+    brewfile_content = []
+    packages.each { |pkg| brewfile_content << "brew \"#{pkg}\"" }
+    cask_packages.each { |cask| brewfile_content << "cask \"#{cask}\"" }
+
+    File.write(@brewfile_path, brewfile_content.join("\n") + "\n")
   end
 end
