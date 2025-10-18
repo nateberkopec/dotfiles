@@ -131,4 +131,9 @@ class Step
   def ci_or_noninteractive?
     ENV["CI"] || ENV["NONINTERACTIVE"]
   end
+
+  def user_has_admin_rights?
+    groups = `groups`.strip
+    groups.include?("admin")
+  end
 end

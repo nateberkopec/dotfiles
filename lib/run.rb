@@ -29,9 +29,12 @@ class MacDevSetup
       home: @home
     }
 
+    step_instances = []
+
     puts ""
     Step.all_steps.each do |step_class|
       step = step_class.new(**step_params)
+      step_instances << step
       if step.should_run?
         printf "X"
         step.run
@@ -41,7 +44,7 @@ class MacDevSetup
     end
     puts ""
 
-    check_completion(step_params)
+    check_completion(step_params, step_instances)
   rescue => e
     puts "Error: #{e.message}"
     exit 1
@@ -49,12 +52,14 @@ class MacDevSetup
 
   private
 
-  def check_completion(step_params)
+  def check_completion(step_params, step_instances)
     failed_steps = []
     table_data = []
+    skipped_homebrew_packages = []
+    skipped_homebrew_casks = []
 
-    Step.all_steps.each do |step_class|
-      step = step_class.new(**step_params)
+    Step.all_steps.each_with_index do |step_class, i|
+      step = step_instances[i]
       step_name = step_class.name.gsub(/Step$/, "").gsub(/([A-Z])/, ' \1').strip
 
       completion_status = !!step.complete?
@@ -67,11 +72,49 @@ class MacDevSetup
 
       table_data << "#{step_name},#{status_symbol},#{ran_status}"
       failed_steps << step_name if completion_status == false
+
+      if step.respond_to?(:skipped_packages) && step.skipped_packages.any?
+        skipped_homebrew_packages.concat(step.skipped_packages)
+      end
+      if step.respond_to?(:skipped_casks) && step.skipped_casks.any?
+        skipped_homebrew_casks.concat(step.skipped_casks)
+      end
     end
 
     csv_data = "Step,Status,Ran?\n" + table_data.join("\n")
     IO.popen(["gum", "table", "--border", "rounded", "--widths", "25,8,8", "--print"], "w") do |io|
       io.write(csv_data)
+    end
+
+    if skipped_homebrew_packages.any? || skipped_homebrew_casks.any?
+      warning_lines = [
+        "⚠️  Homebrew Installation Skipped",
+        "",
+        "No admin rights detected."
+      ]
+
+      if skipped_homebrew_packages.any?
+        warning_lines << ""
+        warning_lines << "Skipped formulae:"
+        warning_lines.concat(skipped_homebrew_packages.map { |pkg| "• #{pkg}" })
+      end
+
+      if skipped_homebrew_casks.any?
+        warning_lines << ""
+        warning_lines << "Skipped casks:"
+        warning_lines.concat(skipped_homebrew_casks.map { |cask| "• #{cask}" })
+      end
+
+      system(
+        "gum", "style",
+        "--foreground", "#ffaa00",
+        "--border", "rounded",
+        "--align", "left",
+        "--width", "60",
+        "--margin", "1 0",
+        "--padding", "1 2",
+        *warning_lines
+      )
     end
 
     if failed_steps.any?

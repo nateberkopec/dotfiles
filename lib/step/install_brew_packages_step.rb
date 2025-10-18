@@ -1,9 +1,26 @@
 class InstallBrewPackagesStep < Step
+  attr_reader :skipped_packages, :skipped_casks
+
   def self.depends_on
     [InstallHomebrewStep]
   end
 
+  def initialize(**kwargs)
+    super
+    @skipped_packages = []
+    @skipped_casks = []
+  end
+
   def run
+    unless user_has_admin_rights?
+      @skipped_packages = @config.packages["brew"]["packages"]
+      @skipped_casks = @config.packages["brew"]["casks"]
+      debug "Skipping Homebrew package installation: no admin rights"
+      debug "Skipped packages: #{@skipped_packages.join(", ")}"
+      debug "Skipped casks: #{@skipped_casks.join(", ")}"
+      return
+    end
+
     debug "Installing command-line tools via Homebrew..."
 
     packages = @config.packages["brew"]["packages"]
@@ -14,6 +31,8 @@ class InstallBrewPackagesStep < Step
   end
 
   def complete?
+    return true if @skipped_packages.any? || @skipped_casks.any?
+
     packages = @config.packages["brew"]["packages"]
     cask_packages = @config.packages["brew"]["casks"]
 
