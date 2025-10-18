@@ -44,8 +44,10 @@ jobs:
         FLAY_OUTPUT=$(bundle exec flay lib)
         echo "$FLAY_OUTPUT"
         FLAY_SCORE=$(echo "$FLAY_OUTPUT" | grep "Total score" | awk '{print $6}')
-        if [ ! -z "$FLAY_SCORE" ] && [ "$FLAY_SCORE" -gt "$FLAY_THRESHOLD" ]; then
-          echo "flay failed: duplication score ($FLAY_SCORE) exceeds threshold ($FLAY_THRESHOLD)"
-          exit 1
+        if [ ! -z "$FLAY_SCORE" ]; then
+          if [ "$FLAY_SCORE" -gt "$FLAY_THRESHOLD" ]; then
+            echo "flay failed: duplication score ($FLAY_SCORE) exceeds threshold ($FLAY_THRESHOLD)"
+            exit 1
+          fi
         fi
-        echo "flay passed (duplication score: $FLAY_SCORE, threshold: $FLAY_THRESHOLD)"
+        echo "flay passed (duplication score: ${FLAY_SCORE:-0}, threshold: $FLAY_THRESHOLD)"
