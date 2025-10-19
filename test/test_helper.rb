@@ -1,6 +1,7 @@
 $LOAD_PATH.unshift File.expand_path("../lib", __dir__)
 require "dotfiles"
 require "minitest/autorun"
+require "minitest/pride"
 require_relative "support/fake_system_adapter"
 
 class Minitest::Test
