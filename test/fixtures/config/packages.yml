@@ -1,0 +1,6 @@
+brew:
+  packages:
+    - fish
+    - git
+  casks:
+    - firefox

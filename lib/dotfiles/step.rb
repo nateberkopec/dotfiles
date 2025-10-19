@@ -49,11 +49,12 @@ class Dotfiles
       result << step
     end
 
-    def initialize(debug:, dotfiles_repo:, dotfiles_dir:, home:)
+    def initialize(debug:, dotfiles_repo:, dotfiles_dir:, home:, system: SystemAdapter.new)
       @debug = debug
       @dotfiles_repo = dotfiles_repo
       @dotfiles_dir = dotfiles_dir
       @home = home
+      @system = system
       @config = Config.new(dotfiles_dir)
       @ran = false
       @warnings = []
@@ -99,28 +100,17 @@ class Dotfiles
       puts message if @debug
     end
 
-    def execute(command, quiet: true, sudo: false, capture_output: false)
+    def execute(command, quiet: true, sudo: false)
       if sudo && ci_or_noninteractive?
         debug "Skipping sudo command in CI/non-interactive environment: #{command}"
-        return ""
+        return ["", 0]
       end
 
       if sudo
         step_name = self.class.name.gsub(/Step$/, "").gsub(/([A-Z])/, ' \1').strip
-        system(
-          "gum", "style",
-          "--foreground", "#ff6b6b",
-          "--border", "double",
-          "--align", "center",
-          "--width", "50",
-          "--margin", "1 0",
-          "--padding", "1 2",
-          "🔒 Admin Privileges Required",
-          step_name,
-          "",
-          "Command: #{command}",
-          "",
-          "This is required to complete setup"
+        @system.execute(
+          "gum style --foreground '#ff6b6b' --border double --align center --width 50 --margin '1 0' --padding '1 2' '🔒 Admin Privileges Required' '#{step_name}' '' 'Command: #{command}' '' 'This is required to complete setup'",
+          quiet: false
         )
         cmd = "sudo #{command}"
       else
@@ -129,17 +119,12 @@ class Dotfiles
 
       debug "Executing: #{cmd}"
 
-      if quiet || capture_output
-        stdout, stderr, status = Open3.capture3(cmd)
-        raise "Command failed: #{cmd}\n#{stderr}" unless status.success?
-        stdout
-      else
-        system(cmd) || raise("Command failed: #{cmd}")
-      end
+      @system.execute(cmd, quiet: quiet)
     end
 
     def command_exists?(command)
-      system("command -v #{command} >/dev/null 2>&1")
+      _, status = @system.execute("command -v #{command} >/dev/null 2>&1")
+      status == 0
     end
 
     def brew_quiet(command)
@@ -151,21 +136,20 @@ class Dotfiles
     end
 
     def user_has_admin_rights?
-      groups = `groups`.strip
+      groups, = @system.execute("groups")
       groups.include?("admin")
     end
 
     def copy_if_exists(src, dest)
-      return unless src && dest && File.exist?(src)
-      FileUtils.mkdir_p(File.dirname(dest))
-      FileUtils.cp(src, dest)
+      return unless src && dest && @system.file_exist?(src)
+      @system.mkdir_p(File.dirname(dest))
+      @system.cp(src, dest)
     end
 
     def defaults_read_equals?(command, expected_value)
-      output = execute(command, capture_output: true, quiet: true)
-      output.strip == expected_value
-    rescue
-      false
+      output, status = execute(command, quiet: true)
+      return false unless status == 0
+      output == expected_value
     end
 
     def home_path(key)

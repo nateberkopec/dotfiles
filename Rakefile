@@ -1,7 +1,14 @@
+require "rake/testtask"
+
 FLOG_THRESHOLD = (ENV["FLOG_THRESHOLD"] || 50).to_i
 FLAY_THRESHOLD = (ENV["FLAY_THRESHOLD"] || 100).to_i
 
-task default: [:standardrb, :flog, :flay]
+task default: [:test, :standardrb, :flog, :flay]
+
+Rake::TestTask.new(:test) do |t|
+  t.libs << "test"
+  t.test_files = FileList["test/**/*_test.rb"]
+end
 
 desc "Run standardrb"
 task :standardrb do

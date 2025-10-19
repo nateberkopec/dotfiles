@@ -11,7 +11,7 @@ class Dotfiles::Step::ConfigureApplicationsStep < Dotfiles::Step
     aerospace_config = home_path("aerospace_config")
     git_config = home_path("gitconfig")
 
-    File.exist?(ghostty_config) && File.exist?(aerospace_config) && File.exist?(git_config)
+    @system.file_exist?(ghostty_config) && @system.file_exist?(aerospace_config) && @system.file_exist?(git_config)
   end
 
   def update
@@ -25,17 +25,17 @@ class Dotfiles::Step::ConfigureApplicationsStep < Dotfiles::Step
   def configure_ghostty
     debug "Configuring Ghostty terminal..."
     ghostty_dir = app_path("ghostty_config_dir")
-    FileUtils.mkdir_p(ghostty_dir)
-    FileUtils.cp(dotfiles_source("ghostty_config"), ghostty_dir)
+    @system.mkdir_p(ghostty_dir)
+    @system.cp(dotfiles_source("ghostty_config"), ghostty_dir)
   end
 
   def configure_aerospace
     debug "Configuring Aerospace..."
-    FileUtils.cp(dotfiles_source("aerospace_config"), home_path("aerospace_config"))
+    @system.cp(dotfiles_source("aerospace_config"), home_path("aerospace_config"))
   end
 
   def configure_git
     debug "Configuring Git global settings..."
-    FileUtils.cp(dotfiles_source("git_config"), home_path("gitconfig"))
+    @system.cp(dotfiles_source("git_config"), home_path("gitconfig"))
   end
 end

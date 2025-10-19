@@ -20,9 +20,9 @@ class Dotfiles::Step::InstallHomebrewStep < Dotfiles::Step
     debug "Installing Homebrew..."
     execute('/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"')
 
-    File.open(home_path("zprofile"), "a") do |f|
-      f.puts 'eval "$(/opt/homebrew/bin/brew shellenv)"'
-    end
+    zprofile_path = home_path("zprofile")
+    existing_content = @system.file_exist?(zprofile_path) ? @system.read_file(zprofile_path) : ""
+    @system.write_file(zprofile_path, existing_content + 'eval "$(/opt/homebrew/bin/brew shellenv)"' + "\n")
 
     execute('eval "$(/opt/homebrew/bin/brew shellenv)"')
   end

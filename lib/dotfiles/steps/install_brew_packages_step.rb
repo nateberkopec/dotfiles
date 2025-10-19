@@ -19,22 +19,24 @@ class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
   end
 
   def packages_already_installed?
-    result = system("brew bundle check --file=#{@brewfile_path} --no-upgrade >/dev/null 2>&1")
+    _, status = @system.execute("brew bundle check --file=#{@brewfile_path} --no-upgrade >/dev/null 2>&1")
+    result = status == 0
     debug "All packages already installed" if result
     result
   end
 
   def install_packages
     cask_opts = user_has_admin_rights? ? "" : "--appdir=~/Applications"
-    output = `HOMEBREW_CASK_OPTS="#{cask_opts}" brew bundle install --file=#{@brewfile_path} 2>&1`
-    [output, $?.exitstatus]
+    @system.execute("HOMEBREW_CASK_OPTS=\"#{cask_opts}\" brew bundle install --file=#{@brewfile_path} 2>&1")
   end
 
   def check_skipped_packages
     packages = @config.packages["brew"]["packages"]
     casks = @config.packages["brew"]["casks"]
-    installed_formulae = `brew list --formula 2>/dev/null`.split("\n")
-    installed_casks = `brew list --cask 2>/dev/null`.split("\n")
+    installed_formulae, = @system.execute("brew list --formula 2>/dev/null")
+    installed_casks, = @system.execute("brew list --cask 2>/dev/null")
+    installed_formulae = installed_formulae.split("\n")
+    installed_casks = installed_casks.split("\n")
 
     skipped_packages = packages.reject { |pkg| installed_formulae.include?(pkg) }
     skipped_casks = casks.reject { |cask| installed_casks.include?(cask) }
@@ -62,10 +64,9 @@ class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
 
   def complete?
     return true if ran?
-    return false unless File.exist?(@brewfile_path)
-    system("brew bundle check --file=#{@brewfile_path} --no-upgrade >/dev/null 2>&1")
-  rescue
-    false
+    return false unless @system.file_exist?(@brewfile_path)
+    _, status = @system.execute("brew bundle check --file=#{@brewfile_path} --no-upgrade >/dev/null 2>&1")
+    status == 0
   end
 
   def update
@@ -81,6 +82,6 @@ class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
     packages.each { |pkg| brewfile_content << "brew \"#{pkg}\"" }
     cask_packages.each { |cask| brewfile_content << "cask \"#{cask}\"" }
 
-    File.write(@brewfile_path, brewfile_content.join("\n") + "\n")
+    @system.write_file(@brewfile_path, brewfile_content.join("\n") + "\n")
   end
 end

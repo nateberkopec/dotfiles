@@ -10,10 +10,10 @@ class Dotfiles::Step::VSCodeConfigurationStep < Dotfiles::Step
   def run
     debug "Configuring VSCode..."
     vscode_dir = app_path("vscode_user_dir")
-    FileUtils.mkdir_p(vscode_dir)
+    @system.mkdir_p(vscode_dir)
 
-    FileUtils.cp(dotfiles_source("vscode_settings"), vscode_dir)
-    FileUtils.cp(dotfiles_source("vscode_keybindings"), vscode_dir)
+    @system.cp(dotfiles_source("vscode_settings"), vscode_dir)
+    @system.cp(dotfiles_source("vscode_keybindings"), vscode_dir)
 
     install_vscode_extensions
   end
@@ -24,7 +24,7 @@ class Dotfiles::Step::VSCodeConfigurationStep < Dotfiles::Step
     vscode_settings = app_path("vscode_settings")
     vscode_keybindings = app_path("vscode_keybindings")
 
-    File.exist?(vscode_settings) && File.exist?(vscode_keybindings)
+    @system.file_exist?(vscode_settings) && @system.file_exist?(vscode_keybindings)
   end
 
   def update
@@ -33,9 +33,9 @@ class Dotfiles::Step::VSCodeConfigurationStep < Dotfiles::Step
 
     extensions_dest = dotfiles_source("vscode_extensions")
     if extensions_dest && command_exists?("code")
-      stdout = execute("code --list-extensions", capture_output: true)
-      FileUtils.mkdir_p(File.dirname(extensions_dest))
-      File.write(extensions_dest, stdout.strip + "\n")
+      stdout, = execute("code --list-extensions")
+      @system.mkdir_p(File.dirname(extensions_dest))
+      @system.write_file(extensions_dest, stdout + "\n")
     end
   end
 
@@ -43,12 +43,13 @@ class Dotfiles::Step::VSCodeConfigurationStep < Dotfiles::Step
 
   def install_vscode_extensions
     extensions_file = dotfiles_source("vscode_extensions")
-    return unless File.exist?(extensions_file)
+    return unless @system.file_exist?(extensions_file)
 
     debug "Installing VSCode extensions..."
-    installed_extensions = execute("code --list-extensions", capture_output: true).split("\n")
+    installed_extensions, = execute("code --list-extensions")
+    installed_extensions = installed_extensions.split("\n")
 
-    File.readlines(extensions_file).each do |extension|
+    @system.readlines(extensions_file).each do |extension|
       extension = extension.strip
       if installed_extensions.include?(extension)
         debug "VSCode extension already installed: #{extension}"

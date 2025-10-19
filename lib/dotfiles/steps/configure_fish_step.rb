@@ -9,24 +9,22 @@ class Dotfiles::Step::ConfigureFishStep < Dotfiles::Step
     fish_config_file = home_path("fish_config_file")
     fish_functions_dir = home_path("fish_functions_dir")
 
-    FileUtils.mkdir_p(fish_config_dir)
+    @system.mkdir_p(fish_config_dir)
 
-    FileUtils.cp(dotfiles_source("fish_config"), fish_config_file)
+    @system.cp(dotfiles_source("fish_config"), fish_config_file)
 
-    FileUtils.mkdir_p(fish_functions_dir)
-    FileUtils.rm_rf(Dir.glob(File.join(fish_functions_dir, "*")))
-    Dir.glob(File.join(dotfiles_source("fish_functions"), "*")).each do |src|
-      FileUtils.cp(src, fish_functions_dir)
+    @system.mkdir_p(fish_functions_dir)
+    @system.rm_rf(@system.glob(File.join(fish_functions_dir, "*")))
+    @system.glob(File.join(dotfiles_source("fish_functions"), "*")).each do |src|
+      @system.cp(src, fish_functions_dir)
     end
   end
 
   def complete?
-    require "digest"
-
     fish_config_file = home_path("fish_config_file")
     fish_functions_dir = home_path("fish_functions_dir")
 
-    return false unless File.exist?(fish_config_file) && Dir.exist?(fish_functions_dir)
+    return false unless @system.file_exist?(fish_config_file) && @system.dir_exist?(fish_functions_dir)
 
     source_config = dotfiles_source("fish_config")
     source_functions = dotfiles_source("fish_functions")
@@ -47,13 +45,13 @@ class Dotfiles::Step::ConfigureFishStep < Dotfiles::Step
 
     return unless fish_config_file && fish_functions_dir && dest_config && dest_functions
 
-    FileUtils.mkdir_p(File.dirname(dest_config))
-    FileUtils.cp(fish_config_file, dest_config) if File.exist?(fish_config_file)
+    @system.mkdir_p(File.dirname(dest_config))
+    @system.cp(fish_config_file, dest_config) if @system.file_exist?(fish_config_file)
 
-    FileUtils.mkdir_p(dest_functions)
-    if Dir.exist?(fish_functions_dir)
-      Dir.glob(File.join(fish_functions_dir, "*")) do |src|
-        FileUtils.cp(src, File.join(dest_functions, File.basename(src))) if File.file?(src)
+    @system.mkdir_p(dest_functions)
+    if @system.dir_exist?(fish_functions_dir)
+      @system.glob(File.join(fish_functions_dir, "*")) do |src|
+        @system.cp(src, File.join(dest_functions, File.basename(src))) if @system.file_exist?(src)
       end
     end
   end
@@ -61,13 +59,13 @@ class Dotfiles::Step::ConfigureFishStep < Dotfiles::Step
   private
 
   def files_match?(source_file, dest_file)
-    return false unless File.exist?(dest_file)
+    return false unless @system.file_exist?(dest_file)
     file_hash(source_file) == file_hash(dest_file)
   end
 
   def directories_match?(source_dir, dest_dir)
-    source_files = Dir.glob(File.join(source_dir, "*")).sort
-    dest_files = Dir.glob(File.join(dest_dir, "*")).sort
+    source_files = @system.glob(File.join(source_dir, "*")).sort
+    dest_files = @system.glob(File.join(dest_dir, "*")).sort
 
     return false unless source_files.map { |f| File.basename(f) } == dest_files.map { |f| File.basename(f) }
 
@@ -78,6 +76,6 @@ class Dotfiles::Step::ConfigureFishStep < Dotfiles::Step
 
   def file_hash(file_path)
     require "digest"
-    Digest::SHA256.file(file_path).hexdigest
+    Digest::SHA256.hexdigest(@system.read_file(file_path))
   end
 end

@@ -12,7 +12,7 @@ class Dotfiles::Step::InstallApplicationsStep < Dotfiles::Step
 
   def complete?
     @config.packages["applications"].all? do |app|
-      Dir.exist?(app["path"])
+      @system.dir_exist?(app["path"])
     end
   rescue
     false
@@ -21,7 +21,7 @@ class Dotfiles::Step::InstallApplicationsStep < Dotfiles::Step
   private
 
   def install_application(app)
-    if Dir.exist?(app["path"])
+    if @system.dir_exist?(app["path"])
       debug "#{app["name"]} is already installed, skipping..."
     else
       debug "Installing #{app["name"]}..."
