@@ -55,3 +55,7 @@ Steps can also define:
 For details on what each step does, see the implementations in [lib/step/](lib/step/).
 
 Steps are executed in dependency order, automatically sorted by their `depends_on` declarations.
+
+### Implementing Your Own Steps
+
+To learn how to create new steps, see [docs/implementing-steps.md](docs/implementing-steps.md).
