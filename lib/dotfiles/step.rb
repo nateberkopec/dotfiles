@@ -108,8 +108,9 @@ class Dotfiles
 
       if sudo
         step_name = self.class.name.gsub(/Step$/, "").gsub(/([A-Z])/, ' \1').strip
-        @system.system_check(
-          "gum style --foreground '#ff6b6b' --border double --align center --width 50 --margin '1 0' --padding '1 2' '🔒 Admin Privileges Required' '#{step_name}' '' 'Command: #{command}' '' 'This is required to complete setup'"
+        @system.execute(
+          "gum style --foreground '#ff6b6b' --border double --align center --width 50 --margin '1 0' --padding '1 2' '🔒 Admin Privileges Required' '#{step_name}' '' 'Command: #{command}' '' 'This is required to complete setup'",
+          check_status: true
         )
         cmd = "sudo #{command}"
       else
@@ -122,7 +123,7 @@ class Dotfiles
     end
 
     def command_exists?(command)
-      @system.system_check("command -v #{command} >/dev/null 2>&1")
+      @system.execute("command -v #{command} >/dev/null 2>&1", check_status: true)
     end
 
     def brew_quiet(command)
@@ -134,8 +135,8 @@ class Dotfiles
     end
 
     def user_has_admin_rights?
-      groups = @system.backtick("groups").strip
-      groups.include?("admin")
+      groups, = @system.execute("groups", return_status: true)
+      groups.strip.include?("admin")
     end
 
     def copy_if_exists(src, dest)

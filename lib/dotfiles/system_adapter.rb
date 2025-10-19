@@ -53,29 +53,24 @@ class Dotfiles
     end
 
     def file_hash(path)
-      Digest::SHA256.file(path).hexdigest
+      File.open(path, "rb") do |file|
+        Digest::SHA256.hexdigest(file.read)
+      end
     end
 
-    def execute(command, quiet: true, capture_output: false)
-      if quiet || capture_output
+    def execute(command, quiet: true, capture_output: false, check_status: false, return_status: false)
+      if return_status
+        output = `#{command} 2>&1`
+        [output, $?.exitstatus]
+      elsif check_status
+        system(command)
+      elsif quiet || capture_output
         stdout, stderr, status = Open3.capture3(command)
         raise "Command failed: #{command}\n#{stderr}" unless status.success?
         stdout
       else
         system(command) || raise("Command failed: #{command}")
       end
-    end
-
-    def system_check(command)
-      system(command)
-    end
-
-    def backtick(command)
-      `#{command}`
-    end
-
-    def exit_status
-      $?.exitstatus
     end
   end
 end

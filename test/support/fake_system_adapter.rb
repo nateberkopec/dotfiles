@@ -96,45 +96,33 @@ class FakeSystemAdapter
     Digest::SHA256.hexdigest(content.to_s)
   end
 
-  def execute(command, quiet: true, capture_output: false)
-    @operations << [:execute, command, {quiet: quiet, capture_output: capture_output}]
+  def execute(command, quiet: true, capture_output: false, check_status: false, return_status: false)
+    @operations << [:execute, command, {quiet: quiet, capture_output: capture_output}] unless check_status || return_status
+    @operations << [:system_check, command] if check_status
+    @operations << [:backtick, command] if return_status
+
     stub = @command_outputs[command]
     if stub
       @exit_statuses << stub[:exit_status]
-      return stub[:output] if capture_output || quiet
-      true
+      if return_status
+        [stub[:output], stub[:exit_status]]
+      elsif check_status
+        stub[:exit_status] == 0
+      elsif capture_output || quiet
+        stub[:output]
+      else
+        true
+      end
     else
       @exit_statuses << 0
-      (capture_output || quiet) ? "" : true
+      if return_status
+        ["", 0]
+      elsif check_status
+        true
+      else
+        (capture_output || quiet) ? "" : true
+      end
     end
-  end
-
-  def system_check(command)
-    @operations << [:system_check, command]
-    stub = @command_outputs[command]
-    if stub
-      @exit_statuses << stub[:exit_status]
-      stub[:exit_status] == 0
-    else
-      @exit_statuses << 0
-      true
-    end
-  end
-
-  def backtick(command)
-    @operations << [:backtick, command]
-    stub = @command_outputs[command]
-    if stub
-      @exit_statuses << stub[:exit_status]
-      stub[:output]
-    else
-      @exit_statuses << 0
-      ""
-    end
-  end
-
-  def exit_status
-    @exit_statuses.last || 0
   end
 
   def operation_count(operation_name)

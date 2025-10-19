@@ -26,15 +26,16 @@ class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
 
   def install_packages
     cask_opts = user_has_admin_rights? ? "" : "--appdir=~/Applications"
-    output = @system.backtick("HOMEBREW_CASK_OPTS=\"#{cask_opts}\" brew bundle install --file=#{@brewfile_path} 2>&1")
-    [output, @system.exit_status]
+    @system.execute("HOMEBREW_CASK_OPTS=\"#{cask_opts}\" brew bundle install --file=#{@brewfile_path} 2>&1", return_status: true)
   end
 
   def check_skipped_packages
     packages = @config.packages["brew"]["packages"]
     casks = @config.packages["brew"]["casks"]
-    installed_formulae = @system.backtick("brew list --formula 2>/dev/null").split("\n")
-    installed_casks = @system.backtick("brew list --cask 2>/dev/null").split("\n")
+    installed_formulae, = @system.execute("brew list --formula 2>/dev/null", return_status: true)
+    installed_casks, = @system.execute("brew list --cask 2>/dev/null", return_status: true)
+    installed_formulae = installed_formulae.split("\n")
+    installed_casks = installed_casks.split("\n")
 
     skipped_packages = packages.reject { |pkg| installed_formulae.include?(pkg) }
     skipped_casks = casks.reject { |cask| installed_casks.include?(cask) }
