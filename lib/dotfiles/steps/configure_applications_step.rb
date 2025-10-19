@@ -11,13 +11,15 @@ class Dotfiles::Step::ConfigureApplicationsStep < Dotfiles::Step
     aerospace_config = home_path("aerospace_config")
     git_config = home_path("gitconfig")
 
-    @system.file_exist?(ghostty_config) && @system.file_exist?(aerospace_config) && @system.file_exist?(git_config)
+    files_match?(ghostty_config, dotfiles_source("ghostty_config")) &&
+      files_match?(aerospace_config, dotfiles_source("aerospace_config")) &&
+      files_match?(git_config, dotfiles_source("git_config"))
   end
 
   def update
-    copy_if_exists(app_path("ghostty_config_file"), dotfiles_source("ghostty_config"))
-    copy_if_exists(home_path("aerospace_config"), dotfiles_source("aerospace_config"))
-    copy_if_exists(home_path("gitconfig"), dotfiles_source("git_config"))
+    copy_if_changed(app_path("ghostty_config_file"), dotfiles_source("ghostty_config"))
+    copy_if_changed(home_path("aerospace_config"), dotfiles_source("aerospace_config"))
+    copy_if_changed(home_path("gitconfig"), dotfiles_source("git_config"))
   end
 
   private

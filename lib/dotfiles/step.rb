@@ -1,3 +1,4 @@
+require "digest"
 require "fileutils"
 require "open3"
 
@@ -154,17 +155,41 @@ class Dotfiles
 
     def home_path(key)
       path = @config.paths.dig("home_paths", key.to_s)
-      path ? File.expand_path(path) : nil
+      path ? expand_path_with_home(path) : nil
     end
 
     def app_path(key)
       path = @config.paths.dig("application_paths", key.to_s)
-      path ? File.expand_path(path) : nil
+      path ? expand_path_with_home(path) : nil
+    end
+
+    def expand_path_with_home(path)
+      expanded = path.sub(/^~/, @home)
+      File.expand_path(expanded)
     end
 
     def dotfiles_source(key)
       source = @config.paths.dig("dotfiles_sources", key.to_s)
       source ? File.join(@dotfiles_dir, source) : nil
+    end
+
+    def file_hash(path)
+      return nil unless path && @system.file_exist?(path)
+      content = @system.read_file(path)
+      Digest::MD5.hexdigest(content)
+    end
+
+    def files_match?(file1, file2)
+      return false unless file1 && file2
+      return false unless @system.file_exist?(file1) && @system.file_exist?(file2)
+      file_hash(file1) == file_hash(file2)
+    end
+
+    def copy_if_changed(src, dest)
+      return unless src && dest && @system.file_exist?(src)
+      return if files_match?(src, dest)
+      @system.mkdir_p(File.dirname(dest))
+      @system.cp(src, dest)
     end
   end
 end
