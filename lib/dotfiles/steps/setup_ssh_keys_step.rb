@@ -17,26 +17,24 @@ class Dotfiles::Step::SetupSSHKeysStep < Dotfiles::Step
   def run
     debug "Setting up 1Password SSH agent..."
 
-    FileUtils.mkdir_p(File.dirname(SSH_CONFIG_PATH))
+    @system.mkdir_p(File.dirname(SSH_CONFIG_PATH))
 
     needs_setup = false
-    if File.exist?(SSH_CONFIG_PATH)
-      config_content = File.read(SSH_CONFIG_PATH)
+    if @system.file_exist?(SSH_CONFIG_PATH)
+      config_content = @system.read_file(SSH_CONFIG_PATH)
       unless config_content.include?("IdentityAgent")
-        File.open(SSH_CONFIG_PATH, "a") do |f|
-          f.puts
-          f.puts "Host *"
-          f.puts "  IdentityAgent \"#{OP_AGENT_PATH}\""
-        end
+        current_content = @system.read_file(SSH_CONFIG_PATH)
+        new_content = current_content + "\n\nHost *\n  IdentityAgent \"#{OP_AGENT_PATH}\"\n"
+        @system.write_file(SSH_CONFIG_PATH, new_content)
         debug "Added 1Password SSH agent to #{SSH_CONFIG_PATH}"
         needs_setup = true
       end
     else
-      File.write(SSH_CONFIG_PATH, <<~CONFIG)
+      @system.write_file(SSH_CONFIG_PATH, <<~CONFIG)
         Host *
           IdentityAgent "#{OP_AGENT_PATH}"
       CONFIG
-      File.chmod(0o600, SSH_CONFIG_PATH)
+      @system.chmod(0o600, SSH_CONFIG_PATH)
       debug "Created #{SSH_CONFIG_PATH} with 1Password SSH agent"
       needs_setup = true
     end
@@ -51,9 +49,9 @@ class Dotfiles::Step::SetupSSHKeysStep < Dotfiles::Step
 
   def complete?
     return true if ci_or_noninteractive?
-    return false unless File.exist?(SSH_CONFIG_PATH)
+    return false unless @system.file_exist?(SSH_CONFIG_PATH)
 
-    config_content = File.read(SSH_CONFIG_PATH)
+    config_content = @system.read_file(SSH_CONFIG_PATH)
     config_content.include?("IdentityAgent") && config_content.include?("1password")
   end
 end

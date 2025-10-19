@@ -26,15 +26,15 @@ class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
 
   def install_packages
     cask_opts = user_has_admin_rights? ? "" : "--appdir=~/Applications"
-    output = `HOMEBREW_CASK_OPTS="#{cask_opts}" brew bundle install --file=#{@brewfile_path} 2>&1`
-    [output, $?.exitstatus]
+    output = @system.backtick("HOMEBREW_CASK_OPTS=\"#{cask_opts}\" brew bundle install --file=#{@brewfile_path} 2>&1")
+    [output, @system.exit_status]
   end
 
   def check_skipped_packages
     packages = @config.packages["brew"]["packages"]
     casks = @config.packages["brew"]["casks"]
-    installed_formulae = `brew list --formula 2>/dev/null`.split("\n")
-    installed_casks = `brew list --cask 2>/dev/null`.split("\n")
+    installed_formulae = @system.backtick("brew list --formula 2>/dev/null").split("\n")
+    installed_casks = @system.backtick("brew list --cask 2>/dev/null").split("\n")
 
     skipped_packages = packages.reject { |pkg| installed_formulae.include?(pkg) }
     skipped_casks = casks.reject { |cask| installed_casks.include?(cask) }
@@ -62,7 +62,7 @@ class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
 
   def complete?
     return true if ran?
-    return false unless File.exist?(@brewfile_path)
+    return false unless @system.file_exist?(@brewfile_path)
     system("brew bundle check --file=#{@brewfile_path} --no-upgrade >/dev/null 2>&1")
   rescue
     false
@@ -81,6 +81,6 @@ class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
     packages.each { |pkg| brewfile_content << "brew \"#{pkg}\"" }
     cask_packages.each { |cask| brewfile_content << "cask \"#{cask}\"" }
 
-    File.write(@brewfile_path, brewfile_content.join("\n") + "\n")
+    @system.write_file(@brewfile_path, brewfile_content.join("\n") + "\n")
   end
 end

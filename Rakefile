@@ -1,7 +1,15 @@
 FLOG_THRESHOLD = (ENV["FLOG_THRESHOLD"] || 50).to_i
 FLAY_THRESHOLD = (ENV["FLAY_THRESHOLD"] || 100).to_i
 
-task default: [:standardrb, :flog, :flay]
+task default: [:test, :standardrb, :flog, :flay]
+
+desc "Run tests"
+task :test do
+  test_files = Dir.glob("test/**/*_test.rb")
+  test_files.each do |file|
+    sh "bundle exec ruby -Itest #{file}"
+  end
+end
 
 desc "Run standardrb"
 task :standardrb do
