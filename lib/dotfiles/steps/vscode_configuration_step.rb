@@ -15,12 +15,10 @@ class Dotfiles::Step::VSCodeConfigurationStep < Dotfiles::Step
     @system.cp(dotfiles_source("vscode_settings"), vscode_dir)
     @system.cp(dotfiles_source("vscode_keybindings"), vscode_dir)
 
-    install_vscode_extensions
+    install_vscode_extensions unless ci_or_noninteractive?
   end
 
   def complete?
-    return true if ci_or_noninteractive?
-
     vscode_settings = app_path("vscode_settings")
     vscode_keybindings = app_path("vscode_keybindings")
 
