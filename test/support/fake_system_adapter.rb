@@ -18,6 +18,7 @@ class FakeSystemAdapter
 
   def file_exist?(path)
     @operations << [:file_exist?, path]
+    return false if path.nil?
     @filesystem.key?(File.expand_path(path))
   end
 
@@ -39,11 +40,13 @@ class FakeSystemAdapter
 
   def mkdir_p(path)
     @operations << [:mkdir_p, path]
+    return if path.nil?
     @filesystem[File.expand_path(path)] = :directory
   end
 
   def cp(src, dest)
     @operations << [:cp, src, dest]
+    return if src.nil? || dest.nil?
     src_path = File.expand_path(src)
     dest_path = File.expand_path(dest)
     @filesystem[dest_path] = @filesystem[src_path]
