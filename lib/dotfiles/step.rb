@@ -50,13 +50,9 @@ class Dotfiles
       result << step
     end
 
-    def initialize(debug:, dotfiles_repo:, dotfiles_dir:, home:, system: SystemAdapter.new)
-      @debug = debug
-      @dotfiles_repo = dotfiles_repo
-      @dotfiles_dir = dotfiles_dir
-      @home = home
+    def initialize(config:, system: SystemAdapter.new)
+      @config = config
       @system = system
-      @config = Config.new(dotfiles_dir)
       @ran = false
       @warnings = []
       @notices = []
@@ -98,7 +94,7 @@ class Dotfiles
     private
 
     def debug(message)
-      puts message if @debug
+      puts message if @config.debug
     end
 
     def execute(command, quiet: true, sudo: false)
@@ -170,7 +166,7 @@ class Dotfiles
 
     def dotfiles_source(key)
       source = @config.paths.dig("dotfiles_sources", key.to_s)
-      source ? File.join(@dotfiles_dir, source) : nil
+      source ? File.join(@config.dotfiles_dir, source) : nil
     end
 
     def file_hash(path)

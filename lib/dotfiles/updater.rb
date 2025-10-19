@@ -7,33 +7,22 @@ Dir.glob(File.join(__dir__, "steps", "*.rb")).sort.each { |file| require file }
 class Dotfiles
   class Updater
     def initialize
-      @debug = ENV["DEBUG"] == "true"
-      @dotfiles_dir = File.expand_path("~/.dotfiles")
-      @home = ENV["HOME"]
+      dotfiles_dir = File.expand_path("~/.dotfiles")
 
-      unless Dir.exist?(@dotfiles_dir)
-        puts "Error: Dotfiles directory not found at #{@dotfiles_dir}"
+      unless Dir.exist?(dotfiles_dir)
+        puts "Error: Dotfiles directory not found at #{dotfiles_dir}"
         puts "Please run the initial setup script first."
         exit 1
       end
 
-      @config = Config.new(@dotfiles_dir)
-      @dotfiles_repo = @config.dotfiles_repo
+      @config = Config.new(dotfiles_dir)
     end
 
     def run
       puts "Updating dotfiles repository via step updates..."
 
-      step_params = {
-        debug: @debug,
-        dotfiles_repo: @dotfiles_repo,
-        dotfiles_dir: @dotfiles_dir,
-        home: @home
-      }
-
       Dotfiles::Step.all_steps.each do |step_class|
-        step = step_class.new(**step_params)
-        # Each step may implement update to sync back into repo
+        step = step_class.new(config: @config)
         step.update
       end
 
@@ -43,7 +32,7 @@ class Dotfiles
     private
 
     def commit_and_push_changes
-      Dir.chdir(@dotfiles_dir)
+      Dir.chdir(@config.dotfiles_dir)
       stdout, _stderr, _ = Open3.capture3("git status --porcelain")
       return puts "No changes to commit." if stdout.empty?
 

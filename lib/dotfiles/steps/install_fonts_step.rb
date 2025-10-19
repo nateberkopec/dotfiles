@@ -5,7 +5,7 @@ class Dotfiles::Step::InstallFontsStep < Dotfiles::Step
       return false
     end
 
-    font_dir = "#{@dotfiles_dir}/fonts"
+    font_dir = "#{@config.dotfiles_dir}/fonts"
     font_files = @system.glob("#{font_dir}/*.ttf")
     installed_fonts, = execute("fc-list")
 
@@ -16,7 +16,7 @@ class Dotfiles::Step::InstallFontsStep < Dotfiles::Step
   end
 
   def run
-    font_dir = "#{@dotfiles_dir}/fonts"
+    font_dir = "#{@config.dotfiles_dir}/fonts"
 
     @system.glob("#{font_dir}/*.ttf").each do |font_path|
       font_name = File.basename(font_path)
@@ -26,7 +26,7 @@ class Dotfiles::Step::InstallFontsStep < Dotfiles::Step
   end
 
   def complete?
-    font_dir = "#{@dotfiles_dir}/fonts"
+    font_dir = "#{@config.dotfiles_dir}/fonts"
     font_files = @system.glob("#{font_dir}/*.ttf")
     installed_fonts, status = execute("fc-list", quiet: true)
     return false unless status == 0
@@ -49,7 +49,7 @@ class Dotfiles::Step::InstallFontsStep < Dotfiles::Step
   # This only refreshes fonts that already exist under files/fonts
   # to avoid slurping the user's entire font library.
   def update
-    dest_dir = File.join(@dotfiles_dir, "files", "fonts")
+    dest_dir = File.join(@config.dotfiles_dir, "files", "fonts")
     @system.mkdir_p(dest_dir)
 
     system_font_dirs = [

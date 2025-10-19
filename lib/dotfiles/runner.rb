@@ -1,30 +1,18 @@
 class Dotfiles
   class Runner
-    attr_reader :dotfiles_repo, :dotfiles_dir, :home
-
     def initialize
-      @debug = ENV["DEBUG"] == "true"
-      @dotfiles_dir = File.expand_path("~/.dotfiles")
-      @home = ENV["HOME"]
-      @config = Config.new(@dotfiles_dir)
-      @dotfiles_repo = @config.dotfiles_repo
+      dotfiles_dir = File.expand_path("~/.dotfiles")
+      @config = Config.new(dotfiles_dir)
     end
 
     def run
       Dotfiles.debug "Starting macOS development environment setup..."
 
-      step_params = {
-        debug: @debug,
-        dotfiles_repo: @dotfiles_repo,
-        dotfiles_dir: @dotfiles_dir,
-        home: @home
-      }
-
       step_instances = []
 
       puts ""
       Dotfiles::Step.all_steps.each do |step_class|
-        step = step_class.new(**step_params)
+        step = step_class.new(config: @config)
         step_instances << step
         if step.should_run?
           printf "X"
@@ -36,7 +24,7 @@ class Dotfiles
       end
       puts ""
 
-      check_completion(step_params, step_instances)
+      check_completion(step_instances)
     rescue => e
       puts "Error: #{e.message}"
       exit 1
@@ -44,7 +32,7 @@ class Dotfiles
 
     private
 
-    def check_completion(step_params, step_instances)
+    def check_completion(step_instances)
       result = collect_step_results(step_instances)
       display_results_table(result[:table_data])
       display_warnings(result[:warnings])

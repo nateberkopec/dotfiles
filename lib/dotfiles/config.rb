@@ -2,8 +2,12 @@ require "yaml"
 
 class Dotfiles
   class Config
-    def initialize(dotfiles_dir)
+    attr_reader :dotfiles_dir, :home_directory, :debug
+
+    def initialize(dotfiles_dir, home_directory: ENV["HOME"], debug: ENV["DEBUG"] == "true")
       @dotfiles_dir = dotfiles_dir
+      @home_directory = home_directory
+      @debug = debug
       @config_dir = File.join(dotfiles_dir, "config")
     end
 

@@ -15,18 +15,12 @@ ENV.delete("NONINTERACTIVE")
 class Minitest::Test
   def setup
     @fake_system = FakeSystemAdapter.new
-    @dotfiles_dir = "/tmp/dotfiles"
+    @dotfiles_dir = File.expand_path("../test/fixtures", __dir__)
     @home = "/tmp/home"
+    @config = Dotfiles::Config.new(@dotfiles_dir, home_directory: @home, debug: false)
   end
 
-  def create_step(step_class, **overrides)
-    defaults = {
-      debug: false,
-      dotfiles_repo: "https://github.com/test/dotfiles.git",
-      dotfiles_dir: @dotfiles_dir,
-      home: @home,
-      system: @fake_system
-    }
-    step_class.new(**defaults.merge(overrides))
+  def create_step(step_class, config: nil, system: nil)
+    step_class.new(config: config || @config, system: system || @fake_system)
   end
 end

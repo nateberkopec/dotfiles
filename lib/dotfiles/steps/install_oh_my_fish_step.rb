@@ -17,7 +17,7 @@ class Dotfiles::Step::InstallOhMyFishStep < Dotfiles::Step
     debug "Configuring oh-my-fish..."
     omf_config_dir = File.expand_path("~/.config/omf")
     @system.mkdir_p(omf_config_dir)
-    @system.cp_r(@system.glob("#{@dotfiles_dir}/omf/*"), omf_config_dir)
+    @system.cp_r(@system.glob("#{@config.dotfiles_dir}/omf/*"), omf_config_dir)
 
     execute('fish -c "omf install"')
   end
@@ -32,7 +32,7 @@ class Dotfiles::Step::InstallOhMyFishStep < Dotfiles::Step
   # Sync OMF configs back into dotfiles repo
   def update
     omf_config_dir = File.expand_path("~/.config/omf")
-    dest_dir = File.join(@dotfiles_dir, "files", "omf")
+    dest_dir = File.join(@config.dotfiles_dir, "files", "omf")
 
     return unless @system.dir_exist?(omf_config_dir)
 

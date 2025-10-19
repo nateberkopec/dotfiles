@@ -5,7 +5,7 @@ class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
 
   def initialize(**kwargs)
     super
-    @brewfile_path = File.join(@dotfiles_dir, "Brewfile")
+    @brewfile_path = File.join(@config.dotfiles_dir, "Brewfile")
   end
 
   def run
@@ -59,7 +59,7 @@ class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
     return if exit_status == 0
 
     debug "brew bundle install exited with status #{exit_status}"
-    debug "Output:\n#{output}" if @debug
+    debug "Output:\n#{output}" if @config.debug
   end
 
   def complete?

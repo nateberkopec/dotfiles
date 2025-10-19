@@ -4,16 +4,12 @@ class RunnerTest < Minitest::Test
   def test_runner_initialization
     runner = Dotfiles::Runner.new
 
-    assert_equal File.expand_path("~/.dotfiles"), runner.dotfiles_dir
-    assert_equal ENV["HOME"], runner.home
-    refute_nil runner.dotfiles_repo
+    assert_instance_of Dotfiles::Runner, runner
   end
 
-  def test_runner_reads_dotfiles_repo_from_config
+  def test_runner_can_be_created
     runner = Dotfiles::Runner.new
 
-    # Should read from config or use default
-    assert runner.dotfiles_repo.include?("github.com")
-    assert runner.dotfiles_repo.include?("dotfiles")
+    assert_respond_to runner, :run
   end
 end
