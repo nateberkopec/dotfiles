@@ -8,7 +8,7 @@ class CloneDotfilesStepTest < Minitest::Test
     refute step.complete?
     step.run
 
-    assert @fake_system.received_operation?(:execute, "git clone https://github.com/test/dotfiles.git /tmp/dotfiles", {quiet: true, capture_output: false})
+    assert @fake_system.received_operation?(:execute, "git clone https://github.com/test/dotfiles.git /tmp/dotfiles", {quiet: true})
   end
 
   def test_pulls_when_directory_exists
@@ -19,7 +19,7 @@ class CloneDotfilesStepTest < Minitest::Test
     step.run
 
     assert @fake_system.received_operation?(:chdir, "/tmp/dotfiles")
-    assert @fake_system.received_operation?(:execute, "git pull", {quiet: true, capture_output: false})
+    assert @fake_system.received_operation?(:execute, "git pull", {quiet: true})
   end
 
   def test_complete_when_git_directory_exists

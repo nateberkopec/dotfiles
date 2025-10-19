@@ -13,16 +13,15 @@ class Dotfiles::Step::UpdateMacOSStep < Dotfiles::Step
   end
 
   def complete?
-    output = execute("softwareupdate -l --no-scan", capture_output: true, quiet: true)
+    output, status = execute("softwareupdate -l --no-scan", quiet: true)
+    return false unless status == 0
     !output.include?("No new software available.")
-  rescue
-    false
   end
 
   private
 
   def user_has_admin_rights?
-    groups = `groups`.strip
-    groups.include?("admin")
+    groups, = @system.execute("groups")
+    groups.strip.include?("admin")
   end
 end

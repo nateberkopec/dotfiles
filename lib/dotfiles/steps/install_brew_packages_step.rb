@@ -19,21 +19,22 @@ class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
   end
 
   def packages_already_installed?
-    result = system("brew bundle check --file=#{@brewfile_path} --no-upgrade >/dev/null 2>&1")
+    _, status = @system.execute("brew bundle check --file=#{@brewfile_path} --no-upgrade >/dev/null 2>&1")
+    result = status == 0
     debug "All packages already installed" if result
     result
   end
 
   def install_packages
     cask_opts = user_has_admin_rights? ? "" : "--appdir=~/Applications"
-    @system.execute("HOMEBREW_CASK_OPTS=\"#{cask_opts}\" brew bundle install --file=#{@brewfile_path} 2>&1", return_status: true)
+    @system.execute("HOMEBREW_CASK_OPTS=\"#{cask_opts}\" brew bundle install --file=#{@brewfile_path} 2>&1")
   end
 
   def check_skipped_packages
     packages = @config.packages["brew"]["packages"]
     casks = @config.packages["brew"]["casks"]
-    installed_formulae, = @system.execute("brew list --formula 2>/dev/null", return_status: true)
-    installed_casks, = @system.execute("brew list --cask 2>/dev/null", return_status: true)
+    installed_formulae, = @system.execute("brew list --formula 2>/dev/null")
+    installed_casks, = @system.execute("brew list --cask 2>/dev/null")
     installed_formulae = installed_formulae.split("\n")
     installed_casks = installed_casks.split("\n")
 
@@ -64,9 +65,8 @@ class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
   def complete?
     return true if ran?
     return false unless @system.file_exist?(@brewfile_path)
-    system("brew bundle check --file=#{@brewfile_path} --no-upgrade >/dev/null 2>&1")
-  rescue
-    false
+    _, status = @system.execute("brew bundle check --file=#{@brewfile_path} --no-upgrade >/dev/null 2>&1")
+    status == 0
   end
 
   def update

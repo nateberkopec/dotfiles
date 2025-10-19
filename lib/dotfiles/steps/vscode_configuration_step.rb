@@ -33,7 +33,7 @@ class Dotfiles::Step::VSCodeConfigurationStep < Dotfiles::Step
 
     extensions_dest = dotfiles_source("vscode_extensions")
     if extensions_dest && command_exists?("code")
-      stdout = execute("code --list-extensions", capture_output: true)
+      stdout, = execute("code --list-extensions")
       @system.mkdir_p(File.dirname(extensions_dest))
       @system.write_file(extensions_dest, stdout.strip + "\n")
     end
@@ -46,7 +46,8 @@ class Dotfiles::Step::VSCodeConfigurationStep < Dotfiles::Step
     return unless @system.file_exist?(extensions_file)
 
     debug "Installing VSCode extensions..."
-    installed_extensions = execute("code --list-extensions", capture_output: true).split("\n")
+    installed_extensions, = execute("code --list-extensions")
+    installed_extensions = installed_extensions.split("\n")
 
     @system.readlines(extensions_file).each do |extension|
       extension = extension.strip

@@ -7,7 +7,7 @@ class Dotfiles::Step::InstallFontsStep < Dotfiles::Step
 
     font_dir = "#{@dotfiles_dir}/fonts"
     font_files = @system.glob("#{font_dir}/*.ttf")
-    installed_fonts = execute("fc-list", capture_output: true)
+    installed_fonts, = execute("fc-list")
 
     font_files.any? do |font_path|
       font_name = File.basename(font_path)
@@ -28,7 +28,8 @@ class Dotfiles::Step::InstallFontsStep < Dotfiles::Step
   def complete?
     font_dir = "#{@dotfiles_dir}/fonts"
     font_files = @system.glob("#{font_dir}/*.ttf")
-    installed_fonts = execute("fc-list", capture_output: true, quiet: true)
+    installed_fonts, status = execute("fc-list", quiet: true)
+    return false unless status == 0
 
     all_fonts_installed = font_files.all? do |font_path|
       font_name = File.basename(font_path, ".ttf")
@@ -42,8 +43,6 @@ class Dotfiles::Step::InstallFontsStep < Dotfiles::Step
     else
       false
     end
-  rescue
-    false
   end
 
   # Sync selected fonts from the system back into the repo.

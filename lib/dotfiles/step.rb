@@ -100,17 +100,17 @@ class Dotfiles
       puts message if @debug
     end
 
-    def execute(command, quiet: true, sudo: false, capture_output: false)
+    def execute(command, quiet: true, sudo: false)
       if sudo && ci_or_noninteractive?
         debug "Skipping sudo command in CI/non-interactive environment: #{command}"
-        return ""
+        return ["", 0]
       end
 
       if sudo
         step_name = self.class.name.gsub(/Step$/, "").gsub(/([A-Z])/, ' \1').strip
         @system.execute(
           "gum style --foreground '#ff6b6b' --border double --align center --width 50 --margin '1 0' --padding '1 2' '🔒 Admin Privileges Required' '#{step_name}' '' 'Command: #{command}' '' 'This is required to complete setup'",
-          check_status: true
+          quiet: false
         )
         cmd = "sudo #{command}"
       else
@@ -119,11 +119,12 @@ class Dotfiles
 
       debug "Executing: #{cmd}"
 
-      @system.execute(cmd, quiet: quiet, capture_output: capture_output)
+      @system.execute(cmd, quiet: quiet)
     end
 
     def command_exists?(command)
-      @system.execute("command -v #{command} >/dev/null 2>&1", check_status: true)
+      _, status = @system.execute("command -v #{command} >/dev/null 2>&1")
+      status == 0
     end
 
     def brew_quiet(command)
@@ -135,7 +136,7 @@ class Dotfiles
     end
 
     def user_has_admin_rights?
-      groups, = @system.execute("groups", return_status: true)
+      groups, = @system.execute("groups")
       groups.strip.include?("admin")
     end
 
@@ -146,10 +147,9 @@ class Dotfiles
     end
 
     def defaults_read_equals?(command, expected_value)
-      output = execute(command, capture_output: true, quiet: true)
+      output, status = execute(command, quiet: true)
+      return false unless status == 0
       output.strip == expected_value
-    rescue
-      false
     end
 
     def home_path(key)

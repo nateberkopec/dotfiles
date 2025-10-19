@@ -58,19 +58,20 @@ class Dotfiles
       end
     end
 
-    def execute(command, quiet: true, capture_output: false, check_status: false, return_status: false)
-      if return_status
+    def execute(command, quiet: true)
+      if quiet
         output = `#{command} 2>&1`
         [output, $?.exitstatus]
-      elsif check_status
-        system(command)
-      elsif quiet || capture_output
-        stdout, stderr, status = Open3.capture3(command)
-        raise "Command failed: #{command}\n#{stderr}" unless status.success?
-        stdout
       else
-        system(command) || raise("Command failed: #{command}")
+        system(command)
+        ["", $?.exitstatus]
       end
+    end
+
+    def execute!(command, quiet: true)
+      output, status = execute(command, quiet: quiet)
+      raise "Command failed: #{command}\nOutput: #{output}" unless status == 0
+      [output, status]
     end
   end
 end

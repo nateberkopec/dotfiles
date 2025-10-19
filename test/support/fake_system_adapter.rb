@@ -96,32 +96,30 @@ class FakeSystemAdapter
     Digest::SHA256.hexdigest(content.to_s)
   end
 
-  def execute(command, quiet: true, capture_output: false, check_status: false, return_status: false)
-    @operations << [:execute, command, {quiet: quiet, capture_output: capture_output}] unless check_status || return_status
-    @operations << [:system_check, command] if check_status
-    @operations << [:backtick, command] if return_status
+  def execute(command, quiet: true)
+    @operations << [:execute, command, {quiet: quiet}]
 
     stub = @command_outputs[command]
     if stub
       @exit_statuses << stub[:exit_status]
-      if return_status
-        [stub[:output], stub[:exit_status]]
-      elsif check_status
-        stub[:exit_status] == 0
-      elsif capture_output || quiet
-        stub[:output]
-      else
-        true
-      end
+      [stub[:output], stub[:exit_status]]
     else
       @exit_statuses << 0
-      if return_status
-        ["", 0]
-      elsif check_status
-        true
-      else
-        (capture_output || quiet) ? "" : true
-      end
+      ["", 0]
+    end
+  end
+
+  def execute!(command, quiet: true)
+    @operations << [:execute!, command, {quiet: quiet}]
+
+    stub = @command_outputs[command]
+    if stub
+      @exit_statuses << stub[:exit_status]
+      raise "Command failed: #{command}\nOutput: #{stub[:output]}" unless stub[:exit_status] == 0
+      [stub[:output], stub[:exit_status]]
+    else
+      @exit_statuses << 0
+      ["", 0]
     end
   end
 

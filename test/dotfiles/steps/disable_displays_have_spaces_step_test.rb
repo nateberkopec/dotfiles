@@ -5,7 +5,7 @@ class DisableDisplaysHaveSpacesStepTest < Minitest::Test
     step = create_step(Dotfiles::Step::DisableDisplaysHaveSpacesStep)
     step.run
 
-    assert @fake_system.received_operation?(:execute, "defaults write com.apple.spaces spans-displays -bool true && killall SystemUIServer", {quiet: true, capture_output: false})
+    assert @fake_system.received_operation?(:execute, "defaults write com.apple.spaces spans-displays -bool true && killall SystemUIServer", {quiet: true})
   end
 
   def test_complete_when_setting_matches

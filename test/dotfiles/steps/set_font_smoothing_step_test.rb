@@ -5,7 +5,7 @@ class SetFontSmoothingStepTest < Minitest::Test
     step = create_step(Dotfiles::Step::SetFontSmoothingStep)
     step.run
 
-    assert @fake_system.received_operation?(:execute, "defaults -currentHost write -g AppleFontSmoothing -int 0", {quiet: true, capture_output: false})
+    assert @fake_system.received_operation?(:execute, "defaults -currentHost write -g AppleFontSmoothing -int 0", {quiet: true})
   end
 
   def test_complete_when_setting_is_zero
