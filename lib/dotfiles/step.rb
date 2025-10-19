@@ -151,7 +151,8 @@ class Dotfiles
 
     def home_path(key)
       path = @config.paths.dig("home_paths", key.to_s)
-      path ? expand_path_with_home(path) : nil
+      path ||= "~/.#{key}"
+      expand_path_with_home(path)
     end
 
     def app_path(key)
@@ -160,7 +161,7 @@ class Dotfiles
     end
 
     def expand_path_with_home(path)
-      expanded = path.sub(/^~/, @home)
+      expanded = path.sub(/^~/, @config.home_directory)
       File.expand_path(expanded)
     end
 

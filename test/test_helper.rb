@@ -20,7 +20,11 @@ class Minitest::Test
     @config = Dotfiles::Config.new(@dotfiles_dir, home_directory: @home, debug: false)
   end
 
-  def create_step(step_class, config: nil, system: nil)
+  def create_step(step_class, config: nil, system: nil, dotfiles_dir: nil)
+    # Allow tests to override dotfiles_dir by creating a new config
+    if dotfiles_dir
+      config = Dotfiles::Config.new(dotfiles_dir, home_directory: @home, debug: false)
+    end
     step_class.new(config: config || @config, system: system || @fake_system)
   end
 end
