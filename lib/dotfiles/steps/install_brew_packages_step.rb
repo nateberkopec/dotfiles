@@ -3,7 +3,7 @@ class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
     [Dotfiles::Step::InstallHomebrewStep]
   end
 
-  def initialize(**kwargs)
+  def initialize(config:, system: SystemAdapter.new)
     super
     @brewfile_path = File.join(@config.dotfiles_dir, "Brewfile")
   end

@@ -1,7 +1,7 @@
 class Dotfiles::Step::InstallHomebrewStep < Dotfiles::Step
   attr_reader :skipped_due_to_admin
 
-  def initialize(**kwargs)
+  def initialize(config:, system: SystemAdapter.new)
     super
     @skipped_due_to_admin = false
   end
