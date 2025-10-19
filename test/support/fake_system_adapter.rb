@@ -89,13 +89,6 @@ class FakeSystemAdapter
     content.split("\n").map { |line| "#{line}\n" }
   end
 
-  def file_hash(path)
-    @operations << [:file_hash, path]
-    require "digest"
-    content = @filesystem[File.expand_path(path)] || raise(Errno::ENOENT, path)
-    Digest::SHA256.hexdigest(content.to_s)
-  end
-
   def execute(command, quiet: true)
     @operations << [:execute, command, {quiet: quiet}]
 

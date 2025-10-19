@@ -1,4 +1,3 @@
-require "digest"
 require "fileutils"
 require "open3"
 
@@ -50,12 +49,6 @@ class Dotfiles
 
     def readlines(path)
       File.readlines(path)
-    end
-
-    def file_hash(path)
-      File.open(path, "rb") do |file|
-        Digest::SHA256.hexdigest(file.read)
-      end
     end
 
     def execute(command, quiet: true)

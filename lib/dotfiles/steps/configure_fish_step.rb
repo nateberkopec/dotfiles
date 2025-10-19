@@ -75,6 +75,7 @@ class Dotfiles::Step::ConfigureFishStep < Dotfiles::Step
   end
 
   def file_hash(file_path)
-    @system.file_hash(file_path)
+    require "digest"
+    Digest::SHA256.hexdigest(@system.read_file(file_path))
   end
 end
