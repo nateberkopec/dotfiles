@@ -4,6 +4,14 @@ require "minitest/autorun"
 require "minitest/pride"
 require_relative "support/fake_system_adapter"
 
+ENV.delete("CI")
+ENV.delete("NONINTERACTIVE")
+# In tests, we use FakeSystemAdapter to control all system interactions.
+# The CI/NONINTERACTIVE env vars cause steps to skip certain operations
+# (like sudo commands) and always return complete?=true, which prevents
+# us from testing the actual step logic. In production, these env vars
+# protect against running interactive prompts in automated environments.
+
 class Minitest::Test
   def setup
     @fake_system = FakeSystemAdapter.new
