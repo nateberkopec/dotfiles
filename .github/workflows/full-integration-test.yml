@@ -1,4 +1,4 @@
-name: Test Dotfiles
+name: Full Integration Test
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  test-setup:
+  full-integration-test:
     runs-on: macos-latest
 
     steps:

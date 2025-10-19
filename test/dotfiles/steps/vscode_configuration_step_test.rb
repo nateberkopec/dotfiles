@@ -7,11 +7,11 @@ class VSCodeConfigurationStepTest < Minitest::Test
     assert_includes deps, Dotfiles::Step::CloneDotfilesStep
   end
 
-  def test_complete_in_ci
+  def test_not_complete_without_files
     ENV["CI"] = "true"
 
     step = create_step(Dotfiles::Step::VSCodeConfigurationStep)
-    assert step.complete?
+    refute step.complete?
   ensure
     ENV.delete("CI")
   end

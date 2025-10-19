@@ -9,11 +9,19 @@ class Dotfiles::Step::SetFishDefaultShellStep < Dotfiles::Step
 
     unless File.readlines("/etc/shells").any? { |line| line.strip == fish_path }
       debug "Adding Fish to allowed shells..."
-      execute("echo #{fish_path} | sudo tee -a /etc/shells", sudo: true)
+      if ci_or_noninteractive?
+        debug "Skipping adding Fish to /etc/shells in CI (requires sudo)"
+      else
+        execute("echo #{fish_path} | sudo tee -a /etc/shells", sudo: true)
+      end
     end
 
     debug "Changing default shell to Fish..."
-    execute("chsh -s #{fish_path}")
+    if ci_or_noninteractive?
+      debug "Skipping chsh in CI (would require user password)"
+    else
+      execute("chsh -s #{fish_path}")
+    end
   end
 
   def complete?
