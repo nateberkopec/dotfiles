@@ -184,12 +184,5 @@ class Dotfiles
       return false unless @system.file_exist?(file1) && @system.file_exist?(file2)
       file_hash(file1) == file_hash(file2)
     end
-
-    def copy_if_changed(src, dest)
-      return unless src && dest && @system.file_exist?(src)
-      return if files_match?(src, dest)
-      @system.mkdir_p(File.dirname(dest))
-      @system.cp(src, dest)
-    end
   end
 end

@@ -40,4 +40,11 @@ class Dotfiles::Step::ConfigureApplicationsStep < Dotfiles::Step
     debug "Configuring Git global settings..."
     @system.cp(dotfiles_source("git_config"), home_path("gitconfig"))
   end
+
+  def copy_if_changed(src, dest)
+    return unless src && dest && @system.file_exist?(src)
+    return if files_match?(src, dest)
+    @system.mkdir_p(File.dirname(dest))
+    @system.cp(src, dest)
+  end
 end
