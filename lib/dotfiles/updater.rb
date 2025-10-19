@@ -50,6 +50,8 @@ class Dotfiles
       system("git add -A")
       system("git diff --cached --stat")
 
+      return puts "Commit cancelled." unless system("gum confirm 'Proceed with commit?'")
+
       gc_ai_flags = ENV["GIT_COMMIT_FLAGS"] || ""
       gc_ai_cmd = "fish -c 'gc-ai #{gc_ai_flags}'"
       git_commit_cmd = "git commit #{gc_ai_flags} -m 'Update dotfiles from system'"
