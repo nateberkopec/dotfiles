@@ -58,11 +58,6 @@ class Dotfiles::Step::ConfigureFishStep < Dotfiles::Step
 
   private
 
-  def files_match?(source_file, dest_file)
-    return false unless @system.file_exist?(dest_file)
-    file_hash(source_file) == file_hash(dest_file)
-  end
-
   def directories_match?(source_dir, dest_dir)
     source_files = @system.glob(File.join(source_dir, "*")).sort
     dest_files = @system.glob(File.join(dest_dir, "*")).sort
@@ -72,10 +67,5 @@ class Dotfiles::Step::ConfigureFishStep < Dotfiles::Step
     source_files.zip(dest_files).all? do |source, dest|
       files_match?(source, dest)
     end
-  end
-
-  def file_hash(file_path)
-    require "digest"
-    Digest::SHA256.hexdigest(@system.read_file(file_path))
   end
 end
