@@ -20,3 +20,54 @@ rvest.vs-code-prettier-eslint
 shopify.ruby-lsp
 streetsidesoftware.code-spell-checker
 vscodevim.vim
+FATAL ERROR: v8::ToLocalChecked Empty MaybeLocal
+----- Native stack trace -----
+
+ 1: 0x10d459948 node::OnFatalError(char const*, char const*) [/Applications/Visual Studio Code.app/Contents/Frameworks/Electron Framework.framework/Versions/A/Electron Framework]
+ 2: 0x10e151318 v8::PropertyDescriptor::set() const [/Applications/Visual Studio Code.app/Contents/Frameworks/Electron Framework.framework/Versions/A/Electron Framework]
+ 3: 0x10d4b6c20 node::modules::BindingData::GetPackageJSON(node::Realm*, std::__Cr::basic_string_view<char, std::__Cr::char_traits<char>>, node::modules::BindingData::ErrorContext*) [/Applications/Visual Studio Code.app/Contents/Frameworks/Electron Framework.framework/Versions/A/Electron Framework]
+ 4: 0x10d4b9b54 void node::modules::BindingData::GetPackageScopeConfig<false>(v8::FunctionCallbackInfo<v8::Value> const&) [/Applications/Visual Studio Code.app/Contents/Frameworks/Electron Framework.framework/Versions/A/Electron Framework]
+ 5: 0x15ff10278 
+ 6: 0x15821349c 
+ 7: 0x1582137ec 
+ 8: 0x15ff0e270 
+ 9: 0x15820c914 
+10: 0x15820ba5c 
+11: 0x158206ad4 
+12: 0x158211844 
+13: 0x158206ad4 
+14: 0x15820a9d4 
+15: 0x1582097b4 
+16: 0x158200b7c 
+17: 0x15ff0e270 
+18: 0x15ff0b228 
+19: 0x15ff0ae74 
+20: 0x10ae335cc v8::Function::Call(v8::Isolate*, v8::Local<v8::Context>, v8::Local<v8::Value>, int, v8::Local<v8::Value>*) [/Applications/Visual Studio Code.app/Contents/Frameworks/Electron Framework.framework/Versions/A/Electron Framework]
+21: 0x10ae32968 v8::Function::Call(v8::Isolate*, v8::Local<v8::Context>, v8::Local<v8::Value>, int, v8::Local<v8::Value>*) [/Applications/Visual Studio Code.app/Contents/Frameworks/Electron Framework.framework/Versions/A/Electron Framework]
+22: 0x10d37915c node::InternalMakeCallback(node::Environment*, v8::Local<v8::Object>, v8::Local<v8::Object>, v8::Local<v8::Function>, int, v8::Local<v8::Value>*, node::async_context, v8::Local<v8::Value>) [/Applications/Visual Studio Code.app/Contents/Frameworks/Electron Framework.framework/Versions/A/Electron Framework]
+23: 0x10d38802c node::AsyncWrap::MakeCallback(v8::Local<v8::Function>, int, v8::Local<v8::Value>*) [/Applications/Visual Studio Code.app/Contents/Frameworks/Electron Framework.framework/Versions/A/Electron Framework]
+24: 0x10d4ad0ec node::worker::MessagePort::OnMessage(node::worker::MessagePort::MessageProcessingMode) [/Applications/Visual Studio Code.app/Contents/Frameworks/Electron Framework.framework/Versions/A/Electron Framework]
+25: 0x10d14bd74 uv__async_fork [/Applications/Visual Studio Code.app/Contents/Frameworks/Electron Framework.framework/Versions/A/Electron Framework]
+26: 0x10d15e030 uv__io_poll [/Applications/Visual Studio Code.app/Contents/Frameworks/Electron Framework.framework/Versions/A/Electron Framework]
+27: 0x10d14c240 uv_run [/Applications/Visual Studio Code.app/Contents/Frameworks/Electron Framework.framework/Versions/A/Electron Framework]
+28: 0x10d379b64 node::SpinEventLoopInternal(node::Environment*) [/Applications/Visual Studio Code.app/Contents/Frameworks/Electron Framework.framework/Versions/A/Electron Framework]
+29: 0x10d572fb0 node::worker::Worker::Run() [/Applications/Visual Studio Code.app/Contents/Frameworks/Electron Framework.framework/Versions/A/Electron Framework]
+30: 0x10d577a14 _register_external_reference_worker(node::ExternalReferenceRegistry*) [/Applications/Visual Studio Code.app/Contents/Frameworks/Electron Framework.framework/Versions/A/Electron Framework]
+31: 0x18c4ffbc8 _pthread_start [/usr/lib/system/libsystem_pthread.dylib]
+32: 0x18c4fab80 thread_start [/usr/lib/system/libsystem_pthread.dylib]
+
+----- JavaScript stack trace -----
+
+1: getPackageScopeConfig (node:internal/modules/package_json_reader:160:33)
+2: getPackageJSONURL (node:internal/modules/package_json_reader:236:25)
+3: packageResolve (node:internal/modules/esm/resolve:779:81)
+4: moduleResolve (node:internal/modules/esm/resolve:865:18)
+5: defaultResolve (node:internal/modules/esm/resolve:995:11)
+6: nextResolve (node:internal/modules/esm/hooks:748:28)
+7: resolve (data:text/javascript;base64,CglleHBvcnQgYXN5bmMgZnVuY3Rpb24gcmVzb2x2ZShzcGVjaWZpZXIsIGNvbnRleHQsIG5leHRSZXNvbHZlKSB7CgkJaWYgKHNwZWNpZmllciA9PT0gJ2ZzJykgewoJCQlyZXR1cm4gewoJCQkJZm9ybWF0OiAnYnVpbHRpbicsCgkJCQlzaG9ydENpcmN1aXQ6IHRydWUsCgkJCQl1cmw6ICdub2RlOm9yaWdpbmFsLWZzJwoJCQl9OwoJCX0KCgkJLy8gRGVmZXIgdG8gdGhlIG5leHQgaG9vayBpbiB0aGUgY2hhaW4sIHdoaWNoIHdvdWxkIGJlIHRoZQoJCS8vIE5vZGUuanMgZGVmYXVsdCByZXNvbHZlIGlmIHRoaXMgaXMgdGhlIGxhc3QgdXNlci1zcGVjaWZpZWQgbG9hZGVyLgoJCXJldHVybiBuZXh0UmVzb2x2ZShzcGVjaWZpZXIsIGNvbnRleHQpOwoJfQ==:13:10)
+8: nextResolve (node:internal/modules/esm/hooks:748:28)
+9: resolve (node:internal/modules/esm/hooks:240:30)
+10: handleMessage (node:internal/modules/esm/worker:199:24)
+
+
+/opt/homebrew/bin/code: line 38: 44297 Abort trap: 6              ELECTRON_RUN_AS_NODE=1 "$ELECTRON" "$CLI" "$@"
