@@ -73,10 +73,6 @@ class StepTest < Minitest::Test
     assert_equal TestStepC, sorted[2]
   end
 
-  def test_circular_dependency_detection
-    skip "Circular dependency detection tested manually - difficult to test without polluting global step registry"
-  end
-
   def test_step_registration_via_inheritance
     assert_includes Dotfiles::Step.all_steps, NewTestStep
   end
