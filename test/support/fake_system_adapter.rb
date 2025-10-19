@@ -102,7 +102,7 @@ class FakeSystemAdapter
     stub = @command_outputs[command]
     if stub
       @exit_statuses << stub[:exit_status]
-      [stub[:output], stub[:exit_status]]
+      [stub[:output].strip, stub[:exit_status]]
     else
       @exit_statuses << 0
       ["", 0]
@@ -116,7 +116,7 @@ class FakeSystemAdapter
     if stub
       @exit_statuses << stub[:exit_status]
       raise "Command failed: #{command}\nOutput: #{stub[:output]}" unless stub[:exit_status] == 0
-      [stub[:output], stub[:exit_status]]
+      [stub[:output].strip, stub[:exit_status]]
     else
       @exit_statuses << 0
       ["", 0]

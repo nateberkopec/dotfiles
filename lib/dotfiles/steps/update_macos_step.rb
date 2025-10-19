@@ -22,6 +22,6 @@ class Dotfiles::Step::UpdateMacOSStep < Dotfiles::Step
 
   def user_has_admin_rights?
     groups, = @system.execute("groups")
-    groups.strip.include?("admin")
+    groups.include?("admin")
   end
 end

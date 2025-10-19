@@ -35,7 +35,7 @@ class Dotfiles::Step::VSCodeConfigurationStep < Dotfiles::Step
     if extensions_dest && command_exists?("code")
       stdout, = execute("code --list-extensions")
       @system.mkdir_p(File.dirname(extensions_dest))
-      @system.write_file(extensions_dest, stdout.strip + "\n")
+      @system.write_file(extensions_dest, stdout + "\n")
     end
   end
 

@@ -137,7 +137,7 @@ class Dotfiles
 
     def user_has_admin_rights?
       groups, = @system.execute("groups")
-      groups.strip.include?("admin")
+      groups.include?("admin")
     end
 
     def copy_if_exists(src, dest)
@@ -149,7 +149,7 @@ class Dotfiles
     def defaults_read_equals?(command, expected_value)
       output, status = execute(command, quiet: true)
       return false unless status == 0
-      output.strip == expected_value
+      output == expected_value
     end
 
     def home_path(key)

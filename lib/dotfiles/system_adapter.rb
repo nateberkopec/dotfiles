@@ -60,7 +60,7 @@ class Dotfiles
 
     def execute(command, quiet: true)
       if quiet
-        output = `#{command} 2>&1`
+        output = `#{command} 2>&1`.strip
         [output, $?.exitstatus]
       else
         system(command)
