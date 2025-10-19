@@ -1,3 +1,5 @@
+dotfiles_repo: https://github.com/nateberkopec/dotfiles.git
+
 home_paths:
   fish_config_dir: ~/.config/fish
   fish_config_file: ~/.config/fish/config.fish

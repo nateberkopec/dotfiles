@@ -4,9 +4,10 @@ class Dotfiles
 
     def initialize
       @debug = ENV["DEBUG"] == "true"
-      @dotfiles_repo = "https://github.com/nateberkopec/dotfiles.git"
       @dotfiles_dir = File.expand_path("~/.dotfiles")
       @home = ENV["HOME"]
+      @config = Config.new(@dotfiles_dir)
+      @dotfiles_repo = @config.dotfiles_repo
 
       setup_signal_handlers
     end

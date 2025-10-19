@@ -8,7 +8,6 @@ class Dotfiles
   class Updater
     def initialize
       @debug = ENV["DEBUG"] == "true"
-      @dotfiles_repo = "https://github.com/nateberkopec/dotfiles.git"
       @dotfiles_dir = File.expand_path("~/.dotfiles")
       @home = ENV["HOME"]
 
@@ -17,6 +16,9 @@ class Dotfiles
         puts "Please run the initial setup script first."
         exit 1
       end
+
+      @config = Config.new(@dotfiles_dir)
+      @dotfiles_repo = @config.dotfiles_repo
     end
 
     def run

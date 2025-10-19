@@ -15,6 +15,10 @@ class Dotfiles
       @paths ||= load_config("paths.yml")
     end
 
+    def dotfiles_repo
+      paths["dotfiles_repo"] || "https://github.com/nateberkopec/dotfiles.git"
+    end
+
     private
 
     def load_config(filename)
