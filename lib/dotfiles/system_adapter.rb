@@ -56,8 +56,9 @@ class Dotfiles
         output = `#{command} 2>&1`.strip
         [output, $?.exitstatus]
       else
-        system(command)
-        ["", $?.exitstatus]
+        output = `#{command}`.strip
+        status = $?.exitstatus
+        [output, status]
       end
     end
 
