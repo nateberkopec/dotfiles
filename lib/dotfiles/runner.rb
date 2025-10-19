@@ -8,8 +8,6 @@ class Dotfiles
       @home = ENV["HOME"]
       @config = Config.new(@dotfiles_dir)
       @dotfiles_repo = @config.dotfiles_repo
-
-      setup_signal_handlers
     end
 
     def run
@@ -105,12 +103,6 @@ class Dotfiles
         exit 1
       else
         system("gum", "style", "--foreground", "#50fa7b", "--border", "rounded", "--align", "center", "--width", "50", "--margin", "1 0", "--padding", "1 2", "🎉 All Steps Complete!", "Setup successful")
-      end
-    end
-
-    def setup_signal_handlers
-      trap("EXIT") do
-        system("ssh-add -D 2>/dev/null") if Dotfiles.command_exists?("ssh-add")
       end
     end
   end
