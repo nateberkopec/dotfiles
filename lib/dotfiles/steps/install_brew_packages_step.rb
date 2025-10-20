@@ -1,6 +1,6 @@
 class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
   def self.depends_on
-    [Dotfiles::Step::InstallHomebrewStep]
+    [Dotfiles::Step::UpdateHomebrewStep]
   end
 
   def initialize(**kwargs)
