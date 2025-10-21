@@ -13,6 +13,9 @@ class Dotfiles::Step::UpdateMacOSStep < Dotfiles::Step
   end
 
   def complete?
+    # In CI environments, we don't update macOS so always consider this complete
+    return true if ci_or_noninteractive?
+
     check_background_update_freshness
     minor_updates_available.empty?
   end

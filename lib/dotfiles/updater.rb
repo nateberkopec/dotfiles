@@ -8,7 +8,7 @@ class Dotfiles
   class Updater
     def initialize
       @debug = ENV["DEBUG"] == "true"
-      @dotfiles_dir = File.expand_path("~/.dotfiles")
+      @dotfiles_dir = Dotfiles.determine_dotfiles_dir
       @home = ENV["HOME"]
 
       unless Dir.exist?(@dotfiles_dir)

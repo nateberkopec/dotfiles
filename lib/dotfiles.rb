@@ -27,4 +27,14 @@ class Dotfiles
   def self.command_exists?(command)
     system("command -v #{command} >/dev/null 2>&1")
   end
+
+  def self.determine_dotfiles_dir
+    # In CI, the dotfiles are in the current working directory
+    # In normal usage, they're in ~/.dotfiles
+    if ENV["CI"]
+      Dir.pwd
+    else
+      File.expand_path("~/.dotfiles")
+    end
+  end
 end
