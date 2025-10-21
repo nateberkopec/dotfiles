@@ -18,7 +18,7 @@ class Dotfiles
 
       step_params = build_step_params
       step_instances = instantiate_steps(step_params)
-      step_instances = execute_steps(step_instances)
+      step_instances = run_steps_parallel(step_instances)
       check_completion(step_params, step_instances)
 
       log_total_time(start_time)
@@ -39,15 +39,7 @@ class Dotfiles
     end
 
     def instantiate_steps(step_params)
-      Dotfiles.debug_benchmark("Step instantiation") do
-        Dotfiles::Step.all_steps.map { |step_class| step_class.new(**step_params) }
-      end
-    end
-
-    def execute_steps(step_instances)
-      Dotfiles.debug_benchmark("Step execution") do
-        run_steps_parallel(step_instances)
-      end
+      Dotfiles::Step.all_steps.map { |step_class| step_class.new(**step_params) }
     end
 
     def log_total_time(start_time)
@@ -67,7 +59,11 @@ class Dotfiles
 
           wait_for_dependencies(step_class, completed_steps)
 
-          if step.should_run?
+          should_run = Dotfiles.debug_benchmark("Should run step: #{step_class.display_name}") do
+            step.should_run?
+          end
+
+          if should_run
             Dotfiles.debug "Running step: #{step_class.display_name}"
             mutex.synchronize { printf "X" }
             step.instance_variable_set(:@ran, true)
