@@ -10,6 +10,8 @@ class Dotfiles
       @home = ENV["HOME"]
       @config = Config.new(@dotfiles_dir)
       @dotfiles_repo = @config.dotfiles_repo
+      @step_classes = Dotfiles::Step.all_steps
+      @step_instances = nil
     end
 
     def run
@@ -17,10 +19,10 @@ class Dotfiles
       Dotfiles.debug "Starting macOS development environment setup..."
 
       step_params = build_step_params
-      step_instances = instantiate_steps(step_params)
-      steps_to_run = check_should_run_parallel(step_instances)
-      run_steps_serially(step_instances, steps_to_run)
-      check_completion(step_params, step_instances)
+      @step_instances = instantiate_steps(step_params)
+      steps_to_run = check_should_run_parallel
+      run_steps_serially(steps_to_run)
+      check_completion
 
       log_total_time(start_time)
     rescue => e
@@ -40,7 +42,7 @@ class Dotfiles
     end
 
     def instantiate_steps(step_params)
-      Dotfiles::Step.all_steps.map { |step_class| step_class.new(**step_params) }
+      @step_classes.map { |step_class| step_class.new(**step_params) }
     end
 
     def log_total_time(start_time)
@@ -48,14 +50,14 @@ class Dotfiles
       Dotfiles.debug "Total run time: #{elapsed}ms"
     end
 
-    def check_should_run_parallel(step_instances)
+    def check_should_run_parallel
       mutex = Mutex.new
       pool = Concurrent::FixedThreadPool.new(10)
       steps_to_run = Concurrent::Array.new
 
-      step_instances.each_with_index do |step, index|
+      @step_instances.each_with_index do |step, index|
         pool.post do
-          step_class = Dotfiles::Step.all_steps[index]
+          step_class = @step_classes[index]
 
           should_run = Dotfiles.debug_benchmark("Should run step: #{step_class.display_name}") do
             step.should_run?
@@ -73,12 +75,12 @@ class Dotfiles
       steps_to_run.to_a
     end
 
-    def run_steps_serially(step_instances, steps_to_run_indices)
+    def run_steps_serially(steps_to_run_indices)
       puts ""
       completed_steps = Set.new
 
-      step_instances.each_with_index do |step, index|
-        step_class = Dotfiles::Step.all_steps[index]
+      @step_instances.each_with_index do |step, index|
+        step_class = @step_classes[index]
 
         wait_for_dependencies(step_class, completed_steps)
 
@@ -100,7 +102,6 @@ class Dotfiles
       end
 
       puts ""
-      step_instances
     end
 
     def wait_for_dependencies(step_class, completed_steps)
@@ -114,9 +115,9 @@ class Dotfiles
       end
     end
 
-    def check_completion(step_params, step_instances)
+    def check_completion
       Dotfiles.debug_benchmark("Completion check") do
-        result = collect_step_results(step_instances)
+        result = collect_step_results
         display_results_table(result[:table_data])
         display_warnings(result[:warnings])
         display_notices(result[:notices])
@@ -124,16 +125,16 @@ class Dotfiles
       end
     end
 
-    def collect_step_results(step_instances)
+    def collect_step_results
       failed_steps = Concurrent::Array.new
       table_data = Concurrent::Array.new
       warnings = Concurrent::Array.new
       notices = Concurrent::Array.new
       pool = Concurrent::FixedThreadPool.new(10)
 
-      Dotfiles::Step.all_steps.each_with_index do |step_class, i|
+      @step_classes.each_with_index do |step_class, i|
         pool.post do
-          step = step_instances[i]
+          step = @step_instances[i]
           step_name = step_class.display_name
           completion_status = Dotfiles.debug_benchmark("Complete check: #{step_name}") do
             !!step.complete?
