@@ -4,7 +4,6 @@ class VSCodeConfigurationStepTest < Minitest::Test
   def test_depends_on_correct_steps
     deps = Dotfiles::Step::VSCodeConfigurationStep.depends_on
     assert_includes deps, Dotfiles::Step::InstallApplicationsStep
-    assert_includes deps, Dotfiles::Step::CloneDotfilesStep
   end
 
   def test_not_complete_without_files

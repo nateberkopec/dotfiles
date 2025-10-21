@@ -5,7 +5,37 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DOTFILES_DIR="$(dirname "$SCRIPT_DIR")"
 
+update_dotfiles_repo() {
+    cd "$DOTFILES_DIR"
+
+    # Check if we're on main branch - if not, skip git update
+    current_branch=$(git rev-parse --abbrev-ref HEAD)
+    if [ "$current_branch" != "main" ]; then
+        return 0
+    fi
+
+    # Fetch latest changes
+    if ! git fetch origin main 2>/dev/null; then
+        echo "Error: Failed to fetch from remote"
+        exit 1
+    fi
+
+    # Check if there are changes to pull
+    LOCAL=$(git rev-parse @)
+    REMOTE=$(git rev-parse @{u})
+
+    if [ "$LOCAL" != "$REMOTE" ]; then
+        echo "Pulling latest changes from remote..."
+        if ! git pull --ff-only 2>/dev/null; then
+            echo "Error: Failed to pull changes. Please resolve any conflicts manually."
+            exit 1
+        fi
+        echo "Successfully updated dotfiles repository"
+    fi
+}
+
 cmd_run() {
+    update_dotfiles_repo
     "$SCRIPT_DIR/bootstrap"
 
     cd "$DOTFILES_DIR"
@@ -30,6 +60,8 @@ cmd_update() {
                 ;;
         esac
     done
+
+    update_dotfiles_repo
 
     cd "$DOTFILES_DIR"
     GIT_COMMIT_FLAGS="$git_flags" ruby -r ./lib/dotfiles.rb -e 'Dotfiles::Updater.new.run'

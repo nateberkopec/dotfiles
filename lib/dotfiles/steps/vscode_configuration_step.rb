@@ -4,7 +4,7 @@ class Dotfiles::Step::VSCodeConfigurationStep < Dotfiles::Step
   end
 
   def self.depends_on
-    [Dotfiles::Step::InstallApplicationsStep, Dotfiles::Step::CloneDotfilesStep]
+    [Dotfiles::Step::InstallApplicationsStep]
   end
 
   def run
