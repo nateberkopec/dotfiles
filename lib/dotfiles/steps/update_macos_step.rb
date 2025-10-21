@@ -36,16 +36,18 @@ class Dotfiles::Step::UpdateMacOSStep < Dotfiles::Step
   end
 
   def check_background_update_freshness
-    begin
-      plist_path = "/Library/Preferences/com.apple.SoftwareUpdate.plist"
-      output, = @system.execute("defaults read #{plist_path} LastBackgroundSuccessfulDate 2>/dev/null")
-      last_check = DateTime.parse(output.strip)
-    rescue => e
-      add_warning(
-        title: "⚠️  macOS Update Check Failed",
-        message: "Could not determine last background update check time.\nError: #{e.message}"
-      )
+    plist_path = "/Library/Preferences/com.apple.SoftwareUpdate.plist"
+    return unless @system.file_exist?(plist_path)
+
+    output, status = @system.execute("defaults read #{plist_path} LastBackgroundSuccessfulDate 2>/dev/null")
+    return unless status == 0
+
+    last_check = begin
+      DateTime.parse(output.strip)
+    rescue
+      nil
     end
+    return unless last_check
 
     hours_since_check = ((DateTime.now - last_check) * 24).to_i
     if hours_since_check > 24
