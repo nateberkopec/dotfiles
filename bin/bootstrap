@@ -4,7 +4,7 @@ set -e
 
 debug() {
     if [ "${DEBUG:-false}" = "true" ]; then
-        timestamp=$(date '+%H:%M:%S')
+        timestamp=$(python3 -c 'import datetime; now = datetime.datetime.now(); print(now.strftime("%H:%M:%S.") + "%03d" % (now.microsecond // 1000))')
         echo "[$timestamp] $1"
     fi
 }
