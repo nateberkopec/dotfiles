@@ -1,3 +1,5 @@
+require "concurrent"
+
 class Dotfiles
   class Runner
     attr_reader :dotfiles_repo, :dotfiles_dir, :home
@@ -11,32 +13,15 @@ class Dotfiles
     end
 
     def run
+      start_time = Time.now
       Dotfiles.debug "Starting macOS development environment setup..."
 
-      step_params = {
-        debug: @debug,
-        dotfiles_repo: @dotfiles_repo,
-        dotfiles_dir: @dotfiles_dir,
-        home: @home
-      }
-
-      step_instances = []
-
-      puts ""
-      Dotfiles::Step.all_steps.each do |step_class|
-        step = step_class.new(**step_params)
-        step_instances << step
-        if step.should_run?
-          printf "X"
-          step.instance_variable_set(:@ran, true)
-          step.run
-        else
-          printf "."
-        end
-      end
-      puts ""
-
+      step_params = build_step_params
+      step_instances = instantiate_steps(step_params)
+      step_instances = execute_steps(step_instances)
       check_completion(step_params, step_instances)
+
+      log_total_time(start_time)
     rescue => e
       puts "Error: #{e.message}"
       exit 1
@@ -44,12 +29,88 @@ class Dotfiles
 
     private
 
+    def build_step_params
+      {
+        debug: @debug,
+        dotfiles_repo: @dotfiles_repo,
+        dotfiles_dir: @dotfiles_dir,
+        home: @home
+      }
+    end
+
+    def instantiate_steps(step_params)
+      start = Time.now
+      step_instances = Dotfiles::Step.all_steps.map { |step_class| step_class.new(**step_params) }
+      Dotfiles.debug "Step instantiation took #{((Time.now - start) * 1000).round(2)}ms"
+      step_instances
+    end
+
+    def execute_steps(step_instances)
+      start = Time.now
+      result = run_steps_parallel(step_instances)
+      Dotfiles.debug "Step execution took #{((Time.now - start) * 1000).round(2)}ms"
+      result
+    end
+
+    def log_total_time(start_time)
+      Dotfiles.debug "Total run time: #{((Time.now - start_time) * 1000).round(2)}ms"
+    end
+
+    def run_steps_parallel(step_instances)
+      puts ""
+      completed_steps = Concurrent::Set.new
+      mutex = Mutex.new
+      pool = Concurrent::FixedThreadPool.new(10)
+
+      step_instances.each_with_index do |step, index|
+        pool.post do
+          step_class = Dotfiles::Step.all_steps[index]
+          step_start = Time.now
+
+          wait_for_dependencies(step_class, completed_steps)
+
+          if step.should_run?
+            Dotfiles.debug "Running step: #{step_class.display_name}"
+            mutex.synchronize { printf "X" }
+            step.instance_variable_set(:@ran, true)
+            step.run
+            elapsed = ((Time.now - step_start) * 1000).round(2)
+            Dotfiles.debug "Completed step: #{step_class.display_name} in #{elapsed}ms"
+          else
+            mutex.synchronize { printf "." }
+            Dotfiles.debug "Skipped step: #{step_class.display_name} (already complete)"
+          end
+
+          completed_steps.add(step_class)
+        end
+      end
+
+      pool.shutdown
+      pool.wait_for_termination
+
+      puts ""
+      step_instances
+    end
+
+    def wait_for_dependencies(step_class, completed_steps)
+      dependencies = step_class.depends_on
+      return if dependencies.empty?
+
+      loop do
+        all_complete = dependencies.all? { |dep| completed_steps.include?(dep) }
+        break if all_complete
+        sleep 0.01
+      end
+    end
+
     def check_completion(step_params, step_instances)
+      start = Time.now
       result = collect_step_results(step_instances)
       display_results_table(result[:table_data])
       display_warnings(result[:warnings])
       display_notices(result[:notices])
       display_final_status(result[:failed_steps])
+      Dotfiles.debug "Completion check took #{((Time.now - start) * 1000).round(2)}ms"
     end
 
     def collect_step_results(step_instances)

@@ -9,20 +9,23 @@ update_dotfiles_repo() {
     cd "$DOTFILES_DIR"
 
     # Check if we're on main branch - if not, skip git update
-    current_branch=$(git rev-parse --abbrev-ref HEAD)
+    current_branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
     if [ "$current_branch" != "main" ]; then
         return 0
     fi
 
-    # Fetch latest changes
+    # Check if there are changes to pull first (avoid slow fetch if unnecessary)
+    LOCAL=$(git rev-parse @ 2>/dev/null)
+    REMOTE=$(git rev-parse @{u} 2>/dev/null)
+
+    # Only fetch if we might be behind
     if ! git fetch origin main 2>/dev/null; then
         echo "Error: Failed to fetch from remote"
         exit 1
     fi
 
-    # Check if there are changes to pull
-    LOCAL=$(git rev-parse @)
-    REMOTE=$(git rev-parse @{u})
+    # Re-check after fetch
+    REMOTE=$(git rev-parse @{u} 2>/dev/null)
 
     if [ "$LOCAL" != "$REMOTE" ]; then
         echo "Pulling latest changes from remote..."

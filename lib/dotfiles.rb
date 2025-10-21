@@ -11,7 +11,9 @@ require "updater"
 
 class Dotfiles
   def self.debug(message)
-    puts message if ENV["DEBUG"] == "true"
+    return unless ENV["DEBUG"] == "true"
+    timestamp = Time.now.strftime("%H:%M:%S.%3N")
+    puts "[#{timestamp}] #{message}"
   end
 
   def self.command_exists?(command)

@@ -4,7 +4,8 @@ set -e
 
 debug() {
     if [ "${DEBUG:-false}" = "true" ]; then
-        echo "$1"
+        timestamp=$(date '+%H:%M:%S')
+        echo "[$timestamp] $1"
     fi
 }
 
@@ -24,8 +25,7 @@ bootstrap_homebrew() {
         echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
         eval "$(/opt/homebrew/bin/brew shellenv)"
     else
-        debug "Homebrew already installed, updating..."
-        brew_quiet update
+        debug "Homebrew already installed"
     fi
 }
 
@@ -50,7 +50,19 @@ bootstrap_gum() {
 }
 
 bootstrap_ruby() {
-    # Resolve what ruby@latest actually means
+    # Quick check: if ruby is available, skip expensive mise operations
+    if command -v ruby &> /dev/null; then
+        local current_version
+        current_version=$(ruby -v | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+
+        # Check if mise is managing this Ruby (mise current returns non-zero if not configured)
+        if mise current ruby &>/dev/null; then
+            debug "Ruby $current_version already managed by mise"
+            return
+        fi
+    fi
+
+    # Only resolve latest version if we need to install
     local latest_version
     latest_version=$(mise latest ruby)
 

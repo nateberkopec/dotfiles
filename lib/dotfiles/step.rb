@@ -98,7 +98,7 @@ class Dotfiles
     private
 
     def debug(message)
-      puts message if @debug
+      Dotfiles.debug(message)
     end
 
     def execute(command, quiet: true, sudo: false)
