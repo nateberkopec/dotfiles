@@ -7,7 +7,12 @@ DOTFILES_DIR="$(dirname "$SCRIPT_DIR")"
 
 debug() {
     if [ "${DEBUG:-false}" = "true" ]; then
-        timestamp=$(gdate '+%H:%M:%S.%3N')
+        # Use gdate if available (GNU coreutils on macOS), otherwise use standard date without milliseconds
+        if command -v gdate &> /dev/null; then
+            timestamp=$(gdate '+%H:%M:%S.%3N')
+        else
+            timestamp=$(date '+%H:%M:%S')
+        fi
         echo "[$timestamp] $1"
     fi
 }
