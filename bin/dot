@@ -56,12 +56,54 @@ update_dotfiles_repo() {
     fi
 }
 
+start_background_fetch() {
+    cd "$DOTFILES_DIR"
+
+    # Start fetch in background (always fetch to keep origin/main updated)
+    debug "Starting background fetch from origin main..."
+    git fetch origin main >/dev/null 2>&1 &
+    FETCH_PID=$!
+    debug "Background fetch started with PID: $FETCH_PID"
+}
+
+check_for_updates() {
+    cd "$DOTFILES_DIR"
+
+    # If no fetch was started, nothing to check
+    if [ -z "$FETCH_PID" ]; then
+        debug "No background fetch to check"
+        return 0
+    fi
+
+    # Wait for fetch to complete if it's still running
+    if kill -0 $FETCH_PID 2>/dev/null; then
+        debug "Waiting for background fetch to complete..."
+        wait $FETCH_PID
+        debug "Background fetch completed"
+    else
+        debug "Background fetch already completed"
+    fi
+
+    # Check if main branch has updates available (compare main with origin/main)
+    LOCAL_MAIN=$(git rev-parse main 2>/dev/null)
+    REMOTE_MAIN=$(git rev-parse origin/main 2>/dev/null)
+    debug "After fetch - main: $LOCAL_MAIN, origin/main: $REMOTE_MAIN"
+
+    if [ "$LOCAL_MAIN" != "$REMOTE_MAIN" ]; then
+        echo ""
+        echo "📦 Updates available! Run 'dot update' to pull the latest changes."
+    fi
+}
+
 cmd_run() {
-    update_dotfiles_repo
+    start_background_fetch
     "$SCRIPT_DIR/bootstrap"
 
     cd "$DOTFILES_DIR"
     ruby -r ./lib/dotfiles.rb -e 'Dotfiles::Runner.new.run'
+
+    check_for_updates
+    debug "Run complete"
 }
 
 cmd_update() {
