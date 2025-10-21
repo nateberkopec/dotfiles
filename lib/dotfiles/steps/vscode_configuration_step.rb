@@ -22,6 +22,7 @@ class Dotfiles::Step::VSCodeConfigurationStep < Dotfiles::Step
     vscode_settings = app_path("vscode_settings")
     vscode_keybindings = app_path("vscode_keybindings")
 
+    return false unless vscode_settings && vscode_keybindings
     @system.file_exist?(vscode_settings) && @system.file_exist?(vscode_keybindings)
   end
 

@@ -80,8 +80,9 @@ class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
   private
 
   def generate_brewfile
-    packages = @config.packages["brew"]["packages"]
-    cask_packages = @config.packages["brew"]["casks"]
+    brew_config = @config.packages&.dig("brew") || {}
+    packages = brew_config["packages"] || []
+    cask_packages = brew_config["casks"] || []
 
     brewfile_content = []
     packages.each { |pkg| brewfile_content << "brew \"#{pkg}\"" }

@@ -24,6 +24,7 @@ class Dotfiles::Step::ConfigureFishStep < Dotfiles::Step
     fish_config_file = home_path("fish_config_file")
     fish_functions_dir = home_path("fish_functions_dir")
 
+    return false unless fish_config_file && fish_functions_dir
     return false unless @system.file_exist?(fish_config_file) && @system.dir_exist?(fish_functions_dir)
 
     source_config = dotfiles_source("fish_config")
