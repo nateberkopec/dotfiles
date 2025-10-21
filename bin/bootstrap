@@ -4,7 +4,8 @@ set -e
 
 debug() {
     if [ "${DEBUG:-false}" = "true" ]; then
-        echo "$1"
+        timestamp=$(python3 -c 'import datetime; now = datetime.datetime.now(); print(now.strftime("%H:%M:%S.") + "%03d" % (now.microsecond // 1000))')
+        echo "[$timestamp] $1"
     fi
 }
 
@@ -24,8 +25,7 @@ bootstrap_homebrew() {
         echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
         eval "$(/opt/homebrew/bin/brew shellenv)"
     else
-        debug "Homebrew already installed, updating..."
-        brew_quiet update
+        debug "Homebrew already installed"
     fi
 }
 

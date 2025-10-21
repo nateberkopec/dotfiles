@@ -11,7 +11,17 @@ require "updater"
 
 class Dotfiles
   def self.debug(message)
-    puts message if ENV["DEBUG"] == "true"
+    return unless ENV["DEBUG"] == "true"
+    timestamp = Time.now.strftime("%H:%M:%S.%3N")
+    puts "[#{timestamp}] #{message}"
+  end
+
+  def self.debug_benchmark(label, &block)
+    start = Time.now
+    result = block.call
+    elapsed = ((Time.now - start) * 1000).round(2)
+    debug "#{label} took #{elapsed}ms"
+    result
   end
 
   def self.command_exists?(command)

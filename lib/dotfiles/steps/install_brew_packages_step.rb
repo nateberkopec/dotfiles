@@ -6,23 +6,28 @@ class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
   def initialize(**kwargs)
     super
     @brewfile_path = File.join(@dotfiles_dir, "Brewfile")
+    @packages_installed_status = nil
+  end
+
+  def should_run?
+    generate_brewfile
+    !packages_already_installed?
   end
 
   def run
     debug "Installing command-line tools via Homebrew..."
-    generate_brewfile
-    return if packages_already_installed?
-
     output, exit_status = install_packages
     check_skipped_packages
     log_installation_results(output, exit_status)
   end
 
   def packages_already_installed?
+    return @packages_installed_status unless @packages_installed_status.nil?
+
     _, status = @system.execute("brew bundle check --file=#{@brewfile_path} --no-upgrade >/dev/null 2>&1")
-    result = status == 0
-    debug "All packages already installed" if result
-    result
+    @packages_installed_status = status == 0
+    debug "All packages already installed" if @packages_installed_status
+    @packages_installed_status
   end
 
   def install_packages
@@ -65,8 +70,8 @@ class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
   def complete?
     return true if ran?
     return false unless @system.file_exist?(@brewfile_path)
-    _, status = @system.execute("brew bundle check --file=#{@brewfile_path} --no-upgrade >/dev/null 2>&1")
-    status == 0
+    raise "packages_already_installed? must be called before complete?" if @packages_installed_status.nil?
+    @packages_installed_status
   end
 
   def update
