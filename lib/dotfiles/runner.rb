@@ -63,6 +63,8 @@ class Dotfiles
             step.should_run?
           end
 
+          mutex.synchronize { printf "." }
+
           if should_run
             mutex.synchronize { steps_to_run << index }
           end
@@ -71,12 +73,12 @@ class Dotfiles
 
       pool.shutdown
       pool.wait_for_termination
+      puts ""
 
       steps_to_run.to_a
     end
 
     def run_steps_serially(steps_to_run_indices)
-      puts ""
       completed_steps = Set.new
 
       @step_instances.each_with_index do |step, index|
@@ -126,6 +128,7 @@ class Dotfiles
     end
 
     def collect_step_results
+      mutex = Mutex.new
       failed_steps = Concurrent::Array.new
       table_data = Concurrent::Array.new
       warnings = Concurrent::Array.new
@@ -139,6 +142,9 @@ class Dotfiles
           completion_status = Dotfiles.debug_benchmark("Complete check: #{step_name}") do
             !!step.complete?
           end
+
+          mutex.synchronize { printf "." }
+
           status_symbol = completion_status ? "✓" : "✗"
           ran_status = step.ran? ? "Yes" : "No"
 
@@ -152,6 +158,7 @@ class Dotfiles
 
       pool.shutdown
       pool.wait_for_termination
+      puts ""
 
       sorted_table_data = table_data.sort_by(&:first).map(&:last)
 
