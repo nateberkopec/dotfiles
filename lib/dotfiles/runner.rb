@@ -39,21 +39,20 @@ class Dotfiles
     end
 
     def instantiate_steps(step_params)
-      start = Time.now
-      step_instances = Dotfiles::Step.all_steps.map { |step_class| step_class.new(**step_params) }
-      Dotfiles.debug "Step instantiation took #{((Time.now - start) * 1000).round(2)}ms"
-      step_instances
+      Dotfiles.debug_benchmark("Step instantiation") do
+        Dotfiles::Step.all_steps.map { |step_class| step_class.new(**step_params) }
+      end
     end
 
     def execute_steps(step_instances)
-      start = Time.now
-      result = run_steps_parallel(step_instances)
-      Dotfiles.debug "Step execution took #{((Time.now - start) * 1000).round(2)}ms"
-      result
+      Dotfiles.debug_benchmark("Step execution") do
+        run_steps_parallel(step_instances)
+      end
     end
 
     def log_total_time(start_time)
-      Dotfiles.debug "Total run time: #{((Time.now - start_time) * 1000).round(2)}ms"
+      elapsed = ((Time.now - start_time) * 1000).round(2)
+      Dotfiles.debug "Total run time: #{elapsed}ms"
     end
 
     def run_steps_parallel(step_instances)
@@ -65,7 +64,6 @@ class Dotfiles
       step_instances.each_with_index do |step, index|
         pool.post do
           step_class = Dotfiles::Step.all_steps[index]
-          step_start = Time.now
 
           wait_for_dependencies(step_class, completed_steps)
 
@@ -73,9 +71,9 @@ class Dotfiles
             Dotfiles.debug "Running step: #{step_class.display_name}"
             mutex.synchronize { printf "X" }
             step.instance_variable_set(:@ran, true)
-            step.run
-            elapsed = ((Time.now - step_start) * 1000).round(2)
-            Dotfiles.debug "Completed step: #{step_class.display_name} in #{elapsed}ms"
+            Dotfiles.debug_benchmark("Step: #{step_class.display_name}") do
+              step.run
+            end
           else
             mutex.synchronize { printf "." }
             Dotfiles.debug "Skipped step: #{step_class.display_name} (already complete)"
@@ -104,13 +102,13 @@ class Dotfiles
     end
 
     def check_completion(step_params, step_instances)
-      start = Time.now
-      result = collect_step_results(step_instances)
-      display_results_table(result[:table_data])
-      display_warnings(result[:warnings])
-      display_notices(result[:notices])
-      display_final_status(result[:failed_steps])
-      Dotfiles.debug "Completion check took #{((Time.now - start) * 1000).round(2)}ms"
+      Dotfiles.debug_benchmark("Completion check") do
+        result = collect_step_results(step_instances)
+        display_results_table(result[:table_data])
+        display_warnings(result[:warnings])
+        display_notices(result[:notices])
+        display_final_status(result[:failed_steps])
+      end
     end
 
     def collect_step_results(step_instances)
