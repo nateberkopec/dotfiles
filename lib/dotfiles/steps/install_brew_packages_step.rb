@@ -8,11 +8,13 @@ class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
     @brewfile_path = File.join(@dotfiles_dir, "Brewfile")
   end
 
+  def should_run?
+    generate_brewfile
+    !packages_already_installed?
+  end
+
   def run
     debug "Installing command-line tools via Homebrew..."
-    generate_brewfile
-    return if packages_already_installed?
-
     output, exit_status = install_packages
     check_skipped_packages
     log_installation_results(output, exit_status)

@@ -18,7 +18,8 @@ class Dotfiles
 
       step_params = build_step_params
       step_instances = instantiate_steps(step_params)
-      step_instances = run_steps_parallel(step_instances)
+      steps_to_run = check_should_run_parallel(step_instances)
+      run_steps_serially(step_instances, steps_to_run)
       check_completion(step_params, step_instances)
 
       log_total_time(start_time)
@@ -47,42 +48,56 @@ class Dotfiles
       Dotfiles.debug "Total run time: #{elapsed}ms"
     end
 
-    def run_steps_parallel(step_instances)
-      puts ""
-      completed_steps = Concurrent::Set.new
+    def check_should_run_parallel(step_instances)
       mutex = Mutex.new
       pool = Concurrent::FixedThreadPool.new(10)
+      steps_to_run = Concurrent::Array.new
 
       step_instances.each_with_index do |step, index|
         pool.post do
           step_class = Dotfiles::Step.all_steps[index]
-
-          wait_for_dependencies(step_class, completed_steps)
 
           should_run = Dotfiles.debug_benchmark("Should run step: #{step_class.display_name}") do
             step.should_run?
           end
 
           if should_run
-            Dotfiles.debug "Running step: #{step_class.display_name}"
-            mutex.synchronize { printf "X" }
-            step.instance_variable_set(:@ran, true)
-            Dotfiles.debug_benchmark("Step: #{step_class.display_name}") do
-              step.run
-            end
-          else
-            mutex.synchronize { printf "." }
-            Dotfiles.debug_benchmark("Step (skipped): #{step_class.display_name}") do
-              # Step is already complete, no action needed
-            end
+            mutex.synchronize { steps_to_run << index }
           end
-
-          completed_steps.add(step_class)
         end
       end
 
       pool.shutdown
       pool.wait_for_termination
+
+      steps_to_run.to_a
+    end
+
+    def run_steps_serially(step_instances, steps_to_run_indices)
+      puts ""
+      completed_steps = Set.new
+
+      step_instances.each_with_index do |step, index|
+        step_class = Dotfiles::Step.all_steps[index]
+
+        wait_for_dependencies(step_class, completed_steps)
+
+        if steps_to_run_indices.include?(index)
+          Dotfiles.debug "Running step: #{step_class.display_name}"
+          printf "X"
+          step.instance_variable_set(:@ran, true)
+          Dotfiles.debug_benchmark("Step: #{step_class.display_name}") do
+            step.run
+          end
+        else
+          printf "."
+          Dotfiles.debug_benchmark("Step (skipped): #{step_class.display_name}") do
+            # Step is already complete, no action needed
+          end
+        end
+
+        completed_steps.add(step_class)
+      end
 
       puts ""
       step_instances
