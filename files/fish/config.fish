@@ -26,6 +26,8 @@ end
 
 alias mosh-mbp "mosh --server='SHELL=/opt/homebrew/bin/fish /opt/homebrew/bin/mosh-server' nateberkopec@MBP-Server.local"
 
+eval (~/Documents/Code.nosync/upstream/try/try.rb init | string collect)
+
 mise activate fish | source
 
 # Added by OrbStack: command-line tools and integration
