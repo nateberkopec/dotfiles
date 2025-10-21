@@ -76,7 +76,9 @@ class Dotfiles
             end
           else
             mutex.synchronize { printf "." }
-            Dotfiles.debug "Skipped step: #{step_class.display_name} (already complete)"
+            Dotfiles.debug_benchmark("Step (skipped): #{step_class.display_name}") do
+              # Step is already complete, no action needed
+            end
           end
 
           completed_steps.add(step_class)
