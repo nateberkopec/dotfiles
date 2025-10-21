@@ -4,7 +4,7 @@ class Dotfiles
 
     def initialize
       @debug = ENV["DEBUG"] == "true"
-      @dotfiles_dir = determine_dotfiles_dir
+      @dotfiles_dir = Dotfiles.determine_dotfiles_dir
       @home = ENV["HOME"]
       @config = Config.new(@dotfiles_dir)
       @dotfiles_repo = @config.dotfiles_repo
@@ -29,16 +29,6 @@ class Dotfiles
     end
 
     private
-
-    def determine_dotfiles_dir
-      # In CI, the dotfiles are in the current working directory
-      # In normal usage, they're in ~/.dotfiles
-      if ENV["CI"]
-        Dir.pwd
-      else
-        File.expand_path("~/.dotfiles")
-      end
-    end
 
     def build_step_params
       {
