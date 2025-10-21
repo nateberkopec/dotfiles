@@ -1,5 +1,3 @@
-require "concurrent"
-
 class Dotfiles
   class Runner
     attr_reader :dotfiles_repo, :dotfiles_dir, :home
@@ -52,11 +50,11 @@ class Dotfiles
 
     def check_should_run_parallel
       mutex = Mutex.new
-      pool = Concurrent::FixedThreadPool.new(10)
-      steps_to_run = Concurrent::Array.new
+      steps_to_run = []
+      threads = []
 
       @step_instances.each_with_index do |step, index|
-        pool.post do
+        threads << Thread.new do
           step_class = @step_classes[index]
 
           should_run = Dotfiles.debug_benchmark("Should run step: #{step_class.display_name}") do
@@ -71,11 +69,10 @@ class Dotfiles
         end
       end
 
-      pool.shutdown
-      pool.wait_for_termination
+      threads.each(&:join)
       puts ""
 
-      steps_to_run.to_a
+      steps_to_run
     end
 
     def run_steps_serially(steps_to_run_indices)
@@ -129,14 +126,14 @@ class Dotfiles
 
     def collect_step_results
       mutex = Mutex.new
-      failed_steps = Concurrent::Array.new
-      table_data = Concurrent::Array.new
-      warnings = Concurrent::Array.new
-      notices = Concurrent::Array.new
-      pool = Concurrent::FixedThreadPool.new(10)
+      failed_steps = []
+      table_data = []
+      warnings = []
+      notices = []
+      threads = []
 
       @step_classes.each_with_index do |step_class, i|
-        pool.post do
+        threads << Thread.new do
           step = @step_instances[i]
           step_name = step_class.display_name
           completion_status = Dotfiles.debug_benchmark("Complete check: #{step_name}") do
@@ -148,21 +145,21 @@ class Dotfiles
           status_symbol = completion_status ? "✓" : "✗"
           ran_status = step.ran? ? "Yes" : "No"
 
-          table_data << [i, "#{step_name},#{status_symbol},#{ran_status}"]
-          failed_steps << step_name unless completion_status
-
-          warnings.concat(step.warnings)
-          notices.concat(step.notices)
+          mutex.synchronize do
+            table_data << [i, "#{step_name},#{status_symbol},#{ran_status}"]
+            failed_steps << step_name unless completion_status
+            warnings.concat(step.warnings)
+            notices.concat(step.notices)
+          end
         end
       end
 
-      pool.shutdown
-      pool.wait_for_termination
+      threads.each(&:join)
       puts ""
 
       sorted_table_data = table_data.sort_by(&:first).map(&:last)
 
-      {failed_steps: failed_steps.to_a, table_data: sorted_table_data, warnings: warnings.to_a, notices: notices.to_a}
+      {failed_steps: failed_steps, table_data: sorted_table_data, warnings: warnings, notices: notices}
     end
 
     def display_results_table(table_data)
