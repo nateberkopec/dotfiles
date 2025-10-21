@@ -5,35 +5,54 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DOTFILES_DIR="$(dirname "$SCRIPT_DIR")"
 
+debug() {
+    if [ "${DEBUG:-false}" = "true" ]; then
+        timestamp=$(gdate '+%H:%M:%S.%3N')
+        echo "[$timestamp] $1"
+    fi
+}
+
 update_dotfiles_repo() {
+    debug "Updating dotfiles repository..."
     cd "$DOTFILES_DIR"
 
     # Check if we're on main branch - if not, skip git update
     current_branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+    debug "Current branch: $current_branch"
     if [ "$current_branch" != "main" ]; then
+        debug "Not on main branch, skipping git update"
         return 0
     fi
 
     # Check if there are changes to pull first (avoid slow fetch if unnecessary)
     LOCAL=$(git rev-parse @ 2>/dev/null)
     REMOTE=$(git rev-parse @{u} 2>/dev/null)
+    debug "Local commit: $LOCAL"
+    debug "Remote commit (before fetch): $REMOTE"
 
     # Only fetch if we might be behind
+    debug "Fetching from origin main..."
     if ! git fetch origin main 2>/dev/null; then
         echo "Error: Failed to fetch from remote"
         exit 1
     fi
+    debug "Fetch completed successfully"
 
     # Re-check after fetch
     REMOTE=$(git rev-parse @{u} 2>/dev/null)
+    debug "Remote commit (after fetch): $REMOTE"
 
     if [ "$LOCAL" != "$REMOTE" ]; then
         echo "Pulling latest changes from remote..."
+        debug "Local and remote differ, pulling changes..."
         if ! git pull --ff-only 2>/dev/null; then
             echo "Error: Failed to pull changes. Please resolve any conflicts manually."
             exit 1
         fi
         echo "Successfully updated dotfiles repository"
+        debug "Repository updated successfully"
+    else
+        debug "Repository is up to date"
     fi
 }
 
