@@ -125,26 +125,36 @@ class Dotfiles
     end
 
     def collect_step_results(step_instances)
-      failed_steps = []
-      table_data = []
-      warnings = []
-      notices = []
+      failed_steps = Concurrent::Array.new
+      table_data = Concurrent::Array.new
+      warnings = Concurrent::Array.new
+      notices = Concurrent::Array.new
+      pool = Concurrent::FixedThreadPool.new(10)
 
       Dotfiles::Step.all_steps.each_with_index do |step_class, i|
-        step = step_instances[i]
-        step_name = step_class.display_name
-        completion_status = !!step.complete?
-        status_symbol = completion_status ? "✓" : "✗"
-        ran_status = step.ran? ? "Yes" : "No"
+        pool.post do
+          step = step_instances[i]
+          step_name = step_class.display_name
+          completion_status = Dotfiles.debug_benchmark("Complete check: #{step_name}") do
+            !!step.complete?
+          end
+          status_symbol = completion_status ? "✓" : "✗"
+          ran_status = step.ran? ? "Yes" : "No"
 
-        table_data << "#{step_name},#{status_symbol},#{ran_status}"
-        failed_steps << step_name unless completion_status
+          table_data << [i, "#{step_name},#{status_symbol},#{ran_status}"]
+          failed_steps << step_name unless completion_status
 
-        warnings.concat(step.warnings)
-        notices.concat(step.notices)
+          warnings.concat(step.warnings)
+          notices.concat(step.notices)
+        end
       end
 
-      {failed_steps: failed_steps, table_data: table_data, warnings: warnings, notices: notices}
+      pool.shutdown
+      pool.wait_for_termination
+
+      sorted_table_data = table_data.sort_by(&:first).map(&:last)
+
+      {failed_steps: failed_steps.to_a, table_data: sorted_table_data, warnings: warnings.to_a, notices: notices.to_a}
     end
 
     def display_results_table(table_data)
