@@ -8,7 +8,7 @@ class Dotfiles
   class Updater
     def initialize
       @debug = ENV["DEBUG"] == "true"
-      @dotfiles_dir = File.expand_path("~/.dotfiles")
+      @dotfiles_dir = determine_dotfiles_dir
       @home = ENV["HOME"]
 
       unless Dir.exist?(@dotfiles_dir)
@@ -41,6 +41,16 @@ class Dotfiles
     end
 
     private
+
+    def determine_dotfiles_dir
+      # In CI, the dotfiles are in the current working directory
+      # In normal usage, they're in ~/.dotfiles
+      if ENV["CI"]
+        Dir.pwd
+      else
+        File.expand_path("~/.dotfiles")
+      end
+    end
 
     def commit_and_push_changes
       Dir.chdir(@dotfiles_dir)
