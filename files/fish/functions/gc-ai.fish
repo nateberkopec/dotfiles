@@ -189,6 +189,105 @@ $context"
         echo $output_file
     end
 
+    # Function to attempt commit and handle pre-commit hook failures
+    function attempt_commit
+        set message_file $argv[1]
+        set git_commit_options $argv[2..-1]
+
+        # Create temp file for error output
+        set error_file (mktemp)
+
+        # Attempt the commit, capturing stderr
+        git commit -F $message_file $git_commit_options 2>$error_file
+        set commit_result $status
+
+        if test $commit_result -eq 0
+            rm $error_file
+            return 0
+        end
+
+        # Read the error output
+        set error_output (cat $error_file)
+        rm $error_file
+
+        # Check if it's a commitlint error
+        if echo "$error_output" | grep -q "body-max-line-length\|scope-enum\|type-enum\|subject-empty\|header-max-length"
+            echo "$error_output"
+            return 2  # Special return code for commitlint errors
+        else
+            # Other pre-commit hook failure - display error and exit
+            echo "$error_output"
+            return 1
+        end
+    end
+
+    # Function to fix commitlint errors
+    function fix_commitlint_errors
+        set original_message_file $argv[1]
+        set error_output $argv[2]
+        set conventional_commit $argv[3]
+
+        echo "Commitlint errors detected. Attempting to fix..."
+
+        # Extract the original message
+        set original_message (cat $original_message_file)
+
+        # Parse commitlint errors
+        set commitlint_errors ""
+        if echo "$error_output" | grep -q "body-max-line-length"
+            set commitlint_errors "$commitlint_errors
+- Body lines must not be longer than 72 characters"
+        end
+        if echo "$error_output" | grep -q "scope-enum"
+            set scope_enum (echo "$error_output" | grep "scope must be one of" | sed 's/.*\[\(.*\)\].*/\1/')
+            set commitlint_errors "$commitlint_errors
+- Scope must be one of: $scope_enum"
+        end
+        if echo "$error_output" | grep -q "type-enum"
+            set type_enum (echo "$error_output" | grep "type must be one of" | sed 's/.*\[\(.*\)\].*/\1/')
+            set commitlint_errors "$commitlint_errors
+- Type must be one of: $type_enum"
+        end
+        if echo "$error_output" | grep -q "subject-empty"
+            set commitlint_errors "$commitlint_errors
+- Subject/description cannot be empty"
+        end
+        if echo "$error_output" | grep -q "header-max-length"
+            set commitlint_errors "$commitlint_errors
+- Header (first line) must be 100 characters or less"
+        end
+
+        # Build fix prompt
+        set fix_prompt "The following commit message failed commitlint validation:
+
+$original_message
+
+Commitlint errors:
+$commitlint_errors
+
+Please fix the commit message to comply with these requirements. Maintain the same content and intent, but adjust formatting/structure as needed."
+
+        if test "$conventional_commit" = "yes"
+            set fix_prompt "$fix_prompt
+
+Ensure it follows the Conventional Commits format."
+        end
+
+        set fix_prompt "$fix_prompt
+
+Return only the fixed commit message."
+
+        # Generate fixed message
+        set fixed_file (mktemp)
+        echo "$fix_prompt" | llm > $fixed_file
+
+        # Clean up blank lines
+        set cleaned_file (clean_blank_lines $fixed_file)
+        rm $fixed_file
+
+        echo $cleaned_file
+    end
+
     # Build git commit options
     set git_commit_options
     if set -q _flag_no_gpg_sign
@@ -247,16 +346,66 @@ $context"
             set display_file (add_disclaimer $temp_file)
         end
 
-        # If auto-push flag is set, skip interactive menu
+        # If auto-push flag is set, handle commit with error checking
         if set -q _flag_push
             echo "Generated commit message:"
             bat -P -H 1 --style=changes,grid,numbers,snip $display_file
             echo "Auto-committing and pushing..."
-            git commit -F $display_file $git_commit_options
-            rm $temp_file
-            rm $display_file
-            git push
-            return 0
+
+            # Try to commit with error handling
+            set commit_attempt 0
+            set max_attempts 2
+            set current_file $display_file
+
+            while test $commit_attempt -lt $max_attempts
+                set commit_attempt (math $commit_attempt + 1)
+
+                # Create temp file for error output
+                set error_file (mktemp)
+                git commit -F $current_file $git_commit_options 2>$error_file
+                set commit_result $status
+
+                if test $commit_result -eq 0
+                    rm $error_file
+                    rm $temp_file
+                    rm $display_file
+                    test "$current_file" != "$display_file"; and rm $current_file
+                    git push
+                    return 0
+                end
+
+                # Read error and check if it's commitlint
+                set error_output (cat $error_file)
+                rm $error_file
+
+                if echo "$error_output" | grep -q "body-max-line-length\|scope-enum\|type-enum\|subject-empty\|header-max-length"
+                    if test $commit_attempt -lt $max_attempts
+                        echo "Commitlint validation failed. Attempting to fix..."
+                        if set -q _flag_conventional_commit
+                            set fixed_file (fix_commitlint_errors $current_file "$error_output" "yes")
+                        else
+                            set fixed_file (fix_commitlint_errors $current_file "$error_output" "no")
+                        end
+                        test "$current_file" != "$display_file"; and rm $current_file
+                        set current_file $fixed_file
+                        echo "Retrying with fixed message..."
+                    else
+                        echo "Failed to fix commitlint errors after retry."
+                        echo "$error_output"
+                        rm $temp_file
+                        rm $display_file
+                        test "$current_file" != "$display_file"; and rm $current_file
+                        return 1
+                    end
+                else
+                    # Other error - just display and exit
+                    echo "$error_output"
+                    rm $temp_file
+                    rm $display_file
+                    test "$current_file" != "$display_file"; and rm $current_file
+                    return 1
+                end
+            end
         end
 
         # Show the generated message
@@ -268,22 +417,123 @@ $context"
 
         switch $action
             case "Commit"
-                git commit -F $display_file $git_commit_options
-                rm $temp_file
-                rm $display_file
-                return 0
+                # Try to commit with error handling
+                set commit_attempt 0
+                set max_attempts 2
+                set current_file $display_file
+
+                while test $commit_attempt -lt $max_attempts
+                    set commit_attempt (math $commit_attempt + 1)
+
+                    # Create temp file for error output
+                    set error_file (mktemp)
+                    git commit -F $current_file $git_commit_options 2>$error_file
+                    set commit_result $status
+
+                    if test $commit_result -eq 0
+                        rm $error_file
+                        rm $temp_file
+                        rm $display_file
+                        test "$current_file" != "$display_file"; and rm $current_file
+                        return 0
+                    end
+
+                    # Read error and check if it's commitlint
+                    set error_output (cat $error_file)
+                    rm $error_file
+
+                    if echo "$error_output" | grep -q "body-max-line-length\|scope-enum\|type-enum\|subject-empty\|header-max-length"
+                        if test $commit_attempt -lt $max_attempts
+                            echo "Commitlint validation failed. Attempting to fix..."
+                            if set -q _flag_conventional_commit
+                                set fixed_file (fix_commitlint_errors $current_file "$error_output" "yes")
+                            else
+                                set fixed_file (fix_commitlint_errors $current_file "$error_output" "no")
+                            end
+                            test "$current_file" != "$display_file"; and rm $current_file
+                            set current_file $fixed_file
+                            echo "Retrying with fixed message..."
+                        else
+                            echo "Failed to fix commitlint errors after retry."
+                            echo "$error_output"
+                            rm $temp_file
+                            rm $display_file
+                            test "$current_file" != "$display_file"; and rm $current_file
+                            return 1
+                        end
+                    else
+                        # Other error - just display and exit
+                        echo "$error_output"
+                        rm $temp_file
+                        rm $display_file
+                        test "$current_file" != "$display_file"; and rm $current_file
+                        return 1
+                    end
+                end
+
             case "Commit and Push"
-                git commit -F $display_file $git_commit_options
-                rm $temp_file
-                rm $display_file
-                git push
-                return 0
+                # Try to commit with error handling
+                set commit_attempt 0
+                set max_attempts 2
+                set current_file $display_file
+
+                while test $commit_attempt -lt $max_attempts
+                    set commit_attempt (math $commit_attempt + 1)
+
+                    # Create temp file for error output
+                    set error_file (mktemp)
+                    git commit -F $current_file $git_commit_options 2>$error_file
+                    set commit_result $status
+
+                    if test $commit_result -eq 0
+                        rm $error_file
+                        rm $temp_file
+                        rm $display_file
+                        test "$current_file" != "$display_file"; and rm $current_file
+                        git push
+                        return 0
+                    end
+
+                    # Read error and check if it's commitlint
+                    set error_output (cat $error_file)
+                    rm $error_file
+
+                    if echo "$error_output" | grep -q "body-max-line-length\|scope-enum\|type-enum\|subject-empty\|header-max-length"
+                        if test $commit_attempt -lt $max_attempts
+                            echo "Commitlint validation failed. Attempting to fix..."
+                            if set -q _flag_conventional_commit
+                                set fixed_file (fix_commitlint_errors $current_file "$error_output" "yes")
+                            else
+                                set fixed_file (fix_commitlint_errors $current_file "$error_output" "no")
+                            end
+                            test "$current_file" != "$display_file"; and rm $current_file
+                            set current_file $fixed_file
+                            echo "Retrying with fixed message..."
+                        else
+                            echo "Failed to fix commitlint errors after retry."
+                            echo "$error_output"
+                            rm $temp_file
+                            rm $display_file
+                            test "$current_file" != "$display_file"; and rm $current_file
+                            return 1
+                        end
+                    else
+                        # Other error - just display and exit
+                        echo "$error_output"
+                        rm $temp_file
+                        rm $display_file
+                        test "$current_file" != "$display_file"; and rm $current_file
+                        return 1
+                    end
+                end
+
             case "Edit"
                 eval $EDITOR $display_file
                 git commit -F $display_file $git_commit_options
                 rm $temp_file
                 rm $display_file
                 return 0
+
             case "Reroll"
                 set reroll_count (math $reroll_count + 1)
                 set temp (math "0.5 + $reroll_count * 0.3")
@@ -292,6 +542,7 @@ $context"
                 rm $temp_file
                 rm $display_file
                 continue
+
             case "Condense"
                 echo "Condensing message..."
                 set current_message (cat $temp_file)
@@ -308,6 +559,7 @@ $current_message"
                 set temp_file $cleaned_file
                 rm $display_file
                 continue
+
             case "Cancel"
                 echo "Commit cancelled"
                 rm $temp_file
