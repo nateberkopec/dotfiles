@@ -46,13 +46,29 @@ class Dotfiles::Step::ConfigureFishStep < Dotfiles::Step
 
     return unless fish_config_file && fish_functions_dir && dest_config && dest_functions
 
+    # Sync config.fish if it has changed
     @system.mkdir_p(File.dirname(dest_config))
-    @system.cp(fish_config_file, dest_config) if @system.file_exist?(fish_config_file)
+    if @system.file_exist?(fish_config_file) && !files_match?(fish_config_file, dest_config)
+      @system.cp(fish_config_file, dest_config)
+    end
 
+    # Sync functions directory
     @system.mkdir_p(dest_functions)
     if @system.dir_exist?(fish_functions_dir)
-      @system.glob(File.join(fish_functions_dir, "*")) do |src|
-        @system.cp(src, File.join(dest_functions, File.basename(src))) if @system.file_exist?(src)
+      # Copy all fish functions from system to repo, but only if they've changed
+      @system.glob(File.join(fish_functions_dir, "*.fish")).each do |src|
+        dest = File.join(dest_functions, File.basename(src))
+        # Copy if destination doesn't exist or files don't match
+        if !@system.file_exist?(dest) || !files_match?(src, dest)
+          @system.cp(src, dest)
+        end
+      end
+
+      # Remove functions from repo that no longer exist on system
+      system_functions = @system.glob(File.join(fish_functions_dir, "*.fish")).map { |f| File.basename(f) }
+      @system.glob(File.join(dest_functions, "*.fish")).each do |repo_file|
+        basename = File.basename(repo_file)
+        @system.rm_rf(repo_file) unless system_functions.include?(basename)
       end
     end
   end
