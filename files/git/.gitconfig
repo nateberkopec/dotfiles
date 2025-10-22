@@ -20,7 +20,22 @@
 [alias]
         commend = commit --amend --no-edit
         please = push --force-with-lease
-        co-main = "!f() { git checkout main || git checkout master; }; f"
+        co-main = "!f() { \
+                branch=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@'); \
+                if [ -z \"$branch\" ]; then \
+                    for b in main master staging develop; do \
+                        if git show-ref --verify --quiet refs/heads/$b; then \
+                            branch=$b; \
+                            break; \
+                        fi; \
+                    done; \
+                fi; \
+                if [ -z \"$branch\" ]; then \
+                    echo 'No main branch found'; \
+                    exit 1; \
+                fi; \
+                git checkout $branch; \
+            }; f"
         co = checkout
         wt = "!f() { git worktree add .worktrees/$1 $1; }; f"
         wtn = "!f() { git worktree add -b $1 .worktrees/$1; }; f"
