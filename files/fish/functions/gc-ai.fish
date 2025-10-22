@@ -98,10 +98,14 @@ $claude_context"
         # Clean and prepare display file
         set cleaned_file (_clean_blank_lines $message_file)
         rm $message_file
+        set claude_param ""
+        if set -q _flag_claude
+            set claude_param "claude"
+        end
         if set -q _flag_summary_only
-            set display_file (_add_disclaimer $cleaned_file "summary-only")
+            set display_file (_add_disclaimer $cleaned_file "summary-only" $claude_param)
         else
-            set display_file (_add_disclaimer $cleaned_file)
+            set display_file (_add_disclaimer $cleaned_file "" $claude_param)
         end
         rm $cleaned_file
 
@@ -303,6 +307,7 @@ end
 function _add_disclaimer
     set input_file $argv[1]
     set summary_only $argv[2]
+    set claude_flag $argv[3]
     set output_file (mktemp)
     set summary (head -n 1 $input_file)
 
@@ -312,6 +317,12 @@ function _add_disclaimer
 
     if test "$summary_only" != "summary-only"
         tail -n +2 $input_file >> $output_file
+    end
+
+    # Add Co-Authored-By line if claude flag was set
+    if test "$claude_flag" = "claude"
+        echo "" >> $output_file
+        echo "Co-Authored-By: Claude <noreply@anthropic.com>" >> $output_file
     end
 
     echo $output_file
