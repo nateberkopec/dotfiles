@@ -14,8 +14,10 @@ set -x EDITOR "code --wait"
 zoxide init fish | source
 complete -c z -f -k -a "(zoxide query -l)"
 alias cd z
-alias be="bundle exec"
+abbr be "bundle exec"
 alias cat bat
+gc-ai-abbr
+
 function mosh
   command mosh --predict=experimental $argv
 end
