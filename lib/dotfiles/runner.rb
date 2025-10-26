@@ -1,13 +1,8 @@
 class Dotfiles
   class Runner
-    attr_reader :dotfiles_repo, :dotfiles_dir, :home
-
     def initialize
       @debug = ENV["DEBUG"] == "true"
-      @dotfiles_dir = Dotfiles.determine_dotfiles_dir
-      @home = ENV["HOME"]
-      @config = Config.new(@dotfiles_dir)
-      @dotfiles_repo = @config.dotfiles_repo
+      @config = Config.new(Dotfiles.determine_dotfiles_dir)
       @step_classes = Dotfiles::Step.all_steps
       @step_instances = nil
     end
@@ -33,9 +28,9 @@ class Dotfiles
     def build_step_params
       {
         debug: @debug,
-        dotfiles_repo: @dotfiles_repo,
-        dotfiles_dir: @dotfiles_dir,
-        home: @home
+        dotfiles_repo: @config.dotfiles_repo,
+        dotfiles_dir: @config.dotfiles_dir,
+        home: @config.home
       }
     end
 

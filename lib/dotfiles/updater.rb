@@ -8,17 +8,7 @@ class Dotfiles
   class Updater
     def initialize
       @debug = ENV["DEBUG"] == "true"
-      @dotfiles_dir = Dotfiles.determine_dotfiles_dir
-      @home = ENV["HOME"]
-
-      unless Dir.exist?(@dotfiles_dir)
-        puts "Error: Dotfiles directory not found at #{@dotfiles_dir}"
-        puts "Please run the initial setup script first."
-        exit 1
-      end
-
-      @config = Config.new(@dotfiles_dir)
-      @dotfiles_repo = @config.dotfiles_repo
+      @config = Config.new(Dotfiles.determine_dotfiles_dir)
     end
 
     def run
@@ -26,9 +16,9 @@ class Dotfiles
 
       step_params = {
         debug: @debug,
-        dotfiles_repo: @dotfiles_repo,
-        dotfiles_dir: @dotfiles_dir,
-        home: @home
+        dotfiles_repo: @config.dotfiles_repo,
+        dotfiles_dir: @config.dotfiles_dir,
+        home: @config.home
       }
 
       Dotfiles::Step.all_steps.each do |step_class|
@@ -43,7 +33,7 @@ class Dotfiles
     private
 
     def commit_and_push_changes
-      Dir.chdir(@dotfiles_dir)
+      Dir.chdir(@config.dotfiles_dir)
       stdout, _stderr, _ = Open3.capture3("git status --porcelain")
       return puts "No changes to commit." if stdout.empty?
 
