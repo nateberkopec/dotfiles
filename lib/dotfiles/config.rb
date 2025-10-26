@@ -2,6 +2,8 @@ require "yaml"
 
 class Dotfiles
   class Config
+    attr_reader :dotfiles_dir
+
     def initialize(dotfiles_dir)
       @dotfiles_dir = dotfiles_dir
       @config_dir = File.join(dotfiles_dir, "config")
@@ -17,6 +19,10 @@ class Dotfiles
 
     def dotfiles_repo
       paths["dotfiles_repo"] || "https://github.com/nateberkopec/dotfiles.git"
+    end
+
+    def home
+      paths["home"] || ENV["HOME"]
     end
 
     private
