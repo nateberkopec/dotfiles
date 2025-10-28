@@ -37,19 +37,6 @@ dot <command>
 
 The setup process is organized into modular Steps. Each step is a Ruby class that inherits from the `Step` base class and implements a specific part of the setup process.
 
-### Step Interface
-
-Steps must implement these methods:
-
-- `run` - Executes the setup action
-- `complete?` - Returns true if the step has already been completed
-- `update` (optional) - Syncs configuration from the system back to the dotfiles repo
-
-Steps can also define:
-
-- `self.depends_on` - Returns an array of step classes that must run first
-- `should_run?` - Returns true if the step should execute (default: `!complete?`)
-
 ### Available Steps
 
 For details on what each step does, see the implementations in [lib/step/](lib/step/).
