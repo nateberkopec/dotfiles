@@ -85,6 +85,50 @@ def should_run?
 end
 ```
 
+## System Adapter
+
+All file system and system interaction MUST go through lib/dotfiles/system_adapter.rb, which is exposed to steps as `@system`. Never use any methods that directly interact with the underlying system, such as `File`, `Dir`, `FileUtils`, `Kernel.system`, but not limited to these.
+
+### Examples
+
+```ruby
+# ❌ WRONG - Direct file system access
+def complete?
+  File.exist?("/path/to/config")
+end
+
+# ✅ CORRECT - Use system adapter
+def complete?
+  @system.file_exist?("/path/to/config")
+end
+```
+
+```ruby
+# ❌ WRONG - Direct FileUtils usage
+def run
+  FileUtils.mkdir_p("/some/directory")
+  FileUtils.cp("source", "dest")
+end
+
+# ✅ CORRECT - Use system adapter
+def run
+  @system.mkdir_p("/some/directory")
+  @system.copy_file("source", "dest")
+end
+```
+
+```ruby
+# ❌ WRONG - Direct Dir usage
+def complete?
+  Dir.exist?("/Applications/Foo.app")
+end
+
+# ✅ CORRECT - Use system adapter
+def complete?
+  @system.dir_exist?("/Applications/Foo.app")
+end
+```
+
 ## Helper Methods
 
 The `Step` base class provides many helpers for common operations:
@@ -109,8 +153,7 @@ The `Step` base class provides many helpers for common operations:
 
 ### Configuration Access
 
-- `@config.packages` - Access `config/packages.yml`
-- `@config.paths` - Access `config/paths.yml`
+See `config.rb` for more.
 
 ### System Checks
 
@@ -290,11 +333,12 @@ applications:
 
 ## Best Practices
 
-1. **Idempotency**: Steps should be safe to run multiple times
-2. **Atomic operations**: Each step should do one thing well
-3. **Clear dependencies**: Use `depends_on` to express prerequisites
-4. **Helpful debugging**: Use `debug()` to log what's happening
-5. **User communication**: Use `add_notice()` for manual steps users need to complete
-6. **CI-aware**: Check `ci_or_noninteractive?` for steps requiring user interaction
-7. **Admin-aware**: Check `user_has_admin_rights?` for privileged operations
-8. **Testable**: Use `@system` adapter instead of direct file operations
+1. **Use the system adapter**: NEVER use methods that directly interact with the underlying system (such as `File`, `Dir`, `FileUtils`, `Kernel.system`, but not limited to these) - always use `@system`
+2. **Idempotency**: Steps should be safe to run multiple times
+3. **Atomic operations**: Each step should do one thing well
+4. **Clear dependencies**: Use `depends_on` to express prerequisites
+5. **Helpful debugging**: Use `debug()` to log what's happening
+6. **User communication**: Use `add_notice()` for manual steps users need to complete
+7. **CI-aware**: Check `ci_or_noninteractive?` for steps requiring user interaction
+8. **Admin-aware**: Check `user_has_admin_rights?` for privileged operations
+9. **Testable**: Design steps to work with `FakeSystemAdapter` in tests
