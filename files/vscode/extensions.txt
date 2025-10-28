@@ -16,6 +16,7 @@ ms-vscode.remote-explorer
 ms-vscode.remote-server
 ms-vscode.wordcount
 pascalreitermann93.vscode-yaml-sort
+redhat.vscode-yaml
 rvest.vs-code-prettier-eslint
 shopify.ruby-lsp
 streetsidesoftware.code-spell-checker

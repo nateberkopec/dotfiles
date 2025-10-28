@@ -19,9 +19,8 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "rubyLsp.rubyVersionManager": {
-    "identifier": "custom"
+    "identifier": "mise"
   },
-  "rubyLsp.customRubyCommand": "eval \"$(mise env -s bash)\"",
   "[ruby]": {
     "editor.defaultFormatter": "Shopify.ruby-lsp",
     "editor.formatOnSave": true, // Format files automatically when saving
@@ -86,5 +85,6 @@
   "github.copilot.nextEditSuggestions.enabled": true,
   "github.copilot.chat.codesearch.enabled": true,
   "github.copilot.chat.agent.thinkingTool": true,
-  "githubPullRequests.codingAgent.uiIntegration": true
+  "githubPullRequests.codingAgent.uiIntegration": true,
+  "redhat.telemetry.enabled": false
 }
