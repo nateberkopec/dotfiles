@@ -1,0 +1,8 @@
+config_directory_items:
+  - fish/completions/
+  - fish/config.fish
+  - fish/functions
+  - fish/fish_variables
+  - fish/conf.d/omf.fish
+  - omf/
+  - mise/config.toml

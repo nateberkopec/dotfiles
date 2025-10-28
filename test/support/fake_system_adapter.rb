@@ -131,4 +131,12 @@ class FakeSystemAdapter
       @operations.any? { |(op, *op_args)| op == operation_name && op_args == args }
     end
   end
+
+  def path_join(*parts)
+    File.join(*parts)
+  end
+
+  def path_dirname(path)
+    File.dirname(path)
+  end
 end

@@ -2,9 +2,6 @@ dotfiles_repo: https://github.com/nateberkopec/dotfiles.git
 # home: /Users/yourusername  # Override default home directory (defaults to ENV["HOME"])
 
 home_paths:
-  fish_config_dir: ~/.config/fish
-  fish_config_file: ~/.config/fish/config.fish
-  fish_functions_dir: ~/.config/fish/functions
   gitconfig: ~/.gitconfig
   aerospace_config: ~/.aerospace.toml
   zprofile: ~/.zprofile
@@ -18,8 +15,6 @@ application_paths:
   vscode_keybindings: ~/Library/Application Support/Code/User/keybindings.json
 
 dotfiles_sources:
-  fish_config: files/fish/config.fish
-  fish_functions: files/fish/functions
   ghostty_config: files/ghostty/config
   aerospace_config: files/aerospace/.aerospace.toml
   git_config: files/git/.gitconfig

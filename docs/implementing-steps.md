@@ -59,7 +59,8 @@ Declares dependencies on other steps. The system automatically runs steps in the
 
 ```ruby
 def self.depends_on
-  [Dotfiles::Step::InstallHomebrewStep, Dotfiles::Step::CloneDotfilesStep]
+  # Example
+  [Dotfiles::Step::InstallHomebrewStep]
 end
 ```
 
@@ -171,23 +172,28 @@ end
 ## Example: Step with File Syncing
 
 ```ruby
-class Dotfiles::Step::ConfigureFishStep < Dotfiles::Step
+class Dotfiles::Step::SyncConfigDirectoryStep < Dotfiles::Step
   def self.depends_on
-    [Dotfiles::Step::InstallBrewPackagesStep, Dotfiles::Step::CloneDotfilesStep]
+    [Dotfiles::Step::InstallBrewPackagesStep]
   end
 
   def run
-    debug "Setting up Fish configuration..."
-    @system.mkdir_p(home_path("fish_config_dir"))
-    @system.cp(dotfiles_source("fish_config"), home_path("fish_config_file"))
+    debug "Syncing config directory items..."
+    config_items.each { |item| sync_item(item) }
   end
 
   def complete?
-    files_match?(dotfiles_source("fish_config"), home_path("fish_config_file"))
+    config_items.all? { |item| item_synced?(item) }
   end
 
   def update
-    copy_if_exists(home_path("fish_config_file"), dotfiles_source("fish_config"))
+    config_items.each { |item| update_item(item) }
+  end
+
+  private
+
+  def config_items
+    @config.load_config("config_sync.yml").fetch("config_directory_items", [])
   end
 end
 ```
@@ -223,10 +229,10 @@ No manual registration required - just create the class and it's available.
 Steps should be tested with both unit tests and integration tests. Mock the `SystemAdapter` to avoid file system side effects:
 
 ```ruby
-class ConfigureFishStepTest < Minitest::Test
+class SyncConfigDirectoryStepTest < Minitest::Test
   def setup
     @system = FakeSystemAdapter.new
-    @step = Dotfiles::Step::ConfigureFishStep.new(
+    @step = Dotfiles::Step::SyncConfigDirectoryStep.new(
       debug: false,
       dotfiles_repo: "https://github.com/user/dotfiles.git",
       dotfiles_dir: "/tmp/dotfiles",
@@ -235,11 +241,10 @@ class ConfigureFishStepTest < Minitest::Test
     )
   end
 
-  def test_complete_when_files_match
-    @system.stub_file_content("/tmp/dotfiles/fish/config.fish", "content")
-    @system.stub_file_content("/tmp/home/.config/fish/config.fish", "content")
-
-    assert @step.complete?
+  def test_syncs_config_directory_items
+    @system.stub_file_content("/tmp/dotfiles/files/config/fish/config.fish", "content")
+    @step.run
+    assert @system.file_exist?("/tmp/home/.config/fish/config.fish")
   end
 end
 ```
@@ -254,12 +259,22 @@ Maps logical names to file system paths:
 
 ```yaml
 home_paths:
-  fish_config_file: ~/.config/fish/config.fish
-  fish_functions_dir: ~/.config/fish/functions
+  gitconfig: ~/.gitconfig
+  aerospace_config: ~/.aerospace.toml
 
 dotfiles_sources:
-  fish_config: fish/config.fish
-  fish_functions: fish/functions
+  git_config: files/git/.gitconfig
+  aerospace_config: files/aerospace/.aerospace.toml
+```
+
+### `config/config_sync.yml`
+
+Defines config directory items to sync (files and directories ending in /):
+
+```yaml
+config_directory_items:
+  - fish/
+  - omf/
 ```
 
 ### `config/packages.yml`

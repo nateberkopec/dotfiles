@@ -25,8 +25,6 @@ class Dotfiles
       paths["home"] || ENV["HOME"]
     end
 
-    private
-
     def load_config(filename)
       config_path = File.join(@config_dir, filename)
       YAML.load_file(config_path)
