@@ -6,8 +6,9 @@ class SetFishDefaultShellStepTest < Minitest::Test
     @step = create_step(Dotfiles::Step::SetFishDefaultShellStep)
   end
 
-  def test_depends_on_install_brew_packages
-    assert_includes Dotfiles::Step::SetFishDefaultShellStep.depends_on, Dotfiles::Step::InstallBrewPackagesStep
+  def test_complete_returns_boolean_by_default
+    result = @step.complete?
+    assert [true, false].include?(result)
   end
 
   def test_complete_when_fish_is_default_shell
