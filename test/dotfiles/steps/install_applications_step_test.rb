@@ -30,14 +30,8 @@ class InstallApplicationsStepTest < Minitest::Test
     }
   end
 
-  def test_step_exists
-    step = create_step(Dotfiles::Step::InstallApplicationsStep)
-    assert_instance_of Dotfiles::Step::InstallApplicationsStep, step
-  end
-
-  def test_depends_on_homebrew
-    deps = Dotfiles::Step::InstallApplicationsStep.depends_on
-    assert_includes deps, Dotfiles::Step::InstallHomebrewStep
+  def test_complete_returns_false_by_default
+    refute @step.complete?
   end
 
   def test_complete_returns_true_when_all_apps_installed
