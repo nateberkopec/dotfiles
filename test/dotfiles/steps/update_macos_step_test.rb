@@ -4,11 +4,6 @@ class UpdateMacOSStepTest < Minitest::Test
   def setup
     super
     @step = create_step(Dotfiles::Step::UpdateMacOSStep)
-    @plist_path = "/Library/Preferences/com.apple.SoftwareUpdate.plist"
-    @recommended_updates_command = "defaults read #{@plist_path} RecommendedUpdates 2>/dev/null"
-    @last_update_command = "defaults read #{@plist_path} LastBackgroundSuccessfulDate 2>/dev/null"
-    @minor_update_output = ['Identifier = "MSU_UPDATE_123_minor"', 0]
-    @no_updates_output = ["no updates", 1]
   end
 
   def test_should_run_returns_false_by_default
@@ -58,17 +53,24 @@ class UpdateMacOSStepTest < Minitest::Test
   private
 
   def stub_plist
-    @fake_system.stub_file_content(@plist_path, "plist")
+    plist_path = "/Library/Preferences/com.apple.SoftwareUpdate.plist"
+    @fake_system.stub_file_content(plist_path, "plist")
   end
 
   def stub_updates_available
     stub_plist
-    @fake_system.stub_execute_result(@recommended_updates_command, @minor_update_output)
+    plist_path = "/Library/Preferences/com.apple.SoftwareUpdate.plist"
+    command = "defaults read #{plist_path} RecommendedUpdates 2>/dev/null"
+    output = ['Identifier = "MSU_UPDATE_123_minor"', 0]
+    @fake_system.stub_execute_result(command, output)
   end
 
   def stub_no_updates
     stub_plist
-    @fake_system.stub_execute_result(@recommended_updates_command, @no_updates_output)
+    plist_path = "/Library/Preferences/com.apple.SoftwareUpdate.plist"
+    command = "defaults read #{plist_path} RecommendedUpdates 2>/dev/null"
+    output = ["no updates", 1]
+    @fake_system.stub_execute_result(command, output)
   end
 
   def stub_admin_with_updates
@@ -83,11 +85,15 @@ class UpdateMacOSStepTest < Minitest::Test
 
   def stub_updates_with_last_check
     stub_updates_available
-    @fake_system.stub_execute_result(@last_update_command, ["2024-01-01", 0])
+    plist_path = "/Library/Preferences/com.apple.SoftwareUpdate.plist"
+    command = "defaults read #{plist_path} LastBackgroundSuccessfulDate 2>/dev/null"
+    @fake_system.stub_execute_result(command, ["2024-01-01", 0])
   end
 
   def stub_no_updates_with_last_check
     stub_no_updates
-    @fake_system.stub_execute_result(@last_update_command, ["2024-01-01", 0])
+    plist_path = "/Library/Preferences/com.apple.SoftwareUpdate.plist"
+    command = "defaults read #{plist_path} LastBackgroundSuccessfulDate 2>/dev/null"
+    @fake_system.stub_execute_result(command, ["2024-01-01", 0])
   end
 end
