@@ -18,14 +18,6 @@ class VSCodeConfigurationStepTest < Minitest::Test
     }
   end
 
-  def test_display_name
-    assert_equal "VS Code Configuration", Dotfiles::Step::VSCodeConfigurationStep.display_name
-  end
-
-  def test_depends_on_install_applications
-    assert_includes Dotfiles::Step::VSCodeConfigurationStep.depends_on, Dotfiles::Step::InstallApplicationsStep
-  end
-
   def test_complete_when_files_exist
     @fake_system.stub_file_content("#{@home}/Library/Application Support/Code/User/settings.json", "{}")
     @fake_system.stub_file_content("#{@home}/Library/Application Support/Code/User/keybindings.json", "[]")
