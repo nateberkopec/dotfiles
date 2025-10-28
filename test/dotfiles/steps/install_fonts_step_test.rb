@@ -143,8 +143,6 @@ class InstallFontsStepTest < Minitest::Test
   end
 
   def test_update_returns_early_when_no_tracked_fonts
-    dest_dir = File.join(@dotfiles_dir, "files", "fonts")
-
     @step.update
 
     assert_equal 1, @fake_system.operation_count(:mkdir_p)
