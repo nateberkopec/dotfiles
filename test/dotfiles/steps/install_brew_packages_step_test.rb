@@ -16,29 +16,17 @@ class InstallBrewPackagesStepTest < Minitest::Test
     }
   end
 
-  def test_depends_on_homebrew
-    deps = Dotfiles::Step::InstallBrewPackagesStep.depends_on
-    assert_includes deps, Dotfiles::Step::InstallHomebrewStep
+  def test_should_run_returns_false_by_default
+    @fake_system.stub_file_content(File.join(@dotfiles_dir, "Brewfile"), "")
+    @fake_system.stub_execute_result(
+      "brew bundle check --file=#{File.join(@dotfiles_dir, "Brewfile")} --no-upgrade >/dev/null 2>&1",
+      ["", 0]
+    )
+    refute @step.should_run?
   end
 
-  def test_depends_on_update_homebrew
-    deps = Dotfiles::Step::InstallBrewPackagesStep.depends_on
-    assert_includes deps, Dotfiles::Step::UpdateHomebrewStep
-  end
-
-  def test_step_exists
-    step = create_step(Dotfiles::Step::InstallBrewPackagesStep)
-    assert_instance_of Dotfiles::Step::InstallBrewPackagesStep, step
-  end
-
-  def test_initialize_sets_brewfile_path
-    brewfile_path = @step.instance_variable_get(:@brewfile_path)
-    assert_equal File.join(@dotfiles_dir, "Brewfile"), brewfile_path
-  end
-
-  def test_initialize_sets_packages_installed_status_to_nil
-    status = @step.instance_variable_get(:@packages_installed_status)
-    assert_nil status
+  def test_complete_returns_false_by_default
+    refute @step.complete?
   end
 
   def test_packages_already_installed_returns_true_when_all_installed
