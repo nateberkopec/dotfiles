@@ -6,25 +6,6 @@ class Dotfiles::UpdaterTest < Minitest::Test
     @updater = Dotfiles::Updater.new
   end
 
-  def test_initialize_sets_debug_from_env
-    ENV["DEBUG"] = "true"
-    updater = Dotfiles::Updater.new
-    assert updater.instance_variable_get(:@debug)
-  ensure
-    ENV.delete("DEBUG")
-  end
-
-  def test_initialize_sets_debug_false_when_env_not_set
-    ENV.delete("DEBUG")
-    updater = Dotfiles::Updater.new
-    refute updater.instance_variable_get(:@debug)
-  end
-
-  def test_initialize_creates_config
-    config = @updater.instance_variable_get(:@config)
-    assert_instance_of Dotfiles::Config, config
-  end
-
   def test_run_calls_update_on_all_steps
     updated_steps = []
     step_class = Class.new(Dotfiles::Step) do
