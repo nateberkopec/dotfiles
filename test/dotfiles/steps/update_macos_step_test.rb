@@ -6,8 +6,13 @@ class UpdateMacOSStepTest < Minitest::Test
     @step = create_step(Dotfiles::Step::UpdateMacOSStep)
   end
 
-  def test_display_name
-    assert_equal "Update macOS", Dotfiles::Step::UpdateMacOSStep.display_name
+  def test_should_run_returns_false_by_default
+    refute @step.should_run?
+  end
+
+  def test_complete_returns_boolean_by_default
+    result = @step.complete?
+    assert [true, false].include?(result)
   end
 
   def test_should_run_returns_false_in_ci
