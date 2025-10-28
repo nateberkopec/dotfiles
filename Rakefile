@@ -1,18 +1,14 @@
 require "rake/testtask"
+require "standard/rake"
 
 FLOG_THRESHOLD = (ENV["FLOG_THRESHOLD"] || 50).to_i
 FLAY_THRESHOLD = (ENV["FLAY_THRESHOLD"] || 100).to_i
 
-task default: [:test, :standardrb, :flog, :flay]
+task default: [:test, :standard, :flog, :flay]
 
 Rake::TestTask.new(:test) do |t|
   t.libs << "test"
   t.test_files = FileList["test/**/*_test.rb"]
-end
-
-desc "Run standardrb"
-task :standardrb do
-  sh "bundle exec standardrb"
 end
 
 desc "Run flog"
