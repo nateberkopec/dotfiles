@@ -29,7 +29,7 @@ class FakeSystemAdapter
   def dir_exist?(path)
     @operations << [:dir_exist?, path]
     path = File.expand_path(path)
-    @filesystem.key?(path) || @filesystem.keys.any? { |k| k.start_with?("#{path}/") }
+    (@filesystem[path] == :directory) || @filesystem.keys.any? { |k| k.start_with?("#{path}/") }
   end
 
   def read_file(path)

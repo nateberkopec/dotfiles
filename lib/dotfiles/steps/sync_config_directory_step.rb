@@ -23,7 +23,7 @@ class Dotfiles::Step::SyncConfigDirectoryStep < Dotfiles::Step
   private
 
   def config_items
-    @config_items ||= @config.load_config("config_sync.yml").fetch("config_directory_items", [])
+    @config_items ||= @config.config_sync.fetch("config_directory_items", [])
   end
 
   def sync_to_home(item)

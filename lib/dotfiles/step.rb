@@ -56,13 +56,13 @@ class Dotfiles
       @dotfiles_dir = dotfiles_dir
       @home = home
       @system = system
-      @config = Config.new(dotfiles_dir)
+      @config = Config.new(dotfiles_dir, system: system)
       @ran = false
       @warnings = []
       @notices = []
     end
 
-    attr_reader :warnings, :notices
+    attr_reader :warnings, :notices, :config
 
     def ran?
       @ran

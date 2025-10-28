@@ -17,6 +17,7 @@ class Minitest::Test
     @fake_system = FakeSystemAdapter.new
     @dotfiles_dir = "/tmp/dotfiles"
     @home = "/tmp/home"
+    @fixtures_dir = File.expand_path("fixtures", __dir__)
   end
 
   def create_step(step_class, **overrides)
@@ -28,5 +29,23 @@ class Minitest::Test
       system: @fake_system
     }
     step_class.new(**defaults.merge(overrides))
+  end
+
+  def stub_default_paths(step)
+    step.config.paths = {
+      "application_paths" => {
+        "ghostty_config_dir" => "#{@home}/Library/Application Support/com.mitchellh.ghostty",
+        "ghostty_config_file" => "#{@home}/Library/Application Support/com.mitchellh.ghostty/config"
+      },
+      "home_paths" => {
+        "aerospace_config" => "#{@home}/.aerospace.toml",
+        "gitconfig" => "#{@home}/.gitconfig"
+      },
+      "dotfiles_sources" => {
+        "ghostty_config" => "files/ghostty/config",
+        "aerospace_config" => "files/aerospace/.aerospace.toml",
+        "git_config" => "files/git/.gitconfig"
+      }
+    }
   end
 end
