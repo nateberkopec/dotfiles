@@ -48,4 +48,11 @@ class Minitest::Test
       }
     }
   end
+
+  def with_ci
+    ENV["CI"] = "true"
+    yield
+  ensure
+    ENV.delete("CI")
+  end
 end
