@@ -16,6 +16,7 @@ complete -c z -f -k -a "(zoxide query -l)"
 alias cd z
 abbr be "bundle exec"
 alias cat bat
+starship init fish | source
 gc-ai-abbr
 
 function mosh

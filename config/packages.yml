@@ -9,6 +9,7 @@ brew:
     - fontconfig
     - libyaml
     - coreutils
+    - starship
 
   casks:
     - nikitabobko/tap/aerospace
