@@ -8,6 +8,14 @@ class InstallFontsStepTest < Minitest::Test
     @font_dir = File.join(@dotfiles_dir, "fonts")
   end
 
+  def test_should_run_returns_false_by_default
+    refute @step.should_run?
+  end
+
+  def test_complete_returns_true_by_default
+    assert @step.complete?
+  end
+
   def test_should_not_run_in_ci
     ENV["CI"] = "true"
 
