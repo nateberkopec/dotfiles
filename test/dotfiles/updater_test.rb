@@ -79,11 +79,7 @@ class Dotfiles::UpdaterTest < Minitest::Test
           @updater.stub :system, ->(cmd) {
             git_add_called = true if cmd == "git add -A"
             git_diff_called = true if cmd == "git diff --cached --stat"
-            if cmd == "gum confirm 'Proceed with commit?'"
-              false
-            else
-              true
-            end
+            !(cmd == "gum confirm 'Proceed with commit?'")
           } do
             capture_io do
               @updater.send(:commit_and_push_changes)
@@ -103,11 +99,7 @@ class Dotfiles::UpdaterTest < Minitest::Test
       Dir.stub :chdir, nil do
         Open3.stub :capture3, ["M file.txt\n", "", nil] do
           @updater.stub :system, ->(cmd) {
-            if cmd == "gum confirm 'Proceed with commit?'"
-              false
-            else
-              true
-            end
+            !(cmd == "gum confirm 'Proceed with commit?'")
           } do
             output = capture_io do
               @updater.send(:commit_and_push_changes)
@@ -130,13 +122,7 @@ class Dotfiles::UpdaterTest < Minitest::Test
           @updater.stub :system, ->(cmd) {
             gc_ai_called = true if cmd.include?("gc-ai")
             git_commit_called = true if cmd.include?("git commit") && !cmd.include?("gc-ai")
-            if cmd == "gum confirm 'Proceed with commit?'"
-              true
-            elsif cmd.include?("gc-ai")
-              true
-            else
-              true
-            end
+            true
           } do
             capture_io do
               @updater.send(:commit_and_push_changes)
@@ -189,14 +175,8 @@ class Dotfiles::UpdaterTest < Minitest::Test
       Dir.stub :chdir, nil do
         Open3.stub :capture3, ["M file.txt\n", "", nil] do
           @updater.stub :system, ->(cmd) {
-            if cmd == "gum confirm 'Proceed with commit?'"
-              true
-            elsif cmd.include?("gc-ai --amend --no-edit")
-              correct_flags = true
-              true
-            else
-              true
-            end
+            correct_flags = true if cmd.include?("gc-ai --amend --no-edit")
+            true
           } do
             capture_io do
               @updater.send(:commit_and_push_changes)
