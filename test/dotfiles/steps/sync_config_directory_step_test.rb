@@ -13,9 +13,9 @@ class SyncConfigDirectoryStepTest < Minitest::Test
 
   def test_syncs_files
     step = create_step(Dotfiles::Step::SyncConfigDirectoryStep, dotfiles_dir: @fixtures_dir)
-    step.config.stub_config("config_sync.yml", {
+    step.config.config_sync = {
       "config_directory_items" => ["fish/config.fish"]
-    })
+    }
     @fake_system.stub_file_content("#{@fixtures_dir}/files/config/fish/config.fish", "fish config")
 
     step.run
@@ -26,9 +26,9 @@ class SyncConfigDirectoryStepTest < Minitest::Test
 
   def test_complete_when_all_files_match
     step = create_step(Dotfiles::Step::SyncConfigDirectoryStep, dotfiles_dir: @fixtures_dir)
-    step.config.stub_config("config_sync.yml", {
+    step.config.config_sync = {
       "config_directory_items" => ["fish/config.fish", "fish/functions/"]
-    })
+    }
 
     # Stub the files
     @fake_system.stub_file_content("#{@fixtures_dir}/files/config/fish/config.fish", "content")
@@ -44,9 +44,9 @@ class SyncConfigDirectoryStepTest < Minitest::Test
 
   def test_not_complete_when_files_dont_match
     step = create_step(Dotfiles::Step::SyncConfigDirectoryStep, dotfiles_dir: @fixtures_dir)
-    step.config.stub_config("config_sync.yml", {
+    step.config.config_sync = {
       "config_directory_items" => ["fish/config.fish"]
-    })
+    }
     @fake_system.stub_file_content("#{@fixtures_dir}/files/config/fish/config.fish", "new fish config")
     @fake_system.stub_file_content("#{@home}/.config/fish/config.fish", "old fish config")
 
@@ -55,9 +55,9 @@ class SyncConfigDirectoryStepTest < Minitest::Test
 
   def test_not_complete_when_files_missing
     step = create_step(Dotfiles::Step::SyncConfigDirectoryStep, dotfiles_dir: @fixtures_dir)
-    step.config.stub_config("config_sync.yml", {
+    step.config.config_sync = {
       "config_directory_items" => ["fish/config.fish"]
-    })
+    }
     @fake_system.stub_file_content("#{@fixtures_dir}/files/config/fish/config.fish", "fish config")
 
     refute step.complete?
@@ -65,9 +65,9 @@ class SyncConfigDirectoryStepTest < Minitest::Test
 
   def test_update_is_callable
     step = create_step(Dotfiles::Step::SyncConfigDirectoryStep, dotfiles_dir: @fixtures_dir)
-    step.config.stub_config("config_sync.yml", {
+    step.config.config_sync = {
       "config_directory_items" => ["fish/config.fish"]
-    })
+    }
 
     # Stub files so update can run
     @fake_system.stub_file_content("#{@fixtures_dir}/files/config/fish/config.fish", "content")
@@ -79,9 +79,9 @@ class SyncConfigDirectoryStepTest < Minitest::Test
 
   def test_update_skips_unchanged_files
     step = create_step(Dotfiles::Step::SyncConfigDirectoryStep, dotfiles_dir: @fixtures_dir)
-    step.config.stub_config("config_sync.yml", {
+    step.config.config_sync = {
       "config_directory_items" => ["fish/config.fish"]
-    })
+    }
     @fake_system.stub_file_content("#{@home}/.config/fish/config.fish", "same content")
     @fake_system.stub_file_content("#{@fixtures_dir}/files/config/fish/config.fish", "same content")
 
@@ -92,9 +92,9 @@ class SyncConfigDirectoryStepTest < Minitest::Test
 
   def test_syncs_multiple_items
     step = create_step(Dotfiles::Step::SyncConfigDirectoryStep, dotfiles_dir: @fixtures_dir)
-    step.config.stub_config("config_sync.yml", {
+    step.config.config_sync = {
       "config_directory_items" => ["fish/config.fish", "omf/theme"]
-    })
+    }
     @fake_system.stub_file_content("#{@fixtures_dir}/files/config/fish/config.fish", "fish config")
     @fake_system.stub_file_content("#{@fixtures_dir}/files/config/omf/theme", "omf theme")
 
@@ -106,9 +106,9 @@ class SyncConfigDirectoryStepTest < Minitest::Test
 
   def test_creates_parent_directories_when_syncing
     step = create_step(Dotfiles::Step::SyncConfigDirectoryStep, dotfiles_dir: @fixtures_dir)
-    step.config.stub_config("config_sync.yml", {
+    step.config.config_sync = {
       "config_directory_items" => ["fish/config.fish"]
-    })
+    }
     @fake_system.stub_file_content("#{@fixtures_dir}/files/config/fish/config.fish", "fish config")
 
     step.run
