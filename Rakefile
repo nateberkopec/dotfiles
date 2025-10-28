@@ -2,7 +2,7 @@ require "rake/testtask"
 require "standard/rake"
 
 FLOG_THRESHOLD = (ENV["FLOG_THRESHOLD"] || 50).to_i
-FLAY_THRESHOLD = (ENV["FLAY_THRESHOLD"] || 100).to_i
+FLAY_THRESHOLD = (ENV["FLAY_THRESHOLD"] || 25).to_i
 
 task default: [:test, :standard, :flog, :flay]
 
