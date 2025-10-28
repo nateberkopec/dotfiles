@@ -1,19 +1,40 @@
 require "test_helper"
 
 class SetFishDefaultShellStepTest < Minitest::Test
+  def setup
+    super
+    @step = create_step(Dotfiles::Step::SetFishDefaultShellStep)
+  end
+
+  def test_depends_on_install_brew_packages
+    assert_includes Dotfiles::Step::SetFishDefaultShellStep.depends_on, Dotfiles::Step::InstallBrewPackagesStep
+  end
+
   def test_complete_when_fish_is_default_shell
     @fake_system.stub_command_output("which fish", "/opt/homebrew/bin/fish\n")
     @fake_system.stub_command_output("dscl . -read ~/ UserShell", "UserShell: /opt/homebrew/bin/fish")
 
-    step = create_step(Dotfiles::Step::SetFishDefaultShellStep)
-    assert step.complete?
+    assert @step.complete?
   end
 
   def test_incomplete_when_different_shell
     @fake_system.stub_command_output("which fish", "/opt/homebrew/bin/fish\n")
     @fake_system.stub_command_output("dscl . -read ~/ UserShell", "UserShell: /bin/zsh")
 
-    step = create_step(Dotfiles::Step::SetFishDefaultShellStep)
-    refute step.complete?
+    refute @step.complete?
+  end
+
+  def test_complete_returns_true_in_ci
+    ENV["CI"] = "true"
+    assert @step.complete?
+  ensure
+    ENV.delete("CI")
+  end
+
+  def test_complete_returns_true_in_noninteractive
+    ENV["NONINTERACTIVE"] = "true"
+    assert @step.complete?
+  ensure
+    ENV.delete("NONINTERACTIVE")
   end
 end
