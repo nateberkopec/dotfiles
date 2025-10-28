@@ -6,8 +6,12 @@ class UpgradeBrewPackagesStepTest < Minitest::Test
     @step = create_step(Dotfiles::Step::UpgradeBrewPackagesStep)
   end
 
-  def test_depends_on_install_brew_packages
-    assert_includes Dotfiles::Step::UpgradeBrewPackagesStep.depends_on, Dotfiles::Step::InstallBrewPackagesStep
+  def test_should_run_returns_false_by_default
+    refute @step.should_run?
+  end
+
+  def test_complete_returns_true_by_default
+    assert @step.complete?
   end
 
   def test_should_not_run_when_no_outdated_packages
