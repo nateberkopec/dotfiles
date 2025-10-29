@@ -1,0 +1,10 @@
+[aws]
+disabled = true
+
+[gcloud]
+disabled = true
+
+[mise]
+disabled = false
+healthy_symbol = '🟢'
+unhealthy_symbol = '🔴'

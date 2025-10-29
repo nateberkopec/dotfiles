@@ -6,3 +6,4 @@ config_directory_items:
   - fish/conf.d/omf.fish
   - omf/
   - mise/config.toml
+  - starship.toml
