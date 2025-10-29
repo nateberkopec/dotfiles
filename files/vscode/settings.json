@@ -86,5 +86,6 @@
   "github.copilot.chat.codesearch.enabled": true,
   "github.copilot.chat.agent.thinkingTool": true,
   "githubPullRequests.codingAgent.uiIntegration": true,
-  "redhat.telemetry.enabled": false
+  "redhat.telemetry.enabled": false,
+  "window.confirmSaveUntitledWorkspace": false
 }
