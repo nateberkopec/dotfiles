@@ -46,7 +46,7 @@ class Dotfiles::Step::UpgradeBrewPackagesStep < Dotfiles::Step
     managed_packages = extract_packages_from_brewfile(brewfile_type)
     return [] if managed_packages.empty?
 
-    outdated_output, = @system.execute("HOMEBREW_NO_AUTO_UPDATE=1 brew outdated --#{brew_flag} #{managed_packages.join(" ")} 2>/dev/null")
+    outdated_output, = brew_quiet("outdated --#{brew_flag} #{managed_packages.join(" ")}")
     outdated_output.split("\n").reject(&:empty?)
   end
 

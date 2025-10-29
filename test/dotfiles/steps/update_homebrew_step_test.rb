@@ -5,7 +5,7 @@ class UpdateHomebrewStepTest < Minitest::Test
     step = create_step(Dotfiles::Step::UpdateHomebrewStep)
     step.run
 
-    assert @fake_system.received_operation?(:execute, "brew update", {quiet: true})
+    assert @fake_system.received_operation?(:execute, "HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 brew update 2>&1", {quiet: true})
   end
 
   def test_always_complete

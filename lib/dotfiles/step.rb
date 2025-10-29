@@ -129,7 +129,7 @@ class Dotfiles
     end
 
     def brew_quiet(command)
-      execute("HOMEBREW_NO_AUTO_UPDATE=1 brew #{command}", quiet: true)
+      @system.execute("HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 brew #{command} 2>&1")
     end
 
     def ci_or_noninteractive?

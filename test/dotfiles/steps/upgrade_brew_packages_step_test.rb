@@ -12,34 +12,27 @@ class UpgradeBrewPackagesStepTest < Minitest::Test
   end
 
   def test_should_not_run_when_no_outdated_packages
-    @fake_system.stub_file_content("/tmp/dotfiles/Brewfile", "brew \"bat\"\nbrew \"fish\"")
-    @fake_system.stub_execute_result("brew outdated --formula bat fish 2>/dev/null", ["", 0])
-
-    step = create_step(Dotfiles::Step::UpgradeBrewPackagesStep)
-    refute step.should_run?
+    refute setup_step_with_outdated(["bat", "fish"], "").should_run?
   end
 
   def test_should_run_when_outdated_packages_exist
-    @fake_system.stub_file_content("/tmp/dotfiles/Brewfile", "brew \"bat\"\nbrew \"fish\"")
-    @fake_system.stub_execute_result("brew outdated --formula bat fish 2>/dev/null", ["bat\nfish", 0])
-
-    step = create_step(Dotfiles::Step::UpgradeBrewPackagesStep)
-    assert step.should_run?
+    assert setup_step_with_outdated(["bat", "fish"], "bat\nfish").should_run?
   end
 
   def test_complete_when_no_outdated_packages
-    @fake_system.stub_file_content("/tmp/dotfiles/Brewfile", "brew \"bat\"")
-    @fake_system.stub_execute_result("brew outdated --formula bat 2>/dev/null", ["", 0])
-
-    step = create_step(Dotfiles::Step::UpgradeBrewPackagesStep)
-    assert step.complete?
+    assert setup_step_with_outdated(["bat"], "").complete?
   end
 
   def test_not_complete_when_outdated_packages_exist
-    @fake_system.stub_file_content("/tmp/dotfiles/Brewfile", "brew \"bat\"")
-    @fake_system.stub_execute_result("brew outdated --formula bat 2>/dev/null", ["bat", 0])
+    refute setup_step_with_outdated(["bat"], "bat").complete?
+  end
 
-    step = create_step(Dotfiles::Step::UpgradeBrewPackagesStep)
-    refute step.complete?
+  private
+
+  def setup_step_with_outdated(packages, outdated_output)
+    brewfile_content = packages.map { |pkg| "brew \"#{pkg}\"" }.join("\n")
+    @fake_system.stub_file_content("/tmp/dotfiles/Brewfile", brewfile_content)
+    @fake_system.stub_execute_result("HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 brew outdated --formula #{packages.join(" ")} 2>&1", [outdated_output, 0])
+    create_step(Dotfiles::Step::UpgradeBrewPackagesStep)
   end
 end

@@ -24,7 +24,7 @@ class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
   def packages_already_installed?
     return @packages_installed_status unless @packages_installed_status.nil?
 
-    _, status = @system.execute("HOMEBREW_NO_AUTO_UPDATE=1 brew bundle check --file=#{@brewfile_path} --no-upgrade >/dev/null 2>&1")
+    _, status = brew_quiet("bundle check --file=#{@brewfile_path} --no-upgrade")
     @packages_installed_status = status == 0
     debug "All packages already installed" if @packages_installed_status
     @packages_installed_status
@@ -32,14 +32,14 @@ class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
 
   def install_packages
     cask_opts = user_has_admin_rights? ? "" : "--appdir=~/Applications"
-    @system.execute("HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_CASK_OPTS=\"#{cask_opts}\" brew bundle install --file=#{@brewfile_path} 2>&1")
+    @system.execute("HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 HOMEBREW_CASK_OPTS=\"#{cask_opts}\" brew bundle install --file=#{@brewfile_path} 2>&1")
   end
 
   def check_skipped_packages
     packages = @config.packages["brew"]["packages"]
     casks = @config.packages["brew"]["casks"]
-    installed_formulae, = @system.execute("HOMEBREW_NO_AUTO_UPDATE=1 brew list --formula 2>/dev/null")
-    installed_casks, = @system.execute("HOMEBREW_NO_AUTO_UPDATE=1 brew list --cask 2>/dev/null")
+    installed_formulae, = brew_quiet("list --formula")
+    installed_casks, = brew_quiet("list --cask")
     installed_formulae = installed_formulae.split("\n")
     installed_casks = installed_casks.split("\n")
 
