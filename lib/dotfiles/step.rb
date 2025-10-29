@@ -129,7 +129,7 @@ class Dotfiles
     end
 
     def brew_quiet(command)
-      execute("brew #{command}", quiet: true)
+      execute("HOMEBREW_NO_AUTO_UPDATE=1 brew #{command}", quiet: true)
     end
 
     def ci_or_noninteractive?

@@ -16,9 +16,9 @@ debug() {
 
 brew_quiet() {
     if [ "${DEBUG:-false}" = "true" ]; then
-        brew "$@"
+        HOMEBREW_NO_AUTO_UPDATE=1 brew "$@"
     else
-        brew "$@" >/dev/null 2>&1
+        HOMEBREW_NO_AUTO_UPDATE=1 brew "$@" >/dev/null 2>&1
     fi
 }
 

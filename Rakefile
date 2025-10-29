@@ -27,7 +27,7 @@ desc "Run flay"
 task :flay do
   flay_output = `bundle exec flay lib`
   puts flay_output
-  flay_score = flay_output[/Total score.*= (\d+)/, 1]&.to_i
+  flay_score = flay_output[/Total score.*?=\s*(\d+)/, 1]&.to_i
   if flay_score && flay_score > FLAY_THRESHOLD
     abort "flay failed: duplication score (#{flay_score}) exceeds threshold (#{FLAY_THRESHOLD})"
   end
