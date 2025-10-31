@@ -79,7 +79,19 @@ class FakeSystemAdapter
 
   def glob(pattern)
     @operations << [:glob, pattern]
-    @filesystem.keys.select { |k| File.fnmatch?(pattern, k, File::FNM_PATHNAME) }
+    expanded_patterns = expand_braces(pattern)
+    @filesystem.keys.select do |k|
+      expanded_patterns.any? { |p| File.fnmatch?(p, k, File::FNM_PATHNAME) }
+    end
+  end
+
+  def expand_braces(pattern)
+    if pattern =~ /\{([^}]+)\}/
+      options = $1.split(",")
+      options.map { |opt| pattern.sub(/\{[^}]+\}/, opt) }.flat_map { |p| expand_braces(p) }
+    else
+      [pattern]
+    end
   end
 
   def chdir(path)
