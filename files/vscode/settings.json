@@ -1,4 +1,9 @@
 {
+  "editor.accessibilitySupport": "off",
+  "editor.guides.bracketPairs": "active",
+  "editor.quickSuggestions": {
+    "comments": "off"
+  },
   "editor.renderWhitespace": "trailing",
   "editor.rulers": [80],
   "editor.unicodeHighlight.nonBasicASCII": false,
@@ -6,33 +11,29 @@
   "extensions.ignoreRecommendations": true,
   "files.insertFinalNewline": true,
   "files.trimTrailingWhitespace": true,
+  "terminal.external.osxExec": "Ghostty.app",
+  "window.confirmSaveUntitledWorkspace": false,
+
   "git.confirmSync": false,
   "git.openRepositoryInParentFolders": "always",
-  "[markdown]": {
-    "editor.wordWrap": "wordWrapColumn",
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-    // "editor.quickSuggestions": false
-    "editor.wordWrapColumn": 80,
-    "editor.wrappingIndent": "same"
-  },
-  "[yaml]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  },
-  "rubyLsp.rubyVersionManager": {
-    "identifier": "mise"
-  },
-  "[ruby]": {
-    "editor.defaultFormatter": "Shopify.ruby-lsp",
-    "editor.formatOnSave": true, // Format files automatically when saving
-    "editor.tabSize": 2, // Use 2 spaces for indentation
-    "editor.insertSpaces": true, // Use spaces and not tabs for indentantion
-    "editor.semanticHighlighting.enabled": true, // Enable semantic highlighting
-    "editor.formatOnType": true // Enable formatting while typing
-  },
-  "vscode-yaml-sort.customSortKeywords_2": ["name"],
+
   "gitlens.advanced.messages": {
-    "suppressRebaseSwitchToTextWarning": true,
-    "suppressIntegrationDisconnectedTooManyFailedRequestsWarning": true
+    "suppressIntegrationDisconnectedTooManyFailedRequestsWarning": true,
+    "suppressRebaseSwitchToTextWarning": true
+  },
+
+  "github.copilot.chat.agent.thinkingTool": true,
+  "github.copilot.chat.codesearch.enabled": true,
+  "github.copilot.enable": {
+    "*": true,
+    "comment": false,
+    "git-commit": false
+  },
+  "github.copilot.nextEditSuggestions.enabled": true,
+  "githubPullRequests.codingAgent.uiIntegration": true,
+
+  "cSpell.enabledFileTypes": {
+    "*": false
   },
   "cSpell.userWords": [
     "andon",
@@ -66,26 +67,40 @@
     "whiteboarding",
     "YJIT"
   ],
-  "github.copilot.enable": {
-    "*": true,
-    "git-commit": false
+
+  "rubyLsp.rubyVersionManager": {
+    "identifier": "mise"
   },
-  "remote.SSH.showLoginTerminal": true,
-  "remote.SSH.useLocalServer": false,
+
+  "[markdown]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.wordWrap": "wordWrapColumn",
+    "editor.wordWrapColumn": 80,
+    "editor.wrappingIndent": "same"
+  },
+  "[ruby]": {
+    "editor.defaultFormatter": "Shopify.ruby-lsp",
+    "editor.formatOnSave": true,
+    "editor.formatOnType": true,
+    "editor.insertSpaces": true,
+    "editor.quickSuggestions": {
+      "comments": "off"
+    },
+    "editor.semanticHighlighting.enabled": true,
+    "editor.tabSize": 2
+  },
+  "[yaml]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+
+  "http.proxyStrictSSL": false,
+  "redhat.telemetry.enabled": false,
+
   "remote.SSH.remotePlatform": {
     "MBP-Server.local": "macOS"
   },
-  "http.proxyStrictSSL": false,
-  "editor.guides.bracketPairs": "active",
-  "cSpell.enabledFileTypes": {
-    "*": false
-  },
-  "terminal.external.osxExec": "Ghostty.app",
-  "editor.accessibilitySupport": "off",
-  "github.copilot.nextEditSuggestions.enabled": true,
-  "github.copilot.chat.codesearch.enabled": true,
-  "github.copilot.chat.agent.thinkingTool": true,
-  "githubPullRequests.codingAgent.uiIntegration": true,
-  "redhat.telemetry.enabled": false,
-  "window.confirmSaveUntitledWorkspace": false
+  "remote.SSH.showLoginTerminal": true,
+  "remote.SSH.useLocalServer": false,
+
+  "vscode-yaml-sort.customSortKeywords_2": ["name"]
 }
