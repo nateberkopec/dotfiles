@@ -43,7 +43,7 @@ end
 
 ### `update` (optional)
 
-Syncs configuration from the system back into the dotfiles repository. Implement this to support the `dot update` command.
+Syncs configuration from the system back into the dotfiles repository. Implement this to support the `dotf update` command.
 
 ```ruby
 def update

@@ -12,26 +12,26 @@ Personal configuration files for my development environment.
 2. Run the setup:
    ```bash
    cd ~/.dotfiles
-   ./bin/dot run
+   ./bin/dotf run
    ```
 
    The script automatically detects your Ruby version and bootstraps a modern Ruby environment if needed.
 
    To see detailed output during installation:
    ```bash
-   DEBUG=true ./bin/dot run
+   DEBUG=true ./bin/dotf run
    ```
 
 ## Usage
 
 ```bash
-dot <command>
+dotf <command>
 ```
 
 **Commands:**
-- `dot run` - Set up development environment. Idempotent - safe to run on an already-configured system. Only runs steps that haven't been completed.
-- `dot update` - Update dotfiles from the system
-- `dot help` - Show help message
+- `dotf run` - Set up development environment. Idempotent - safe to run on an already-configured system. Only runs steps that haven't been completed.
+- `dotf update` - Update dotfiles from the system
+- `dotf help` - Show help message
 
 ## How It Works: Steps
 
