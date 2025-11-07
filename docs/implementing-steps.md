@@ -135,7 +135,7 @@ The `Step` base class provides many helpers for common operations:
 
 ### Execution
 
-- `execute(command, quiet: true, sudo: false)` - Run shell commands with optional sudo
+- `execute(command, quiet: true, sudo: false)` - Run shell commands with optional sudo. Debug output is automatically logged.
 - `command_exists?(command)` - Check if a command is available
 - `brew_quiet(command)` - Run Homebrew commands quietly
 
@@ -162,7 +162,7 @@ See `config.rb` for more.
 
 ### User Communication
 
-- `debug(message)` - Log debug messages (shown when `DEBUG=true`)
+- `debug(message)` - Log debug messages (shown when `DEBUG=true`). Note: `execute()` already logs commands automatically, so additional debug calls are usually unnecessary.
 - `add_warning(title:, message:)` - Add warning to display after step completion
 - `add_notice(title:, message:)` - Add notice to display after step completion
 
