@@ -298,9 +298,17 @@ end
 # Helper: Clean blank lines and remove markdown fences
 function _clean_blank_lines
     set input_file $argv[1]
+    set temp_file (mktemp)
     set output_file (mktemp)
     # Strip leading "- " from first line since LLMs sometimes interpret the format instructions as a list item
-    sed '/^```$/d' $input_file | sed '1s/^- //' | awk 'NF {p=1} p' | awk 'NF || !blank {print; blank=!NF}' > $output_file
+    sed '/^```$/d' $input_file | sed '1s/^- //' | awk 'NF {p=1} p' | awk 'NF || !blank {print; blank=!NF}' > $temp_file
+
+    # Wrap body text at 72 characters (git best practice)
+    # Keep summary line (line 1) and blank line (line 2) intact, wrap everything after
+    head -n 2 $temp_file > $output_file
+    tail -n +3 $temp_file | fmt -w 72 >> $output_file
+    rm $temp_file
+
     echo $output_file
 end
 
