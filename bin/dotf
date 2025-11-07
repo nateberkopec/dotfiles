@@ -96,7 +96,7 @@ check_for_updates() {
 
     if [ "$LOCAL_MAIN" != "$REMOTE_MAIN" ]; then
         echo ""
-        echo "📦 Updates available! Run 'dot update' to pull the latest changes."
+        echo "📦 Updates available! Run 'dotf update' to pull the latest changes."
     fi
 }
 
@@ -138,9 +138,9 @@ cmd_update() {
 
 cmd_help() {
     cat <<EOF
-dot - Dotfiles management tool
+dotf - Dotfiles management tool
 
-Usage: dot <command> [options]
+Usage: dotf <command> [options]
 
 Commands:
   run       Set up development environment from scratch
@@ -152,11 +152,11 @@ Options (for update command):
   --no-verify      Skip git pre-commit and commit-msg hooks
 
 Examples:
-  dot run                              # Initial setup
-  dot update                           # Update dotfiles
-  dot update --no-gpg-sign             # Update without GPG signing
-  dot update --no-gpg-sign --no-verify # Update without GPG or hooks
-  DEBUG=true dot run                   # Run with debug output
+  dotf run                              # Initial setup
+  dotf update                           # Update dotfiles
+  dotf update --no-gpg-sign             # Update without GPG signing
+  dotf update --no-gpg-sign --no-verify # Update without GPG or hooks
+  DEBUG=true dotf run                   # Run with debug output
 EOF
 }
 
