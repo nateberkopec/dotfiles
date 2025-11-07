@@ -1,0 +1,56 @@
+class Dotfiles::Step::ConfigureDropboxStep < Dotfiles::Step
+  def self.depends_on
+    [Dotfiles::Step::InstallBrewPackagesStep]
+  end
+
+  def should_run?
+    dropbox_installed? && !dropbox_configured?
+  end
+
+  def run
+    debug "Configuring Dropbox..."
+    launch_dropbox_app
+    add_setup_notice
+  end
+
+  def complete?
+    dropbox_configured?
+  end
+
+  private
+
+  def dropbox_installed?
+    @system.dir_exist?("/Applications/Dropbox.app")
+  end
+
+  def dropbox_configured?
+    dropbox_folder = File.join(@home, "Dropbox")
+    @system.dir_exist?(dropbox_folder)
+  end
+
+  def launch_dropbox_app
+    debug "Launching Dropbox application..."
+    @system.execute("open -a Dropbox")
+  end
+
+  def add_setup_notice
+    add_notice(
+      title: "📦 Dropbox Setup Required",
+      message: notice_message
+    )
+  end
+
+  def notice_message
+    [
+      "Dropbox has been installed and launched.",
+      "",
+      "Please complete the setup:",
+      "• Sign in to your Dropbox account",
+      "• Complete the initial setup wizard",
+      "• Choose your sync preferences",
+      "",
+      "The installer will mark this step complete once",
+      "your Dropbox folder is created at ~/Dropbox"
+    ].join("\n")
+  end
+end
