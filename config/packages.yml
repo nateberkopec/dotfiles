@@ -20,6 +20,7 @@ brew:
     - ghostty
     - orbstack
     - dropbox
+    - cursor
 
 applications:
   - name: 1Password
