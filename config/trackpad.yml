@@ -1,3 +1,4 @@
+---
 trackpad_settings:
   com.apple.AppleMultitouchTrackpad:
     Clicking: 0
@@ -11,4 +12,3 @@ trackpad_settings:
     TrackpadTwoFingerDoubleTapGesture: 1
   NSGlobalDomain:
     com.apple.mouse.scaling: 2
-
