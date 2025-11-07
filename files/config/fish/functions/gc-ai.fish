@@ -299,7 +299,8 @@ end
 function _clean_blank_lines
     set input_file $argv[1]
     set output_file (mktemp)
-    sed '/^```$/d' $input_file | awk 'NF {p=1} p' | awk 'NF || !blank {print; blank=!NF}' > $output_file
+    # Strip leading "- " from first line since LLMs sometimes interpret the format instructions as a list item
+    sed '/^```$/d' $input_file | sed '1s/^- //' | awk 'NF {p=1} p' | awk 'NF || !blank {print; blank=!NF}' > $output_file
     echo $output_file
 end
 
