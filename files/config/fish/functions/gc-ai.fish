@@ -181,7 +181,7 @@ end
 # Helper: Build the base prompt
 function _build_prompt
     set base_prompt "Write a git commit message for these changes. Format it as:
-- First line: a summary of 72 characters or less
+- First line: a summary of 50 characters or less
 - Second line: blank
 - Remaining lines: detailed description (1-3 sentences, only if needed to explain WHY)
 
@@ -286,7 +286,7 @@ function _validate_message
         end
     else
         set summary_length (string length "$summary")
-        if test $summary_length -gt 72
+        if test $summary_length -gt 55
             echo "Summary too long ($summary_length chars), regenerating..."
             return 1
         end
