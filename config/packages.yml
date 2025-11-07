@@ -19,6 +19,7 @@ brew:
     - keycastr
     - ghostty
     - orbstack
+    - dropbox
 
 applications:
   - name: 1Password

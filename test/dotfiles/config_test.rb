@@ -11,7 +11,7 @@ class ConfigTest < Minitest::Test
     packages = config.packages
 
     assert_equal ["fish", "git"], packages["brew"]["packages"]
-    assert_equal ["firefox"], packages["brew"]["casks"]
+    assert_equal ["firefox", "dropbox"], packages["brew"]["casks"]
   end
 
   def test_loads_paths_from_yaml
