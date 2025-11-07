@@ -133,6 +133,15 @@ cmd_update() {
     update_dotfiles_repo
 
     cd "$DOTFILES_DIR"
+
+    # Ensure working directory is clean before running step updates
+    # This prevents pulled changes from being mixed with step updates
+    if [ -n "$(git status --porcelain)" ]; then
+        echo "Error: Working directory has uncommitted changes after pull."
+        echo "Please commit or stash these changes before running update."
+        exit 1
+    fi
+
     GIT_COMMIT_FLAGS="$git_flags" ruby -r ./lib/dotfiles.rb -e 'Dotfiles::Updater.new.run'
 }
 
