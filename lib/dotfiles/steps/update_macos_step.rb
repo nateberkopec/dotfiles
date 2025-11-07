@@ -8,8 +8,13 @@ class Dotfiles::Step::UpdateMacOSStep < Dotfiles::Step
   end
 
   def run
-    debug "User has admin rights, checking for macOS updates..."
-    execute("softwareupdate -i --recommended", sudo: true, quiet: true)
+    updates = minor_updates_available
+    update_list = updates.map { |id| "  • #{id}" }.join("\n")
+
+    add_notice(
+      title: "macOS Updates Available",
+      message: "The following macOS updates are available:\n#{update_list}\n\nTo install updates:\n  • Open System Settings → General → Software Update\n  • Or run: sudo softwareupdate -i --recommended"
+    )
   end
 
   def complete?
