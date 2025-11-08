@@ -8,7 +8,7 @@ class UpgradeBrewPackagesStepTest < Minitest::Test
 
   def test_adds_notice_for_outdated_packages
     step = create_step(Dotfiles::Step::UpgradeBrewPackagesStep)
-    @fake_system.stub_command_output("brew outdated", "bat\nfish\ngh")
+    @fake_system.stub_command("brew outdated", "bat\nfish\ngh")
 
     step.should_run?
 
@@ -20,7 +20,7 @@ class UpgradeBrewPackagesStepTest < Minitest::Test
 
   def test_no_notice_when_packages_up_to_date
     step = create_step(Dotfiles::Step::UpgradeBrewPackagesStep)
-    @fake_system.stub_command_output("brew outdated", "")
+    @fake_system.stub_command("brew outdated", "")
 
     step.should_run?
 
@@ -29,7 +29,7 @@ class UpgradeBrewPackagesStepTest < Minitest::Test
 
   def test_should_run_returns_false
     step = create_step(Dotfiles::Step::UpgradeBrewPackagesStep)
-    @fake_system.stub_command_output("brew outdated", "")
+    @fake_system.stub_command("brew outdated", "")
 
     refute step.should_run?
   end

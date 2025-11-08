@@ -7,15 +7,15 @@ class SetFishDefaultShellStepTest < Minitest::Test
   end
 
   def test_complete_when_fish_is_default_shell
-    @fake_system.stub_command_output("which fish", "/opt/homebrew/bin/fish\n")
-    @fake_system.stub_command_output("dscl . -read ~/ UserShell", "UserShell: /opt/homebrew/bin/fish")
+    @fake_system.stub_command("which fish", "/opt/homebrew/bin/fish\n")
+    @fake_system.stub_command("dscl . -read ~/ UserShell", "UserShell: /opt/homebrew/bin/fish")
 
     assert @step.complete?
   end
 
   def test_incomplete_when_different_shell
-    @fake_system.stub_command_output("which fish", "/opt/homebrew/bin/fish\n")
-    @fake_system.stub_command_output("dscl . -read ~/ UserShell", "UserShell: /bin/zsh")
+    @fake_system.stub_command("which fish", "/opt/homebrew/bin/fish\n")
+    @fake_system.stub_command("dscl . -read ~/ UserShell", "UserShell: /bin/zsh")
 
     refute @step.complete?
   end
@@ -39,7 +39,7 @@ class SetFishDefaultShellStepTest < Minitest::Test
   private
 
   def stub_shell_mismatch
-    @fake_system.stub_command_output("which fish", "/opt/homebrew/bin/fish\n")
-    @fake_system.stub_command_output("dscl . -read ~/ UserShell", "UserShell: /bin/zsh")
+    @fake_system.stub_command("which fish", "/opt/homebrew/bin/fish\n")
+    @fake_system.stub_command("dscl . -read ~/ UserShell", "UserShell: /bin/zsh")
   end
 end

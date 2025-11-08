@@ -66,7 +66,7 @@ class ConfigureDockStepTest < Minitest::Test
 
   def test_incomplete_when_command_fails
     step = create_step(Dotfiles::Step::ConfigureDockStep)
-    @fake_system.stub_command_output("defaults read com.apple.dock autohide", "", exit_status: 1)
+    @fake_system.stub_command("defaults read com.apple.dock autohide", "", exit_status: 1)
     refute step.complete?
   end
 
@@ -77,16 +77,16 @@ class ConfigureDockStepTest < Minitest::Test
   end
 
   def stub_run
-    @fake_system.stub_command_output("defaults delete com.apple.dock persistent-others 2>/dev/null || true", "", exit_status: 0)
+    @fake_system.stub_command("defaults delete com.apple.dock persistent-others 2>/dev/null || true", "", exit_status: 0)
   end
 
   def stub_complete_settings(autohide: "1", orientation: "left", autohide_delay: "0", autohide_time_modifier: "0.4", persistent_apps: "(\n)", persistent_others: nil)
-    @fake_system.stub_command_output("defaults read com.apple.dock autohide", autohide, exit_status: 0)
-    @fake_system.stub_command_output("defaults read com.apple.dock orientation", orientation, exit_status: 0)
-    @fake_system.stub_command_output("defaults read com.apple.dock autohide-delay", autohide_delay, exit_status: 0)
-    @fake_system.stub_command_output("defaults read com.apple.dock autohide-time-modifier", autohide_time_modifier, exit_status: 0)
-    @fake_system.stub_command_output("defaults read com.apple.dock persistent-apps", persistent_apps, exit_status: 0)
+    @fake_system.stub_command("defaults read com.apple.dock autohide", autohide, exit_status: 0)
+    @fake_system.stub_command("defaults read com.apple.dock orientation", orientation, exit_status: 0)
+    @fake_system.stub_command("defaults read com.apple.dock autohide-delay", autohide_delay, exit_status: 0)
+    @fake_system.stub_command("defaults read com.apple.dock autohide-time-modifier", autohide_time_modifier, exit_status: 0)
+    @fake_system.stub_command("defaults read com.apple.dock persistent-apps", persistent_apps, exit_status: 0)
     persistent_others ||= "(\n    {\n        \"tile-data\" =         {\n            \"file-data\" =             {\n                \"_CFURLString\" = \"file://#{inbox_path}/\";\n            };\n        };\n    }\n)"
-    @fake_system.stub_command_output("defaults read com.apple.dock persistent-others", persistent_others, exit_status: 0)
+    @fake_system.stub_command("defaults read com.apple.dock persistent-others", persistent_others, exit_status: 0)
   end
 end
