@@ -25,7 +25,8 @@ class Dotfiles::Step::ConfigureDropboxStep < Dotfiles::Step
 
   def dropbox_configured?
     dropbox_folder = File.join(@home, "Dropbox")
-    @system.dir_exist?(dropbox_folder)
+    cloud_storage_dropbox = File.join(@home, "Library", "CloudStorage", "Dropbox")
+    @system.dir_exist?(dropbox_folder) || @system.dir_exist?(cloud_storage_dropbox)
   end
 
   def launch_dropbox_app
@@ -50,7 +51,8 @@ class Dotfiles::Step::ConfigureDropboxStep < Dotfiles::Step
       "• Choose your sync preferences",
       "",
       "The installer will mark this step complete once",
-      "your Dropbox folder is created at ~/Dropbox"
+      "your Dropbox folder is created at ~/Dropbox or",
+      "~/Library/CloudStorage/Dropbox/"
     ].join("\n")
   end
 end

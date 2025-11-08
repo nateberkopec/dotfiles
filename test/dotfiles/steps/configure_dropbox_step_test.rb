@@ -36,6 +36,12 @@ class ConfigureDropboxStepTest < Minitest::Test
     assert @step.complete?
   end
 
+  def test_complete_when_cloud_storage_dropbox_folder_exists
+    stub_cloud_storage_dropbox_configured
+
+    assert @step.complete?
+  end
+
   def test_incomplete_when_dropbox_folder_does_not_exist
     refute_dropbox_configured
 
@@ -77,8 +83,15 @@ class ConfigureDropboxStepTest < Minitest::Test
     @fake_system.filesystem[dropbox_folder] = :directory
   end
 
+  def stub_cloud_storage_dropbox_configured
+    cloud_storage_dropbox = File.join(@home, "Library", "CloudStorage", "Dropbox")
+    @fake_system.filesystem[cloud_storage_dropbox] = :directory
+  end
+
   def refute_dropbox_configured
     dropbox_folder = File.join(@home, "Dropbox")
+    cloud_storage_dropbox = File.join(@home, "Library", "CloudStorage", "Dropbox")
     @fake_system.filesystem.delete(dropbox_folder)
+    @fake_system.filesystem.delete(cloud_storage_dropbox)
   end
 end
