@@ -8,6 +8,7 @@ class Dotfiles::Step::InstallMasAppsStep < Dotfiles::Step
     mas_apps.each do |app_id, app_name|
       install_mas_app(app_id, app_name)
     end
+    check_outdated_apps
   end
 
   def complete?
@@ -40,5 +41,16 @@ class Dotfiles::Step::InstallMasAppsStep < Dotfiles::Step
 
   def mas_apps
     @config.mas_apps.fetch("mas_apps", {})
+  end
+
+  def check_outdated_apps
+    output, = @system.execute("mas outdated")
+    return if output.strip.empty?
+
+    outdated_list = output.strip.split("\n").map { |line| "• #{line}" }.join("\n")
+    add_notice(
+      title: "📦 Mac App Store Updates Available",
+      message: "The following apps have updates available:\n\n#{outdated_list}\n\nRun 'mas upgrade' to update them."
+    )
   end
 end
