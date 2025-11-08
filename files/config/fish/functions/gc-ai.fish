@@ -168,7 +168,7 @@ $claude_context"
                 echo "Condensing message..."
                 set current_message (cat $display_file)
                 set condensed_file (mktemp)
-                echo "Take this commit message and make it more concise while retaining the what and the why:
+                echo "Take this commit message and condense it. Keep the first line (summary) exactly as-is. Make the description (body) half as long while retaining the what and the why:
 
 $current_message" | llm > $condensed_file
                 rm $display_file
