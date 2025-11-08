@@ -1,7 +1,10 @@
 class Dotfiles::Step::ConfigureDockStep < Dotfiles::Step
+  def self.depends_on
+    [Dotfiles::Step::CreateStandardFoldersStep]
+  end
+
   def run
     inbox_path = File.join(@home, "Documents", "Inbox")
-    @system.mkdir_p(inbox_path)
 
     execute("defaults write com.apple.dock autohide -bool true")
     execute("defaults write com.apple.dock orientation left")
