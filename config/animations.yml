@@ -1,0 +1,24 @@
+---
+animation_settings:
+  NSGlobalDomain:
+    NSAutomaticWindowAnimationsEnabled: 0
+    NSScrollAnimationEnabled: 0
+    NSWindowResizeTime: 0.001
+    QLPanelAnimationDuration: 0
+    NSScrollViewRubberbanding: 0
+    NSDocumentRevisionsWindowTransformAnimation: 0
+    NSToolbarFullScreenAnimationDuration: 0
+    NSBrowserColumnAnimationSpeedMultiplier: 0
+  com.apple.dock:
+    autohide-time-modifier: 0.4
+    autohide-delay: 0
+    expose-animation-duration: 0
+    springboard-show-duration: 0
+    springboard-hide-duration: 0
+    springboard-page-duration: 0
+    launchanim: 0
+  com.apple.finder:
+    DisableAllAnimations: 1
+  com.apple.Mail:
+    DisableSendAnimations: 1
+    DisableReplyAnimations: 1

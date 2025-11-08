@@ -14,7 +14,7 @@ class Dotfiles::Step::ConfigureDropboxStep < Dotfiles::Step
   end
 
   def complete?
-    dropbox_configured?
+    !dropbox_installed? || dropbox_configured?
   end
 
   private

@@ -11,11 +11,18 @@ class Dotfiles::Step::InstallMasAppsStep < Dotfiles::Step
   end
 
   def should_run?
+    if ENV["CI"]
+      debug "Skipping Mac App Store installation in CI environment"
+      return false
+    end
+
     check_outdated_apps
     !complete?
   end
 
   def complete?
+    return true if ENV["CI"]
+
     mas_apps.all? { |app_id, _| app_installed?(app_id) }
   rescue
     false
