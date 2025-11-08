@@ -13,14 +13,21 @@ brew:
 
   casks:
     - nikitabobko/tap/aerospace
-    - github
-    - visual-studio-code
-    - raycast
-    - keycastr
-    - ghostty
-    - orbstack
-    - dropbox
     - cursor
+    - discord
+    - dropbox
+    - ghostty
+    - github
+    - keycastr
+    - obsidian
+    - orbstack
+    - raycast
+    - slack
+    - steam
+    - telegram
+    - visual-studio-code
+    - whatsapp
+    - zoom
 
 applications:
   - name: 1Password
