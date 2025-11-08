@@ -42,10 +42,17 @@ class ConfigureDropboxStepTest < Minitest::Test
     assert @step.complete?
   end
 
-  def test_incomplete_when_dropbox_folder_does_not_exist
+  def test_incomplete_when_dropbox_installed_but_folder_does_not_exist
+    stub_dropbox_installed
     refute_dropbox_configured
 
     refute @step.complete?
+  end
+
+  def test_complete_when_dropbox_not_installed
+    refute_dropbox_installed
+
+    assert @step.complete?
   end
 
   def test_run_launches_dropbox_app

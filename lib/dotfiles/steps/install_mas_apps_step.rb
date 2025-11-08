@@ -21,6 +21,8 @@ class Dotfiles::Step::InstallMasAppsStep < Dotfiles::Step
   end
 
   def complete?
+    return true if ENV["CI"]
+
     mas_apps.all? { |app_id, _| app_installed?(app_id) }
   rescue
     false
