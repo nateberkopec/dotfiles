@@ -4,22 +4,26 @@ class Dotfiles::Step::ConfigureApplicationsStep < Dotfiles::Step
     configure_ghostty
     configure_aerospace
     configure_git
+    configure_hushlogin
   end
 
   def complete?
     ghostty_config = app_path("ghostty_config_file")
     aerospace_config = home_path("aerospace_config")
     git_config = home_path("gitconfig")
+    hushlogin = home_path("hushlogin")
 
     files_match?(ghostty_config, dotfiles_source("ghostty_config")) &&
       files_match?(aerospace_config, dotfiles_source("aerospace_config")) &&
-      files_match?(git_config, dotfiles_source("git_config"))
+      files_match?(git_config, dotfiles_source("git_config")) &&
+      files_match?(hushlogin, dotfiles_source("hushlogin"))
   end
 
   def update
     copy_if_changed(app_path("ghostty_config_file"), dotfiles_source("ghostty_config"))
     copy_if_changed(home_path("aerospace_config"), dotfiles_source("aerospace_config"))
     copy_if_changed(home_path("gitconfig"), dotfiles_source("git_config"))
+    copy_if_changed(home_path("hushlogin"), dotfiles_source("hushlogin"))
   end
 
   private
@@ -39,6 +43,11 @@ class Dotfiles::Step::ConfigureApplicationsStep < Dotfiles::Step
   def configure_git
     debug "Configuring Git global settings..."
     @system.cp(dotfiles_source("git_config"), home_path("gitconfig"))
+  end
+
+  def configure_hushlogin
+    debug "Configuring .hushlogin..."
+    @system.cp(dotfiles_source("hushlogin"), home_path("hushlogin"))
   end
 
   def copy_if_changed(src, dest)
