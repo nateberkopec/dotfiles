@@ -131,44 +131,7 @@ end
 
 ## Helper Methods
 
-The `Step` base class provides many helpers for common operations:
-
-### Execution
-
-- `execute(command, quiet: true, sudo: false)` - Run shell commands with optional sudo. Debug output is automatically logged.
-- `command_exists?(command)` - Check if a command is available
-- `brew_quiet(command)` - Run Homebrew commands quietly
-
-### File Operations
-
-- `copy_if_exists(src, dest)` - Copy file only if source exists
-- `files_match?(source, dest)` - Compare files by SHA256 hash
-- `directories_match?(source, dest)` - Compare directory contents
-
-### Path Helpers
-
-- `home_path(key)` - Get home path from `config/paths.yml`
-- `app_path(key)` - Get application path from `config/paths.yml`
-- `dotfiles_source(key)` - Get dotfiles source path from `config/paths.yml`
-
-### Configuration Access
-
-See `config.rb` for more.
-
-### System Checks
-
-- `ci_or_noninteractive?` - Check if running in CI or non-interactive mode
-- `user_has_admin_rights?` - Check if user has admin privileges
-
-### User Communication
-
-- `debug(message)` - Log debug messages (shown when `DEBUG=true`). Note: `execute()` already logs commands automatically, so additional debug calls are usually unnecessary.
-- `add_warning(title:, message:)` - Add warning to display after step completion
-- `add_notice(title:, message:)` - Add notice to display after step completion
-
-### macOS Defaults
-
-- `defaults_read_equals?(command, expected_value)` - Check macOS defaults value
+The `Step` base class provides many helpers for common operations. See [lib/dotfiles/step.rb](lib/dotfiles/step.rb). For reading config, see the Config class at [lib/dotfiles/config.rb](lib/dotfiles/config.rb).
 
 ## Example: Simple Step
 
@@ -189,77 +152,7 @@ class Dotfiles::Step::InstallHomebrewStep < Dotfiles::Step
 end
 ```
 
-## Example: Step with Dependencies
-
-```ruby
-class Dotfiles::Step::InstallApplicationsStep < Dotfiles::Step
-  def self.depends_on
-    [Dotfiles::Step::InstallHomebrewStep]
-  end
-
-  def run
-    debug "Installing applications..."
-    @config.packages["applications"].each do |app|
-      brew_quiet("install --cask #{app["brew_cask"]}")
-    end
-  end
-
-  def complete?
-    @config.packages["applications"].all? do |app|
-      @system.dir_exist?(app["path"])
-    end
-  end
-end
-```
-
-## Example: Step with File Syncing
-
-```ruby
-class Dotfiles::Step::SyncConfigDirectoryStep < Dotfiles::Step
-  def self.depends_on
-    [Dotfiles::Step::InstallBrewPackagesStep]
-  end
-
-  def run
-    debug "Syncing config directory items..."
-    config_items.each { |item| sync_item(item) }
-  end
-
-  def complete?
-    config_items.all? { |item| item_synced?(item) }
-  end
-
-  def update
-    config_items.each { |item| update_item(item) }
-  end
-
-  private
-
-  def config_items
-    @config.load_config("config_sync.yml").fetch("config_directory_items", [])
-  end
-end
-```
-
-## Example: Step with User Notices
-
-```ruby
-class Dotfiles::Step::SetupSSHKeysStep < Dotfiles::Step
-  def run
-    @system.write_file(SSH_CONFIG_PATH, ssh_config_content)
-
-    add_notice(
-      title: "ℹ️  1Password SSH Agent Setup Required",
-      message: "To complete SSH setup:\n1. Open 1Password app\n2. Go to Settings → Developer\n3. Enable 'Use the SSH agent'"
-    )
-  end
-
-  def complete?
-    @system.file_exist?(SSH_CONFIG_PATH) &&
-      @system.read_file(SSH_CONFIG_PATH).include?("IdentityAgent")
-  end
-end
-```
+For more examples, see the steps directory in lib.
 
 ## Step Registration
 
@@ -290,45 +183,6 @@ class SyncConfigDirectoryStepTest < Minitest::Test
     assert @system.file_exist?("/tmp/home/.config/fish/config.fish")
   end
 end
-```
-
-## Configuration Files
-
-Steps often reference paths and packages from YAML config files:
-
-### `config/paths.yml`
-
-Maps logical names to file system paths:
-
-```yaml
-home_paths:
-  gitconfig: ~/.gitconfig
-  aerospace_config: ~/.aerospace.toml
-
-dotfiles_sources:
-  git_config: files/git/.gitconfig
-  aerospace_config: files/aerospace/.aerospace.toml
-```
-
-### `config/config_sync.yml`
-
-Defines config directory items to sync (files and directories ending in /):
-
-```yaml
-config_directory_items:
-  - fish/
-  - omf/
-```
-
-### `config/packages.yml`
-
-Defines packages and applications to install:
-
-```yaml
-applications:
-  - name: "Visual Studio Code"
-    brew_cask: "visual-studio-code"
-    path: "/Applications/Visual Studio Code.app"
 ```
 
 ## Best Practices
