@@ -1,0 +1,26 @@
+# Applications not managed by Homebrew
+# These are typically App Store apps, manual installations, or built-in macOS apps
+# To skip checking for specific apps, edit .skipped-apps in the repo root
+
+- /Applications/Safari.app
+- /Applications/GarageBand.app
+- /Applications/iMovie.app
+- /Applications/Keynote.app
+- /Applications/Numbers.app
+- /Applications/Pages.app
+- /Applications/Deckset.app
+- /Applications/Paprika Recipe Manager 3.app
+- /Applications/Pixelmator Pro.app
+- /Applications/Screen Studio.app
+- /Applications/Obsidian.app
+- /Applications/Monologue.app
+- /Applications/Effortless.app
+- /Applications/Conductor.app
+- /Applications/Irvue.app
+- /Applications/Discord.app
+- /Applications/Slack.app
+- /Applications/Telegram.app
+- /Applications/WhatsApp.app
+- /Applications/zoom.us.app
+- /Applications/Steam.app
+- /Applications/Zwift.app
