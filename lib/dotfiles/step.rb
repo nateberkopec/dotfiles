@@ -185,20 +185,8 @@ class Dotfiles
     end
 
     def normalize_defaults_value(value)
-      value_str =
-        if value.is_a?(String)
-          value
-        elsif value.nil?
-          ""
-        else
-          value.to_s
-        end
-
-      if value_str.start_with?("~/")
-        expand_path_with_home(value_str)
-      else
-        value_str
-      end
+      str = value.is_a?(String) ? value : (value&.to_s || "")
+      str.start_with?("~/") ? expand_path_with_home(str) : str
     end
 
     def file_hash(path)
