@@ -13,7 +13,7 @@ class Dotfiles::Step::DisableAnimationsStep < Dotfiles::Step
 
   def complete?
     setting_entries.all? do |domain, key, expected_value|
-      defaults_read_equals?(build_read_command(domain, key), normalize_value(expected_value))
+      defaults_read_equals?(build_read_command(domain, key), expected_value.to_s)
     end
   end
 
@@ -42,9 +42,5 @@ class Dotfiles::Step::DisableAnimationsStep < Dotfiles::Step
     else
       "-int"
     end
-  end
-
-  def normalize_value(value)
-    value.to_s
   end
 end
