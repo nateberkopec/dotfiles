@@ -9,6 +9,7 @@ class Dotfiles::Step::UpgradeBrewPackagesStep < Dotfiles::Step
   end
 
   def complete?
+    super
     true
   end
 

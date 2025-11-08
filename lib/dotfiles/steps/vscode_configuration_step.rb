@@ -19,11 +19,17 @@ class Dotfiles::Step::VSCodeConfigurationStep < Dotfiles::Step
   end
 
   def complete?
+    super
     vscode_settings = app_path("vscode_settings")
     vscode_keybindings = app_path("vscode_keybindings")
 
-    return false unless vscode_settings && vscode_keybindings
-    @system.file_exist?(vscode_settings) && @system.file_exist?(vscode_keybindings)
+    add_error("VS Code settings path not configured") unless vscode_settings
+    add_error("VS Code keybindings path not configured") unless vscode_keybindings
+    return false if @errors.any?
+
+    add_error("VS Code settings file does not exist at #{vscode_settings}") unless @system.file_exist?(vscode_settings)
+    add_error("VS Code keybindings file does not exist at #{vscode_keybindings}") unless @system.file_exist?(vscode_keybindings)
+    @errors.empty?
   end
 
   def update

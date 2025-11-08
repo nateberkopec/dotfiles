@@ -11,10 +11,12 @@ class Dotfiles::Step::InstallApplicationsStep < Dotfiles::Step
   end
 
   def complete?
-    @config.packages["applications"].all? do |app|
-      @system.dir_exist?(app["path"])
-    end
-  rescue
+    super
+    missing_apps = @config.packages["applications"].reject { |app| @system.dir_exist?(app["path"]) }
+    missing_apps.each { |app| add_error("#{app["name"]} not installed at #{app["path"]}") }
+    missing_apps.empty?
+  rescue => e
+    add_error("Failed to check application installation status: #{e.message}")
     false
   end
 

@@ -11,9 +11,8 @@ class Dotfiles::Step::ConfigureScreenshotsStep < Dotfiles::Step
   end
 
   def complete?
-    setting_entries.all? do |domain, key, expected_value|
-      defaults_read_equals?(build_read_command(domain, key), expected_value)
-    end
+    super
+    defaults_complete?("Screenshot")
   end
 
   def update

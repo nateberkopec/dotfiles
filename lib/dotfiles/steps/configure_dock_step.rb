@@ -23,12 +23,14 @@ class Dotfiles::Step::ConfigureDockStep < Dotfiles::Step
   end
 
   def complete?
-    defaults_read_equals?(build_read_command("com.apple.dock", "autohide"), "1") &&
-      defaults_read_equals?(build_read_command("com.apple.dock", "orientation"), "left") &&
-      defaults_read_equals?(build_read_command("com.apple.dock", "autohide-delay"), "0") &&
-      defaults_read_equals?(build_read_command("com.apple.dock", "autohide-time-modifier"), "0.4") &&
-      persistent_apps_empty? &&
-      inbox_in_persistent_others?
+    super
+    add_error("Dock autohide not set to true") unless defaults_read_equals?(build_read_command("com.apple.dock", "autohide"), "1")
+    add_error("Dock orientation not set to left") unless defaults_read_equals?(build_read_command("com.apple.dock", "orientation"), "left")
+    add_error("Dock autohide-delay not set to 0") unless defaults_read_equals?(build_read_command("com.apple.dock", "autohide-delay"), "0")
+    add_error("Dock autohide-time-modifier not set to 0.4") unless defaults_read_equals?(build_read_command("com.apple.dock", "autohide-time-modifier"), "0.4")
+    add_error("Dock persistent-apps is not empty") unless persistent_apps_empty?
+    add_error("Inbox folder not in Dock persistent-others") unless inbox_in_persistent_others?
+    @errors.empty?
   end
 
   private

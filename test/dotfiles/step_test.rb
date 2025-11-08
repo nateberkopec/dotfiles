@@ -6,6 +6,7 @@ class StepTest < Minitest::Test
     end
 
     def complete?
+      super
       true
     end
   end
@@ -19,6 +20,7 @@ class StepTest < Minitest::Test
     end
 
     def complete?
+      super
       true
     end
   end
@@ -32,6 +34,7 @@ class StepTest < Minitest::Test
     end
 
     def complete?
+      super
       true
     end
   end
@@ -41,6 +44,7 @@ class StepTest < Minitest::Test
     end
 
     def complete?
+      super
       true
     end
   end
@@ -50,6 +54,7 @@ class StepTest < Minitest::Test
     end
 
     def complete?
+      super
       true
     end
   end
@@ -107,5 +112,23 @@ class StepTest < Minitest::Test
     step = create_step(TestStepA)
     assert step.complete?
     refute step.should_run?
+  end
+
+  def test_errors_collection
+    step = create_step(TestStepA)
+    step.add_error("First error")
+    step.add_error("Second error")
+
+    assert_equal 2, step.errors.length
+    assert_equal "First error", step.errors[0]
+    assert_equal "Second error", step.errors[1]
+  end
+
+  def test_errors_cleared_on_complete_check
+    step = create_step(TestStepA)
+    step.add_error("Stale error")
+    step.complete?
+
+    assert_empty step.errors
   end
 end

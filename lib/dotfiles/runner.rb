@@ -113,6 +113,7 @@ class Dotfiles
       Dotfiles.debug_benchmark("Completion check") do
         result = collect_step_results
         display_results_table(result[:table_data])
+        display_errors(result[:errors])
         display_warnings(result[:warnings])
         display_notices(result[:notices])
         display_final_status(result[:failed_steps])
@@ -121,46 +122,51 @@ class Dotfiles
 
     def collect_step_results
       mutex = Mutex.new
-      failed_steps = []
-      table_data = []
-      warnings = []
-      notices = []
-      threads = []
-
-      @step_classes.each_with_index do |step_class, i|
-        threads << Thread.new do
-          step = @step_instances[i]
-          step_name = step_class.display_name
-          completion_status = Dotfiles.debug_benchmark("Complete check: #{step_name}") do
-            !!step.complete?
-          end
-
-          mutex.synchronize { printf "." }
-
-          status_symbol = completion_status ? "✓" : "✗"
-          ran_status = step.ran? ? "Yes" : "No"
-
-          mutex.synchronize do
-            table_data << [i, "#{step_name},#{status_symbol},#{ran_status}"]
-            failed_steps << step_name unless completion_status
-            warnings.concat(step.warnings)
-            notices.concat(step.notices)
-          end
-        end
+      results = {failed_steps: [], table_data: [], warnings: [], notices: [], errors: []}
+      threads = @step_classes.each_with_index.map do |step_class, i|
+        Thread.new { collect_single_step_result(step_class, i, mutex, results) }
       end
 
       threads.each(&:join)
       puts ""
 
-      sorted_table_data = table_data.sort_by(&:first).map(&:last)
+      results[:table_data] = results[:table_data].sort_by(&:first).map(&:last)
+      results
+    end
 
-      {failed_steps: failed_steps, table_data: sorted_table_data, warnings: warnings, notices: notices}
+    def collect_single_step_result(step_class, index, mutex, results)
+      step = @step_instances[index]
+      step_name = step_class.display_name
+      completion_status = Dotfiles.debug_benchmark("Complete check: #{step_name}") { !!step.complete? }
+
+      mutex.synchronize { printf "." }
+
+      status_symbol = completion_status ? "✓" : "✗"
+      ran_status = step.ran? ? "Yes" : "No"
+
+      mutex.synchronize do
+        results[:table_data] << [index, "#{step_name},#{status_symbol},#{ran_status}"]
+        results[:failed_steps] << step_name unless completion_status
+        results[:warnings].concat(step.warnings)
+        results[:notices].concat(step.notices)
+        results[:errors].concat(step.errors.map { |err| {step: step_name, message: err} }) if step.errors.any?
+      end
     end
 
     def display_results_table(table_data)
       csv_data = "Step,Status,Ran?\n" + table_data.join("\n")
       IO.popen(["gum", "table", "--border", "rounded", "--widths", "25,8,8", "--print"], "w") do |io|
         io.write(csv_data)
+      end
+    end
+
+    def display_errors(errors)
+      return if errors.empty?
+
+      errors.group_by { |err| err[:step] }.each do |step_name, step_errors|
+        error_list = step_errors.map { |err| "• #{err[:message]}" }
+        message_lines = ["❌ #{step_name}", "", *error_list]
+        system("gum", "style", "--foreground", "#ff5555", "--border", "rounded", "--align", "left", "--width", "60", "--margin", "1 0", "--padding", "1 2", *message_lines)
       end
     end
 

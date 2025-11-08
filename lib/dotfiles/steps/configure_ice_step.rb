@@ -19,9 +19,25 @@ class Dotfiles::Step::ConfigureIceStep < Dotfiles::Step
   end
 
   def complete?
+    super
     ice_preferences = app_path("ice_preferences")
-    return false unless ice_preferences && @system.file_exist?(ice_preferences)
-    launch_at_login_configured?
+
+    unless ice_preferences
+      add_error("Ice preferences path not configured")
+      return false
+    end
+
+    unless @system.file_exist?(ice_preferences)
+      add_error("Ice preferences file does not exist at #{ice_preferences}")
+      return false
+    end
+
+    unless launch_at_login_configured?
+      add_error("Ice is not configured to launch at login")
+      return false
+    end
+
+    true
   end
 
   def update

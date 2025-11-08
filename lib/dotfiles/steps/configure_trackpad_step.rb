@@ -6,9 +6,8 @@ class Dotfiles::Step::ConfigureTrackpadStep < Dotfiles::Step
   end
 
   def complete?
-    setting_entries.all? do |domain, key, expected_value|
-      defaults_read_equals?(build_read_command(domain, key), expected_value.to_s)
-    end
+    super
+    defaults_complete?("Trackpad")
   end
 
   def update

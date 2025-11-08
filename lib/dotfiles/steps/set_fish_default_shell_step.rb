@@ -25,9 +25,17 @@ class Dotfiles::Step::SetFishDefaultShellStep < Dotfiles::Step
   end
 
   def complete?
+    super
     return true if ci_or_noninteractive?
+
     fish_path, = @system.execute("which fish")
     current_shell, = execute("dscl . -read ~/ UserShell", quiet: true)
-    current_shell.include?(fish_path)
+
+    unless current_shell.include?(fish_path)
+      add_error("Fish is not set as the default shell (current: #{current_shell.strip})")
+      return false
+    end
+
+    true
   end
 end

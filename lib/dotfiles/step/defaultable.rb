@@ -1,6 +1,17 @@
 class Dotfiles
   class Step
     module Defaultable
+      def defaults_complete?(setting_type_name, current_host: false)
+        setting_entries.each do |domain, key, expected_value|
+          expected_str = expected_value.is_a?(String) ? expected_value : expected_value.to_s
+          read_cmd = build_read_command(domain, key, current_host: current_host)
+          unless defaults_read_equals?(read_cmd, expected_str)
+            add_error("#{setting_type_name} setting #{domain}.#{key} not set to #{expected_value}")
+          end
+        end
+        @errors.empty?
+      end
+
       def run_defaults_write
         setting_entries.each do |domain, key, value|
           domain_flag = domain_flag_for(domain)
@@ -27,9 +38,10 @@ class Dotfiles
         (domain == "NSGlobalDomain") ? "-g" : domain
       end
 
-      def build_read_command(domain, key)
+      def build_read_command(domain, key, current_host: false)
         domain_flag = domain_flag_for(domain)
-        "defaults read #{domain_flag} #{key}"
+        host_flag = current_host ? "-currentHost " : ""
+        "defaults #{host_flag}read #{domain_flag} #{key}"
       end
 
       def type_flag_for(value)

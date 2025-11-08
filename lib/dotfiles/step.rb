@@ -60,9 +60,10 @@ class Dotfiles
       @ran = false
       @warnings = []
       @notices = []
+      @errors = []
     end
 
-    attr_reader :warnings, :notices, :config
+    attr_reader :warnings, :notices, :config, :errors
 
     def ran?
       @ran
@@ -76,6 +77,10 @@ class Dotfiles
       @notices << {title: title, message: message}
     end
 
+    def add_error(message)
+      @errors << message
+    end
+
     def should_run?
       !complete?
     end
@@ -85,7 +90,7 @@ class Dotfiles
     end
 
     def complete?
-      raise NotImplementedError, "Subclasses must implement #complete?"
+      @errors.clear
     end
 
     # Optional: steps can implement update logic to sync

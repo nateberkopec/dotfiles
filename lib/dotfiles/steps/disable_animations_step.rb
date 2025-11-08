@@ -8,9 +8,8 @@ class Dotfiles::Step::DisableAnimationsStep < Dotfiles::Step
   end
 
   def complete?
-    setting_entries.all? do |domain, key, expected_value|
-      defaults_read_equals?(build_read_command(domain, key), expected_value.to_s)
-    end
+    super
+    defaults_complete?("Animation")
   end
 
   def update
