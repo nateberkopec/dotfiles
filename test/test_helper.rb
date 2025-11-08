@@ -39,12 +39,14 @@ class Minitest::Test
       },
       "home_paths" => {
         "aerospace_config" => "#{@home}/.aerospace.toml",
-        "gitconfig" => "#{@home}/.gitconfig"
+        "gitconfig" => "#{@home}/.gitconfig",
+        "hushlogin" => "#{@home}/.hushlogin"
       },
       "dotfiles_sources" => {
         "ghostty_config" => "files/ghostty/config",
         "aerospace_config" => "files/aerospace/.aerospace.toml",
-        "git_config" => "files/git/.gitconfig"
+        "git_config" => "files/git/.gitconfig",
+        "hushlogin" => "files/.hushlogin"
       }
     }
   end

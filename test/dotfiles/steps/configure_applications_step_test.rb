@@ -11,28 +11,12 @@ class ConfigureApplicationsStepTest < Minitest::Test
   end
 
   def test_complete_when_all_files_match
-    step = create_step(Dotfiles::Step::ConfigureApplicationsStep, dotfiles_dir: @fixtures_dir)
-    stub_default_paths(step)
-    @fake_system.stub_file_content("#{@fixtures_dir}/files/ghostty/config", "ghostty config")
-    @fake_system.stub_file_content("/tmp/home/Library/Application Support/com.mitchellh.ghostty/config", "ghostty config")
-    @fake_system.stub_file_content("#{@fixtures_dir}/files/aerospace/.aerospace.toml", "aerospace config")
-    @fake_system.stub_file_content("/tmp/home/.aerospace.toml", "aerospace config")
-    @fake_system.stub_file_content("#{@fixtures_dir}/files/git/.gitconfig", "git config")
-    @fake_system.stub_file_content("/tmp/home/.gitconfig", "git config")
-
+    step = create_configured_step
     assert step.complete?
   end
 
   def test_not_complete_when_files_dont_match
-    step = create_step(Dotfiles::Step::ConfigureApplicationsStep, dotfiles_dir: @fixtures_dir)
-    stub_default_paths(step)
-    @fake_system.stub_file_content("#{@fixtures_dir}/files/ghostty/config", "ghostty config")
-    @fake_system.stub_file_content("/tmp/home/Library/Application Support/com.mitchellh.ghostty/config", "old ghostty config")
-    @fake_system.stub_file_content("#{@fixtures_dir}/files/aerospace/.aerospace.toml", "aerospace config")
-    @fake_system.stub_file_content("/tmp/home/.aerospace.toml", "aerospace config")
-    @fake_system.stub_file_content("#{@fixtures_dir}/files/git/.gitconfig", "git config")
-    @fake_system.stub_file_content("/tmp/home/.gitconfig", "git config")
-
+    step = create_configured_step(ghostty_home: "old ghostty config")
     refute step.complete?
   end
 
@@ -50,12 +34,15 @@ class ConfigureApplicationsStepTest < Minitest::Test
     @fake_system.stub_file_content("#{@fixtures_dir}/files/aerospace/.aerospace.toml", "old aerospace")
     @fake_system.stub_file_content("/tmp/home/.gitconfig", "updated git")
     @fake_system.stub_file_content("#{@fixtures_dir}/files/git/.gitconfig", "old git")
+    @fake_system.stub_file_content("/tmp/home/.hushlogin", "updated hushlogin")
+    @fake_system.stub_file_content("#{@fixtures_dir}/files/.hushlogin", "old hushlogin")
 
     step.update
 
     assert_equal "updated ghostty", @fake_system.filesystem[File.expand_path("#{@fixtures_dir}/files/ghostty/config")]
     assert_equal "updated aerospace", @fake_system.filesystem[File.expand_path("#{@fixtures_dir}/files/aerospace/.aerospace.toml")]
     assert_equal "updated git", @fake_system.filesystem[File.expand_path("#{@fixtures_dir}/files/git/.gitconfig")]
+    assert_equal "updated hushlogin", @fake_system.filesystem[File.expand_path("#{@fixtures_dir}/files/.hushlogin")]
   end
 
   def test_update_skips_unchanged_files
@@ -67,6 +54,8 @@ class ConfigureApplicationsStepTest < Minitest::Test
     @fake_system.stub_file_content("#{@fixtures_dir}/files/aerospace/.aerospace.toml", "same aerospace")
     @fake_system.stub_file_content("/tmp/home/.gitconfig", "same git")
     @fake_system.stub_file_content("#{@fixtures_dir}/files/git/.gitconfig", "same git")
+    @fake_system.stub_file_content("/tmp/home/.hushlogin", "same hushlogin")
+    @fake_system.stub_file_content("#{@fixtures_dir}/files/.hushlogin", "same hushlogin")
 
     step.update
 
@@ -77,5 +66,21 @@ class ConfigureApplicationsStepTest < Minitest::Test
     step = create_step(Dotfiles::Step::ConfigureApplicationsStep, dotfiles_dir: @fixtures_dir)
     step.update
     refute @fake_system.received_operation?(:cp)
+  end
+
+  private
+
+  def create_configured_step(ghostty_home: "ghostty config", aerospace_home: "aerospace config", git_home: "git config", hushlogin_home: "hushlogin")
+    step = create_step(Dotfiles::Step::ConfigureApplicationsStep, dotfiles_dir: @fixtures_dir)
+    stub_default_paths(step)
+    @fake_system.stub_file_content("#{@fixtures_dir}/files/ghostty/config", "ghostty config")
+    @fake_system.stub_file_content("/tmp/home/Library/Application Support/com.mitchellh.ghostty/config", ghostty_home)
+    @fake_system.stub_file_content("#{@fixtures_dir}/files/aerospace/.aerospace.toml", "aerospace config")
+    @fake_system.stub_file_content("/tmp/home/.aerospace.toml", aerospace_home)
+    @fake_system.stub_file_content("#{@fixtures_dir}/files/git/.gitconfig", "git config")
+    @fake_system.stub_file_content("/tmp/home/.gitconfig", git_home)
+    @fake_system.stub_file_content("#{@fixtures_dir}/files/.hushlogin", "hushlogin")
+    @fake_system.stub_file_content("/tmp/home/.hushlogin", hushlogin_home)
+    step
   end
 end
