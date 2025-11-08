@@ -11,6 +11,10 @@ class Dotfiles::Step::InstallMasAppsStep < Dotfiles::Step
     check_outdated_apps
   end
 
+  def should_run?
+    true
+  end
+
   def complete?
     mas_apps.all? { |app_id, _| app_installed?(app_id) }
   rescue
