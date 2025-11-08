@@ -1,6 +1,6 @@
 function gc-ai
     # Parse arguments first to check for help
-    argparse 'h/help' 'c/context' 'claude' 's/summary-only' 'no-gpg-sign' 'no-verify' 'C/conventional-commit' 'a/add-all' 'p/push' -- $argv
+    argparse 'h/help' 'c/context' 'claude' 's/summary-only' 'no-gpg-sign' 'no-verify' 'C/conventional-commit' 'a/add-all' 'p/push' 'skip-ci' -- $argv
     or return
 
     # Check required dependencies
@@ -34,6 +34,7 @@ function gc-ai
         echo "  -C, --conventional-commit  Use conventional commit format"
         echo "  -a, --add-all              Run 'git add -A' before generating commit"
         echo "  -p, --push                 Auto-accept commit and push immediately"
+        echo "  --skip-ci                  Add [skip ci] to skip CI/CD pipeline"
         return 0
     end
 
@@ -102,10 +103,14 @@ $claude_context"
         if set -q _flag_claude
             set claude_param "claude"
         end
+        set skip_ci_param ""
+        if set -q _flag_skip_ci
+            set skip_ci_param "skip-ci"
+        end
         if set -q _flag_summary_only
-            set display_file (_add_disclaimer $cleaned_file "summary-only" $claude_param)
+            set display_file (_add_disclaimer $cleaned_file "summary-only" $claude_param $skip_ci_param)
         else
-            set display_file (_add_disclaimer $cleaned_file "" $claude_param)
+            set display_file (_add_disclaimer $cleaned_file "" $claude_param $skip_ci_param)
         end
         rm $cleaned_file
 
@@ -317,8 +322,14 @@ function _add_disclaimer
     set input_file $argv[1]
     set summary_only $argv[2]
     set claude_flag $argv[3]
+    set skip_ci_flag $argv[4]
     set output_file (mktemp)
     set summary (head -n 1 $input_file)
+
+    # Add [skip ci] to summary if requested
+    if test "$skip_ci_flag" = "skip-ci"
+        set summary "$summary [skip ci]"
+    end
 
     echo "$summary" > $output_file
     echo "" >> $output_file
