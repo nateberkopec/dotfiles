@@ -23,6 +23,7 @@ jobs:
 
     - name: Run dotfiles
       id: run
+      timeout-minutes: 10
       env:
         DEBUG: true
         CI: true
