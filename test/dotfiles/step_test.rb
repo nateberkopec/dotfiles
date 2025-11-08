@@ -83,21 +83,23 @@ class StepTest < Minitest::Test
   end
 
   def test_warnings_collection
-    step = create_step(TestStepA)
-    step.add_warning(title: "Test Warning", message: "This is a test")
-
-    assert_equal 1, step.warnings.length
-    assert_equal "Test Warning", step.warnings.first[:title]
-    assert_equal "This is a test", step.warnings.first[:message]
+    assert_collection(:warnings, :add_warning, title: "Test Warning", message: "This is a test")
   end
 
   def test_notices_collection
-    step = create_step(TestStepA)
-    step.add_notice(title: "Test Notice", message: "This is a notice")
+    assert_collection(:notices, :add_notice, title: "Test Notice", message: "This is a notice")
+  end
 
-    assert_equal 1, step.notices.length
-    assert_equal "Test Notice", step.notices.first[:title]
-    assert_equal "This is a notice", step.notices.first[:message]
+  private
+
+  def assert_collection(collection_method, add_method, title:, message:)
+    step = create_step(TestStepA)
+    step.send(add_method, title: title, message: message)
+
+    collection = step.send(collection_method)
+    assert_equal 1, collection.length
+    assert_equal title, collection.first[:title]
+    assert_equal message, collection.first[:message]
   end
 
   def test_ran_tracking

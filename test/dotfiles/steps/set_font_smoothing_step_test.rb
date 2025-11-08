@@ -1,24 +1,20 @@
 require "test_helper"
 
-class SetFontSmoothingStepTest < Minitest::Test
-  def test_runs_defaults_write_command
-    step = create_step(Dotfiles::Step::SetFontSmoothingStep)
-    step.run
+class SetFontSmoothingStepTest < StepTestCase
+  step_class Dotfiles::Step::SetFontSmoothingStep
 
-    assert @fake_system.received_operation?(:execute, "defaults -currentHost write -g AppleFontSmoothing -int 0", {quiet: true})
+  def test_runs_defaults_write_command
+    step.run
+    assert_executed("defaults -currentHost write -g AppleFontSmoothing -int 0")
   end
 
   def test_complete_when_setting_is_zero
     @fake_system.stub_command("defaults -currentHost read -g AppleFontSmoothing", "0", exit_status: 0)
-
-    step = create_step(Dotfiles::Step::SetFontSmoothingStep)
-    assert step.complete?
+    assert_complete
   end
 
   def test_incomplete_when_setting_differs
     @fake_system.stub_command("defaults -currentHost read -g AppleFontSmoothing", "1", exit_status: 0)
-
-    step = create_step(Dotfiles::Step::SetFontSmoothingStep)
-    refute step.complete?
+    assert_incomplete
   end
 end

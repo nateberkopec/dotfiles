@@ -1,31 +1,31 @@
 require "test_helper"
 
-class DisableDisplaysHaveSpacesStepTest < Minitest::Test
-  def test_runs_defaults_write_command
-    step = create_step(Dotfiles::Step::DisableDisplaysHaveSpacesStep)
+class DisableDisplaysHaveSpacesStepTest < StepTestCase
+  step_class Dotfiles::Step::DisableDisplaysHaveSpacesStep
+
+  def test_run_sets_preference_and_restarts_system_ui
     step.run
-
-    assert @fake_system.received_operation?(:execute, "defaults write com.apple.spaces spans-displays -bool true && killall SystemUIServer", {quiet: true})
+    assert_executed("defaults write com.apple.spaces spans-displays -bool true && killall SystemUIServer")
   end
 
-  def test_complete_when_setting_matches
-    @fake_system.stub_command("defaults read com.apple.spaces spans-displays", "1", exit_status: 0)
-
-    step = create_step(Dotfiles::Step::DisableDisplaysHaveSpacesStep)
-    assert step.complete?
+  def test_complete_when_defaults_match
+    stub_spans_displays("1")
+    assert_complete
   end
 
-  def test_incomplete_when_setting_differs
-    @fake_system.stub_command("defaults read com.apple.spaces spans-displays", "0", exit_status: 0)
-
-    step = create_step(Dotfiles::Step::DisableDisplaysHaveSpacesStep)
-    refute step.complete?
+  def test_incomplete_when_value_differs
+    stub_spans_displays("0")
+    assert_incomplete
   end
 
   def test_incomplete_when_command_fails
-    @fake_system.stub_command("defaults read com.apple.spaces spans-displays", "", exit_status: 1)
+    stub_spans_displays("", status: 1)
+    assert_incomplete
+  end
 
-    step = create_step(Dotfiles::Step::DisableDisplaysHaveSpacesStep)
-    refute step.complete?
+  private
+
+  def stub_spans_displays(value, status: 0)
+    @fake_system.stub_command("defaults read com.apple.spaces spans-displays", value, exit_status: status)
   end
 end

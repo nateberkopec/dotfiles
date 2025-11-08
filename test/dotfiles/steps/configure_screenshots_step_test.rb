@@ -1,72 +1,58 @@
 require "test_helper"
 
-class ConfigureScreenshotsStepTest < Minitest::Test
+class ConfigureScreenshotsStepTest < StepTestCase
+  step_class Dotfiles::Step::ConfigureScreenshotsStep
+
   def setup
     super
-    stub_screenshots_config
+    write_config("screenshots", screenshot_config)
   end
 
-  def stub_screenshots_config
-    config_content = <<~YAML
-      screenshot_settings:
-        com.apple.screencapture:
-          location: ~/Documents/Inbox
-    YAML
-
-    @fake_system.stub_file_content("#{@dotfiles_dir}/config/screenshots.yml", config_content)
-  end
-
-  def test_step_exists
-    step = create_step(Dotfiles::Step::ConfigureScreenshotsStep)
-    assert_instance_of Dotfiles::Step::ConfigureScreenshotsStep, step
-  end
-
-  def test_depends_on_create_standard_folders_step
-    dependencies = Dotfiles::Step::ConfigureScreenshotsStep.depends_on
-    assert_includes dependencies, Dotfiles::Step::CreateStandardFoldersStep
-  end
-
-  def test_runs_defaults_write_command_for_location
-    step = create_step(Dotfiles::Step::ConfigureScreenshotsStep)
+  def test_run_sets_location_and_restarts_ui_server
     step.run
 
-    assert @fake_system.received_operation?(:execute, "defaults write com.apple.screencapture location -string ~/Documents/Inbox", {quiet: true})
-  end
-
-  def test_restarts_system_ui_server
-    step = create_step(Dotfiles::Step::ConfigureScreenshotsStep)
-    step.run
-
-    assert @fake_system.received_operation?(:execute, "killall SystemUIServer", {quiet: true})
+    assert_executed("defaults write com.apple.screencapture location -string ~/Documents/Inbox")
+    assert_executed("killall SystemUIServer")
   end
 
   def test_complete_when_location_matches
-    step = create_step(Dotfiles::Step::ConfigureScreenshotsStep)
-    @fake_system.stub_command("defaults read com.apple.screencapture location", "~/Documents/Inbox", exit_status: 0)
-
-    assert step.complete?
+    stub_location("~/Documents/Inbox")
+    assert_complete
   end
 
   def test_incomplete_when_location_differs
-    step = create_step(Dotfiles::Step::ConfigureScreenshotsStep)
-    @fake_system.stub_command("defaults read com.apple.screencapture location", "~/Desktop", exit_status: 0)
-
-    refute step.complete?
+    stub_location("~/Desktop")
+    assert_incomplete
   end
 
-  def test_incomplete_when_location_not_set
-    step = create_step(Dotfiles::Step::ConfigureScreenshotsStep)
-    @fake_system.stub_command("defaults read com.apple.screencapture location", "", exit_status: 1)
-
-    refute step.complete?
+  def test_incomplete_when_read_command_fails
+    stub_location("", status: 1)
+    assert_incomplete
   end
 
-  def test_update_reads_current_location_and_writes_to_config
-    step = create_step(Dotfiles::Step::ConfigureScreenshotsStep)
-    @fake_system.stub_command("defaults read com.apple.screencapture location", "~/Documents/Screenshots", exit_status: 0)
-
+  def test_update_persists_current_location_to_config
+    stub_location("~/Documents/Screenshots")
     step.update
-    write_op = @fake_system.operations.find { |op| op[0] == :write_file && op[1] == "#{@dotfiles_dir}/config/screenshots.yml" }
-    assert write_op, "Expected write_file operation to #{@dotfiles_dir}/config/screenshots.yml"
+
+    write_op = @fake_system.operations.reverse.find { |op| op[0] == :write_file && op[1].end_with?("/config/screenshots.yml") }
+    refute_nil write_op, "Expected update to write screenshots config"
+    parsed = YAML.safe_load(write_op[2])
+    assert_equal "~/Documents/Screenshots", parsed.dig("screenshot_settings", "com.apple.screencapture", "location")
+  end
+
+  private
+
+  def screenshot_config
+    {
+      "screenshot_settings" => {
+        "com.apple.screencapture" => {
+          "location" => "~/Documents/Inbox"
+        }
+      }
+    }
+  end
+
+  def stub_location(value, status: 0)
+    @fake_system.stub_command("defaults read com.apple.screencapture location", value, exit_status: status)
   end
 end

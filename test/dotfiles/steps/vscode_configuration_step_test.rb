@@ -4,17 +4,20 @@ class VSCodeConfigurationStepTest < Minitest::Test
   def setup
     super
     @step = create_step(Dotfiles::Step::VSCodeConfigurationStep)
-    @step.config.paths = {
+    @step.config.paths = vscode_paths
+  end
+
+  def vscode_paths
+    user_dir = "#{@home}/Library/Application Support/Code/User"
+    {
       "application_paths" => {
-        "vscode_user_dir" => "#{@home}/Library/Application Support/Code/User",
-        "vscode_settings" => "#{@home}/Library/Application Support/Code/User/settings.json",
-        "vscode_keybindings" => "#{@home}/Library/Application Support/Code/User/keybindings.json"
+        "vscode_user_dir" => user_dir,
+        "vscode_settings" => "#{user_dir}/settings.json",
+        "vscode_keybindings" => "#{user_dir}/keybindings.json"
       },
-      "dotfiles_sources" => {
-        "vscode_settings" => "files/vscode/settings.json",
-        "vscode_keybindings" => "files/vscode/keybindings.json",
-        "vscode_extensions" => "files/vscode/extensions.txt"
-      }
+      "dotfiles_sources" => %w[settings keybindings extensions].each_with_object({}) do |name, h|
+        h["vscode_#{name}"] = "files/vscode/#{name}.#{(name == "extensions") ? "txt" : "json"}"
+      end
     }
   end
 
