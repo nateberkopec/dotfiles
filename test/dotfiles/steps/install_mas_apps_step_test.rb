@@ -15,7 +15,7 @@ class InstallMasAppsStepTest < Minitest::Test
     @fake_system.stub_command_output("mas list | grep '^409183694'", "409183694 Keynote (13.1)")
     @fake_system.stub_command_output("mas outdated", "409183694 Keynote (13.1 -> 13.2)")
 
-    step.run
+    step.should_run?
 
     assert_equal 1, step.notices.size
     assert_includes step.notices.first[:title], "Mac App Store Updates Available"
@@ -29,7 +29,7 @@ class InstallMasAppsStepTest < Minitest::Test
     @fake_system.stub_command_output("mas list | grep '^409183694'", "409183694 Keynote (13.1)")
     @fake_system.stub_command_output("mas outdated", "")
 
-    step.run
+    step.should_run?
 
     assert_empty step.notices
   end

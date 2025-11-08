@@ -8,11 +8,11 @@ class Dotfiles::Step::InstallMasAppsStep < Dotfiles::Step
     mas_apps.each do |app_id, app_name|
       install_mas_app(app_id, app_name)
     end
-    check_outdated_apps
   end
 
   def should_run?
-    true
+    check_outdated_apps
+    !complete?
   end
 
   def complete?
