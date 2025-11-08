@@ -20,6 +20,10 @@ class FakeSystemAdapter
     @command_outputs[command] = {output: result[0], exit_status: result[1]}
   end
 
+  def stub_command(command, output, exit_status)
+    @command_outputs[command] = {output: output, exit_status: exit_status}
+  end
+
   def file_exist?(path)
     @operations << [:file_exist?, path]
     return false if path.nil?
