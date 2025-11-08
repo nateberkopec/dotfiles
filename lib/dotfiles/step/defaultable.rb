@@ -1,6 +1,14 @@
 class Dotfiles
   class Step
     module Defaultable
+      def run_defaults_write
+        setting_entries.each do |domain, key, value|
+          domain_flag = domain_flag_for(domain)
+          type_flag = type_flag_for(value)
+          execute("defaults write #{domain_flag} #{key} #{type_flag} #{value}")
+        end
+      end
+
       def update_defaults_config(config_key, config_filename)
         updated_settings = setting_entries.group_by(&:first).transform_values do |entries|
           entries.filter_map { |domain, key, _value|
@@ -24,9 +32,25 @@ class Dotfiles
         "defaults read #{domain_flag} #{key}"
       end
 
+      def type_flag_for(value)
+        case value
+        when 0, 1
+          "-int"
+        when Integer
+          "-int"
+        when Float
+          "-float"
+        when String
+          "-string"
+        else
+          "-int"
+        end
+      end
+
       def parse_defaults_value(output)
         return output.to_f if output.include?(".")
-        output.to_i
+        return output.to_i if output.match?(/^-?\d+$/)
+        output
       end
     end
   end
