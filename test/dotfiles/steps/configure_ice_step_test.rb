@@ -44,6 +44,14 @@ class ConfigureIceStepTest < StepTestCase
     assert_incomplete
   end
 
+  def test_ci_env_skips_configuration
+    with_ci do
+      install_ice
+      refute_should_run
+      assert_complete
+    end
+  end
+
   def test_update_copies_preferences_into_repo
     stub_preferences("plist data")
     step.update

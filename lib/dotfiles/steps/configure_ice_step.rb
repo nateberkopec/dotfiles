@@ -8,6 +8,7 @@ class Dotfiles::Step::ConfigureIceStep < Dotfiles::Step
   end
 
   def should_run?
+    return false if ci_or_noninteractive?
     ice_installed? && !complete?
   end
 
@@ -20,6 +21,7 @@ class Dotfiles::Step::ConfigureIceStep < Dotfiles::Step
 
   def complete?
     super
+    return true if ci_or_noninteractive?
     ice_preferences = app_path("ice_preferences")
 
     unless ice_preferences

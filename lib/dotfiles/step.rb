@@ -155,7 +155,7 @@ class Dotfiles
     def defaults_read_equals?(command, expected_value)
       output, status = execute(command, quiet: true)
       return false unless status == 0
-      output == expected_value
+      output == normalize_defaults_value(expected_value)
     end
 
     def home_path(key)
@@ -173,9 +173,32 @@ class Dotfiles
       File.expand_path(expanded)
     end
 
+    def collapse_path_to_home(path)
+      return path unless path.is_a?(String)
+      return path unless @home && path.start_with?(@home)
+      path.sub(@home, "~")
+    end
+
     def dotfiles_source(key)
       source = @config.paths.dig("dotfiles_sources", key.to_s)
       source ? File.join(@dotfiles_dir, source) : nil
+    end
+
+    def normalize_defaults_value(value)
+      value_str =
+        if value.is_a?(String)
+          value
+        elsif value.nil?
+          ""
+        else
+          value.to_s
+        end
+
+      if value_str.start_with?("~/")
+        expand_path_with_home(value_str)
+      else
+        value_str
+      end
     end
 
     def file_hash(path)

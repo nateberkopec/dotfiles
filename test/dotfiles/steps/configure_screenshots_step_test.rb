@@ -53,6 +53,13 @@ class ConfigureScreenshotsStepTest < StepTestCase
   end
 
   def stub_location(value, status: 0)
-    @fake_system.stub_command("defaults read com.apple.screencapture location", value, exit_status: status)
+    normalized =
+      if value.is_a?(String) && value.start_with?("~/")
+        File.join(@home, value.delete_prefix("~/"))
+      else
+        value
+      end
+
+    @fake_system.stub_command("defaults read com.apple.screencapture location", normalized, exit_status: status)
   end
 end
