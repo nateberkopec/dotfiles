@@ -12,12 +12,17 @@ class FakeSystemAdapter
     @filesystem[File.expand_path(path)] = content
   end
 
-  def stub_command_output(command, output, exit_status: 0)
-    @command_outputs[command] = {output: output, exit_status: exit_status}
-  end
-
-  def stub_execute_result(command, result)
-    @command_outputs[command] = {output: result[0], exit_status: result[1]}
+  def stub_command(command, output, exit_status = 0)
+    if output.is_a?(Array)
+      output_str, status = output
+    elsif exit_status.is_a?(Hash)
+      output_str = output
+      status = exit_status[:exit_status] || 0
+    else
+      output_str = output
+      status = exit_status
+    end
+    @command_outputs[command] = {output: output_str, exit_status: status}
   end
 
   def file_exist?(path)

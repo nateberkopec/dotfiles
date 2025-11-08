@@ -4,7 +4,7 @@ class InstallMasAppsStepTest < Minitest::Test
   def test_complete_returns_true
     step = create_step(Dotfiles::Step::InstallMasAppsStep)
     step.config.mas_apps = {"mas_apps" => {409183694 => "Keynote"}}
-    @fake_system.stub_command_output("mas list | grep '^409183694'", "409183694 Keynote (13.1)")
+    @fake_system.stub_command("mas list | grep '^409183694'", "409183694 Keynote (13.1)")
 
     assert step.complete?
   end
@@ -12,8 +12,8 @@ class InstallMasAppsStepTest < Minitest::Test
   def test_adds_notice_for_outdated_apps
     step = create_step(Dotfiles::Step::InstallMasAppsStep)
     step.config.mas_apps = {"mas_apps" => {409183694 => "Keynote"}}
-    @fake_system.stub_command_output("mas list | grep '^409183694'", "409183694 Keynote (13.1)")
-    @fake_system.stub_command_output("mas outdated", "409183694 Keynote (13.1 -> 13.2)")
+    @fake_system.stub_command("mas list | grep '^409183694'", "409183694 Keynote (13.1)")
+    @fake_system.stub_command("mas outdated", "409183694 Keynote (13.1 -> 13.2)")
 
     step.should_run?
 
@@ -26,8 +26,8 @@ class InstallMasAppsStepTest < Minitest::Test
   def test_no_notice_when_apps_up_to_date
     step = create_step(Dotfiles::Step::InstallMasAppsStep)
     step.config.mas_apps = {"mas_apps" => {409183694 => "Keynote"}}
-    @fake_system.stub_command_output("mas list | grep '^409183694'", "409183694 Keynote (13.1)")
-    @fake_system.stub_command_output("mas outdated", "")
+    @fake_system.stub_command("mas list | grep '^409183694'", "409183694 Keynote (13.1)")
+    @fake_system.stub_command("mas outdated", "")
 
     step.should_run?
 

@@ -21,7 +21,7 @@ class UpdateMacOSStepTest < Minitest::Test
 
   def test_should_run_returns_false_without_admin
     stub_updates_available
-    @fake_system.stub_command_output("groups", "staff")
+    @fake_system.stub_command("groups", "staff")
     refute @step.should_run?
   end
 
@@ -71,7 +71,7 @@ class UpdateMacOSStepTest < Minitest::Test
     plist_path = "/Library/Preferences/com.apple.SoftwareUpdate.plist"
     command = "defaults read #{plist_path} RecommendedUpdates 2>/dev/null"
     output = has_updates ? ['Identifier = "MSU_UPDATE_123_minor"', 0] : ["no updates", 1]
-    @fake_system.stub_execute_result(command, output)
+    @fake_system.stub_command(command, output)
   end
 
   def stub_updates_available
@@ -83,19 +83,19 @@ class UpdateMacOSStepTest < Minitest::Test
   end
 
   def stub_admin_with_updates
-    @fake_system.stub_command_output("groups", "admin staff")
+    @fake_system.stub_command("groups", "admin staff")
     stub_updates_available
   end
 
   def stub_admin_without_updates
-    @fake_system.stub_command_output("groups", "admin staff")
+    @fake_system.stub_command("groups", "admin staff")
     stub_no_updates
   end
 
   def stub_last_check
     plist_path = "/Library/Preferences/com.apple.SoftwareUpdate.plist"
     command = "defaults read #{plist_path} LastBackgroundSuccessfulDate 2>/dev/null"
-    @fake_system.stub_execute_result(command, ["2024-01-01", 0])
+    @fake_system.stub_command(command, ["2024-01-01", 0])
   end
 
   def stub_updates_with_last_check

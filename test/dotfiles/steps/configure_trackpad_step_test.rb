@@ -38,10 +38,10 @@ class ConfigureTrackpadStepTest < Minitest::Test
   def test_complete_when_all_settings_match
     step = create_step(Dotfiles::Step::ConfigureTrackpadStep)
 
-    @fake_system.stub_command_output("defaults read com.apple.AppleMultitouchTrackpad Clicking", "0", exit_status: 0)
-    @fake_system.stub_command_output("defaults read com.apple.AppleMultitouchTrackpad TrackpadRightClick", "1", exit_status: 0)
-    @fake_system.stub_command_output("defaults read com.apple.AppleMultitouchTrackpad FirstClickThreshold", "1", exit_status: 0)
-    @fake_system.stub_command_output("defaults read -g com.apple.mouse.scaling", "2", exit_status: 0)
+    @fake_system.stub_command("defaults read com.apple.AppleMultitouchTrackpad Clicking", "0", exit_status: 0)
+    @fake_system.stub_command("defaults read com.apple.AppleMultitouchTrackpad TrackpadRightClick", "1", exit_status: 0)
+    @fake_system.stub_command("defaults read com.apple.AppleMultitouchTrackpad FirstClickThreshold", "1", exit_status: 0)
+    @fake_system.stub_command("defaults read -g com.apple.mouse.scaling", "2", exit_status: 0)
 
     assert step.complete?
   end
@@ -49,10 +49,10 @@ class ConfigureTrackpadStepTest < Minitest::Test
   def test_incomplete_when_any_setting_differs
     step = create_step(Dotfiles::Step::ConfigureTrackpadStep)
 
-    @fake_system.stub_command_output("defaults read com.apple.AppleMultitouchTrackpad Clicking", "1", exit_status: 0)
-    @fake_system.stub_command_output("defaults read com.apple.AppleMultitouchTrackpad TrackpadRightClick", "1", exit_status: 0)
-    @fake_system.stub_command_output("defaults read com.apple.AppleMultitouchTrackpad FirstClickThreshold", "1", exit_status: 0)
-    @fake_system.stub_command_output("defaults read -g com.apple.mouse.scaling", "2", exit_status: 0)
+    @fake_system.stub_command("defaults read com.apple.AppleMultitouchTrackpad Clicking", "1", exit_status: 0)
+    @fake_system.stub_command("defaults read com.apple.AppleMultitouchTrackpad TrackpadRightClick", "1", exit_status: 0)
+    @fake_system.stub_command("defaults read com.apple.AppleMultitouchTrackpad FirstClickThreshold", "1", exit_status: 0)
+    @fake_system.stub_command("defaults read -g com.apple.mouse.scaling", "2", exit_status: 0)
 
     refute step.complete?
   end
@@ -60,10 +60,10 @@ class ConfigureTrackpadStepTest < Minitest::Test
   def test_incomplete_when_setting_command_fails
     step = create_step(Dotfiles::Step::ConfigureTrackpadStep)
 
-    @fake_system.stub_command_output("defaults read com.apple.AppleMultitouchTrackpad Clicking", "", exit_status: 1)
-    @fake_system.stub_command_output("defaults read com.apple.AppleMultitouchTrackpad TrackpadRightClick", "1", exit_status: 0)
-    @fake_system.stub_command_output("defaults read com.apple.AppleMultitouchTrackpad FirstClickThreshold", "1", exit_status: 0)
-    @fake_system.stub_command_output("defaults read -g com.apple.mouse.scaling", "2", exit_status: 0)
+    @fake_system.stub_command("defaults read com.apple.AppleMultitouchTrackpad Clicking", "", exit_status: 1)
+    @fake_system.stub_command("defaults read com.apple.AppleMultitouchTrackpad TrackpadRightClick", "1", exit_status: 0)
+    @fake_system.stub_command("defaults read com.apple.AppleMultitouchTrackpad FirstClickThreshold", "1", exit_status: 0)
+    @fake_system.stub_command("defaults read -g com.apple.mouse.scaling", "2", exit_status: 0)
 
     refute step.complete?
   end
@@ -71,10 +71,10 @@ class ConfigureTrackpadStepTest < Minitest::Test
   def test_update_reads_current_settings_and_writes_to_config
     step = create_step(Dotfiles::Step::ConfigureTrackpadStep)
 
-    @fake_system.stub_command_output("defaults read com.apple.AppleMultitouchTrackpad Clicking", "1", exit_status: 0)
-    @fake_system.stub_command_output("defaults read com.apple.AppleMultitouchTrackpad TrackpadRightClick", "1", exit_status: 0)
-    @fake_system.stub_command_output("defaults read com.apple.AppleMultitouchTrackpad FirstClickThreshold", "2", exit_status: 0)
-    @fake_system.stub_command_output("defaults read -g com.apple.mouse.scaling", "3", exit_status: 0)
+    @fake_system.stub_command("defaults read com.apple.AppleMultitouchTrackpad Clicking", "1", exit_status: 0)
+    @fake_system.stub_command("defaults read com.apple.AppleMultitouchTrackpad TrackpadRightClick", "1", exit_status: 0)
+    @fake_system.stub_command("defaults read com.apple.AppleMultitouchTrackpad FirstClickThreshold", "2", exit_status: 0)
+    @fake_system.stub_command("defaults read -g com.apple.mouse.scaling", "3", exit_status: 0)
 
     step.update
     write_op = @fake_system.operations.find { |op| op[0] == :write_file && op[1] == "#{@dotfiles_dir}/config/trackpad.yml" }
@@ -91,10 +91,10 @@ class ConfigureTrackpadStepTest < Minitest::Test
   def test_update_only_updates_existing_keys
     step = create_step(Dotfiles::Step::ConfigureTrackpadStep)
 
-    @fake_system.stub_command_output("defaults read com.apple.AppleMultitouchTrackpad Clicking", "0", exit_status: 0)
-    @fake_system.stub_command_output("defaults read com.apple.AppleMultitouchTrackpad TrackpadRightClick", "1", exit_status: 0)
-    @fake_system.stub_command_output("defaults read com.apple.AppleMultitouchTrackpad FirstClickThreshold", "1", exit_status: 0)
-    @fake_system.stub_command_output("defaults read -g com.apple.mouse.scaling", "2", exit_status: 0)
+    @fake_system.stub_command("defaults read com.apple.AppleMultitouchTrackpad Clicking", "0", exit_status: 0)
+    @fake_system.stub_command("defaults read com.apple.AppleMultitouchTrackpad TrackpadRightClick", "1", exit_status: 0)
+    @fake_system.stub_command("defaults read com.apple.AppleMultitouchTrackpad FirstClickThreshold", "1", exit_status: 0)
+    @fake_system.stub_command("defaults read -g com.apple.mouse.scaling", "2", exit_status: 0)
 
     step.update
     read_operations = @fake_system.operations.select { |op| op[0] == :execute && op[1].start_with?("defaults read") }

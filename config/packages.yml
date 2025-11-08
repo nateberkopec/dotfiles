@@ -19,6 +19,7 @@ brew:
     - dropbox
     - ghostty
     - github
+    - jordanbaird-ice
     - keycastr
     - obsidian
     - orbstack
