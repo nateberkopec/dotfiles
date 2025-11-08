@@ -67,13 +67,5 @@ class Dotfiles
       raise "Command failed: #{command}\nOutput: #{output}" unless status == 0
       [output, status]
     end
-
-    def path_join(*parts)
-      File.join(*parts)
-    end
-
-    def path_dirname(path)
-      File.dirname(path)
-    end
   end
 end

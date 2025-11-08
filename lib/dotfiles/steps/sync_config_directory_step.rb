@@ -95,7 +95,7 @@ class Dotfiles::Step::SyncConfigDirectoryStep < Dotfiles::Step
 
   def copy_all_files(from_dir, to_dir)
     each_file_in(from_dir) do |src, relative_path|
-      dest = @system.path_join(to_dir, relative_path)
+      dest = File.join(to_dir, relative_path)
       ensure_parent_exists(dest)
       copy_if_different(src, dest)
     end
@@ -111,7 +111,7 @@ class Dotfiles::Step::SyncConfigDirectoryStep < Dotfiles::Step
   end
 
   def each_file_in(dir)
-    @system.glob(@system.path_join(dir, "**", "*")).each do |path|
+    @system.glob(File.join(dir, "**", "*")).each do |path|
       next unless @system.file_exist?(path)
       relative_path = path.sub("#{dir}/", "")
       yield path, relative_path
@@ -129,7 +129,7 @@ class Dotfiles::Step::SyncConfigDirectoryStep < Dotfiles::Step
   end
 
   def ensure_parent_exists(path)
-    @system.mkdir_p(@system.path_dirname(path))
+    @system.mkdir_p(File.dirname(path))
   end
 
   def copy_if_different(from, to)
@@ -146,6 +146,6 @@ class Dotfiles::Step::SyncConfigDirectoryStep < Dotfiles::Step
 
   def clean_item_path(item, *path_parts)
     clean_item = item.sub(%r{/$}, "")
-    @system.path_join(*path_parts, clean_item)
+    File.join(*path_parts, clean_item)
   end
 end

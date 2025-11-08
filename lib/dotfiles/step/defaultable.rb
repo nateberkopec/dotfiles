@@ -33,7 +33,7 @@ class Dotfiles
         end
 
         content = {config_key => updated_settings}.to_yaml
-        config_path = @system.path_join(@dotfiles_dir, "config", config_filename)
+        config_path = File.join(@dotfiles_dir, "config", config_filename)
         @system.write_file(config_path, content)
       end
 
