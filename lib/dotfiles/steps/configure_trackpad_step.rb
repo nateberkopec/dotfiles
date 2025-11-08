@@ -2,10 +2,7 @@ class Dotfiles::Step::ConfigureTrackpadStep < Dotfiles::Step
   include Dotfiles::Step::Defaultable
 
   def run
-    setting_entries.each do |domain, key, value|
-      domain_flag = domain_flag_for(domain)
-      execute("defaults write #{domain_flag} #{key} -int #{value}")
-    end
+    run_defaults_write
   end
 
   def complete?

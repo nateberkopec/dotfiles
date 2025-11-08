@@ -2,11 +2,7 @@ class Dotfiles::Step::DisableAnimationsStep < Dotfiles::Step
   include Dotfiles::Step::Defaultable
 
   def run
-    setting_entries.each do |domain, key, value|
-      domain_flag = domain_flag_for(domain)
-      type_flag = type_flag_for(value)
-      execute("defaults write #{domain_flag} #{key} #{type_flag} #{value}")
-    end
+    run_defaults_write
     execute("killall Dock")
     execute("killall Finder")
   end
@@ -30,17 +26,6 @@ class Dotfiles::Step::DisableAnimationsStep < Dotfiles::Step
   def setting_entries
     animation_settings.flat_map do |domain, settings|
       settings.map { |key, value| [domain, key, value] }
-    end
-  end
-
-  def type_flag_for(value)
-    case value
-    when 0, 1
-      "-int"
-    when Float
-      "-float"
-    else
-      "-int"
     end
   end
 end
