@@ -1,0 +1,11 @@
+# Applications not managed by Homebrew or mas
+# These are manual installations or built-in macOS apps
+# To skip checking for specific apps, edit .skipped-apps in the repo root
+
+- /Applications/Safari.app
+- /Applications/Deckset.app
+- /Applications/Screen Studio.app
+- /Applications/Monologue.app
+- /Applications/Effortless.app
+- /Applications/Conductor.app
+- /Applications/Zwift.app

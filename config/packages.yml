@@ -1,15 +1,16 @@
 brew:
   packages:
-    - zoxide
     - bat
-    - gh
-    - rust
-    - mise
+    - coreutils
     - fish
     - fontconfig
+    - gh
     - libyaml
-    - coreutils
+    - mas
+    - mise
+    - rust
     - starship
+    - zoxide
 
   casks:
     - nikitabobko/tap/aerospace

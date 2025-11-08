@@ -3,7 +3,7 @@ require "yaml"
 class Dotfiles
   class Config
     attr_reader :dotfiles_dir
-    attr_writer :packages, :paths, :config_sync, :non_homebrew_apps
+    attr_writer :packages, :paths, :config_sync, :unmanaged_apps, :mas_apps
 
     def initialize(dotfiles_dir, system: SystemAdapter.new)
       @dotfiles_dir = dotfiles_dir
@@ -31,8 +31,12 @@ class Dotfiles
       @config_sync ||= load_config("config_sync.yml")
     end
 
-    def non_homebrew_apps
-      @non_homebrew_apps ||= load_config("non_homebrew_apps.yml")
+    def unmanaged_apps
+      @unmanaged_apps ||= load_config("unmanaged_apps.yml")
+    end
+
+    def mas_apps
+      @mas_apps ||= load_config("mas_apps.yml")
     end
 
     def load_config(filename)

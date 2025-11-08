@@ -1,4 +1,4 @@
-class Dotfiles::Step::CheckNonHomebrewAppsStep < Dotfiles::Step
+class Dotfiles::Step::CheckUnmanagedAppsStep < Dotfiles::Step
   def run
     missing_apps.each do |path|
       add_notice(
@@ -15,13 +15,13 @@ class Dotfiles::Step::CheckNonHomebrewAppsStep < Dotfiles::Step
   private
 
   def missing_apps
-    non_homebrew_apps.reject do |path|
-      skipped_apps.include?(app_name(path)) || @system.dir_exist?(path) || homebrew_managed?(path)
+    unmanaged_apps.reject do |path|
+      skipped_apps.include?(app_name(path)) || @system.dir_exist?(path) || homebrew_managed?(path) || mas_managed?(path)
     end
   end
 
-  def non_homebrew_apps
-    @config.non_homebrew_apps || []
+  def unmanaged_apps
+    @config.unmanaged_apps || []
   end
 
   def homebrew_managed?(path)
@@ -30,6 +30,14 @@ class Dotfiles::Step::CheckNonHomebrewAppsStep < Dotfiles::Step
 
   def homebrew_paths
     @config.packages.fetch("applications", []).map { |app| app["path"] }
+  end
+
+  def mas_managed?(path)
+    mas_app_names.include?(app_name(path))
+  end
+
+  def mas_app_names
+    @config.mas_apps.fetch("mas_apps", {}).values
   end
 
   def app_name(path)
