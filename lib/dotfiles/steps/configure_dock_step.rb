@@ -1,4 +1,6 @@
 class Dotfiles::Step::ConfigureDockStep < Dotfiles::Step
+  include Dotfiles::Step::Defaultable
+
   def self.depends_on
     [Dotfiles::Step::CreateStandardFoldersStep]
   end
@@ -21,10 +23,10 @@ class Dotfiles::Step::ConfigureDockStep < Dotfiles::Step
   end
 
   def complete?
-    defaults_read_equals?("defaults read com.apple.dock autohide", "1") &&
-      defaults_read_equals?("defaults read com.apple.dock orientation", "left") &&
-      defaults_read_equals?("defaults read com.apple.dock autohide-delay", "0") &&
-      defaults_read_equals?("defaults read com.apple.dock autohide-time-modifier", "0.4") &&
+    defaults_read_equals?(build_read_command("com.apple.dock", "autohide"), "1") &&
+      defaults_read_equals?(build_read_command("com.apple.dock", "orientation"), "left") &&
+      defaults_read_equals?(build_read_command("com.apple.dock", "autohide-delay"), "0") &&
+      defaults_read_equals?(build_read_command("com.apple.dock", "autohide-time-modifier"), "0.4") &&
       persistent_apps_empty? &&
       inbox_in_persistent_others?
   end
