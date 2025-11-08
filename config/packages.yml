@@ -8,6 +8,7 @@ brew:
     - libyaml
     - mas
     - mise
+    - llm
     - rust
     - starship
     - zoxide

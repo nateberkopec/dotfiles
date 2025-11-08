@@ -40,7 +40,7 @@ class Dotfiles
     end
 
     def load_config(filename)
-      config_path = @system.path_join(@config_dir, filename)
+      config_path = File.join(@config_dir, filename)
       content = @system.read_file(config_path)
       YAML.safe_load(content, permitted_classes: [Symbol])
     rescue Errno::ENOENT

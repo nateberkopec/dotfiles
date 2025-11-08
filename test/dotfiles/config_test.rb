@@ -28,19 +28,13 @@ class ConfigTest < Minitest::Test
   end
 
   def test_dotfiles_repo_default_fallback
-    require "tmpdir"
-    Dir.mktmpdir do |dir|
-      config = Dotfiles::Config.new(dir)
-      assert_equal "https://github.com/nateberkopec/dotfiles.git", config.dotfiles_repo
-    end
+    config = Dotfiles::Config.new("/nonexistent/dir")
+    assert_equal "https://github.com/nateberkopec/dotfiles.git", config.dotfiles_repo
   end
 
   def test_missing_config_file_returns_empty_hash
-    require "tmpdir"
-    Dir.mktmpdir do |dir|
-      config = Dotfiles::Config.new(dir)
-      assert_equal({}, config.packages)
-      assert_equal({}, config.paths)
-    end
+    config = Dotfiles::Config.new("/nonexistent/dir")
+    assert_equal({}, config.packages)
+    assert_equal({}, config.paths)
   end
 end

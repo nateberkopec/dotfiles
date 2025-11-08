@@ -2,7 +2,7 @@ class Dotfiles::Step::CreateStandardFoldersStep < Dotfiles::Step
   def run
     debug "Creating standard folders..."
     standard_folders.each do |folder|
-      folder_path = @system.path_join(@home, folder)
+      folder_path = File.join(@home, folder)
       @system.mkdir_p(folder_path)
     end
   end
@@ -10,7 +10,7 @@ class Dotfiles::Step::CreateStandardFoldersStep < Dotfiles::Step
   def complete?
     super
     standard_folders.each do |folder|
-      folder_path = @system.path_join(@home, folder)
+      folder_path = File.join(@home, folder)
       add_error("Standard folder '#{folder}' does not exist at #{folder_path}") unless @system.dir_exist?(folder_path)
     end
     @errors.empty?

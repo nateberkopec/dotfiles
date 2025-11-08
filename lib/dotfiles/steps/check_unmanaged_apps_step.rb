@@ -46,7 +46,7 @@ class Dotfiles::Step::CheckUnmanagedAppsStep < Dotfiles::Step
   end
 
   def skipped_apps
-    skipped_apps_path = @system.path_join(@dotfiles_dir, ".skipped-apps")
+    skipped_apps_path = File.join(@dotfiles_dir, ".skipped-apps")
     return [] unless @system.file_exist?(skipped_apps_path)
 
     @system.read_file(skipped_apps_path).split("\n").map(&:strip).reject(&:empty?)
