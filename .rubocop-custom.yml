@@ -1,0 +1,12 @@
+require:
+  - ./lib/rubocop/ban_file_system_classes.rb
+
+Dotfiles/BanFileSystemClasses:
+  Enabled: true
+  Exclude:
+    - 'lib/dotfiles/system_adapter.rb'
+    - 'lib/dotfiles.rb'
+    - 'lib/dotfiles/updater.rb'
+  Include:
+    - 'lib/**/*.rb'
+    - 'test/**/*.rb'
