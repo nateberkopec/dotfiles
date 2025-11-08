@@ -111,6 +111,42 @@ cmd_run() {
     debug "Run complete"
 }
 
+check_hostname() {
+    cd "$DOTFILES_DIR"
+
+    local hostname_config="$DOTFILES_DIR/config/hostname.yml"
+
+    if [ ! -f "$hostname_config" ]; then
+        debug "No hostname config found, skipping check"
+        return 0
+    fi
+
+    local master_hostname=$(grep "^master_hostname:" "$hostname_config" | sed 's/^master_hostname: *//')
+    local current_hostname=$(hostname)
+
+    debug "Master hostname: $master_hostname"
+    debug "Current hostname: $current_hostname"
+
+    if [ "$master_hostname" != "$current_hostname" ]; then
+        echo ""
+        gum style --border double --border-foreground 208 --padding "1 2" --width 60 \
+            "⚠️  Hostname Mismatch" \
+            "" \
+            "Master hostname: $master_hostname" \
+            "Current hostname: $current_hostname" \
+            "" \
+            "You are not on the master machine."
+        echo ""
+
+        if ! gum confirm "Continue with dotf update anyway?"; then
+            echo "Update cancelled."
+            exit 0
+        fi
+
+        echo ""
+    fi
+}
+
 cmd_update() {
     local git_flags=""
 
@@ -130,6 +166,7 @@ cmd_update() {
         esac
     done
 
+    check_hostname
     update_dotfiles_repo
 
     cd "$DOTFILES_DIR"
