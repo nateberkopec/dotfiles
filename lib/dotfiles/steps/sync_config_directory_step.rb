@@ -9,7 +9,10 @@ class Dotfiles::Step::SyncConfigDirectoryStep < Dotfiles::Step
   end
 
   def complete?
-    config_items.all? { |item| item_in_sync?(item) }
+    super
+    out_of_sync_items = config_items.reject { |item| item_in_sync?(item) }
+    out_of_sync_items.each { |item| add_error("Config item '#{item}' is not in sync") }
+    out_of_sync_items.empty?
   end
 
   def should_run?

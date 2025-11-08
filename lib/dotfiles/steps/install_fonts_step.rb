@@ -26,23 +26,28 @@ class Dotfiles::Step::InstallFontsStep < Dotfiles::Step
   end
 
   def complete?
+    super
     font_dir = "#{@dotfiles_dir}/fonts"
     font_files = @system.glob("#{font_dir}/*.ttf")
     installed_fonts, status = execute("fc-list", quiet: true)
-    return false unless status == 0
 
-    all_fonts_installed = font_files.all? do |font_path|
+    unless status == 0
+      add_error("Failed to check installed fonts (fc-list command failed)")
+      return false
+    end
+
+    missing_fonts = font_files.reject do |font_path|
       font_name = File.basename(font_path, ".ttf")
       installed_fonts.include?(font_name)
     end
 
-    if all_fonts_installed
-      true
-    elsif ci_or_noninteractive?
-      nil
-    else
-      false
+    if missing_fonts.any?
+      return nil if ci_or_noninteractive?
+      missing_fonts.each { |font_path| add_error("Font not installed: #{File.basename(font_path)}") }
+      return false
     end
+
+    true
   end
 
   # Sync selected fonts from the system back into the repo.

@@ -9,6 +9,7 @@ class Dotfiles::Step::UpdateHomebrewStep < Dotfiles::Step
   end
 
   def complete?
+    super
     true
   end
 end

@@ -7,6 +7,13 @@ class Dotfiles::Step::DisableDisplaysHaveSpacesStep < Dotfiles::Step
   end
 
   def complete?
-    defaults_read_equals?(build_read_command("com.apple.spaces", "spans-displays"), "1")
+    super
+    defaults_complete?("Displays-have-spaces")
+  end
+
+  private
+
+  def setting_entries
+    [["com.apple.spaces", "spans-displays", "1"]]
   end
 end

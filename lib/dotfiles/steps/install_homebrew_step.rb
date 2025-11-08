@@ -28,6 +28,11 @@ class Dotfiles::Step::InstallHomebrewStep < Dotfiles::Step
   end
 
   def complete?
-    command_exists?("brew") || @skipped_due_to_admin
+    super
+    return true if command_exists?("brew")
+    return true if @skipped_due_to_admin
+
+    add_error("Homebrew is not installed")
+    false
   end
 end

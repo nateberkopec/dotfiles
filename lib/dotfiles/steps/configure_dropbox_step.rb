@@ -14,7 +14,15 @@ class Dotfiles::Step::ConfigureDropboxStep < Dotfiles::Step
   end
 
   def complete?
-    !dropbox_installed? || dropbox_configured?
+    super
+    return true unless dropbox_installed?
+
+    unless dropbox_configured?
+      add_error("Dropbox is installed but not configured (no Dropbox folder found)")
+      return false
+    end
+
+    true
   end
 
   private

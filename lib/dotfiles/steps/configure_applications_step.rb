@@ -8,15 +8,17 @@ class Dotfiles::Step::ConfigureApplicationsStep < Dotfiles::Step
   end
 
   def complete?
+    super
     ghostty_config = app_path("ghostty_config_file")
     aerospace_config = home_path("aerospace_config")
     git_config = home_path("gitconfig")
     hushlogin = home_path("hushlogin")
 
-    files_match?(ghostty_config, dotfiles_source("ghostty_config")) &&
-      files_match?(aerospace_config, dotfiles_source("aerospace_config")) &&
-      files_match?(git_config, dotfiles_source("git_config")) &&
-      files_match?(hushlogin, dotfiles_source("hushlogin"))
+    add_error("Ghostty config not in sync") unless files_match?(ghostty_config, dotfiles_source("ghostty_config"))
+    add_error("Aerospace config not in sync") unless files_match?(aerospace_config, dotfiles_source("aerospace_config"))
+    add_error("Git config not in sync") unless files_match?(git_config, dotfiles_source("git_config"))
+    add_error("Hushlogin not in sync") unless files_match?(hushlogin, dotfiles_source("hushlogin"))
+    @errors.empty?
   end
 
   def update

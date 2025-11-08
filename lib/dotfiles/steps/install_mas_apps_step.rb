@@ -21,10 +21,14 @@ class Dotfiles::Step::InstallMasAppsStep < Dotfiles::Step
   end
 
   def complete?
+    super
     return true if ENV["CI"]
 
-    mas_apps.all? { |app_id, _| app_installed?(app_id) }
-  rescue
+    missing_apps = mas_apps.reject { |app_id, _| app_installed?(app_id) }
+    missing_apps.each { |app_id, app_name| add_error("#{app_name} (#{app_id}) not installed") }
+    missing_apps.empty?
+  rescue => e
+    add_error("Failed to check MAS app installation status: #{e.message}")
     false
   end
 

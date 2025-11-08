@@ -7,14 +7,13 @@ class Dotfiles::Step::SetFontSmoothingStep < Dotfiles::Step
   end
 
   def complete?
-    defaults_read_equals?(build_read_command("NSGlobalDomain", "AppleFontSmoothing", current_host: true), "0")
+    super
+    defaults_complete?("Font smoothing", current_host: true)
   end
 
   private
 
-  def build_read_command(domain, key, current_host: false)
-    domain_flag = domain_flag_for(domain)
-    host_flag = current_host ? "-currentHost " : ""
-    "defaults #{host_flag}read #{domain_flag} #{key}"
+  def setting_entries
+    [["NSGlobalDomain", "AppleFontSmoothing", "0"]]
   end
 end

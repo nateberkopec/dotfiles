@@ -9,6 +9,7 @@ class Dotfiles::Step::CheckUnmanagedAppsStep < Dotfiles::Step
   end
 
   def complete?
+    super
     true
   end
 

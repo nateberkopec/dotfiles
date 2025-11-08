@@ -68,9 +68,20 @@ class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
   end
 
   def complete?
+    super
     return true if ran?
-    return false unless @system.file_exist?(@brewfile_path)
+
+    unless @system.file_exist?(@brewfile_path)
+      add_error("Brewfile does not exist at #{@brewfile_path}")
+      return false
+    end
+
     raise "packages_already_installed? must be called before complete?" if @packages_installed_status.nil?
+
+    unless @packages_installed_status
+      add_error("Some Homebrew packages are not installed")
+    end
+
     @packages_installed_status
   end
 

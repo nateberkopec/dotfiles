@@ -48,10 +48,17 @@ class Dotfiles::Step::SetupSSHKeysStep < Dotfiles::Step
   end
 
   def complete?
+    super
     return true if ci_or_noninteractive?
-    return false unless @system.file_exist?(SSH_CONFIG_PATH)
+
+    unless @system.file_exist?(SSH_CONFIG_PATH)
+      add_error("SSH config file does not exist at #{SSH_CONFIG_PATH}")
+      return false
+    end
 
     config_content = @system.read_file(SSH_CONFIG_PATH)
-    config_content.include?("IdentityAgent") && config_content.include?("1password")
+    add_error("SSH config missing IdentityAgent setting") unless config_content.include?("IdentityAgent")
+    add_error("SSH config missing 1Password agent reference") unless config_content.include?("1password")
+    @errors.empty?
   end
 end
