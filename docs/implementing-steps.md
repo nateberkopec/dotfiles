@@ -162,7 +162,20 @@ No manual registration required - just create the class and it's available.
 
 ## Testing Steps
 
-Steps should be tested with both unit tests and integration tests. Mock the `SystemAdapter` to avoid file system side effects:
+Steps should be tested with both unit tests and integration tests. Mock the `SystemAdapter` to avoid file system side effects.
+
+### Test Helpers
+
+The test suite provides several helper modules to reduce boilerplate and make tests more maintainable:
+
+- **[StepTestCase](../test/support/step_test_case.rb)**: Base class that provides automatic step instantiation and assertion helpers like `assert_complete`, `assert_incomplete`, and `assert_should_run`
+- **[SystemAssertions](../test/support/system_assertions.rb)**: Command verification helpers for asserting system operations like `assert_executed` and `assert_defaults_written`
+- **[ConfigFixtureHelper](../test/support/config_fixture_helper.rb)**: YAML config management for writing test fixtures
+- **[DefaultsTestHelper](../test/support/defaults_test_helper.rb)**: macOS defaults testing utilities for steps that interact with `defaults` command
+
+See existing step tests for examples of how to use these helpers.
+
+### Example Without Helpers
 
 ```ruby
 class SyncConfigDirectoryStepTest < Minitest::Test

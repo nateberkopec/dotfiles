@@ -1,3 +1,5 @@
+require "shellwords"
+
 class Dotfiles::Step::InstallFontsStep < Dotfiles::Step
   def should_run?
     if ci_or_noninteractive?

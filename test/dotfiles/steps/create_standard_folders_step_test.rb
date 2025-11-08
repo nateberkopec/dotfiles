@@ -1,59 +1,57 @@
 require "test_helper"
 
-class CreateStandardFoldersStepTest < Minitest::Test
+class CreateStandardFoldersStepTest < StepTestCase
+  step_class Dotfiles::Step::CreateStandardFoldersStep
+
+  def setup
+    super
+    set_standard_folders("Documents/Inbox", "Documents/Code.nosync")
+  end
+
   def test_run_creates_all_folders
-    step = create_step_with_folders(["Documents/Inbox", "Documents/Code.nosync"])
     step.run
-    assert @fake_system.received_operation?(:mkdir_p, "#{@home}/Documents/Inbox")
-    assert @fake_system.received_operation?(:mkdir_p, "#{@home}/Documents/Code.nosync")
+    assert_command_run(:mkdir_p, File.join(@home, "Documents/Inbox"))
+    assert_command_run(:mkdir_p, File.join(@home, "Documents/Code.nosync"))
+  end
+
+  def test_run_handles_existing_folders
+    @fake_system.mkdir_p(File.join(@home, "Documents/Inbox"))
+    step.run
+
+    assert_command_run(:mkdir_p, File.join(@home, "Documents/Inbox"))
+  end
+
+  def test_run_creates_nested_paths
+    set_standard_folders("Documents/Code.nosync/business")
+    step.run
+    assert_command_run(:mkdir_p, File.join(@home, "Documents/Code.nosync/business"))
   end
 
   def test_complete_when_all_folders_exist
-    step = create_step_with_folders(["Documents/Inbox", "Documents/Code.nosync"])
-    @fake_system.mkdir_p("#{@home}/Documents/Inbox")
-    @fake_system.mkdir_p("#{@home}/Documents/Code.nosync")
-    assert step.complete?
+    create_folders("Documents/Inbox", "Documents/Code.nosync")
+    assert_complete
   end
 
   def test_incomplete_when_any_folder_missing
-    step = create_step_with_folders(["Documents/Inbox", "Documents/Code.nosync"])
-    @fake_system.mkdir_p("#{@home}/Documents/Inbox")
-    refute step.complete?
+    create_folders("Documents/Inbox")
+    assert_incomplete
   end
 
-  def test_complete_returns_true_when_no_folders_configured
-    step = create_step_with_folders([])
-    assert step.complete?
-  end
-
-  def test_run_handles_existing_folders_gracefully
-    step = create_step_with_folders(["Documents/Inbox"])
-    @fake_system.mkdir_p("#{@home}/Documents/Inbox")
-    step.run
-    assert @fake_system.received_operation?(:mkdir_p, "#{@home}/Documents/Inbox")
-  end
-
-  def test_run_creates_nested_folders
-    step = create_step_with_folders(["Documents/Code.nosync/business"])
-    step.run
-    assert @fake_system.received_operation?(:mkdir_p, "#{@home}/Documents/Code.nosync/business")
+  def test_complete_when_no_folders_configured
+    set_standard_folders
+    assert_complete
   end
 
   private
 
-  def create_step_with_folders(folders)
-    step = create_step(Dotfiles::Step::CreateStandardFoldersStep)
-    step.config.load_config("folders.yml")
-    stub_folders_config(step, folders)
-    step
+  def set_standard_folders(*folders)
+    write_config("folders", {"standard_folders" => folders})
+    reset_step_cache(step, :@folders_config, :@standard_folders) if defined?(@step) && @step
   end
 
-  def stub_folders_config(step, folders)
-    @fake_system.stub_file_content(
-      "#{@dotfiles_dir}/config/folders.yml",
-      YAML.dump({"standard_folders" => folders})
-    )
-    step.instance_variable_set(:@folders_config, nil)
-    step.instance_variable_set(:@standard_folders, nil)
+  def create_folders(*folders)
+    folders.each do |folder|
+      @fake_system.mkdir_p(File.join(@home, folder))
+    end
   end
 end

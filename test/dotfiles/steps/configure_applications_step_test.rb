@@ -1,86 +1,78 @@
 require "test_helper"
 
-class ConfigureApplicationsStepTest < Minitest::Test
+class ConfigureApplicationsStepTest < StepTestCase
+  step_class Dotfiles::Step::ConfigureApplicationsStep
+
   def setup
     super
-  end
-
-  def test_step_exists
-    step = create_step(Dotfiles::Step::ConfigureApplicationsStep)
-    assert_instance_of Dotfiles::Step::ConfigureApplicationsStep, step
+    stub_default_paths(step)
   end
 
   def test_complete_when_all_files_match
-    step = create_configured_step
-    assert step.complete?
+    seed_files(repo: "same", home: "same")
+    assert_complete
   end
 
-  def test_not_complete_when_files_dont_match
-    step = create_configured_step(ghostty_home: "old ghostty config")
-    refute step.complete?
+  def test_incomplete_when_any_file_differs
+    seed_files(repo: "same", home: "different")
+    assert_incomplete
   end
 
-  def test_not_complete_when_files_missing
-    step = create_step(Dotfiles::Step::ConfigureApplicationsStep, dotfiles_dir: @fixtures_dir)
-    refute step.complete?
+  def test_incomplete_when_files_missing
+    assert_incomplete
   end
 
   def test_update_copies_changed_files
-    step = create_step(Dotfiles::Step::ConfigureApplicationsStep, dotfiles_dir: @fixtures_dir)
-    stub_default_paths(step)
-    @fake_system.stub_file_content("/tmp/home/Library/Application Support/com.mitchellh.ghostty/config", "updated ghostty")
-    @fake_system.stub_file_content("#{@fixtures_dir}/files/ghostty/config", "old ghostty")
-    @fake_system.stub_file_content("/tmp/home/.aerospace.toml", "updated aerospace")
-    @fake_system.stub_file_content("#{@fixtures_dir}/files/aerospace/.aerospace.toml", "old aerospace")
-    @fake_system.stub_file_content("/tmp/home/.gitconfig", "updated git")
-    @fake_system.stub_file_content("#{@fixtures_dir}/files/git/.gitconfig", "old git")
-    @fake_system.stub_file_content("/tmp/home/.hushlogin", "updated hushlogin")
-    @fake_system.stub_file_content("#{@fixtures_dir}/files/.hushlogin", "old hushlogin")
-
+    seed_files(repo: "old", home: "new")
     step.update
 
-    assert_equal "updated ghostty", @fake_system.filesystem[File.expand_path("#{@fixtures_dir}/files/ghostty/config")]
-    assert_equal "updated aerospace", @fake_system.filesystem[File.expand_path("#{@fixtures_dir}/files/aerospace/.aerospace.toml")]
-    assert_equal "updated git", @fake_system.filesystem[File.expand_path("#{@fixtures_dir}/files/git/.gitconfig")]
-    assert_equal "updated hushlogin", @fake_system.filesystem[File.expand_path("#{@fixtures_dir}/files/.hushlogin")]
+    file_pairs.each_value do |paths|
+      assert_equal "new", @fake_system.read_file(paths[:repo])
+    end
   end
 
-  def test_update_skips_unchanged_files
-    step = create_step(Dotfiles::Step::ConfigureApplicationsStep, dotfiles_dir: @fixtures_dir)
-    stub_default_paths(step)
-    @fake_system.stub_file_content("/tmp/home/Library/Application Support/com.mitchellh.ghostty/config", "same ghostty")
-    @fake_system.stub_file_content("#{@fixtures_dir}/files/ghostty/config", "same ghostty")
-    @fake_system.stub_file_content("/tmp/home/.aerospace.toml", "same aerospace")
-    @fake_system.stub_file_content("#{@fixtures_dir}/files/aerospace/.aerospace.toml", "same aerospace")
-    @fake_system.stub_file_content("/tmp/home/.gitconfig", "same git")
-    @fake_system.stub_file_content("#{@fixtures_dir}/files/git/.gitconfig", "same git")
-    @fake_system.stub_file_content("/tmp/home/.hushlogin", "same hushlogin")
-    @fake_system.stub_file_content("#{@fixtures_dir}/files/.hushlogin", "same hushlogin")
-
+  def test_update_skips_matching_files
+    seed_files(repo: "same", home: "same")
     step.update
-
-    refute @fake_system.received_operation?(:cp)
+    refute_command_run(:cp)
   end
 
   def test_update_handles_missing_files
-    step = create_step(Dotfiles::Step::ConfigureApplicationsStep, dotfiles_dir: @fixtures_dir)
     step.update
-    refute @fake_system.received_operation?(:cp)
+    refute_command_run(:cp)
   end
 
   private
 
-  def create_configured_step(ghostty_home: "ghostty config", aerospace_home: "aerospace config", git_home: "git config", hushlogin_home: "hushlogin")
-    step = create_step(Dotfiles::Step::ConfigureApplicationsStep, dotfiles_dir: @fixtures_dir)
-    stub_default_paths(step)
-    @fake_system.stub_file_content("#{@fixtures_dir}/files/ghostty/config", "ghostty config")
-    @fake_system.stub_file_content("/tmp/home/Library/Application Support/com.mitchellh.ghostty/config", ghostty_home)
-    @fake_system.stub_file_content("#{@fixtures_dir}/files/aerospace/.aerospace.toml", "aerospace config")
-    @fake_system.stub_file_content("/tmp/home/.aerospace.toml", aerospace_home)
-    @fake_system.stub_file_content("#{@fixtures_dir}/files/git/.gitconfig", "git config")
-    @fake_system.stub_file_content("/tmp/home/.gitconfig", git_home)
-    @fake_system.stub_file_content("#{@fixtures_dir}/files/.hushlogin", "hushlogin")
-    @fake_system.stub_file_content("/tmp/home/.hushlogin", hushlogin_home)
-    step
+  def step_overrides
+    {dotfiles_dir: @fixtures_dir}
+  end
+
+  def file_pairs
+    @file_pairs ||= {
+      ghostty: {
+        home: File.join(@home, "Library/Application Support/com.mitchellh.ghostty/config"),
+        repo: File.join(@fixtures_dir, "files/ghostty/config")
+      },
+      aerospace: {
+        home: File.join(@home, ".aerospace.toml"),
+        repo: File.join(@fixtures_dir, "files/aerospace/.aerospace.toml")
+      },
+      git: {
+        home: File.join(@home, ".gitconfig"),
+        repo: File.join(@fixtures_dir, "files/git/.gitconfig")
+      },
+      hushlogin: {
+        home: File.join(@home, ".hushlogin"),
+        repo: File.join(@fixtures_dir, "files/.hushlogin")
+      }
+    }
+  end
+
+  def seed_files(repo:, home:)
+    file_pairs.each_value do |paths|
+      @fake_system.stub_file_content(paths[:repo], repo)
+      @fake_system.stub_file_content(paths[:home], home)
+    end
   end
 end

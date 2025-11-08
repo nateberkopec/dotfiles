@@ -2,7 +2,11 @@ $LOAD_PATH.unshift File.expand_path("../lib", __dir__)
 require "dotfiles"
 require "minitest/autorun"
 require "minitest/pride"
+require "yaml"
 require_relative "support/fake_system_adapter"
+require_relative "support/system_assertions"
+require_relative "support/config_fixture_helper"
+require_relative "support/step_test_case"
 
 ENV.delete("CI")
 ENV.delete("NONINTERACTIVE")

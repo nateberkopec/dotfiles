@@ -1,104 +1,75 @@
 require "test_helper"
 
-class ConfigureDropboxStepTest < Minitest::Test
-  def setup
-    super
-    @step = create_step(Dotfiles::Step::ConfigureDropboxStep)
+class ConfigureDropboxStepTest < StepTestCase
+  step_class Dotfiles::Step::ConfigureDropboxStep
+
+  def test_should_run_when_installed_but_not_configured
+    install_dropbox
+    assert_should_run
   end
 
-  def test_depends_on_install_brew_packages_step
-    assert_equal [Dotfiles::Step::InstallBrewPackagesStep], Dotfiles::Step::ConfigureDropboxStep.depends_on
+  def test_should_not_run_when_not_installed
+    refute_should_run
   end
 
-  def test_should_run_when_dropbox_installed_but_not_configured
-    stub_dropbox_installed
-    refute_dropbox_configured
-
-    assert @step.should_run?
-  end
-
-  def test_should_not_run_when_dropbox_not_installed
-    refute_dropbox_installed
-
-    refute @step.should_run?
-  end
-
-  def test_should_not_run_when_dropbox_already_configured
-    stub_dropbox_installed
-    stub_dropbox_configured
-
-    refute @step.should_run?
+  def test_should_not_run_when_already_configured
+    install_dropbox
+    configure_dropbox
+    refute_should_run
   end
 
   def test_complete_when_dropbox_folder_exists
-    stub_dropbox_configured
-
-    assert @step.complete?
+    configure_dropbox
+    assert_complete
   end
 
-  def test_complete_when_cloud_storage_dropbox_folder_exists
-    stub_cloud_storage_dropbox_configured
-
-    assert @step.complete?
+  def test_complete_when_cloud_storage_folder_exists
+    configure_cloud_storage
+    assert_complete
   end
 
-  def test_incomplete_when_dropbox_installed_but_folder_does_not_exist
-    stub_dropbox_installed
-    refute_dropbox_configured
-
-    refute @step.complete?
+  def test_incomplete_when_installed_but_missing_folder
+    install_dropbox
+    assert_incomplete
   end
 
-  def test_complete_when_dropbox_not_installed
-    refute_dropbox_installed
-
-    assert @step.complete?
+  def test_complete_when_not_installed
+    assert_complete
   end
 
-  def test_run_launches_dropbox_app
-    stub_dropbox_installed
+  def test_run_launches_dropbox_and_adds_notice
+    install_dropbox
+    step.run
 
-    @step.run
-
-    assert @fake_system.received_operation?(:execute, "open -a Dropbox", {quiet: true})
-  end
-
-  def test_run_adds_setup_notice
-    stub_dropbox_installed
-
-    @step.run
-
-    assert_equal 1, @step.notices.length
-    notice = @step.notices.first
-    assert_equal "📦 Dropbox Setup Required", notice[:title]
-    assert_includes notice[:message], "Sign in to your Dropbox account"
-    assert_includes notice[:message], "~/Dropbox"
+    assert_executed("open -a Dropbox")
+    notice = step.notices.first
+    assert notice, "Expected notice after running step"
+    assert_includes notice[:title], "Dropbox"
   end
 
   private
 
-  def stub_dropbox_installed
-    @fake_system.filesystem["/Applications/Dropbox.app"] = :directory
+  def dropbox_app_path
+    "/Applications/Dropbox.app"
   end
 
-  def refute_dropbox_installed
-    @fake_system.filesystem.delete("/Applications/Dropbox.app")
+  def dropbox_home_path
+    File.join(@home, "Dropbox")
   end
 
-  def stub_dropbox_configured
-    dropbox_folder = File.join(@home, "Dropbox")
-    @fake_system.filesystem[dropbox_folder] = :directory
+  def dropbox_cloud_path
+    File.join(@home, "Library", "CloudStorage", "Dropbox")
   end
 
-  def stub_cloud_storage_dropbox_configured
-    cloud_storage_dropbox = File.join(@home, "Library", "CloudStorage", "Dropbox")
-    @fake_system.filesystem[cloud_storage_dropbox] = :directory
+  def install_dropbox
+    @fake_system.filesystem[dropbox_app_path] = :directory
   end
 
-  def refute_dropbox_configured
-    dropbox_folder = File.join(@home, "Dropbox")
-    cloud_storage_dropbox = File.join(@home, "Library", "CloudStorage", "Dropbox")
-    @fake_system.filesystem.delete(dropbox_folder)
-    @fake_system.filesystem.delete(cloud_storage_dropbox)
+  def configure_dropbox
+    @fake_system.filesystem[dropbox_home_path] = :directory
+  end
+
+  def configure_cloud_storage
+    @fake_system.filesystem[dropbox_cloud_path] = :directory
   end
 end

@@ -1,110 +1,108 @@
 require "test_helper"
 
-class ConfigureIceStepTest < Minitest::Test
+class ConfigureIceStepTest < StepTestCase
+  step_class Dotfiles::Step::ConfigureIceStep
+
   def setup
     super
-    @step = create_step(Dotfiles::Step::ConfigureIceStep)
-    @step.config.paths = {
-      "application_paths" => {
-        "ice_preferences" => "#{@home}/Library/Preferences/com.jordanbaird.Ice.plist"
-      },
-      "dotfiles_sources" => {
-        "ice_config" => "files/ice/com.jordanbaird.Ice.plist"
-      }
-    }
+    configure_paths
   end
 
-  def test_complete_returns_false_by_default
-    refute @step.complete?
+  def test_should_run_when_installed_and_incomplete
+    install_ice
+    assert_should_run
   end
 
-  def test_complete_when_configured
+  def test_should_not_run_when_not_installed
+    refute_should_run
+  end
+
+  def test_run_copies_preferences_and_configures_login
+    install_ice
+    stub_config_files
+
+    step.run
+
+    assert_command_run(:cp, ice_config_path, ice_preferences_path)
+    assert_executed(login_items_creation_command)
+    assert_executed("killall Ice 2>/dev/null; open -a Ice")
+  end
+
+  def test_complete_when_preferences_and_login_item_exist
     stub_ice_configured
-    assert @step.complete?
+    assert_complete
   end
 
-  def test_complete_returns_false_when_preferences_missing
+  def test_incomplete_without_preferences
     stub_login_items("Ice")
-    refute @step.complete?
+    assert_incomplete
   end
 
-  def test_complete_returns_false_when_not_in_login_items
-    stub_ice_preferences
+  def test_incomplete_without_login_item
+    stub_preferences
     stub_login_items("")
-    refute @step.complete?
+    assert_incomplete
   end
 
-  def test_should_run_returns_false_when_ice_not_installed
-    refute @step.should_run?
-  end
-
-  def test_should_run_returns_true_when_ice_installed_but_not_configured
-    @fake_system.stub_file_content("/Applications/Ice.app", "app")
-    assert @step.should_run?
-  end
-
-  def test_should_run_returns_false_when_ice_installed_and_configured
-    @fake_system.stub_file_content("/Applications/Ice.app", "app")
-    stub_ice_configured
-    refute @step.should_run?
-  end
-
-  def test_run_copies_config_file
-    src_config = File.join(@dotfiles_dir, "files/ice/com.jordanbaird.Ice.plist")
-    dest_preferences = "#{@home}/Library/Preferences/com.jordanbaird.Ice.plist"
-
-    @fake_system.stub_file_content(src_config, "plist content")
-    @step.run
-
-    assert @fake_system.received_operation?(:cp, src_config, dest_preferences)
-  end
-
-  def test_run_configures_launch_at_login
-    stub_and_run
-    assert @fake_system.received_operation?(:execute, "osascript -e 'tell application \"System Events\" to make login item at end with properties {path:\"/Applications/Ice.app\", hidden:false}'", {quiet: true})
-  end
-
-  def test_run_restarts_ice
-    stub_and_run
-    assert @fake_system.received_operation?(:execute, "killall Ice 2>/dev/null; open -a Ice", {quiet: true})
-  end
-
-  def test_update_copies_preferences_to_repo
-    src_preferences = "#{@home}/Library/Preferences/com.jordanbaird.Ice.plist"
-    dest_config = File.join(@dotfiles_dir, "files/ice/com.jordanbaird.Ice.plist")
-
-    @fake_system.stub_file_content(src_preferences, "updated plist")
-    @step.update
-
-    assert @fake_system.received_operation?(:cp, src_preferences, dest_config)
+  def test_update_copies_preferences_into_repo
+    stub_preferences("plist data")
+    step.update
+    assert_command_run(:cp, ice_preferences_path, ice_config_path)
   end
 
   def test_update_skips_when_preferences_missing
-    @step.update
-    refute @fake_system.received_operation?(:cp)
+    step.update
+    refute_command_run(:cp)
   end
 
   private
+
+  def step_overrides
+    {dotfiles_dir: @dotfiles_dir}
+  end
+
+  def configure_paths
+    paths = {
+      "application_paths" => {"ice_preferences" => ice_preferences_path},
+      "dotfiles_sources" => {"ice_config" => "files/ice/com.jordanbaird.Ice.plist"}
+    }
+    step.config.paths = paths
+  end
+
+  def ice_preferences_path
+    File.join(@home, "Library/Preferences/com.jordanbaird.Ice.plist")
+  end
 
   def ice_config_path
     File.join(@dotfiles_dir, "files/ice/com.jordanbaird.Ice.plist")
   end
 
-  def stub_ice_preferences
-    @fake_system.stub_file_content("#{@home}/Library/Preferences/com.jordanbaird.Ice.plist", "plist content")
+  def install_ice
+    @fake_system.stub_file_content("/Applications/Ice.app", "app")
   end
 
-  def stub_login_items(items)
-    @fake_system.stub_command("osascript -e 'tell application \"System Events\" to get the name of every login item'", items, 0)
+  def stub_preferences(content = "plist")
+    @fake_system.stub_file_content(ice_preferences_path, content)
+  end
+
+  def stub_login_items(output, status: 0)
+    @fake_system.stub_command(login_items_list_command, output, exit_status: status)
+  end
+
+  def stub_config_files
+    @fake_system.stub_file_content(ice_config_path, "plist template")
   end
 
   def stub_ice_configured
-    stub_ice_preferences
-    stub_login_items("Ice, OtherApp")
+    stub_preferences
+    stub_login_items("Ice,AnotherApp")
   end
 
-  def stub_and_run
-    @fake_system.stub_file_content(ice_config_path, "plist")
-    @step.run
+  def login_items_list_command
+    "osascript -e 'tell application \"System Events\" to get the name of every login item'"
+  end
+
+  def login_items_creation_command
+    "osascript -e 'tell application \"System Events\" to make login item at end with properties {path:\"/Applications/Ice.app\", hidden:false}'"
   end
 end
