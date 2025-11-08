@@ -14,7 +14,7 @@ class DisableAnimationsStepTest < Minitest::Test
           NSWindowResizeTime: 0.001
         com.apple.dock:
           launchanim: 0
-          autohide-time-modifier: 0
+          autohide-time-modifier: 0.4
         com.apple.finder:
           DisableAllAnimations: 1
     YAML
@@ -26,7 +26,7 @@ class DisableAnimationsStepTest < Minitest::Test
     @fake_system.stub_command("defaults read -g NSAutomaticWindowAnimationsEnabled", "0", exit_status: 0)
     @fake_system.stub_command("defaults read -g NSWindowResizeTime", "0.001", exit_status: 0)
     @fake_system.stub_command("defaults read com.apple.dock launchanim", "0", exit_status: 0)
-    @fake_system.stub_command("defaults read com.apple.dock autohide-time-modifier", "0", exit_status: 0)
+    @fake_system.stub_command("defaults read com.apple.dock autohide-time-modifier", "0.4", exit_status: 0)
     @fake_system.stub_command("defaults read com.apple.finder DisableAllAnimations", "1", exit_status: 0)
   end
 
@@ -42,7 +42,7 @@ class DisableAnimationsStepTest < Minitest::Test
     assert @fake_system.received_operation?(:execute, "defaults write -g NSAutomaticWindowAnimationsEnabled -int 0", {quiet: true})
     assert @fake_system.received_operation?(:execute, "defaults write -g NSWindowResizeTime -float 0.001", {quiet: true})
     assert @fake_system.received_operation?(:execute, "defaults write com.apple.dock launchanim -int 0", {quiet: true})
-    assert @fake_system.received_operation?(:execute, "defaults write com.apple.dock autohide-time-modifier -int 0", {quiet: true})
+    assert @fake_system.received_operation?(:execute, "defaults write com.apple.dock autohide-time-modifier -float 0.4", {quiet: true})
     assert @fake_system.received_operation?(:execute, "defaults write com.apple.finder DisableAllAnimations -int 1", {quiet: true})
   end
 

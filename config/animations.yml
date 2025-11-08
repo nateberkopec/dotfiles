@@ -10,7 +10,7 @@ animation_settings:
     NSToolbarFullScreenAnimationDuration: 0
     NSBrowserColumnAnimationSpeedMultiplier: 0
   com.apple.dock:
-    autohide-time-modifier: 0
+    autohide-time-modifier: 0.4
     autohide-delay: 0
     expose-animation-duration: 0
     springboard-show-duration: 0
