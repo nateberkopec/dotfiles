@@ -20,7 +20,7 @@ class Dotfiles::Step::ConfigureDropboxStep < Dotfiles::Step
   private
 
   def dropbox_installed?
-    @system.dir_exist?("/Applications/Dropbox.app")
+    @system.dir_exist?("/Applications/Dropbox.app") || @system.dir_exist?(File.join(@home, "Applications", "Dropbox.app"))
   end
 
   def dropbox_configured?

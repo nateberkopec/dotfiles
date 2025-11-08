@@ -31,7 +31,7 @@ class Dotfiles::Step::ConfigureIceStep < Dotfiles::Step
   private
 
   def ice_installed?
-    @system.file_exist?("/Applications/Ice.app")
+    @system.file_exist?("/Applications/Ice.app") || @system.file_exist?(File.join(@home, "Applications", "Ice.app"))
   end
 
   def configure_preferences
