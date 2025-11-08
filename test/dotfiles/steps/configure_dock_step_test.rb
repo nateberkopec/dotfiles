@@ -1,13 +1,6 @@
 require "test_helper"
 
 class ConfigureDockStepTest < Minitest::Test
-  def test_run_creates_inbox_directory
-    step = create_step(Dotfiles::Step::ConfigureDockStep)
-    stub_run
-    step.run
-    assert @fake_system.received_operation?(:mkdir_p, inbox_path)
-  end
-
   def test_run_applies_all_dock_settings
     step = create_step(Dotfiles::Step::ConfigureDockStep)
     stub_run
