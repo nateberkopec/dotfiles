@@ -15,7 +15,7 @@ class Dotfiles::Step::UpgradeBrewPackagesStep < Dotfiles::Step
   private
 
   def check_outdated_packages
-    output, = @system.execute("brew outdated")
+    output, = @system.execute("brew upgrade -n")
     return if output.strip.empty?
 
     package_count = output.strip.split("\n").size
