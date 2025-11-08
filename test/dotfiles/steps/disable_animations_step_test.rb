@@ -23,11 +23,11 @@ class DisableAnimationsStepTest < Minitest::Test
   end
 
   def stub_default_outputs
-    @fake_system.stub_command_output("defaults read -g NSAutomaticWindowAnimationsEnabled", "0", exit_status: 0)
-    @fake_system.stub_command_output("defaults read -g NSWindowResizeTime", "0.001", exit_status: 0)
-    @fake_system.stub_command_output("defaults read com.apple.dock launchanim", "0", exit_status: 0)
-    @fake_system.stub_command_output("defaults read com.apple.dock autohide-time-modifier", "0", exit_status: 0)
-    @fake_system.stub_command_output("defaults read com.apple.finder DisableAllAnimations", "1", exit_status: 0)
+    @fake_system.stub_command("defaults read -g NSAutomaticWindowAnimationsEnabled", "0", exit_status: 0)
+    @fake_system.stub_command("defaults read -g NSWindowResizeTime", "0.001", exit_status: 0)
+    @fake_system.stub_command("defaults read com.apple.dock launchanim", "0", exit_status: 0)
+    @fake_system.stub_command("defaults read com.apple.dock autohide-time-modifier", "0", exit_status: 0)
+    @fake_system.stub_command("defaults read com.apple.finder DisableAllAnimations", "1", exit_status: 0)
   end
 
   def test_step_exists
@@ -63,24 +63,24 @@ class DisableAnimationsStepTest < Minitest::Test
   def test_incomplete_when_any_setting_differs
     step = create_step(Dotfiles::Step::DisableAnimationsStep)
     stub_default_outputs
-    @fake_system.stub_command_output("defaults read -g NSAutomaticWindowAnimationsEnabled", "1", exit_status: 0)
+    @fake_system.stub_command("defaults read -g NSAutomaticWindowAnimationsEnabled", "1", exit_status: 0)
     refute step.complete?
   end
 
   def test_incomplete_when_setting_missing
     step = create_step(Dotfiles::Step::DisableAnimationsStep)
-    @fake_system.stub_command_output("defaults read -g NSAutomaticWindowAnimationsEnabled", "", exit_status: 1)
+    @fake_system.stub_command("defaults read -g NSAutomaticWindowAnimationsEnabled", "", exit_status: 1)
     refute step.complete?
   end
 
   def test_update_reads_current_settings_and_writes_to_config
     step = create_step(Dotfiles::Step::DisableAnimationsStep)
 
-    @fake_system.stub_command_output("defaults read -g NSAutomaticWindowAnimationsEnabled", "1", exit_status: 0)
-    @fake_system.stub_command_output("defaults read -g NSWindowResizeTime", "0.002", exit_status: 0)
-    @fake_system.stub_command_output("defaults read com.apple.dock launchanim", "1", exit_status: 0)
-    @fake_system.stub_command_output("defaults read com.apple.dock autohide-time-modifier", "0.5", exit_status: 0)
-    @fake_system.stub_command_output("defaults read com.apple.finder DisableAllAnimations", "0", exit_status: 0)
+    @fake_system.stub_command("defaults read -g NSAutomaticWindowAnimationsEnabled", "1", exit_status: 0)
+    @fake_system.stub_command("defaults read -g NSWindowResizeTime", "0.002", exit_status: 0)
+    @fake_system.stub_command("defaults read com.apple.dock launchanim", "1", exit_status: 0)
+    @fake_system.stub_command("defaults read com.apple.dock autohide-time-modifier", "0.5", exit_status: 0)
+    @fake_system.stub_command("defaults read com.apple.finder DisableAllAnimations", "0", exit_status: 0)
 
     step.update
     write_op = @fake_system.operations.find { |op| op[0] == :write_file && op[1] == "#{@dotfiles_dir}/config/animations.yml" }
