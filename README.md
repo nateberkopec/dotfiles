@@ -2,6 +2,8 @@
 
 Personal configuration files for my development environment.
 
+My dotfiles are a little different in that they're not just a bunch of files we can cp into `~`. Instead, this is a rich script with a lot of behavior that basically implements a goal of: "given a fresh macOS install, run this one command to get your complete, normal setup and environment". 
+
 ## Installation
 
 1. Clone this repository:
@@ -15,8 +17,6 @@ Personal configuration files for my development environment.
    ./bin/dotf run
    ```
 
-   The script automatically detects your Ruby version and bootstraps a modern Ruby environment if needed.
-
    To see detailed output during installation:
    ```bash
    DEBUG=true ./bin/dotf run
@@ -24,12 +24,7 @@ Personal configuration files for my development environment.
 
 ## Usage
 
-```bash
-dotf <command>
-```
-
-**Commands:**
-- `dotf run` - Set up development environment. Idempotent - safe to run on an already-configured system. Only runs steps that haven't been completed.
+- `dotf run` - Set up development environment. Idempotent - safe to run on an already-configured system. 
 - `dotf update` - Update dotfiles from the system
 - `dotf help` - Show help message
 
