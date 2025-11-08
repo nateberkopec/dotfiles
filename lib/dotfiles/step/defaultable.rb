@@ -25,7 +25,10 @@ class Dotfiles
           entries.filter_map { |domain, key, _value|
             read_command = build_read_command(domain, key)
             output, status = execute(read_command, quiet: true)
-            [key, parse_defaults_value(output)] if status == 0
+            next unless status == 0
+
+            value = parse_defaults_value(output)
+            [key, collapse_path_to_home(value)]
           }.to_h
         end
 

@@ -4,6 +4,7 @@ class Dotfiles::Step::ConfigureDropboxStep < Dotfiles::Step
   end
 
   def should_run?
+    return false if ci_or_noninteractive?
     dropbox_installed? && !dropbox_configured?
   end
 
@@ -15,6 +16,7 @@ class Dotfiles::Step::ConfigureDropboxStep < Dotfiles::Step
 
   def complete?
     super
+    return true if ci_or_noninteractive?
     return true unless dropbox_installed?
 
     unless dropbox_configured?

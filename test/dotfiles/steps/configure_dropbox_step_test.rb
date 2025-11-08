@@ -37,6 +37,14 @@ class ConfigureDropboxStepTest < StepTestCase
     assert_complete
   end
 
+  def test_ci_env_skips_configuration
+    with_ci do
+      install_dropbox
+      refute_should_run
+      assert_complete
+    end
+  end
+
   def test_run_launches_dropbox_and_adds_notice
     install_dropbox
     step.run
