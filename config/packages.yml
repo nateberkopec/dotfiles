@@ -6,11 +6,12 @@ brew:
     - fontconfig
     - gh
     - libyaml
+    - llm
     - mas
     - mise
-    - llm
     - rust
     - starship
+    - thefuck
     - zoxide
 
   casks:
