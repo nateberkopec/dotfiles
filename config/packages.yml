@@ -27,6 +27,7 @@ brew:
     - raycast
     - slack
     - steam
+    - tailscale-app
     - telegram
     - visual-studio-code
     - whatsapp
