@@ -103,4 +103,21 @@
   "remote.SSH.useLocalServer": false,
 
   "vscode-yaml-sort.customSortKeywords_2": ["name"]
+  ,
+  "dev.containers.defaultExtensions": [
+    "anthropic.claude-code",
+    "castwide.solargraph",
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "github.copilot",
+    "github.copilot-chat",
+    "github.vscode-pull-request-github",
+    "ms-vscode.wordcount",
+    "redhat.vscode-yaml",
+    "rvest.vs-code-prettier-eslint",
+    "shopify.ruby-lsp",
+    "streetsidesoftware.code-spell-checker",
+    "vscodevim.vim"
+  ],
+  "rubyLsp.rubyExecutablePath": "/usr/local/bin/ruby"
 }

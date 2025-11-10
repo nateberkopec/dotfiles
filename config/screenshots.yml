@@ -1,4 +1,4 @@
 ---
 screenshot_settings:
   com.apple.screencapture:
-    location: ~/Documents/Inbox
+    location: "~/Documents/Inbox"
