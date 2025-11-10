@@ -1,3 +1,11 @@
 [env]
 _.path = ["./bin"]
 _.file = ".env"
+
+# Fish shell activation - runs when entering this directory
+[hooks.enter]
+shell = "fish"
+script = """
+abbr -a dfr './bin/dotf run'
+abbr -a dfu './bin/dotf update'
+"""
