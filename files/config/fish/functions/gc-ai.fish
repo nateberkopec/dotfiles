@@ -284,13 +284,13 @@ function _validate_message
             return 1
         end
         set description_part (echo "$summary" | sed -E 's/^[^:]+: //')
-        set description_length (string length "$description_part")
+        set description_length (string length -- "$description_part")
         if test $description_length -gt 50
             echo "Conventional commit description too long ($description_length chars), regenerating..."
             return 1
         end
     else
-        set summary_length (string length "$summary")
+        set summary_length (string length -- "$summary")
         if test $summary_length -gt 55
             echo "Summary too long ($summary_length chars), regenerating..."
             return 1
