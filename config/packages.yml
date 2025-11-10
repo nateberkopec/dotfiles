@@ -12,6 +12,7 @@ brew:
     - rust
     - starship
     - thefuck
+    - ykman
     - zoxide
 
   casks:
