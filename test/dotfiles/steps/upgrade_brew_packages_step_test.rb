@@ -14,7 +14,7 @@ class UpgradeBrewPackagesStepTest < Minitest::Test
 
     assert_equal 1, step.notices.size
     assert_includes step.notices.first[:title], "Homebrew Updates Available"
-    assert_includes step.notices.first[:message], "3 package(s)"
+    assert_includes step.notices.first[:message], "2 package(s)"
     assert_includes step.notices.first[:message], "brew upgrade"
   end
 
