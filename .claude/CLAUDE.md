@@ -1,71 +1,38 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code for this project.
+## Shell
 
-## Testing Principles
+I use fish shell.
 
-### Don't Test Types or Data
+Use `gum` to make your shell scripts pretty and fun!
 
-Never test the type or shape of return values. Tests should verify behavior, not implementation details or data structures.
+- gum choose: Choose an option from a list of choices
+- gum confirm: Ask a user to confirm an action
+- gum file: Pick a file from a folder
+- gum filter: Filter items from a list
+- gum format: Format a string using a template
+- gum input: Prompt for some input
+- gum join: Join text vertically or horizontally
+- gum pager: Scroll through a file
+- gum spin: Display spinner while running a command
+- gum style: Apply coloring, borders, spacing to text
+- gum table: Render a table of data
+- gum write: Prompt for long-form text
+- gum log: Log messages to output
 
-Bad:
-```ruby
-def test_complete_returns_boolean
-  result = @step.complete?
-  assert [true, false].include?(result)
-end
-```
+## Github
 
-Good:
-```ruby
-def test_complete_returns_true_by_default
-  assert @step.complete?
-end
-```
+Use `gh` cli for all github interactions.
 
-### Test Meaningful Assertions
+## Ruby
 
-Each public method should have a test for its default return value with no setup.
+### Testing Principles
 
-When testing that a method returns the same value as its default, first establish setup that would make it return the opposite without your intervention. Otherwise the test is meaningless.
+- Never test the type or shape of return values. Tests should verify behavior, not implementation details or data structures.
+- Each public method should have a test for its default return value with no setup.
+- When testing that a method returns the same value as its default, first establish setup that would make it return the opposite without your intervention. Otherwise the test is meaningless.
+- Keep variables as close as possible to where they're used. Don't put them in setup or as constants at the top of the test class.
 
-For example, if `should_run?` returns false by default, a test asserting `should_run?` is false when CI=true is meaningless unless you also do setup that would cause `should_run?` to return true without the CI check.
+### Code Style
 
-Bad:
-```ruby
-def test_should_run_returns_false_in_ci
-  ENV["CI"] = "true"
-  refute @step.should_run?
-end
-```
-
-Good:
-```ruby
-def test_should_run_returns_false_in_ci
-  stub_admin_with_updates  # Without CI, this would return true
-  with_ci { refute @step.should_run? }
-end
-```
-
-### Keep Variables Local
-
-Variables should live as close as possible to where they're used. Don't put them in setup or as constants at the top of the test class. This makes tests easier to read because you don't have to jump around the file to understand what's happening.
-
-Bad:
-```ruby
-def setup
-  @plist_path = "/Library/Preferences/com.apple.SoftwareUpdate.plist"
-end
-
-def stub_plist
-  @fake_system.stub_file_content(@plist_path, "plist")
-end
-```
-
-Good:
-```ruby
-def stub_plist
-  plist_path = "/Library/Preferences/com.apple.SoftwareUpdate.plist"
-  @fake_system.stub_file_content(plist_path, "plist")
-end
-```
+- Use boolean expressions with implicit return for predicate methods, not guard clauses or case statements with literal true/false.
