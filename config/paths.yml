@@ -2,30 +2,4 @@ dotfiles_repo: https://github.com/nateberkopec/dotfiles.git
 # home: /Users/yourusername  # Override default home directory (defaults to ENV["HOME"])
 
 home_paths:
-  gitconfig: ~/.gitconfig
-  aerospace_config: ~/.aerospace.toml
-  hushlogin: ~/.hushlogin
   zprofile: ~/.zprofile
-
-application_paths:
-  claude_config: ~/.claude/CLAUDE.md
-
-  ghostty_config_dir: ~/Library/Application Support/com.mitchellh.ghostty/
-  ghostty_config_file: ~/Library/Application Support/com.mitchellh.ghostty/config
-
-  ice_preferences: ~/Library/Preferences/com.jordanbaird.Ice.plist
-
-  vscode_user_dir: ~/Library/Application Support/Code/User
-  vscode_settings: ~/Library/Application Support/Code/User/settings.json
-  vscode_keybindings: ~/Library/Application Support/Code/User/keybindings.json
-
-dotfiles_sources:
-  claude_config: files/claude/CLAUDE.md
-  ghostty_config: files/ghostty/config
-  aerospace_config: files/aerospace/.aerospace.toml
-  git_config: files/git/.gitconfig
-  hushlogin: files/.hushlogin
-  ice_config: files/ice/com.jordanbaird.Ice.plist
-  vscode_settings: files/vscode/settings.json
-  vscode_keybindings: files/vscode/keybindings.json
-  vscode_extensions: files/vscode/extensions.txt

@@ -4,48 +4,29 @@ class VSCodeConfigurationStepTest < Minitest::Test
   def setup
     super
     @step = create_step(Dotfiles::Step::VSCodeConfigurationStep)
-    @step.config.paths = vscode_paths
+    @extensions_file = "#{@home}/Library/Application Support/Code/User/extensions.txt"
   end
 
-  def vscode_paths
-    user_dir = "#{@home}/Library/Application Support/Code/User"
-    {
-      "application_paths" => {
-        "vscode_user_dir" => user_dir,
-        "vscode_settings" => "#{user_dir}/settings.json",
-        "vscode_keybindings" => "#{user_dir}/keybindings.json"
-      },
-      "dotfiles_sources" => %w[settings keybindings extensions].each_with_object({}) do |name, h|
-        h["vscode_#{name}"] = "files/vscode/#{name}.#{(name == "extensions") ? "txt" : "json"}"
-      end
-    }
-  end
-
-  def test_complete_when_files_exist
-    @fake_system.stub_file_content("#{@home}/Library/Application Support/Code/User/settings.json", "{}")
-    @fake_system.stub_file_content("#{@home}/Library/Application Support/Code/User/keybindings.json", "[]")
-
-    assert @step.complete?
-  end
-
-  def test_not_complete_when_files_missing
-    refute @step.complete?
-  end
-
-  def test_run_copies_config_files
-    src_settings = File.join(@dotfiles_dir, "files/vscode/settings.json")
-    src_keybindings = File.join(@dotfiles_dir, "files/vscode/keybindings.json")
-    dest_dir = "#{@home}/Library/Application Support/Code/User"
-
-    @fake_system.stub_file_content(src_settings, "{}")
-    @fake_system.stub_file_content(src_keybindings, "[]")
-
+  def test_complete_in_ci_mode
     ENV["CI"] = "true"
-    @step.run
+    assert @step.complete?
     ENV.delete("CI")
+  end
 
-    assert @fake_system.received_operation?(:mkdir_p, dest_dir)
-    assert @fake_system.received_operation?(:cp, src_settings, dest_dir)
-    assert @fake_system.received_operation?(:cp, src_keybindings, dest_dir)
+  def test_should_not_run_in_ci_mode
+    ENV["CI"] = "true"
+    refute @step.should_run?
+    ENV.delete("CI")
+  end
+
+  def test_run_installs_extensions_from_file
+    @fake_system.stub_file_content(@extensions_file, "ms-python.python\nms-vscode.cpptools\n")
+    @fake_system.stub_command("code --list-extensions", "ms-python.python")
+
+    ENV["NONINTERACTIVE"] = nil
+    ENV["CI"] = nil
+    @step.run
+
+    assert @fake_system.received_operation?(:execute, "code --install-extension ms-vscode.cpptools", quiet: true)
   end
 end

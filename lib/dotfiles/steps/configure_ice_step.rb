@@ -4,7 +4,7 @@ class Dotfiles::Step::ConfigureIceStep < Dotfiles::Step
   end
 
   def self.depends_on
-    [Dotfiles::Step::InstallBrewPackagesStep]
+    [Dotfiles::Step::SyncHomeDirectoryStep]
   end
 
   def should_run?
@@ -14,7 +14,6 @@ class Dotfiles::Step::ConfigureIceStep < Dotfiles::Step
 
   def run
     debug "Configuring Ice menu bar manager..."
-    configure_preferences
     configure_launch_at_login
     restart_ice
   end
@@ -22,12 +21,8 @@ class Dotfiles::Step::ConfigureIceStep < Dotfiles::Step
   def complete?
     super
     return true if ci_or_noninteractive?
-    ice_preferences = app_path("ice_preferences")
 
-    unless ice_preferences
-      add_error("Ice preferences path not configured")
-      return false
-    end
+    ice_preferences = File.join(@home, "Library", "Preferences", "com.jordanbaird.Ice.plist")
 
     unless @system.file_exist?(ice_preferences)
       add_error("Ice preferences file does not exist at #{ice_preferences}")
@@ -42,20 +37,10 @@ class Dotfiles::Step::ConfigureIceStep < Dotfiles::Step
     true
   end
 
-  def update
-    copy_if_exists(app_path("ice_preferences"), dotfiles_source("ice_config"))
-  end
-
   private
 
   def ice_installed?
     @system.file_exist?("/Applications/Ice.app")
-  end
-
-  def configure_preferences
-    ice_preferences = app_path("ice_preferences")
-    ice_config = dotfiles_source("ice_config")
-    @system.cp(ice_config, ice_preferences)
   end
 
   def configure_launch_at_login
