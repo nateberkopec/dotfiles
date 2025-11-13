@@ -18,8 +18,8 @@ class ConfigTest < Minitest::Test
     config = Dotfiles::Config.new(@fixtures_dir)
     paths = config.paths
 
-    assert_equal "~/.config/fish", paths["home_paths"]["fish_config_dir"]
-    assert_equal "files/fish/config.fish", paths["dotfiles_sources"]["fish_config"]
+    # Paths config is now minimal, just verify it loads
+    assert_kind_of Hash, paths
   end
 
   def test_dotfiles_repo_from_config

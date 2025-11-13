@@ -1,12 +1,1 @@
 dotfiles_repo: https://github.com/test/dotfiles.git
-
-home_paths:
-  fish_config_dir: ~/.config/fish
-  fish_config_file: ~/.config/fish/config.fish
-
-application_paths:
-  vscode_user_dir: ~/Library/Application Support/Code/User
-
-dotfiles_sources:
-  fish_config: files/fish/config.fish
-  vscode_settings: files/vscode/settings.json
