@@ -158,16 +158,6 @@ class Dotfiles
       output == normalize_defaults_value(expected_value)
     end
 
-    def home_path(key)
-      path = @config.paths.dig("home_paths", key.to_s)
-      path ? expand_path_with_home(path) : nil
-    end
-
-    def app_path(key)
-      path = @config.paths.dig("application_paths", key.to_s)
-      path ? expand_path_with_home(path) : nil
-    end
-
     def expand_path_with_home(path)
       expanded = path.sub(/^~/, @home)
       File.expand_path(expanded)
@@ -177,11 +167,6 @@ class Dotfiles
       return path unless path.is_a?(String)
       return path unless @home && path.start_with?(@home)
       path.sub(@home, "~")
-    end
-
-    def dotfiles_source(key)
-      source = @config.paths.dig("dotfiles_sources", key.to_s)
-      source ? File.join(@dotfiles_dir, source) : nil
     end
 
     def normalize_defaults_value(value)
