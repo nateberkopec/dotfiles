@@ -8,46 +8,47 @@ class Dotfiles::Step::VSCodeConfigurationStep < Dotfiles::Step
   end
 
   def run
-    debug "Configuring VSCode..."
-    vscode_dir = app_path("vscode_user_dir")
-    @system.mkdir_p(vscode_dir)
-
-    @system.cp(dotfiles_source("vscode_settings"), vscode_dir)
-    @system.cp(dotfiles_source("vscode_keybindings"), vscode_dir)
-
     install_vscode_extensions unless ci_or_noninteractive?
   end
 
   def complete?
     super
-    vscode_settings = app_path("vscode_settings")
-    vscode_keybindings = app_path("vscode_keybindings")
-
-    add_error("VS Code settings path not configured") unless vscode_settings
-    add_error("VS Code keybindings path not configured") unless vscode_keybindings
-    return false if @errors.any?
-
-    add_error("VS Code settings file does not exist at #{vscode_settings}") unless @system.file_exist?(vscode_settings)
-    add_error("VS Code keybindings file does not exist at #{vscode_keybindings}") unless @system.file_exist?(vscode_keybindings)
+    unless ci_or_noninteractive?
+      add_error("VSCode extensions not fully installed") unless extensions_installed?
+    end
     @errors.empty?
   end
 
-  def update
-    copy_if_exists(app_path("vscode_settings"), dotfiles_source("vscode_settings"))
-    copy_if_exists(app_path("vscode_keybindings"), dotfiles_source("vscode_keybindings"))
+  def should_run?
+    return false if ci_or_noninteractive?
+    !extensions_installed?
+  end
 
-    extensions_dest = dotfiles_source("vscode_extensions")
-    if extensions_dest && command_exists?("code")
+  def update
+    extensions_file = File.join(@home, "Library", "Application Support", "Code", "User", "extensions.txt")
+    if command_exists?("code")
       stdout, = execute("code --list-extensions")
-      @system.mkdir_p(File.dirname(extensions_dest))
-      @system.write_file(extensions_dest, stdout + "\n")
+      @system.mkdir_p(File.dirname(extensions_file))
+      @system.write_file(extensions_file, stdout + "\n")
     end
   end
 
   private
 
+  def extensions_installed?
+    extensions_file = File.join(@home, "Library", "Application Support", "Code", "User", "extensions.txt")
+    return true unless @system.file_exist?(extensions_file)
+    return true unless command_exists?("code")
+
+    installed_extensions, = execute("code --list-extensions")
+    installed_extensions = installed_extensions.split("\n")
+
+    expected_extensions = @system.readlines(extensions_file).map(&:strip)
+    expected_extensions.all? { |ext| installed_extensions.include?(ext) }
+  end
+
   def install_vscode_extensions
-    extensions_file = dotfiles_source("vscode_extensions")
+    extensions_file = File.join(@home, "Library", "Application Support", "Code", "User", "extensions.txt")
     return unless @system.file_exist?(extensions_file)
 
     debug "Installing VSCode extensions..."

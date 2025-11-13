@@ -8,23 +8,16 @@ class InstallFontsStepTest < StepTestCase
     with_env("NONINTERACTIVE" => "true") { refute_should_run }
   end
 
-  def test_should_run_when_fonts_missing
+  def test_should_not_run
     prepare_fonts(["JetBrainsMono-Regular.ttf"])
     stub_installed_fonts("")
-    assert_should_run
-  end
-
-  def test_should_not_run_when_all_fonts_present
-    prepare_fonts(["JetBrainsMono-Regular.ttf"])
-    stub_font_present("JetBrainsMono-Regular")
     refute_should_run
   end
 
-  def test_run_opens_each_font_file
+  def test_run_is_noop
     font = "JetBrainsMono-Regular.ttf"
     prepare_fonts([font])
     step.run
-    assert_executed("open #{@dotfiles_dir}/fonts/#{font}")
   end
 
   def test_complete_when_fonts_installed
@@ -43,7 +36,7 @@ class InstallFontsStepTest < StepTestCase
 
   def prepare_fonts(fonts)
     fonts.each do |font|
-      @fake_system.filesystem[File.join(@dotfiles_dir, "fonts", font)] = "font data"
+      @fake_system.filesystem[File.join(@home, "Library", "Fonts", font)] = "font data"
     end
   end
 

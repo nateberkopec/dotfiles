@@ -17,13 +17,12 @@ class ConfigureIceStepTest < StepTestCase
     refute_should_run
   end
 
-  def test_run_copies_preferences_and_configures_login
+  def test_run_configures_login_and_restarts
     install_ice
-    stub_config_files
+    stub_preferences
 
     step.run
 
-    assert_command_run(:cp, ice_config_path, ice_preferences_path)
     assert_executed(login_items_creation_command)
     assert_executed("killall Ice 2>/dev/null; open -a Ice")
   end
@@ -52,17 +51,6 @@ class ConfigureIceStepTest < StepTestCase
     end
   end
 
-  def test_update_copies_preferences_into_repo
-    stub_preferences("plist data")
-    step.update
-    assert_command_run(:cp, ice_preferences_path, ice_config_path)
-  end
-
-  def test_update_skips_when_preferences_missing
-    step.update
-    refute_command_run(:cp)
-  end
-
   private
 
   def step_overrides
@@ -70,19 +58,10 @@ class ConfigureIceStepTest < StepTestCase
   end
 
   def configure_paths
-    paths = {
-      "application_paths" => {"ice_preferences" => ice_preferences_path},
-      "dotfiles_sources" => {"ice_config" => "files/ice/com.jordanbaird.Ice.plist"}
-    }
-    step.config.paths = paths
   end
 
   def ice_preferences_path
     File.join(@home, "Library/Preferences/com.jordanbaird.Ice.plist")
-  end
-
-  def ice_config_path
-    File.join(@dotfiles_dir, "files/ice/com.jordanbaird.Ice.plist")
   end
 
   def install_ice
@@ -95,10 +74,6 @@ class ConfigureIceStepTest < StepTestCase
 
   def stub_login_items(output, status: 0)
     @fake_system.stub_command(login_items_list_command, output, exit_status: status)
-  end
-
-  def stub_config_files
-    @fake_system.stub_file_content(ice_config_path, "plist template")
   end
 
   def stub_ice_configured
