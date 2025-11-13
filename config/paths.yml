@@ -20,7 +20,7 @@ application_paths:
   vscode_keybindings: ~/Library/Application Support/Code/User/keybindings.json
 
 dotfiles_sources:
-  claude_config: .claude/CLAUDE.md
+  claude_config: files/claude/CLAUDE.md
   ghostty_config: files/ghostty/config
   aerospace_config: files/aerospace/.aerospace.toml
   git_config: files/git/.gitconfig
