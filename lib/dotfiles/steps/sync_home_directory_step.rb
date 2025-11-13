@@ -74,6 +74,7 @@ class Dotfiles::Step::SyncHomeDirectoryStep < Dotfiles::Step
     return unless @system.dir_exist?(dir)
     @system.glob(File.join(dir, "**", "*")).each do |path|
       next unless @system.file_exist?(path)
+      next if @system.dir_exist?(path)
       relative_path = path.sub("#{dir}/", "")
       yield path, relative_path
     end
