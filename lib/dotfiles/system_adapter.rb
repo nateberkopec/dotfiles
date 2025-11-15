@@ -39,8 +39,8 @@ class Dotfiles
       File.chmod(mode, path)
     end
 
-    def glob(pattern)
-      Dir.glob(pattern)
+    def glob(pattern, flags = 0)
+      Dir.glob(pattern, flags)
     end
 
     def chdir(path, &block)
