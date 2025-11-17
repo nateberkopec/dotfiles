@@ -20,7 +20,10 @@ class Dotfiles::Step::UpgradeBrewPackagesStep < Dotfiles::Step
     debug("brew upgrade -n output: #{output.inspect}")
     return if output.strip.empty?
 
-    package_count = output.strip.split("\n").size - 1
+    first_line = output.strip.split("\n").first
+    package_count = first_line[/Would upgrade (\d+) outdated package/, 1]&.to_i || 0
+    return if package_count.zero?
+
     add_notice(
       title: "🍺 Homebrew Updates Available",
       message: "#{package_count} package(s) have updates available.\n\nRun 'brew upgrade' to update them."

@@ -8,13 +8,13 @@ class UpgradeBrewPackagesStepTest < Minitest::Test
 
   def test_adds_notice_for_outdated_packages
     step = create_step(Dotfiles::Step::UpgradeBrewPackagesStep)
-    @fake_system.stub_command("brew upgrade -n", "bat\nfish\ngh")
+    @fake_system.stub_command("brew upgrade -n", "==> Would upgrade 3 outdated packages:\nbat\nfish\ngh")
 
     step.should_run?
 
     assert_equal 1, step.notices.size
     assert_includes step.notices.first[:title], "Homebrew Updates Available"
-    assert_includes step.notices.first[:message], "2 package(s)"
+    assert_includes step.notices.first[:message], "3 package(s)"
     assert_includes step.notices.first[:message], "brew upgrade"
   end
 
