@@ -17,6 +17,7 @@ brew:
 
   casks:
     - nikitabobko/tap/aerospace
+    - claude-code
     - cursor
     - discord
     - dropbox
