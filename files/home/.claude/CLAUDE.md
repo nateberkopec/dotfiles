@@ -24,6 +24,8 @@ Use `gum` to make your shell scripts pretty and fun!
 
 Use `gh` cli for all github interactions.
 
+Whenever you open a pull request with `gh pr`, leave the description blank.
+
 ## Ruby
 
 ### Testing Principles
