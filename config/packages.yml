@@ -5,6 +5,7 @@ brew:
     - fish
     - fontconfig
     - gh
+    - gnupg
     - libyaml
     - llm
     - mas
