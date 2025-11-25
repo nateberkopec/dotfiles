@@ -2,19 +2,26 @@ brew:
   packages:
     - bat
     - coreutils
+    - difftastic
+    - eza
+    - fd
     - fish
     - fontconfig
+    - fzf
     - gh
     - gnupg
+    - jq
     - libyaml
     - llm
     - mas
     - mise
     - pinentry-mac
+    - ripgrep
     - rust
     - starship
     - thefuck
     - ykman
+    - yq
     - zoxide
 
   casks:
