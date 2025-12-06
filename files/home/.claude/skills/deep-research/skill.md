@@ -6,17 +6,15 @@ license: MIT
 
 # Deep Research
 
-This skill conducts comprehensive research on complex topics, producing detailed reports similar to academic journals or whitepapers.
+This skill conducts comprehensive research on complex topics using a multi-agent architecture, producing detailed reports similar to academic journals or whitepapers.
 
 ## Purpose
 
-The deep-research skill transforms broad research questions into thorough, well-cited reports by:
+The deep-research skill transforms broad research questions into thorough, well-cited reports using a three-agent system:
 
-1. Conducting structured interviews to understand research goals
-2. Performing iterative deepening to identify key areas
-3. Launching parallel research subagents for comprehensive coverage
-4. Synthesizing findings into a cohesive, academically-styled report
-5. Maintaining a separate bibliography with all sources
+1. **Lead Agent (You)**: Conducts interviews, plans research, orchestrates subagents
+2. **Researcher Agents**: Execute web searches and save findings to files
+3. **Report-Writer Agent**: Synthesizes research notes into final report
 
 ## When to Use This Skill
 
@@ -33,6 +31,51 @@ Do NOT use this skill for:
 - Code-only research within repositories
 - Quick exploratory searches
 
+## Agent Architecture
+
+### Lead Agent (You - the Orchestrator)
+
+**Role**: Interview user, plan research threads, spawn and coordinate subagents
+
+**Tools allowed**: Task (to spawn subagents), AskUserQuestion, Write (for research plan only)
+
+**Responsibilities**:
+- Conduct user interview to scope research
+- Perform initial reconnaissance
+- Decompose topic into 10+ research threads
+- Spawn researcher agents in parallel
+- Spawn report-writer agent after research completes
+
+### Researcher Agents
+
+**Role**: Execute focused research on assigned subtopic
+
+**Tools allowed**: WebSearch, WebFetch, Write
+
+**Responsibilities**:
+- Search the web for information on assigned topic
+- Fetch and analyze relevant pages
+- Save structured research notes to `research_notes/` directory
+
+**Output format**: Each researcher saves a markdown file to `research_notes/[subtopic-slug].md` with:
+- Summary of findings
+- Key facts and data points
+- Source URLs with brief descriptions
+- Notable quotes or excerpts
+- Conflicts or gaps identified
+
+### Report-Writer Agent
+
+**Role**: Synthesize all research notes into final report
+
+**Tools allowed**: Read, Glob, Write
+
+**Responsibilities**:
+- Read all files from `research_notes/` directory
+- Identify themes, patterns, and conflicts across sources
+- Structure and write the final report
+- Create the sources bibliography
+
 ## Research Process
 
 ### Phase 1: Interview and Scope Definition
@@ -48,7 +91,7 @@ Start by interviewing the user to understand their research needs. Ask questions
 
 The interview should be thorough but efficient. Use the AskUserQuestion tool to gather this information in 2-3 rounds of questions maximum.
 
-### Phase 2: Initial Reconnaissance (Iterative Deepening)
+### Phase 2: Initial Reconnaissance
 
 After the interview, perform initial reconnaissance to identify the research landscape:
 
@@ -57,157 +100,197 @@ After the interview, perform initial reconnaissance to identify the research lan
 3. Note promising sources, authoritative voices, and research gaps
 4. Create a research plan outlining 10+ specific research threads
 
-This phase should be relatively quick (5-10 searches) but strategic. The goal is to create an informed plan for the parallel exploration phase.
+Save the research plan to `research_plan.md` documenting:
+- The research threads identified
+- Which researcher will handle each thread
+- Expected output from each researcher
 
-Document findings in working notes but do not create the final report yet.
+### Phase 3: Parallel Research (Researcher Agents)
 
-### Phase 3: Parallel Exploration (High Parallelism)
+Launch 10+ researcher agents in parallel using the Task tool. Each agent receives a focused research assignment.
 
-Launch 10+ parallel research subagents using the Task tool with subagent_type="general-purpose". Each agent should investigate a specific research thread identified in Phase 2.
+**Spawning researcher agents:**
 
-**Agent assignment strategy:**
-- Assign each agent a focused research question or subtopic
-- Ensure agents have clear, non-overlapping objectives
-- Instruct agents to use WebSearch and WebFetch tools extensively
-- Request that each agent return structured findings with sources
+```
+Task tool with:
+- subagent_type: "general-purpose"
+- prompt: Include these elements:
+  1. Clear statement: "You are a RESEARCHER agent"
+  2. Specific subtopic assignment
+  3. Tool restrictions: "Only use WebSearch, WebFetch, and Write tools"
+  4. Output instructions: "Save your findings to research_notes/[subtopic].md"
+  5. Format requirements for the research notes file
+```
 
-**Example agent tasks:**
-- "Research the technical implementation of [specific approach]"
-- "Investigate the historical context and evolution of [topic]"
-- "Compare and contrast [approach A] vs [approach B]"
-- "Analyze the current state of research on [subtopic]"
-- "Identify key challenges and limitations in [area]"
+**Example researcher prompt:**
+```
+You are a RESEARCHER agent investigating: "Technical implementation of quantum error correction"
 
-Launch all agents in parallel (in a single message with multiple Task tool calls) for maximum efficiency.
+YOUR TOOLS: Only use WebSearch, WebFetch, and Write.
 
-### Phase 4: Synthesis and Report Generation
+TASK:
+1. Use WebSearch to find authoritative sources on quantum error correction implementation
+2. Use WebFetch to extract detailed information from promising sources
+3. Save your findings to research_notes/quantum-error-correction.md
 
-After all subagents complete:
+OUTPUT FORMAT (save to research_notes/quantum-error-correction.md):
+# Quantum Error Correction Implementation
 
-1. Review all findings from the parallel research phase
-2. Identify common themes, conflicts, and key insights
-3. Structure the report using a hybrid format (see below)
-4. Write the report with academic rigor and proper citations
-5. Create a separate sources bibliography file
+## Summary
+[2-3 paragraph summary of key findings]
 
-**Report structure (hybrid format):**
+## Key Findings
+- [Bullet points of important facts, data, techniques]
 
-The report should always include these core sections:
-- **Executive Summary**: 2-3 paragraph overview of key findings
-- **[Adaptive Middle Sections]**: Structure based on topic (comparisons, historical analysis, technical deep-dives, etc.)
-- **Critical Analysis**: Deep evaluation, synthesis, and interpretation
-- **Conclusions**: Summary of findings and implications
-- **References**: Numbered citations used throughout
+## Sources
+1. [URL] - [Brief description of what this source contributed]
+2. [URL] - [Brief description]
+...
 
-The middle sections should adapt to the research topic:
-- For comparative research: Side-by-side analysis sections
-- For technical topics: Architecture, implementation, tradeoffs sections
-- For historical topics: Timeline, evolution, impact sections
-- For survey research: Landscape, categories, evaluation sections
+## Notable Quotes
+> "[Relevant quote]" - Source
 
-**Citation style:**
-- Use numbered citations in the text: [1], [2], etc.
-- Include inline source context when relevant: "According to Smith et al. [3], ..."
-- Maintain a complete references section at the end
-- Create a separate `sources-bibliography.md` file with full source details
+## Gaps and Conflicts
+- [Any conflicting information or areas needing more research]
+```
 
-### Phase 5: Output
+**Launch all researcher agents in a single message** with multiple Task tool calls for true parallelism.
 
-Save two files in the current working directory:
+### Phase 4: Report Generation (Report-Writer Agent)
 
-1. **[topic-name]-report.md**: The main research report
-2. **[topic-name]-sources.md**: Complete bibliography with:
-   - Full URLs
-   - Access dates
-   - Source descriptions
-   - Key excerpts or quotes
-   - Relevance notes
+After all researcher agents complete, spawn a single report-writer agent:
 
-Use clear, descriptive filenames based on the research topic (e.g., "quantum-computing-hardware-report.md").
+**Spawning the report-writer agent:**
 
-Inform the user of the file locations and provide a brief summary of the research findings.
+```
+Task tool with:
+- subagent_type: "general-purpose"
+- prompt: Include these elements:
+  1. Clear statement: "You are a REPORT-WRITER agent"
+  2. Tool restrictions: "Only use Read, Glob, and Write tools"
+  3. Instructions to read all files from research_notes/
+  4. Report structure requirements
+  5. Output file paths for report and sources
+```
+
+**Example report-writer prompt:**
+```
+You are a REPORT-WRITER agent synthesizing research findings into a final report.
+
+YOUR TOOLS: Only use Read, Glob, and Write.
+
+TASK:
+1. Use Glob to list all files in research_notes/
+2. Use Read to load each research notes file
+3. Synthesize findings into a comprehensive report
+4. Write the final report to [topic]-report.md
+5. Write the sources bibliography to [topic]-sources.md
+
+REPORT STRUCTURE:
+- Executive Summary (2-3 paragraphs)
+- [Adaptive middle sections based on topic]
+- Critical Analysis
+- Conclusions
+- References (numbered citations)
+
+SOURCES FILE STRUCTURE:
+# Research Sources for [Topic]
+
+## [1] Source Title
+- **URL**: [url]
+- **Accessed**: [date]
+- **Type**: [Academic paper / Blog post / Documentation / News article]
+- **Key Points**: [bullet points]
+- **Relevance**: [why this source matters]
+
+WRITING GUIDELINES:
+- Use numbered citations [1], [2], etc.
+- Cross-reference findings across multiple researcher notes
+- Note any conflicts or gaps in the research
+- Use clear, precise academic language
+- Include tables for comparisons where appropriate
+```
+
+### Phase 5: Output and Summary
+
+After the report-writer completes:
+
+1. Inform the user of the generated files:
+   - `[topic]-report.md`: Main research report
+   - `[topic]-sources.md`: Complete bibliography
+   - `research_notes/`: Directory of raw research (can be deleted)
+
+2. Provide a brief verbal summary of key findings
+
+3. Offer to answer follow-up questions or expand on any section
+
+## File Structure
+
+```
+./
+├── research_plan.md           # Your research plan (Phase 2)
+├── research_notes/            # Researcher agent outputs (Phase 3)
+│   ├── subtopic-1.md
+│   ├── subtopic-2.md
+│   └── ...
+├── [topic]-report.md          # Final report (Phase 4)
+└── [topic]-sources.md         # Bibliography (Phase 4)
+```
+
+## Logging and Observability
+
+Track research progress by documenting in `research_plan.md`:
+
+1. **Research threads assigned**: List each subtopic and its researcher
+2. **Status tracking**: Note when each researcher completes
+3. **Issues encountered**: Document any gaps or conflicts found
+
+This provides transparency into the research process and helps with debugging or expanding research later.
 
 ## Best Practices
+
+### Agent Separation
+
+- **Lead agent**: ONLY spawns agents and coordinates - no direct research
+- **Researchers**: ONLY search, fetch, and write notes - no synthesis
+- **Report-writer**: ONLY reads notes and writes report - no new research
+
+This separation ensures clean handoffs and reproducible results.
 
 ### Research Quality
 
 - Prioritize authoritative, recent sources (especially for time-sensitive topics)
-- Cross-reference claims across multiple sources
+- Cross-reference claims across multiple researcher notes
 - Note conflicting information or perspectives
 - Distinguish between facts, expert opinions, and speculation
 - Be transparent about limitations in available information
 
-### Writing Style
-
-- Use clear, precise academic language
-- Define technical terms and acronyms on first use
-- Provide context and background for complex concepts
-- Use structured formatting (headers, lists, tables) for readability
-- Include data, statistics, and concrete examples where relevant
-
-### Source Management
-
-- Maintain meticulous source tracking throughout research
-- Cite sources immediately when incorporating information
-- Prefer primary sources over secondary when possible
-- Include diverse perspectives and sources
-- Verify critical claims across multiple sources
-
 ### Efficiency
 
-- Launch agents truly in parallel (single message, multiple tool calls)
-- Use model="haiku" for subagents when appropriate for cost savings
-- Avoid redundant research between agents through clear task delineation
-- Work iteratively: reconnaissance → parallel research → synthesis
+- Launch all researcher agents truly in parallel (single message, multiple Task tool calls)
+- Use model="haiku" for researcher agents to reduce costs
+- Use model="sonnet" for report-writer agent for better synthesis
+- Clear task delineation prevents redundant research
 
 ## Common Patterns
 
 ### Comparative Research
 When comparing technologies, approaches, or solutions:
-1. Research each option thoroughly in parallel
-2. Create structured comparison sections (features, performance, costs, tradeoffs)
-3. Use tables for side-by-side comparisons
-4. Provide clear recommendations or trade-off analysis
+- Assign one researcher per option being compared
+- Assign one researcher for cross-cutting concerns (performance, cost, etc.)
+- Report-writer creates comparison tables
 
 ### Technical Deep-Dives
 When researching technical topics:
-1. Start with fundamentals and key concepts
-2. Progress to implementation details and architecture
-3. Cover real-world applications and case studies
-4. Address limitations, challenges, and future directions
+- Assign researchers to: fundamentals, implementation, case studies, limitations
+- Report-writer structures from basics to advanced
 
 ### Market/Landscape Research
 When surveying a domain or market:
-1. Categorize the landscape (player types, segments, approaches)
-2. Profile key players or solutions
-3. Identify trends and patterns
-4. Analyze implications and future outlook
+- Assign researchers to: major players, emerging players, trends, analysis firms
+- Report-writer categorizes and evaluates the landscape
 
 ### Historical/Evolution Research
 When investigating how something developed:
-1. Establish timeline and key milestones
-2. Identify driving forces and catalysts
-3. Analyze impact and consequences
-4. Connect historical context to current state
-
-## References
-
-Store detailed source information in the references file:
-
-```markdown
-# Research Sources for [Topic]
-
-## [1] Source Title
-- **URL**: https://example.com/article
-- **Accessed**: 2025-11-13
-- **Type**: Academic paper / Blog post / Documentation / News article
-- **Key Points**:
-  - Main finding or claim 1
-  - Main finding or claim 2
-- **Relevance**: Why this source matters to the research
-
-## [2] Source Title
-...
-```
-
-This allows the main report to remain clean while preserving full source details for verification and further research.
+- Assign researchers to different time periods or key events
+- Report-writer creates timeline and connects to present
