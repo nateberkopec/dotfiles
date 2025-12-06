@@ -41,6 +41,8 @@ class Dotfiles
       system("git add -A")
       system("git diff --cached --stat")
 
+      run_security_scan
+
       return puts "Commit cancelled." unless system("gum confirm 'Proceed with commit?'")
 
       gc_ai_flags = ENV["GIT_COMMIT_FLAGS"] || ""
@@ -54,6 +56,38 @@ class Dotfiles
 
     def command_exists?(cmd)
       system("command -v #{cmd} >/dev/null 2>&1")
+    end
+
+    def run_security_scan
+      return unless command_exists?("llm")
+
+      puts "\nRunning security scan for secrets..."
+
+      diff, _stderr, status = Open3.capture3("git diff --cached")
+      return if !status.success? || diff.empty?
+
+      prompt = <<~PROMPT
+        You are a security scanner. Analyze this git diff for secrets, credentials, or sensitive information that should not be committed to a repository.
+
+        Look for:
+        - API keys, tokens, or passwords
+        - Private keys or certificates
+        - Database connection strings with credentials
+        - AWS/GCP/Azure credentials
+        - OAuth tokens or secrets
+        - Any hardcoded sensitive values
+
+        If you find potential secrets, list each one with the file and line.
+        If the diff looks safe, simply say "No secrets detected."
+
+        Be concise. Only report actual concerns, not false positives like example values or placeholders.
+      PROMPT
+
+      result, _stderr, _status = Open3.capture3("llm", "-s", prompt, stdin_data: diff)
+
+      puts "\n"
+      system("gum style --border rounded --padding '1 2' --border-foreground '#ffcc00' '🔍 Security Scan Result' '' '#{result.gsub("'", "'\\''").strip}'")
+      puts "\n"
     end
   end
 end
