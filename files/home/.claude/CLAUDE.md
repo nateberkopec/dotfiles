@@ -26,6 +26,10 @@ Use `gh` cli for all github interactions.
 
 Whenever you open a pull request with `gh pr`, leave the description blank.
 
+## ast-grep
+
+`ast-grep` is available. Use it when searching/refactoring code.
+
 ## Ruby
 
 ### Testing Principles

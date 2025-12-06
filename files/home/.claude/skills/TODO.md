@@ -8,4 +8,4 @@
 * resource hint analysis, uses devtools mcp
 * critical path analysis, uses devtools mcp
 * SLO queue conversion assistant
-
+* Flog/flay setup
