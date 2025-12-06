@@ -4,16 +4,36 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DOTFILES_DIR="$(dirname "$SCRIPT_DIR")"
+LOGS_DIR="$DOTFILES_DIR/logs"
+
+# Initialize logging - create logs directory and set up log file
+init_logging() {
+    mkdir -p "$LOGS_DIR"
+    # Generate timestamp for log filename
+    if command -v gdate &> /dev/null; then
+        LOG_TIMESTAMP=$(gdate '+%Y-%m-%d_%H-%M-%S')
+    else
+        LOG_TIMESTAMP=$(date '+%Y-%m-%d_%H-%M-%S')
+    fi
+    LOG_FILE="$LOGS_DIR/dotf_${LOG_TIMESTAMP}.log"
+    export LOG_FILE
+}
 
 debug() {
+    # Use gdate if available (GNU coreutils on macOS), otherwise use standard date without milliseconds
+    if command -v gdate &> /dev/null; then
+        timestamp=$(gdate '+%H:%M:%S.%3N')
+    else
+        timestamp=$(date '+%H:%M:%S')
+    fi
+    local message="[$timestamp] $1"
+
+    # Always write to log file
+    echo "$message" >> "$LOG_FILE"
+
+    # Also output to STDOUT if DEBUG=true
     if [ "${DEBUG:-false}" = "true" ]; then
-        # Use gdate if available (GNU coreutils on macOS), otherwise use standard date without milliseconds
-        if command -v gdate &> /dev/null; then
-            timestamp=$(gdate '+%H:%M:%S.%3N')
-        else
-            timestamp=$(date '+%H:%M:%S')
-        fi
-        echo "[$timestamp] $1"
+        echo "$message"
     fi
 }
 
@@ -101,11 +121,13 @@ check_for_updates() {
 }
 
 cmd_run() {
+    init_logging
+    debug "Starting dotf run command"
     start_background_fetch
     "$SCRIPT_DIR/bootstrap"
 
     cd "$DOTFILES_DIR"
-    ruby -r ./lib/dotfiles.rb -e 'Dotfiles::Runner.new.run'
+    ruby -r ./lib/dotfiles.rb -e "Dotfiles::Runner.new('$LOG_FILE').run"
 
     check_for_updates
     debug "Run complete"
@@ -148,6 +170,8 @@ check_hostname() {
 }
 
 cmd_update() {
+    init_logging
+    debug "Starting dotf update command"
     local git_flags=""
 
     while [[ $# -gt 0 ]]; do
@@ -179,7 +203,8 @@ cmd_update() {
         exit 1
     fi
 
-    GIT_COMMIT_FLAGS="$git_flags" ruby -r ./lib/dotfiles.rb -e 'Dotfiles::Updater.new.run'
+    GIT_COMMIT_FLAGS="$git_flags" ruby -r ./lib/dotfiles.rb -e "Dotfiles::Updater.new('$LOG_FILE').run"
+    debug "Update complete"
 }
 
 cmd_help() {
@@ -197,12 +222,16 @@ Options (for update command):
   --no-gpg-sign    Skip GPG signing when committing
   --no-verify      Skip git pre-commit and commit-msg hooks
 
+Logging:
+  Logs are always written to logs/ directory with timestamped filenames.
+  Set DEBUG=true to also output logs to the console.
+
 Examples:
   dotf run                              # Initial setup
   dotf update                           # Update dotfiles
   dotf update --no-gpg-sign             # Update without GPG signing
   dotf update --no-gpg-sign --no-verify # Update without GPG or hooks
-  DEBUG=true dotf run                   # Run with debug output
+  DEBUG=true dotf run                   # Run with debug output to console
 EOF
 }
 

@@ -1,6 +1,7 @@
 class Dotfiles
   class Runner
-    def initialize
+    def initialize(log_file = nil)
+      Dotfiles.log_file = log_file
       @debug = ENV["DEBUG"] == "true"
       @config = Config.new(Dotfiles.determine_dotfiles_dir)
       @step_classes = Dotfiles::Step.all_steps

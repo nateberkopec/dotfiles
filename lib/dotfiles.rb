@@ -11,10 +11,27 @@ require "runner"
 require "updater"
 
 class Dotfiles
+  @log_file = nil
+
+  def self.log_file=(path)
+    @log_file = path
+  end
+
+  def self.log_file
+    @log_file
+  end
+
   def self.debug(message)
-    return unless ENV["DEBUG"] == "true"
     timestamp = Time.now.strftime("%H:%M:%S.%3N")
-    puts "[#{timestamp}] #{message}"
+    formatted = "[#{timestamp}] #{message}"
+
+    # Always write to log file if set
+    if @log_file
+      File.open(@log_file, "a") { |f| f.puts(formatted) }
+    end
+
+    # Also output to STDOUT if DEBUG=true
+    puts formatted if ENV["DEBUG"] == "true"
   end
 
   def self.debug_benchmark(label, &block)

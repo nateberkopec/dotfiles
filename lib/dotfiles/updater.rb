@@ -6,7 +6,8 @@ Dir.glob(File.join(__dir__, "steps", "*.rb")).sort.each { |file| require file }
 
 class Dotfiles
   class Updater
-    def initialize
+    def initialize(log_file = nil)
+      Dotfiles.log_file = log_file
       @debug = ENV["DEBUG"] == "true"
       @config = Config.new(Dotfiles.determine_dotfiles_dir)
     end
