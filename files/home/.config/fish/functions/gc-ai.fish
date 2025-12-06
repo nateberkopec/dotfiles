@@ -100,6 +100,15 @@ $codex_context"
     # Main loop
     while true
         set message_file (_generate_message "$diff" "$prompt" $temp_options)
+        set gen_status $status
+
+        # Check if generation failed
+        if test $gen_status -ne 0
+            # message_file contains the error message prefixed with LLM_ERROR:
+            set error_msg (string replace "LLM_ERROR:" "" -- "$message_file")
+            echo "Error generating commit message: $error_msg"
+            return 1
+        end
 
         # Validate message
         if not _validate_message $message_file
@@ -185,7 +194,15 @@ $codex_context"
                 set condensed_file (mktemp)
                 echo "Take this commit message and condense it. Keep the first line (summary) exactly as-is. Make the description (body) half as long while retaining the what and the why:
 
-$current_message" | llm > $condensed_file
+$current_message" | llm > $condensed_file 2>&1
+                set condense_status $status
+
+                if test $condense_status -ne 0; or test -z (string trim -- (cat $condensed_file))
+                    echo "Failed to condense message. Keeping original."
+                    rm $condensed_file
+                    continue
+                end
+
                 rm $display_file
                 set message_file $condensed_file
                 continue
@@ -280,12 +297,39 @@ function _generate_message
 
     set temp_file (mktemp)
     if test (count $temp_options) -eq 0
-        echo "$diff" | llm -s "$prompt" > $temp_file
+        echo "$diff" | llm -s "$prompt" > $temp_file 2>&1
+        set llm_status $status
     else
-        echo "$diff" | llm -s "$prompt" $temp_options > $temp_file
+        echo "$diff" | llm -s "$prompt" $temp_options > $temp_file 2>&1
+        set llm_status $status
+    end
+
+    # Check if llm command failed
+    if test $llm_status -ne 0
+        set error_content (cat $temp_file)
+        rm $temp_file
+        echo "LLM_ERROR:$error_content"
+        return 1
+    end
+
+    # Check if output is empty or too short
+    set content (cat $temp_file)
+    if test -z "$content"
+        rm $temp_file
+        echo "LLM_ERROR:LLM returned empty response. The diff may be too large."
+        return 1
+    end
+
+    # Check if it's just whitespace
+    set trimmed (string trim -- "$content")
+    if test -z "$trimmed"
+        rm $temp_file
+        echo "LLM_ERROR:LLM returned only whitespace. The diff may be too large."
+        return 1
     end
 
     echo $temp_file
+    return 0
 end
 
 # Helper: Validate message format
@@ -475,7 +519,16 @@ Ensure it follows the Conventional Commits format."
 Return only the fixed commit message."
 
     set fixed_file (mktemp)
-    echo "$fix_prompt" | llm > $fixed_file
+    echo "$fix_prompt" | llm > $fixed_file 2>&1
+    set fix_status $status
+
+    # If LLM failed or returned empty, return the original file
+    if test $fix_status -ne 0; or test -z (string trim -- (cat $fixed_file))
+        echo "LLM failed to fix commit message, using original."
+        rm $fixed_file
+        echo $original_file
+        return 1
+    end
 
     set cleaned_file (_clean_blank_lines $fixed_file)
     rm $fixed_file
