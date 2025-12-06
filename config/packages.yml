@@ -13,7 +13,6 @@ brew:
     - jq
     - libyaml
     - llm
-    - mas
     - mise
     - pinentry-mac
     - ripgrep

@@ -17,7 +17,7 @@ class Dotfiles::Step::CheckUnmanagedAppsStep < Dotfiles::Step
 
   def missing_apps
     unmanaged_apps.reject do |path|
-      skipped_apps.include?(app_name(path)) || @system.dir_exist?(path) || homebrew_managed?(path) || mas_managed?(path)
+      skipped_apps.include?(app_name(path)) || @system.dir_exist?(path) || homebrew_managed?(path)
     end
   end
 
@@ -31,14 +31,6 @@ class Dotfiles::Step::CheckUnmanagedAppsStep < Dotfiles::Step
 
   def homebrew_paths
     @config.packages.fetch("applications", []).map { |app| app["path"] }
-  end
-
-  def mas_managed?(path)
-    mas_app_names.include?(app_name(path))
-  end
-
-  def mas_app_names
-    @config.mas_apps.fetch("mas_apps", {}).values
   end
 
   def app_name(path)

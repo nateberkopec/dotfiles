@@ -85,20 +85,4 @@ class CheckUnmanagedAppsStepTest < Minitest::Test
     assert_includes step.notices.first[:title], "Screen Studio"
     refute step.notices.any? { |n| n[:title].include?("Arc") }
   end
-
-  def test_filters_out_mas_managed_apps
-    step = create_step(Dotfiles::Step::CheckUnmanagedAppsStep)
-    step.config.unmanaged_apps = ["/Applications/Screen Studio.app", "/Applications/Keynote.app"]
-    step.config.mas_apps = {
-      "mas_apps" => {
-        409183694 => "Keynote"
-      }
-    }
-
-    step.run
-
-    assert_equal 1, step.notices.size
-    assert_includes step.notices.first[:title], "Screen Studio"
-    refute step.notices.any? { |n| n[:title].include?("Keynote") }
-  end
 end

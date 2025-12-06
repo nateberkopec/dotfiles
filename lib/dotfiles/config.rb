@@ -3,7 +3,7 @@ require "yaml"
 class Dotfiles
   class Config
     attr_reader :dotfiles_dir
-    attr_writer :packages, :paths, :unmanaged_apps, :mas_apps
+    attr_writer :packages, :paths, :unmanaged_apps
 
     def initialize(dotfiles_dir, system: SystemAdapter.new)
       @dotfiles_dir = dotfiles_dir
@@ -29,10 +29,6 @@ class Dotfiles
 
     def unmanaged_apps
       @unmanaged_apps ||= load_config("unmanaged_apps.yml")
-    end
-
-    def mas_apps
-      @mas_apps ||= load_config("mas_apps.yml")
     end
 
     def load_config(filename)
