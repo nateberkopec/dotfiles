@@ -4,7 +4,8 @@ function gc-ai-abbr --description "Set up abbreviations for gc-ai"
     # Common combinations
     abbr -a gcyolo 'gc-ai -a -p'
     abbr -a gcyolos 'gc-ai -a -p -s'
-    abbr -a gcyoloc 'gc-ai -a -p --claude'           # Work in progress: stage all, summary only, skip hooks
+    abbr -a gcyoloc 'gc-ai -a -p --claude'           # Stage all, auto-push with Claude context
+    abbr -a gcyolox 'gc-ai -a -p --codex'            # Stage all, auto-push with Codex context
 end
 
 # Auto-load abbreviations when this file is sourced
