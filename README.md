@@ -1,43 +1,75 @@
 # Dotfiles
 
-Personal configuration files for my development environment.
+Set up a fresh Mac with one command.
 
-My dotfiles are a little different in that they're not just a bunch of files we can cp into `~`. Instead, this is a rich script with a lot of behavior that basically implements a goal of: "given a fresh macOS install, run this one command to get your complete, normal setup and environment". 
+Most dotfiles repos just copy files to your home folder. This one does more. It installs apps, sets system settings, and gets your whole dev setup ready to go.
+
+## What It Does
+
+- Installs Homebrew and packages from Brewfile
+- Sets up SSH keys
+- Installs apps and fonts
+- Sets Fish as your default shell
+- Syncs config files to your home folder
+- Sets macOS defaults (Dock, trackpad, screenshots, and more)
 
 ## Installation
 
-1. Clone this repository:
-   ```bash
-   git clone https://github.com/nateberkopec/dotfiles.git ~/.dotfiles
-   ```
+Clone this repo:
 
-2. Run the setup:
-   ```bash
-   cd ~/.dotfiles
-   ./bin/dotf run
-   ```
+```bash
+git clone https://github.com/nateberkopec/dotfiles.git ~/.dotfiles
+```
 
-   To see detailed output during installation:
-   ```bash
-   DEBUG=true ./bin/dotf run
-   ```
+Run the setup:
 
-## Usage
+```bash
+cd ~/.dotfiles
+./bin/dotf run
+```
 
-- `dotf run` - Set up development environment. Idempotent - safe to run on an already-configured system. 
-- `dotf update` - Update dotfiles from the system
-- `dotf help` - Show help message
+For verbose output:
 
-## How It Works: Steps
+```bash
+DEBUG=true ./bin/dotf run
+```
 
-The setup process is organized into modular Steps. Each step is a Ruby class that inherits from the `Step` base class and implements a specific part of the setup process.
+## Commands
+
+| Command | What it does |
+|---------|--------------|
+| `dotf run` | Set up your Mac. Safe to run many times. |
+| `dotf update` | Pull config changes from your system back into this repo |
+| `dotf help` | Show help |
+
+## How It Works
+
+The setup runs in **Steps**. Each Step is a Ruby class that does one thing: install Homebrew, set up Fish, sync config files, etc.
+
+Steps can depend on other steps. The system runs them in the right order.
 
 ### Available Steps
 
-For details on what each step does, see the implementations in [lib/step/](lib/step/).
+See [lib/dotfiles/steps/](lib/dotfiles/steps/) for all steps.
 
-Steps are executed in dependency order, automatically sorted by their `depends_on` declarations.
+### Adding Your Own Steps
 
-### Implementing Your Own Steps
+See [docs/implementing-steps.md](docs/implementing-steps.md) to learn how.
 
-To learn how to create new steps, see [docs/implementing-steps.md](docs/implementing-steps.md).
+## Project Layout
+
+```
+bin/           CLI tool
+lib/dotfiles/  Core code and steps
+files/         Config files to sync to home folder
+docs/          Docs for contributors
+test/          Test suite
+Brewfile       Homebrew packages to install
+```
+
+## Contributing
+
+1. Fork this repo
+2. Create a branch for your change
+3. Run the tests: `rake test`
+4. Open a pull request
