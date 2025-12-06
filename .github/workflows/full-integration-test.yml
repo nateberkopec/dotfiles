@@ -45,10 +45,23 @@ jobs:
           exit 1
         fi
 
-    - name: Upload setup log
+    - name: Start fish shell and check for errors
+      run: |
+        echo "Starting fish shell to check for initialization errors..."
+        /opt/homebrew/bin/fish -c 'echo "Fish shell initialized successfully"' 2>&1 | tee fish-init.log
+        if [ $? -ne 0 ]; then
+          echo "❌ Fish shell initialization failed"
+          cat fish-init.log
+          exit 1
+        fi
+        echo "✅ Fish shell started without errors"
+
+    - name: Upload logs
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: log
-        path: output.log
+        name: logs
+        path: |
+          output.log
+          fish-init.log
         retention-days: 7
