@@ -19,10 +19,6 @@ class Dotfiles::Step::CreateStandardFoldersStep < Dotfiles::Step
   private
 
   def standard_folders
-    @standard_folders ||= folders_config.fetch("standard_folders", [])
-  end
-
-  def folders_config
-    @folders_config ||= @config.load_config("folders.yml")
+    @standard_folders ||= @config.fetch("standard_folders", [])
   end
 end

@@ -16,13 +16,13 @@ class Dotfiles::Step::ConfigureScreenshotsStep < Dotfiles::Step
   end
 
   def update
-    update_defaults_config("screenshot_settings", "screenshots.yml")
+    update_defaults_config("screenshot_settings")
   end
 
   private
 
   def screenshot_settings
-    @config.load_config("screenshots.yml").fetch("screenshot_settings", {})
+    @config.fetch("screenshot_settings", {})
   end
 
   def setting_entries

@@ -1,0 +1,123 @@
+---
+dotfiles_repo: https://github.com/nateberkopec/dotfiles.git
+# home: /Users/yourusername  # Override default home directory (defaults to ENV["HOME"])
+
+master_hostname: Nates-MacBook-Pro.local
+
+standard_folders:
+  - Documents/Inbox
+  - Documents/Code.nosync
+  - Documents/Code.nosync/business
+  - Documents/Code.nosync/personal
+  - Documents/Code.nosync/upstream
+
+brew:
+  packages:
+    - bat
+    - coreutils
+    - difftastic
+    - eza
+    - fd
+    - fish
+    - fontconfig
+    - fzf
+    - gh
+    - gnupg
+    - jq
+    - libyaml
+    - llm
+    - mise
+    - pinentry-mac
+    - ripgrep
+    - rust
+    - starship
+    - thefuck
+    - ykman
+    - yq
+    - zoxide
+
+  casks:
+    - nikitabobko/tap/aerospace
+    - claude-code
+    - cursor
+    - discord
+    - dropbox
+    - ghostty
+    - github
+    - jordanbaird-ice
+    - keycastr
+    - obsidian
+    - orbstack
+    - raycast
+    - slack
+    - steam
+    - tailscale-app
+    - telegram
+    - visual-studio-code
+    - whatsapp
+    - zoom
+
+applications:
+  - name: 1Password
+    path: /Applications/1Password.app
+    brew_cask: 1password
+    cli_tap: 1password/tap/1password-cli
+
+  - name: Arc
+    path: /Applications/Arc.app
+    brew_cask: arc
+
+unmanaged_apps:
+  - /Applications/Safari.app
+  - /Applications/Deckset.app
+  - /Applications/Screen Studio.app
+  - /Applications/Monologue.app
+  - /Applications/Effortless.app
+  - /Applications/Conductor.app
+  - /Applications/Zwift.app
+
+animation_settings:
+  NSGlobalDomain:
+    NSAutomaticWindowAnimationsEnabled: 0
+    NSScrollAnimationEnabled: 0
+    NSWindowResizeTime: 0.001
+    QLPanelAnimationDuration: 0
+    NSScrollViewRubberbanding: 0
+    NSDocumentRevisionsWindowTransformAnimation: 0
+    NSToolbarFullScreenAnimationDuration: 0
+    NSBrowserColumnAnimationSpeedMultiplier: 0
+  com.apple.dock:
+    autohide-time-modifier: 0.4
+    autohide-delay: 0
+    expose-animation-duration: 0
+    springboard-show-duration: 0
+    springboard-hide-duration: 0
+    springboard-page-duration: 0
+    launchanim: 0
+  com.apple.finder:
+    DisableAllAnimations: 1
+  com.apple.Mail:
+    DisableSendAnimations: 1
+    DisableReplyAnimations: 1
+
+trackpad_settings:
+  com.apple.AppleMultitouchTrackpad:
+    Clicking: 0
+    TrackpadRightClick: 1
+    FirstClickThreshold: 1
+    ActuateDetents: 1
+    DragLock: 0
+    Dragging: 0
+    ForceSuppressed: 0
+    TrackpadCornerSecondaryClick: 0
+    TrackpadTwoFingerDoubleTapGesture: 1
+  NSGlobalDomain:
+    com.apple.mouse.scaling: 2
+
+screenshot_settings:
+  com.apple.screencapture:
+    location: "~/Documents/Inbox"
+
+config_directory_items:
+  - fish/config.fish
+  - fish/functions/

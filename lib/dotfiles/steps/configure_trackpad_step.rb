@@ -11,13 +11,13 @@ class Dotfiles::Step::ConfigureTrackpadStep < Dotfiles::Step
   end
 
   def update
-    update_defaults_config("trackpad_settings", "trackpad.yml")
+    update_defaults_config("trackpad_settings")
   end
 
   private
 
   def trackpad_settings
-    @config.load_config("trackpad.yml").fetch("trackpad_settings", {})
+    @config.fetch("trackpad_settings", {})
   end
 
   def setting_entries

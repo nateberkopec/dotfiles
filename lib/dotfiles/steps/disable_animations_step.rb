@@ -13,13 +13,13 @@ class Dotfiles::Step::DisableAnimationsStep < Dotfiles::Step
   end
 
   def update
-    update_defaults_config("animation_settings", "animations.yml")
+    update_defaults_config("animation_settings")
   end
 
   private
 
   def animation_settings
-    @config.load_config("animations.yml").fetch("animation_settings", {})
+    @config.fetch("animation_settings", {})
   end
 
   def setting_entries
