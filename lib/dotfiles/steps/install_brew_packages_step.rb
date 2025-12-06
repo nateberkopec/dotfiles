@@ -44,7 +44,7 @@ class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
     installed_casks = installed_casks.split("\n")
 
     skipped_packages = packages.reject { |pkg| installed_formulae.include?(pkg) }
-    skipped_casks = casks.reject { |cask| installed_casks.include?(cask) }
+    skipped_casks = casks.reject { |cask| installed_casks.include?(cask.split("/").last) }
 
     if skipped_packages.any? || skipped_casks.any?
       warning_lines = ["No admin rights detected."]
