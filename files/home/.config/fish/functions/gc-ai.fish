@@ -1,6 +1,6 @@
 function gc-ai
     # Parse arguments first to check for help
-    argparse 'h/help' 'c/context' 'claude' 's/summary-only' 'no-gpg-sign' 'no-verify' 'C/conventional-commit' 'a/add-all' 'p/push' 'skip-ci' -- $argv
+    argparse 'h/help' 'c/context' 'claude' 'codex' 's/summary-only' 'no-gpg-sign' 'no-verify' 'C/conventional-commit' 'a/add-all' 'p/push' 'skip-ci' -- $argv
     or return
 
     # Check required dependencies
@@ -28,6 +28,7 @@ function gc-ai
         echo "  -h, --help                 Show this help message"
         echo "  -c, --context              Prompt for additional context about the change"
         echo "  --claude                   Get context from current Claude session"
+        echo "  --codex                    Get context from current Codex session"
         echo "  -s, --summary-only         Only include summary line, skip detailed description"
         echo "  --no-gpg-sign              Skip GPG signing of the commit"
         echo "  --no-verify                Skip pre-commit and commit-msg hooks"
@@ -69,6 +70,16 @@ $claude_context"
             set context $claude_context
         end
     end
+    if set -q _flag_codex
+        set codex_context (codex exec resume --last "What context from this session would be useful for writing a commit message? Don't suggest a message or list affected files. Focus on the WHY of this work.")
+        if test -n "$context"
+            set context "$context
+
+$codex_context"
+        else
+            set context $codex_context
+        end
+    end
 
     # Build git commit options
     set git_commit_options
@@ -103,14 +114,18 @@ $claude_context"
         if set -q _flag_claude
             set claude_param "claude"
         end
+        set codex_param ""
+        if set -q _flag_codex
+            set codex_param "codex"
+        end
         set skip_ci_param ""
         if set -q _flag_skip_ci
             set skip_ci_param "skip-ci"
         end
         if set -q _flag_summary_only
-            set display_file (_add_disclaimer $cleaned_file "summary-only" $claude_param $skip_ci_param)
+            set display_file (_add_disclaimer $cleaned_file "summary-only" $claude_param $codex_param $skip_ci_param)
         else
-            set display_file (_add_disclaimer $cleaned_file "" $claude_param $skip_ci_param)
+            set display_file (_add_disclaimer $cleaned_file "" $claude_param $codex_param $skip_ci_param)
         end
         rm $cleaned_file
 
@@ -322,7 +337,8 @@ function _add_disclaimer
     set input_file $argv[1]
     set summary_only $argv[2]
     set claude_flag $argv[3]
-    set skip_ci_flag $argv[4]
+    set codex_flag $argv[4]
+    set skip_ci_flag $argv[5]
     set output_file (mktemp)
     set summary (head -n 1 $input_file)
 
@@ -339,10 +355,14 @@ function _add_disclaimer
         tail -n +2 $input_file >> $output_file
     end
 
-    # Add Co-Authored-By line if claude flag was set
+    # Add Co-Authored-By lines if claude or codex flags were set
     if test "$claude_flag" = "claude"
         echo "" >> $output_file
         echo "Co-Authored-By: Claude <noreply@anthropic.com>" >> $output_file
+    end
+    if test "$codex_flag" = "codex"
+        echo "" >> $output_file
+        echo "Co-Authored-By: Codex <support@openai.com>" >> $output_file
     end
 
     echo $output_file
