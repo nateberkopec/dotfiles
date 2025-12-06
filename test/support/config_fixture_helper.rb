@@ -1,10 +1,16 @@
 require "yaml"
 
 module ConfigFixtureHelper
-  def write_config(name, data)
-    path = File.join(@dotfiles_dir, "config", "#{name}.yml")
+  def write_config(_name, data)
+    path = config_yml_path
     @fake_system.mkdir_p(File.dirname(path))
-    content = data.is_a?(String) ? data : YAML.dump(data)
+    existing = begin
+      YAML.safe_load(@fake_system.read_file(path)) || {}
+    rescue Errno::ENOENT
+      {}
+    end
+    merged = existing.merge(data)
+    content = YAML.dump(merged)
     @fake_system.stub_file_content(path, content)
     path
   end
@@ -18,13 +24,20 @@ module ConfigFixtureHelper
       next unless step.instance_variable_defined?(ivar)
       step.remove_instance_variable(ivar)
     end
+    step.config.instance_variable_set(:@config, nil) if step.respond_to?(:config)
   end
 
-  def expect_config_write(name)
+  def expect_config_write(_name)
     write_op = @fake_system.operations.reverse.find do |op|
-      op[0] == :write_file && op[1].end_with?("/config/#{name}.yml")
+      op[0] == :write_file && op[1].end_with?("/config/config.yml")
     end
-    refute_nil write_op, "Expected update to write config/#{name}.yml"
+    refute_nil write_op, "Expected update to write config/config.yml"
     yield YAML.safe_load(write_op[2])
+  end
+
+  private
+
+  def config_yml_path
+    File.join(@dotfiles_dir, "config", "config.yml")
   end
 end

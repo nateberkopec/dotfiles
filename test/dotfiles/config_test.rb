@@ -14,14 +14,6 @@ class ConfigTest < Minitest::Test
     assert_equal ["firefox", "dropbox"], packages["brew"]["casks"]
   end
 
-  def test_loads_paths_from_yaml
-    config = Dotfiles::Config.new(@fixtures_dir)
-    paths = config.paths
-
-    # Paths config is now minimal, just verify it loads
-    assert_kind_of Hash, paths
-  end
-
   def test_dotfiles_repo_from_config
     config = Dotfiles::Config.new(@fixtures_dir)
     assert_equal "https://github.com/test/dotfiles.git", config.dotfiles_repo
@@ -32,9 +24,23 @@ class ConfigTest < Minitest::Test
     assert_equal "https://github.com/nateberkopec/dotfiles.git", config.dotfiles_repo
   end
 
-  def test_missing_config_file_returns_empty_hash
+  def test_missing_config_file_returns_empty
     config = Dotfiles::Config.new("/nonexistent/dir")
-    assert_equal({}, config.packages)
-    assert_equal({}, config.paths)
+    assert_equal({"brew" => {}, "applications" => []}, config.packages)
+  end
+
+  def test_fetch_returns_config_value
+    config = Dotfiles::Config.new(@fixtures_dir)
+    assert_equal "https://github.com/test/dotfiles.git", config.fetch("dotfiles_repo")
+  end
+
+  def test_fetch_returns_default_for_missing_key
+    config = Dotfiles::Config.new(@fixtures_dir)
+    assert_equal "default", config.fetch("nonexistent", "default")
+  end
+
+  def test_bracket_accessor_returns_config_value
+    config = Dotfiles::Config.new(@fixtures_dir)
+    assert_equal "https://github.com/test/dotfiles.git", config["dotfiles_repo"]
   end
 end

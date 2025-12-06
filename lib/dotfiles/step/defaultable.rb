@@ -20,7 +20,7 @@ class Dotfiles
         end
       end
 
-      def update_defaults_config(config_key, config_filename)
+      def update_defaults_config(config_key, _config_filename = nil)
         updated_settings = setting_entries.group_by(&:first).transform_values do |entries|
           entries.filter_map { |domain, key, _value|
             read_command = build_read_command(domain, key)
@@ -32,9 +32,11 @@ class Dotfiles
           }.to_h
         end
 
-        content = {config_key => updated_settings}.to_yaml
-        config_path = File.join(@dotfiles_dir, "config", config_filename)
-        @system.write_file(config_path, content)
+        config_path = File.join(@dotfiles_dir, "config", "config.yml")
+        existing_content = @system.read_file(config_path)
+        existing_config = YAML.safe_load(existing_content, permitted_classes: [Symbol]) || {}
+        existing_config[config_key] = updated_settings
+        @system.write_file(config_path, existing_config.to_yaml)
       end
 
       def domain_flag_for(domain)

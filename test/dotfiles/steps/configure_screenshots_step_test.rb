@@ -34,10 +34,9 @@ class ConfigureScreenshotsStepTest < StepTestCase
     stub_location("~/Documents/Screenshots")
     step.update
 
-    write_op = @fake_system.operations.reverse.find { |op| op[0] == :write_file && op[1].end_with?("/config/screenshots.yml") }
-    refute_nil write_op, "Expected update to write screenshots config"
-    parsed = YAML.safe_load(write_op[2])
-    assert_equal "~/Documents/Screenshots", parsed.dig("screenshot_settings", "com.apple.screencapture", "location")
+    expect_config_write("screenshots") do |config|
+      assert_equal "~/Documents/Screenshots", config.dig("screenshot_settings", "com.apple.screencapture", "location")
+    end
   end
 
   private
