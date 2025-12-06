@@ -10,3 +10,10 @@ disabled = true
 disabled = false
 healthy_symbol = '🟢'
 unhealthy_symbol = '🔴'
+
+[custom.localmail]
+command = "grep -c '^From ' /var/mail/$USER 2>/dev/null || echo 0"
+when = "test -s /var/mail/$USER"
+symbol = "📬 "
+format = "[$symbol$output]($style) "
+style = "bold yellow"
