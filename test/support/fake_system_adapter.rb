@@ -82,9 +82,10 @@ class FakeSystemAdapter
     @operations << [:chmod, mode, path]
   end
 
-  def glob(pattern)
-    @operations << [:glob, pattern]
-    @filesystem.keys.select { |k| File.fnmatch?(pattern, k, File::FNM_PATHNAME) }
+  def glob(pattern, flags = 0)
+    @operations << [:glob, pattern, flags]
+    fnmatch_flags = File::FNM_PATHNAME | flags
+    @filesystem.keys.select { |k| File.fnmatch?(pattern, k, fnmatch_flags) }
   end
 
   def chdir(path)

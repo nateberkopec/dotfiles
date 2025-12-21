@@ -37,6 +37,16 @@ debug() {
     fi
 }
 
+ensure_homebrew_env() {
+    if command -v brew &> /dev/null; then
+        eval "$(brew shellenv)"
+    elif [ -x /opt/homebrew/bin/brew ]; then
+        eval "$(/opt/homebrew/bin/brew shellenv)"
+    elif [ -x /usr/local/bin/brew ]; then
+        eval "$(/usr/local/bin/brew shellenv)"
+    fi
+}
+
 update_dotfiles_repo() {
     debug "Updating dotfiles repository..."
     cd "$DOTFILES_DIR"
@@ -100,14 +110,12 @@ check_for_updates() {
         return 0
     fi
 
-    # Wait for fetch to complete if it's still running
-    if kill -0 $FETCH_PID 2>/dev/null; then
-        debug "Waiting for background fetch to complete..."
-        wait $FETCH_PID
-        debug "Background fetch completed"
-    else
-        debug "Background fetch already completed"
+    debug "Waiting for background fetch to complete..."
+    if ! wait "$FETCH_PID"; then
+        debug "Background fetch failed"
+        return 0
     fi
+    debug "Background fetch completed"
 
     # Check if main branch has updates available (compare main with origin/main)
     LOCAL_MAIN=$(git rev-parse main 2>/dev/null)
@@ -125,6 +133,7 @@ cmd_run() {
     debug "Starting dotf run command"
     start_background_fetch
     "$SCRIPT_DIR/bootstrap"
+    ensure_homebrew_env
 
     cd "$DOTFILES_DIR"
     ruby -r ./lib/dotfiles.rb -e "Dotfiles::Runner.new('$LOG_FILE').run"

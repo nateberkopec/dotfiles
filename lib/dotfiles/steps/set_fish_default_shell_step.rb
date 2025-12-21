@@ -12,7 +12,7 @@ class Dotfiles::Step::SetFishDefaultShellStep < Dotfiles::Step
       if ci_or_noninteractive?
         debug "Skipping adding Fish to /etc/shells in CI (requires sudo)"
       else
-        execute("echo #{fish_path} | sudo tee -a /etc/shells", sudo: true)
+        execute("bash -lc 'echo #{fish_path} >> /etc/shells'", sudo: true)
       end
     end
 

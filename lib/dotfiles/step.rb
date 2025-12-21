@@ -1,6 +1,5 @@
 require "digest"
 require "fileutils"
-require "open3"
 
 class Dotfiles
   class Step
@@ -23,22 +22,22 @@ class Dotfiles
     end
 
     def self.topological_sort(steps)
-      visited = Set.new
-      temp_visited = Set.new
+      visited = {}
+      temp_visited = {}
       result = []
 
       steps.each do |step|
-        visit(step, visited, temp_visited, result, steps) unless visited.include?(step)
+        visit(step, visited, temp_visited, result, steps) unless visited.key?(step)
       end
 
       result
     end
 
     def self.visit(step, visited, temp_visited, result, all_steps)
-      raise "Circular dependency detected involving #{step}" if temp_visited.include?(step)
-      return if visited.include?(step)
+      raise "Circular dependency detected involving #{step}" if temp_visited.key?(step)
+      return if visited.key?(step)
 
-      temp_visited.add(step)
+      temp_visited[step] = true
 
       step.depends_on.each do |dependency|
         raise "Dependency #{dependency} not found in step list" unless all_steps.include?(dependency)
@@ -46,7 +45,7 @@ class Dotfiles
       end
 
       temp_visited.delete(step)
-      visited.add(step)
+      visited[step] = true
       result << step
     end
 
@@ -91,6 +90,7 @@ class Dotfiles
 
     def complete?
       @errors.clear
+      false
     end
 
     # Optional: steps can implement update logic to sync
@@ -111,6 +111,8 @@ class Dotfiles
         debug "Skipping sudo command in CI/non-interactive environment: #{command}"
         return ["", 0]
       end
+
+      quiet = false if sudo
 
       if sudo
         step_name = self.class.name.gsub(/Step$/, "").gsub(/([A-Z])/, ' \1').strip

@@ -1,3 +1,5 @@
+require "date"
+
 class Dotfiles::Step::UpdateMacOSStep < Dotfiles::Step
   def self.display_name
     "Update macOS"
@@ -66,10 +68,5 @@ class Dotfiles::Step::UpdateMacOSStep < Dotfiles::Step
         message: "Last background update check was #{hours_since_check} hours ago.\nConsider checking System Settings > General > Software Update."
       )
     end
-  end
-
-  def user_has_admin_rights?
-    groups, = @system.execute("groups")
-    groups.include?("admin")
   end
 end

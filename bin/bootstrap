@@ -26,12 +26,31 @@ bootstrap_homebrew() {
     if ! command -v brew &> /dev/null; then
         debug "Installing Homebrew..."
         /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-
-        echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
-        eval "$(/opt/homebrew/bin/brew shellenv)"
-    else
-        debug "Homebrew already installed"
     fi
+
+    local brew_bin=""
+    if command -v brew &> /dev/null; then
+        brew_bin="$(command -v brew)"
+    elif [ -x /opt/homebrew/bin/brew ]; then
+        brew_bin="/opt/homebrew/bin/brew"
+    elif [ -x /usr/local/bin/brew ]; then
+        brew_bin="/usr/local/bin/brew"
+    fi
+
+    if [ -z "$brew_bin" ]; then
+        echo "Error: Homebrew installation completed but 'brew' was not found"
+        exit 1
+    fi
+
+    local zprofile_path="$HOME/.zprofile"
+    local shellenv_line
+    shellenv_line="$(printf 'eval \"$(%s shellenv)\"' "$brew_bin")"
+
+    if ! grep -Fq "brew shellenv" "$zprofile_path" 2>/dev/null; then
+        printf '%s\n' "$shellenv_line" >> "$zprofile_path"
+    fi
+
+    eval "$("$brew_bin" shellenv)"
 }
 
 bootstrap_mise() {

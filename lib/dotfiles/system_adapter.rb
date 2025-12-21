@@ -53,19 +53,36 @@ class Dotfiles
 
     def execute(command, quiet: true)
       if quiet
-        output = `#{command} 2>&1`.strip
-        [output, $?.exitstatus]
+        stdout_and_stderr, status = Open3.capture2e(*open3_command(command))
+        [stdout_and_stderr.strip, status.exitstatus]
       else
-        output = `#{command}`.strip
-        status = $?.exitstatus
-        [output, status]
+        output = +""
+        status = nil
+
+        Open3.popen2e(*open3_command(command)) do |_stdin, stdout_and_stderr, wait_thread|
+          stdout_and_stderr.each do |line|
+            print line
+            output << line
+          end
+          status = wait_thread.value.exitstatus
+        end
+
+        [output.strip, status]
       end
+    rescue Errno::ENOENT => e
+      [e.message, 127]
     end
 
     def execute!(command, quiet: true)
       output, status = execute(command, quiet: quiet)
       raise "Command failed: #{command}\nOutput: #{output}" unless status == 0
       [output, status]
+    end
+
+    private
+
+    def open3_command(command)
+      command.is_a?(Array) ? command : [command]
     end
   end
 end

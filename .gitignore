@@ -6,3 +6,4 @@ private.fish
 .env
 Brewfile
 logs/
+.rubocop_cache/

@@ -1,6 +1,8 @@
 class Dotfiles::Step::InstallHomebrewStep < Dotfiles::Step
   attr_reader :skipped_due_to_admin
 
+  BREW_BINARIES = ["/opt/homebrew/bin/brew", "/usr/local/bin/brew"].freeze
+
   def initialize(**kwargs)
     super
     @skipped_due_to_admin = false
@@ -20,11 +22,20 @@ class Dotfiles::Step::InstallHomebrewStep < Dotfiles::Step
     debug "Installing Homebrew..."
     execute('/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"')
 
+    brew_bin = BREW_BINARIES.find { |path| @system.file_exist?(path) }
+
     zprofile_path = File.join(@home, ".zprofile")
     existing_content = @system.file_exist?(zprofile_path) ? @system.read_file(zprofile_path) : ""
-    @system.write_file(zprofile_path, existing_content + 'eval "$(/opt/homebrew/bin/brew shellenv)"' + "\n")
+    if brew_bin
+      shellenv_line = "eval \"$(#{brew_bin} shellenv)\""
+      unless existing_content.include?(shellenv_line) || existing_content.include?("brew shellenv")
+        @system.write_file(zprofile_path, existing_content + shellenv_line + "\n")
+      end
 
-    execute('eval "$(/opt/homebrew/bin/brew shellenv)"')
+      brew_bin_dir = File.dirname(brew_bin)
+      path_entries = ENV.fetch("PATH", "").split(":")
+      ENV["PATH"] = ([brew_bin_dir] + path_entries).uniq.join(":") unless path_entries.include?(brew_bin_dir)
+    end
   end
 
   def complete?

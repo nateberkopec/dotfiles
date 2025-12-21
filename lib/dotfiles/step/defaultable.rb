@@ -65,9 +65,10 @@ class Dotfiles
       end
 
       def parse_defaults_value(output)
-        return output.to_f if output.include?(".")
-        return output.to_i if output.match?(/^-?\d+$/)
-        output
+        str = output.strip
+        return str.to_i if str.match?(/^-?\d+$/)
+        return str.to_f if str.match?(/^-?\d+\.\d+$/)
+        str
       end
     end
   end

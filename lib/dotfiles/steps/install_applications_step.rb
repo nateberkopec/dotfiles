@@ -30,10 +30,9 @@ class Dotfiles::Step::InstallApplicationsStep < Dotfiles::Step
 
       appdir_flag = user_has_admin_rights? ? "" : "--appdir=~/Applications"
 
+      brew_quiet("install --cask #{appdir_flag} #{app["brew_cask"]}")
       if app["cli_tap"]
-        brew_quiet("install --cask #{appdir_flag} #{app["brew_cask"]} #{app["cli_tap"]}")
-      else
-        brew_quiet("install --cask #{appdir_flag} #{app["brew_cask"]}")
+        brew_quiet("install #{app["cli_tap"]}")
       end
     end
   end

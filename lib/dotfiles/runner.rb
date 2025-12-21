@@ -72,7 +72,7 @@ class Dotfiles
     end
 
     def run_steps_serially(steps_to_run_indices)
-      completed_steps = Set.new
+      completed_steps = {}
 
       @step_instances.each_with_index do |step, index|
         step_class = @step_classes[index]
@@ -93,7 +93,7 @@ class Dotfiles
           end
         end
 
-        completed_steps.add(step_class)
+        completed_steps[step_class] = true
       end
 
       puts ""
@@ -104,7 +104,7 @@ class Dotfiles
       return if dependencies.empty?
 
       loop do
-        all_complete = dependencies.all? { |dep| completed_steps.include?(dep) }
+        all_complete = dependencies.all? { |dep| completed_steps.key?(dep) }
         break if all_complete
         sleep 0.01
       end

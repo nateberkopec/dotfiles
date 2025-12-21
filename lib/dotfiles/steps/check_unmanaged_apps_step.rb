@@ -1,4 +1,8 @@
 class Dotfiles::Step::CheckUnmanagedAppsStep < Dotfiles::Step
+  def should_run?
+    missing_apps.any?
+  end
+
   def run
     missing_apps.each do |path|
       add_notice(
