@@ -121,7 +121,7 @@ class Dotfiles::Step::InstallYknotifyStep < Dotfiles::Step
           # Send notification using terminal-notifier
           message="$(echo "$line" | jq -r '.type')"
           if [[ -x "$TERM_NTFY_BIN" ]]; then
-              "$TERM_NTFY_BIN" -title "yknotify" -message "$message" -sound Submarine
+              "$TERM_NTFY_BIN" -title "yknotify" -message "$message" -sound Submarine -ignoreDnD
           else
               # Fallback to AppleScript if terminal-notifier is not installed
               osascript -e "display notification \\"$message\\" with title \\"yknotify\\""
