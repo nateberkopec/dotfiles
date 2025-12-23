@@ -9,3 +9,6 @@ script = """
 abbr -a dfr './bin/dotf run'
 abbr -a dfu './bin/dotf update'
 """
+
+[tools]
+go = "latest"
