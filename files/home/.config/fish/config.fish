@@ -25,6 +25,7 @@ alias ll "eza -la"
 alias tree "eza --tree"
 fzf --fish | source
 starship init fish | source
+broot --print-shell-function fish | source
 gc-ai-abbr
 
 function mosh

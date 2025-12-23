@@ -10,6 +10,7 @@ standard_folders:
 brew:
   packages:
   - bat
+  - broot
   - coreutils
   - difftastic
   - eza
