@@ -1,7 +1,7 @@
 class Dotfiles::Step::InstallHomebrewStep < Dotfiles::Step
   attr_reader :skipped_due_to_admin
 
-  BREW_BINARIES = ["/opt/homebrew/bin/brew", "/usr/local/bin/brew"].freeze
+  BREW_BINARIES = ["/opt/homebrew/bin/brew", "/usr/local/bin/brew", "/home/linuxbrew/.linuxbrew/bin/brew"].freeze
 
   def initialize(**kwargs)
     super
@@ -25,7 +25,7 @@ class Dotfiles::Step::InstallHomebrewStep < Dotfiles::Step
 
   def install_homebrew
     debug "Installing Homebrew..."
-    execute('/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"')
+    execute('NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"')
   end
 
   def configure_shell_environment
