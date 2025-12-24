@@ -1,4 +1,5 @@
 [tools]
+go = "latest"
 ruby = "latest"
 node = "lts"
 watchexec = "latest"
