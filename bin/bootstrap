@@ -63,6 +63,12 @@ bootstrap_mise() {
         debug "mise already installed"
     fi
 
+    # Trust mise config in current directory (needed for non-interactive environments)
+    if [ -f ".mise.toml" ]; then
+        debug "Trusting mise config..."
+        mise trust --yes 2>/dev/null || true
+    fi
+
     eval "$(mise activate bash)"
 }
 
