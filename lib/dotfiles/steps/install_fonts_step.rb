@@ -1,6 +1,8 @@
 require "shellwords"
 
 class Dotfiles::Step::InstallFontsStep < Dotfiles::Step
+  macos_only
+
   def self.depends_on
     [Dotfiles::Step::SyncHomeDirectoryStep]
   end

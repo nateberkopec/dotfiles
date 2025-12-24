@@ -1,4 +1,6 @@
 class Dotfiles::Step::CheckUnmanagedAppsStep < Dotfiles::Step
+  macos_only
+
   def should_run?
     missing_apps.any?
   end

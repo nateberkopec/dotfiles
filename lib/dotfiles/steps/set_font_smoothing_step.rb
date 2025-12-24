@@ -1,4 +1,5 @@
 class Dotfiles::Step::SetFontSmoothingStep < Dotfiles::Step
+  macos_only
   include Dotfiles::Step::Defaultable
 
   def run

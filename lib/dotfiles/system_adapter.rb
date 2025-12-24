@@ -3,6 +3,19 @@ require "open3"
 
 class Dotfiles
   class SystemAdapter
+    def macos?
+      RUBY_PLATFORM.include?("darwin")
+    end
+
+    def running_codespaces?
+      ENV["CODESPACES"] == "true"
+    end
+
+    def running_container?
+      File.exist?("/.dockerenv") ||
+        (File.exist?("/proc/1/cgroup") && File.read("/proc/1/cgroup").include?("docker"))
+    end
+
     def file_exist?(path)
       File.exist?(path)
     end

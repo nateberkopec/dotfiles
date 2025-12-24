@@ -13,6 +13,14 @@ class Dotfiles
       []
     end
 
+    def self.macos_only
+      @macos_only = true
+    end
+
+    def self.macos_only?
+      @macos_only || false
+    end
+
     def self.display_name
       name.gsub(/^Dotfiles::Step::/, "").gsub(/Step$/, "").gsub(/([A-Z]+)([A-Z][a-z])/, '\1 \2').gsub(/([a-z\d])([A-Z])/, '\1 \2')
     end
@@ -83,6 +91,7 @@ class Dotfiles
     end
 
     def should_run?
+      return false if self.class.macos_only? && !@system.macos?
       !complete?
     end
 

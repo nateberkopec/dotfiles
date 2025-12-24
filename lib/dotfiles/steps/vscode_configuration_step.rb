@@ -1,4 +1,6 @@
 class Dotfiles::Step::VSCodeConfigurationStep < Dotfiles::Step
+  macos_only
+
   def self.display_name
     "VS Code Configuration"
   end

@@ -1,6 +1,8 @@
 require "date"
 
 class Dotfiles::Step::UpdateMacOSStep < Dotfiles::Step
+  macos_only
+
   def self.display_name
     "Update macOS"
   end

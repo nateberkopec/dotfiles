@@ -1,0 +1,19 @@
+{
+  "name": "Dotfiles Dev",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "features": {
+    "ghcr.io/devcontainers/features/ruby:1": {
+      "version": "3.3"
+    },
+    "ghcr.io/meaningful-ooo/devcontainer-features/fish:1": {}
+  },
+  "postCreateCommand": "bundle install && bin/dotf run",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "fish"
+      }
+    }
+  },
+  "remoteUser": "vscode"
+}

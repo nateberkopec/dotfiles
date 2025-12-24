@@ -1,4 +1,5 @@
 class Dotfiles::Step::ConfigureDockStep < Dotfiles::Step
+  macos_only
   include Dotfiles::Step::Defaultable
 
   def self.depends_on
