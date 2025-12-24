@@ -36,28 +36,30 @@ class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
   end
 
   def check_skipped_packages
-    packages = @config.packages["brew"]["packages"]
-    casks = @config.packages["brew"]["casks"]
-    installed_formulae, = brew_quiet("list --formula")
-    installed_casks, = brew_quiet("list --cask")
-    installed_formulae = installed_formulae.split("\n")
-    installed_casks = installed_casks.split("\n")
+    skipped = find_skipped_packages
+    return if skipped[:packages].empty? && skipped[:casks].empty?
+    add_warning(title: "⚠️  Homebrew Installation Skipped", message: format_skipped_warning(skipped))
+  end
 
-    skipped_packages = packages.reject { |pkg| installed_formulae.include?(pkg) }
-    skipped_casks = casks.reject { |cask| installed_casks.include?(cask.split("/").last) }
+  def find_skipped_packages
+    installed_formulae = brew_quiet("list --formula").first.split("\n")
+    installed_casks = brew_quiet("list --cask").first.split("\n")
+    {
+      packages: @config.packages["brew"]["packages"].reject { |pkg| installed_formulae.include?(pkg) },
+      casks: @config.packages["brew"]["casks"].reject { |cask| installed_casks.include?(cask.split("/").last) }
+    }
+  end
 
-    if skipped_packages.any? || skipped_casks.any?
-      warning_lines = ["No admin rights detected."]
-      warning_lines << "\nSkipped formulae:" if skipped_packages.any?
-      warning_lines.concat(skipped_packages.map { |pkg| "• #{pkg}" })
-      warning_lines << "\nSkipped casks:" if skipped_casks.any?
-      warning_lines.concat(skipped_casks.map { |cask| "• #{cask}" })
+  def format_skipped_warning(skipped)
+    lines = ["No admin rights detected."]
+    append_skipped_items(lines, "formulae", skipped[:packages])
+    append_skipped_items(lines, "casks", skipped[:casks])
+    lines.join("\n")
+  end
 
-      add_warning(
-        title: "⚠️  Homebrew Installation Skipped",
-        message: warning_lines.join("\n")
-      )
-    end
+  def append_skipped_items(lines, label, items)
+    return if items.empty?
+    lines.concat(["\nSkipped #{label}:"] + items.map { |item| "• #{item}" })
   end
 
   def log_installation_results(output, exit_status)
@@ -70,18 +72,12 @@ class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
   def complete?
     super
     return true if ran?
-
     unless @system.file_exist?(@brewfile_path)
       add_error("Brewfile does not exist at #{@brewfile_path}")
       return false
     end
-
     raise "packages_already_installed? must be called before complete?" if @packages_installed_status.nil?
-
-    unless @packages_installed_status
-      add_error("Some Homebrew packages are not installed")
-    end
-
+    add_error("Some Homebrew packages are not installed") unless @packages_installed_status
     @packages_installed_status
   end
 
@@ -92,13 +88,13 @@ class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
 
   def generate_brewfile
     brew_config = @config.packages&.dig("brew") || {}
-    packages = brew_config["packages"] || []
-    cask_packages = brew_config["casks"] || []
+    content = build_brewfile_content(brew_config)
+    @system.write_file(@brewfile_path, content)
+  end
 
-    brewfile_content = []
-    packages.each { |pkg| brewfile_content << "brew \"#{pkg}\"" }
-    cask_packages.each { |cask| brewfile_content << "cask \"#{cask}\"" }
-
-    @system.write_file(@brewfile_path, brewfile_content.join("\n") + "\n")
+  def build_brewfile_content(brew_config)
+    lines = (brew_config["packages"] || []).map { |pkg| "brew \"#{pkg}\"" }
+    lines += (brew_config["casks"] || []).map { |cask| "cask \"#{cask}\"" }
+    lines.join("\n") + "\n"
   end
 end

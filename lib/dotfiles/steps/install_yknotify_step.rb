@@ -79,16 +79,12 @@ class Dotfiles::Step::InstallYknotifyStep < Dotfiles::Step
   end
 
   def yknotify_bin_path
-    # mise installs go binaries to its own path, not ~/go/bin
-    # Use `mise which` to get the actual binary path (not shim) for LaunchAgent
-    output, status = @system.execute("mise which yknotify")
-    if status == 0 && !output.strip.empty?
-      output.strip
-    else
-      # Fallback - try which
-      output, status = @system.execute("which yknotify")
-      output.strip if status == 0 && !output.strip.empty?
-    end
+    find_binary_path("mise which yknotify") || find_binary_path("which yknotify")
+  end
+
+  def find_binary_path(command)
+    output, status = @system.execute(command)
+    output.strip if status == 0 && !output.strip.empty?
   end
 
   def terminal_notifier_path

@@ -5,37 +5,44 @@ class Dotfiles::Step::SetFishDefaultShellStep < Dotfiles::Step
 
   def run
     debug "Setting Fish as the default shell..."
-    fish_path, = @system.execute("which fish")
+    add_fish_to_shells unless fish_in_shells?
+    change_default_shell
+  end
 
-    unless @system.readlines("/etc/shells").any? { |line| line.strip == fish_path }
-      debug "Adding Fish to allowed shells..."
-      if ci_or_noninteractive?
-        debug "Skipping adding Fish to /etc/shells in CI (requires sudo)"
-      else
-        execute("bash -lc 'echo #{fish_path} >> /etc/shells'", sudo: true)
-      end
-    end
+  def add_fish_to_shells
+    debug "Adding Fish to allowed shells..."
+    return debug("Skipping adding Fish to /etc/shells in CI (requires sudo)") if ci_or_noninteractive?
+    execute("bash -lc 'echo #{fish_path} >> /etc/shells'", sudo: true)
+  end
 
+  def change_default_shell
     debug "Changing default shell to Fish..."
-    if ci_or_noninteractive?
-      debug "Skipping chsh in CI (would require user password)"
-    else
-      execute("chsh -s #{fish_path}")
-    end
+    return debug("Skipping chsh in CI (would require user password)") if ci_or_noninteractive?
+    execute("chsh -s #{fish_path}")
   end
 
   def complete?
     super
     return true if ci_or_noninteractive?
+    add_error("Fish is not set as the default shell (current: #{current_shell.strip})") unless fish_is_default?
+    @errors.empty?
+  end
 
-    fish_path, = @system.execute("which fish")
-    current_shell, = execute("dscl . -read ~/ UserShell", quiet: true)
+  private
 
-    unless current_shell.include?(fish_path)
-      add_error("Fish is not set as the default shell (current: #{current_shell.strip})")
-      return false
-    end
+  def fish_path
+    @fish_path ||= @system.execute("which fish").first
+  end
 
-    true
+  def fish_in_shells?
+    @system.readlines("/etc/shells").any? { |line| line.strip == fish_path }
+  end
+
+  def current_shell
+    execute("dscl . -read ~/ UserShell", quiet: true).first
+  end
+
+  def fish_is_default?
+    current_shell.include?(fish_path)
   end
 end

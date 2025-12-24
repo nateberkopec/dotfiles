@@ -14,44 +14,47 @@ class Dotfiles
 
     def run
       puts "Updating dotfiles repository via step updates..."
-
-      step_params = {
-        debug: @debug,
-        dotfiles_repo: @config.dotfiles_repo,
-        dotfiles_dir: @config.dotfiles_dir,
-        home: @config.home
-      }
-
-      Dotfiles::Step.all_steps.each do |step_class|
-        step = step_class.new(**step_params)
-        # Each step may implement update to sync back into repo
-        step.update
-      end
-
+      run_all_step_updates
       commit_and_push_changes
+    end
+
+    def run_all_step_updates
+      Dotfiles::Step.all_steps.each { |step_class| step_class.new(**step_params).update }
+    end
+
+    def step_params
+      {debug: @debug, dotfiles_repo: @config.dotfiles_repo, dotfiles_dir: @config.dotfiles_dir, home: @config.home}
     end
 
     private
 
     def commit_and_push_changes
       Dir.chdir(@config.dotfiles_dir)
-      stdout, _stderr, _ = Open3.capture3("git status --porcelain")
-      return puts "No changes to commit." if stdout.empty?
+      return puts "No changes to commit." if git_status_clean?
+      stage_and_review_changes
+      return puts "Commit cancelled." unless confirm_commit?
+      create_commit
+      puts "Dotfiles updated successfully!"
+    end
 
+    def git_status_clean?
+      stdout, = Open3.capture3("git status --porcelain")
+      stdout.empty?
+    end
+
+    def stage_and_review_changes
       system("git add -A")
       system("git diff --cached --stat")
-
       run_security_scan
+    end
 
-      return puts "Commit cancelled." unless system("gum confirm 'Proceed with commit?'")
+    def confirm_commit?
+      system("gum confirm 'Proceed with commit?'")
+    end
 
-      gc_ai_flags = ENV["GIT_COMMIT_FLAGS"] || ""
-      gc_ai_cmd = "fish -c 'gc-ai #{gc_ai_flags}'"
-      git_commit_cmd = "git commit #{gc_ai_flags} -m 'Update dotfiles from system'"
-
-      system(gc_ai_cmd) || system(git_commit_cmd)
-
-      puts "Dotfiles updated successfully!"
+    def create_commit
+      flags = ENV["GIT_COMMIT_FLAGS"] || ""
+      system("fish -c 'gc-ai #{flags}'") || system("git commit #{flags} -m 'Update dotfiles from system'")
     end
 
     def command_exists?(cmd)
@@ -60,13 +63,30 @@ class Dotfiles
 
     def run_security_scan
       return unless command_exists?("llm")
+      diff = fetch_cached_diff
+      return if diff.nil? || diff.empty?
+      display_scan_result(scan_diff_for_secrets(diff))
+    end
 
+    def fetch_cached_diff
       puts "\nRunning security scan for secrets..."
-
       diff, _stderr, status = Open3.capture3("git diff --cached")
-      return if !status.success? || diff.empty?
+      status.success? ? diff : nil
+    end
 
-      prompt = <<~PROMPT
+    def scan_diff_for_secrets(diff)
+      result, = Open3.capture3("llm", "-s", security_scan_prompt, stdin_data: diff)
+      result
+    end
+
+    def display_scan_result(result)
+      puts "\n"
+      system("gum style --border rounded --padding '1 2' --border-foreground '#ffcc00' '🔍 Security Scan Result' '' '#{result.gsub("'", "'\\''").strip}'")
+      puts "\n"
+    end
+
+    def security_scan_prompt
+      <<~PROMPT
         You are a security scanner. Analyze this git diff for secrets, credentials, or sensitive information that should not be committed to a repository.
 
         Look for:
@@ -82,12 +102,6 @@ class Dotfiles
 
         Be concise. Only report actual concerns, not false positives like example values or placeholders.
       PROMPT
-
-      result, _stderr, _status = Open3.capture3("llm", "-s", prompt, stdin_data: diff)
-
-      puts "\n"
-      system("gum style --border rounded --padding '1 2' --border-foreground '#ffcc00' '🔍 Security Scan Result' '' '#{result.gsub("'", "'\\''").strip}'")
-      puts "\n"
     end
   end
 end

@@ -23,17 +23,18 @@ class Dotfiles::Step::InstallApplicationsStep < Dotfiles::Step
   private
 
   def install_application(app)
-    if @system.dir_exist?(app["path"])
-      debug "#{app["name"]} is already installed, skipping..."
-    else
-      debug "Installing #{app["name"]}..."
+    return debug("#{app["name"]} is already installed, skipping...") if @system.dir_exist?(app["path"])
+    install_app_cask(app)
+    install_cli_tap(app) if app["cli_tap"]
+  end
 
-      appdir_flag = user_has_admin_rights? ? "" : "--appdir=~/Applications"
+  def install_app_cask(app)
+    debug "Installing #{app["name"]}..."
+    appdir_flag = user_has_admin_rights? ? "" : "--appdir=~/Applications"
+    brew_quiet("install --cask #{appdir_flag} #{app["brew_cask"]}")
+  end
 
-      brew_quiet("install --cask #{appdir_flag} #{app["brew_cask"]}")
-      if app["cli_tap"]
-        brew_quiet("install #{app["cli_tap"]}")
-      end
-    end
+  def install_cli_tap(app)
+    brew_quiet("install #{app["cli_tap"]}")
   end
 end

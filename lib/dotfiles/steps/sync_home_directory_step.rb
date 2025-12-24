@@ -43,41 +43,32 @@ class Dotfiles::Step::SyncHomeDirectoryStep < Dotfiles::Step
   end
 
   def sync_from_repo_to_home
-    each_file_in(source_dir) do |src_path, relative_path|
-      dest_path = File.join(@home, relative_path)
-      ensure_parent_exists(dest_path)
-      copy_if_different(src_path, dest_path)
-    end
+    each_file_in(source_dir).each { |src, _, dest| sync_file(src, dest) }
   end
 
   def sync_from_home_to_repo
-    each_file_in(source_dir) do |repo_path, relative_path|
-      home_path = File.join(@home, relative_path)
-      next unless @system.file_exist?(home_path)
-      ensure_parent_exists(repo_path)
-      copy_if_different(home_path, repo_path)
-    end
+    each_file_in(source_dir).each { |repo, _, dest| sync_file(dest, repo) if @system.file_exist?(dest) }
+  end
+
+  def sync_file(from, to)
+    ensure_parent_exists(to)
+    copy_if_different(from, to)
   end
 
   def find_out_of_sync_files
-    out_of_sync = []
-    each_file_in(source_dir) do |src_path, relative_path|
-      dest_path = File.join(@home, relative_path)
-      unless file_in_sync?(src_path, dest_path)
-        out_of_sync << {src: src_path, dest: dest_path, relative: relative_path}
-      end
-    end
-    out_of_sync
+    each_file_in(source_dir)
+      .reject { |src, _, dest| file_in_sync?(src, dest) }
+      .map { |src, rel, dest| {src: src, dest: dest, relative: rel} }
   end
 
   def each_file_in(dir)
-    return unless @system.dir_exist?(dir)
-    @system.glob(File.join(dir, "**", "{*,.*}"), File::FNM_DOTMATCH).each do |path|
-      next unless @system.file_exist?(path)
-      next if @system.dir_exist?(path)
-      relative_path = path.sub("#{dir}/", "")
-      yield path, relative_path
-    end
+    return [] unless @system.dir_exist?(dir)
+    all_files_in(dir).map { |path| [path, path.sub("#{dir}/", ""), File.join(@home, path.sub("#{dir}/", ""))] }
+  end
+
+  def all_files_in(dir)
+    @system.glob(File.join(dir, "**", "{*,.*}"), File::FNM_DOTMATCH)
+      .select { |path| @system.file_exist?(path) && !@system.dir_exist?(path) }
   end
 
   def file_in_sync?(source_file, dest_file)

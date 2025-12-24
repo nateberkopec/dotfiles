@@ -35,34 +35,36 @@ class Dotfiles::Step::VSCodeConfigurationStep < Dotfiles::Step
 
   private
 
+  def extensions_file
+    File.join(@home, "Library", "Application Support", "Code", "User", "extensions.txt")
+  end
+
   def extensions_installed?
-    extensions_file = File.join(@home, "Library", "Application Support", "Code", "User", "extensions.txt")
-    return true unless @system.file_exist?(extensions_file)
-    return true unless command_exists?("code")
-
-    installed_extensions, = execute("code --list-extensions")
-    installed_extensions = installed_extensions.split("\n")
-
-    expected_extensions = @system.readlines(extensions_file).map(&:strip)
+    return true unless @system.file_exist?(extensions_file) && command_exists?("code")
     expected_extensions.all? { |ext| installed_extensions.include?(ext) }
   end
 
+  def installed_extensions
+    execute("code --list-extensions").first.split("\n")
+  end
+
+  def expected_extensions
+    @system.readlines(extensions_file).map(&:strip)
+  end
+
   def install_vscode_extensions
-    extensions_file = File.join(@home, "Library", "Application Support", "Code", "User", "extensions.txt")
     return unless @system.file_exist?(extensions_file)
-
     debug "Installing VSCode extensions..."
-    installed_extensions, = execute("code --list-extensions")
-    installed_extensions = installed_extensions.split("\n")
+    installed = installed_extensions
+    expected_extensions.each { |ext| install_extension_if_missing(ext, installed) }
+  end
 
-    @system.readlines(extensions_file).each do |extension|
-      extension = extension.strip
-      if installed_extensions.include?(extension)
-        debug "VSCode extension already installed: #{extension}"
-      else
-        debug "Installing VSCode extension: #{extension}"
-        execute("code --install-extension #{extension}")
-      end
+  def install_extension_if_missing(extension, installed)
+    if installed.include?(extension)
+      debug "VSCode extension already installed: #{extension}"
+    else
+      debug "Installing VSCode extension: #{extension}"
+      execute("code --install-extension #{extension}")
     end
   end
 end

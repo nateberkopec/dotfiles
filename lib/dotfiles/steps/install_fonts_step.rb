@@ -17,26 +17,31 @@ class Dotfiles::Step::InstallFontsStep < Dotfiles::Step
   def complete?
     super
     return true if ci_or_noninteractive?
-
-    font_dir = File.join(@home, "Library", "Fonts")
-    font_files = @system.glob("#{font_dir}/*.ttf")
-    installed_fonts, status = execute("fc-list", quiet: true)
-
-    unless status == 0
+    unless fc_list_available?
       add_error("Failed to check installed fonts (fc-list command failed)")
       return false
     end
+    report_missing_fonts
+    @errors.empty?
+  end
 
-    missing_fonts = font_files.reject do |font_path|
-      font_name = File.basename(font_path, ".ttf")
-      installed_fonts.include?(font_name)
-    end
+  private
 
-    if missing_fonts.any?
-      missing_fonts.each { |font_path| add_error("Font not installed: #{File.basename(font_path)}") }
-      return false
-    end
+  def fc_list_available?
+    _, status = execute("fc-list", quiet: true)
+    status == 0
+  end
 
-    true
+  def report_missing_fonts
+    missing_fonts.each { |font_path| add_error("Font not installed: #{File.basename(font_path)}") }
+  end
+
+  def missing_fonts
+    installed, = execute("fc-list", quiet: true)
+    font_files.reject { |path| installed.include?(File.basename(path, ".ttf")) }
+  end
+
+  def font_files
+    @system.glob("#{File.join(@home, "Library", "Fonts")}/*.ttf")
   end
 end

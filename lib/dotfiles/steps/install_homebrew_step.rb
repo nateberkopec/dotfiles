@@ -13,29 +13,39 @@ class Dotfiles::Step::InstallHomebrewStep < Dotfiles::Step
   end
 
   def run
-    unless user_has_admin_rights?
-      debug "Skipping Homebrew installation: no admin rights"
-      @skipped_due_to_admin = true
-      return
-    end
+    return skip_without_admin unless user_has_admin_rights?
+    install_homebrew
+    configure_shell_environment
+  end
 
+  def skip_without_admin
+    debug "Skipping Homebrew installation: no admin rights"
+    @skipped_due_to_admin = true
+  end
+
+  def install_homebrew
     debug "Installing Homebrew..."
     execute('/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"')
+  end
 
+  def configure_shell_environment
     brew_bin = BREW_BINARIES.find { |path| @system.file_exist?(path) }
+    return unless brew_bin
+    add_shellenv_to_zprofile(brew_bin)
+    add_brew_to_path(brew_bin)
+  end
 
+  def add_shellenv_to_zprofile(brew_bin)
     zprofile_path = File.join(@home, ".zprofile")
-    existing_content = @system.file_exist?(zprofile_path) ? @system.read_file(zprofile_path) : ""
-    if brew_bin
-      shellenv_line = "eval \"$(#{brew_bin} shellenv)\""
-      unless existing_content.include?(shellenv_line) || existing_content.include?("brew shellenv")
-        @system.write_file(zprofile_path, existing_content + shellenv_line + "\n")
-      end
+    content = @system.file_exist?(zprofile_path) ? @system.read_file(zprofile_path) : ""
+    return if content.include?("brew shellenv")
+    @system.write_file(zprofile_path, content + "eval \"$(#{brew_bin} shellenv)\"\n")
+  end
 
-      brew_bin_dir = File.dirname(brew_bin)
-      path_entries = ENV.fetch("PATH", "").split(":")
-      ENV["PATH"] = ([brew_bin_dir] + path_entries).uniq.join(":") unless path_entries.include?(brew_bin_dir)
-    end
+  def add_brew_to_path(brew_bin)
+    brew_bin_dir = File.dirname(brew_bin)
+    path_entries = ENV.fetch("PATH", "").split(":")
+    ENV["PATH"] = ([brew_bin_dir] + path_entries).uniq.join(":") unless path_entries.include?(brew_bin_dir)
   end
 
   def complete?

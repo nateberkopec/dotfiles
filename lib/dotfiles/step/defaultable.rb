@@ -2,14 +2,15 @@ class Dotfiles
   class Step
     module Defaultable
       def defaults_complete?(setting_type_name, current_host: false)
-        setting_entries.each do |domain, key, expected_value|
-          expected_str = expected_value.is_a?(String) ? expected_value : expected_value.to_s
-          read_cmd = build_read_command(domain, key, current_host: current_host)
-          unless defaults_read_equals?(read_cmd, expected_str)
-            add_error("#{setting_type_name} setting #{domain}.#{key} not set to #{expected_value}")
-          end
-        end
+        setting_entries.each { |entry| check_setting(setting_type_name, entry, current_host) }
         @errors.empty?
+      end
+
+      def check_setting(setting_type_name, entry, current_host)
+        domain, key, expected_value = entry
+        expected_str = expected_value.is_a?(String) ? expected_value : expected_value.to_s
+        read_cmd = build_read_command(domain, key, current_host: current_host)
+        add_error("#{setting_type_name} setting #{domain}.#{key} not set to #{expected_value}") unless defaults_read_equals?(read_cmd, expected_str)
       end
 
       def run_defaults_write
@@ -21,20 +22,27 @@ class Dotfiles
       end
 
       def update_defaults_config(config_key, _config_filename = nil)
-        updated_settings = setting_entries.group_by(&:first).transform_values do |entries|
-          entries.filter_map { |domain, key, _value|
-            read_command = build_read_command(domain, key)
-            output, status = execute(read_command, quiet: true)
-            next unless status == 0
+        updated_settings = gather_current_settings
+        write_to_config_file(config_key, updated_settings)
+      end
 
-            value = parse_defaults_value(output)
-            [key, collapse_path_to_home(value)]
-          }.to_h
-        end
+      def gather_current_settings
+        setting_entries.group_by(&:first).transform_values { |entries| read_entries_to_hash(entries) }
+      end
 
+      def read_entries_to_hash(entries)
+        entries.filter_map { |domain, key, _| read_single_entry(domain, key) }.to_h
+      end
+
+      def read_single_entry(domain, key)
+        output, status = execute(build_read_command(domain, key), quiet: true)
+        return nil unless status == 0
+        [key, collapse_path_to_home(parse_defaults_value(output))]
+      end
+
+      def write_to_config_file(config_key, updated_settings)
         config_path = File.join(@dotfiles_dir, "config", "config.yml")
-        existing_content = @system.read_file(config_path)
-        existing_config = YAML.safe_load(existing_content, permitted_classes: [Symbol]) || {}
+        existing_config = YAML.safe_load(@system.read_file(config_path), permitted_classes: [Symbol]) || {}
         existing_config[config_key] = updated_settings
         @system.write_file(config_path, existing_config.to_yaml)
       end
@@ -51,16 +59,10 @@ class Dotfiles
 
       def type_flag_for(value)
         case value
-        when 0, 1
-          "-int"
-        when Integer
-          "-int"
-        when Float
-          "-float"
-        when String
-          "-string"
-        else
-          "-int"
+        when Integer then "-int"
+        when Float then "-float"
+        when String then "-string"
+        else "-int"
         end
       end
 

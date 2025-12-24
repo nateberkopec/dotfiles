@@ -22,44 +22,46 @@ class Dotfiles
     end
 
     def self.topological_sort(steps)
-      visited = {}
-      temp_visited = {}
-      result = []
-
-      steps.each do |step|
-        visit(step, visited, temp_visited, result, steps) unless visited.key?(step)
-      end
-
-      result
+      context = {visited: {}, temp_visited: {}, result: [], all_steps: steps}
+      steps.each { |step| visit(step, context) unless context[:visited].key?(step) }
+      context[:result]
     end
 
-    def self.visit(step, visited, temp_visited, result, all_steps)
-      raise "Circular dependency detected involving #{step}" if temp_visited.key?(step)
-      return if visited.key?(step)
+    def self.visit(step, context)
+      validate_visit(step, context)
+      visit_dependencies(step, context)
+      finalize_visit(step, context)
+    end
 
-      temp_visited[step] = true
+    def self.validate_visit(step, context)
+      raise "Circular dependency detected involving #{step}" if context[:temp_visited].key?(step)
+    end
 
-      step.depends_on.each do |dependency|
-        raise "Dependency #{dependency} not found in step list" unless all_steps.include?(dependency)
-        visit(dependency, visited, temp_visited, result, all_steps)
-      end
+    def self.visit_dependencies(step, context)
+      return if context[:visited].key?(step)
+      context[:temp_visited][step] = true
+      step.depends_on.each { |dep| visit_single_dependency(dep, context) }
+    end
 
-      temp_visited.delete(step)
-      visited[step] = true
-      result << step
+    def self.visit_single_dependency(dependency, context)
+      raise "Dependency #{dependency} not found in step list" unless context[:all_steps].include?(dependency)
+      visit(dependency, context)
+    end
+
+    def self.finalize_visit(step, context)
+      context[:temp_visited].delete(step)
+      context[:visited][step] = true
+      context[:result] << step
     end
 
     def initialize(debug:, dotfiles_repo:, dotfiles_dir:, home:, system: SystemAdapter.new)
-      @debug = debug
-      @dotfiles_repo = dotfiles_repo
-      @dotfiles_dir = dotfiles_dir
-      @home = home
-      @system = system
+      @debug, @dotfiles_repo, @dotfiles_dir, @home, @system = debug, dotfiles_repo, dotfiles_dir, home, system
       @config = Config.new(dotfiles_dir, system: system)
-      @ran = false
-      @warnings = []
-      @notices = []
-      @errors = []
+      reset_state
+    end
+
+    def reset_state
+      @ran, @warnings, @notices, @errors = false, [], [], []
     end
 
     attr_reader :warnings, :notices, :config, :errors
@@ -107,26 +109,28 @@ class Dotfiles
     end
 
     def execute(command, quiet: true, sudo: false)
-      if sudo && ci_or_noninteractive?
-        debug "Skipping sudo command in CI/non-interactive environment: #{command}"
-        return ["", 0]
-      end
+      return skip_sudo_command(command) if sudo && ci_or_noninteractive?
+      sudo ? execute_with_sudo(command) : run_command(command, quiet: quiet)
+    end
 
-      quiet = false if sudo
+    def skip_sudo_command(command)
+      debug "Skipping sudo command in CI/non-interactive environment: #{command}"
+      ["", 0]
+    end
 
-      if sudo
-        step_name = self.class.name.gsub(/Step$/, "").gsub(/([A-Z])/, ' \1').strip
-        @system.execute(
-          "gum style --foreground '#ff6b6b' --border double --align center --width 50 --margin '1 0' --padding '1 2' '🔒 Admin Privileges Required' '#{step_name}' '' 'Command: #{command}' '' 'This is required to complete setup'",
-          quiet: false
-        )
-        cmd = "sudo #{command}"
-      else
-        cmd = command
-      end
+    def execute_with_sudo(command)
+      display_sudo_warning(command)
+      run_command("sudo #{command}", quiet: false)
+    end
 
+    def display_sudo_warning(command)
+      step_name = self.class.name.gsub(/Step$/, "").gsub(/([A-Z])/, ' \1').strip
+      gum_cmd = "gum style --foreground '#ff6b6b' --border double --align center --width 50 --margin '1 0' --padding '1 2' '🔒 Admin Privileges Required' '#{step_name}' '' 'Command: #{command}' '' 'This is required to complete setup'"
+      @system.execute(gum_cmd, quiet: false)
+    end
+
+    def run_command(cmd, quiet:)
       debug "Executing: #{cmd}"
-
       @system.execute(cmd, quiet: quiet)
     end
 

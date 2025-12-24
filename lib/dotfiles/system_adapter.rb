@@ -52,25 +52,30 @@ class Dotfiles
     end
 
     def execute(command, quiet: true)
-      if quiet
-        stdout_and_stderr, status = Open3.capture2e(*open3_command(command))
-        [stdout_and_stderr.strip, status.exitstatus]
-      else
-        output = +""
-        status = nil
-
-        Open3.popen2e(*open3_command(command)) do |_stdin, stdout_and_stderr, wait_thread|
-          stdout_and_stderr.each do |line|
-            print line
-            output << line
-          end
-          status = wait_thread.value.exitstatus
-        end
-
-        [output.strip, status]
-      end
+      quiet ? execute_quiet(command) : execute_verbose(command)
     rescue Errno::ENOENT => e
       [e.message, 127]
+    end
+
+    def execute_quiet(command)
+      stdout_and_stderr, status = Open3.capture2e(*open3_command(command))
+      [stdout_and_stderr.strip, status.exitstatus]
+    end
+
+    def execute_verbose(command)
+      output = +""
+      status = stream_output(command, output)
+      [output.strip, status]
+    end
+
+    def stream_output(command, output)
+      Open3.popen2e(*open3_command(command)) do |_stdin, stdout_and_stderr, wait_thread|
+        stdout_and_stderr.each do |line|
+          print line
+          output << line
+        end
+        return wait_thread.value.exitstatus
+      end
     end
 
     def execute!(command, quiet: true)

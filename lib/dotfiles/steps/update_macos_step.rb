@@ -32,41 +32,44 @@ class Dotfiles::Step::UpdateMacOSStep < Dotfiles::Step
   private
 
   def minor_updates_available
+    output = read_software_update_plist("RecommendedUpdates")
+    return [] unless output
+    parse_minor_updates(output)
+  end
+
+  def read_software_update_plist(key)
     plist_path = "/Library/Preferences/com.apple.SoftwareUpdate.plist"
-    return [] unless @system.file_exist?(plist_path)
+    return nil unless @system.file_exist?(plist_path)
+    output, status = @system.execute("defaults read #{plist_path} #{key} 2>/dev/null")
+    (status == 0) ? output : nil
+  end
 
-    output, status = @system.execute("defaults read #{plist_path} RecommendedUpdates 2>/dev/null")
-    return [] unless status == 0
-
-    updates = output.lines.select { |line| line.match?(/Identifier = ".*_minor"/) }.map do |line|
-      line.match(/Identifier = "(MSU_UPDATE_[^"]+_minor)"/)[1]
-    rescue
-      nil
-    end.compact
+  def parse_minor_updates(output)
+    updates = output.lines.filter_map { |line| extract_minor_update_id(line) }
     debug "Minor macOS updates available: #{updates.join(", ")}" unless updates.empty?
     updates
   end
 
+  def extract_minor_update_id(line)
+    line.match(/Identifier = "(MSU_UPDATE_[^"]+_minor)"/)&.[](1)
+  end
+
   def check_background_update_freshness
-    plist_path = "/Library/Preferences/com.apple.SoftwareUpdate.plist"
-    return unless @system.file_exist?(plist_path)
+    output = read_software_update_plist("LastBackgroundSuccessfulDate")
+    return unless output
+    warn_if_stale(parse_last_check_date(output))
+  end
 
-    output, status = @system.execute("defaults read #{plist_path} LastBackgroundSuccessfulDate 2>/dev/null")
-    return unless status == 0
+  def parse_last_check_date(output)
+    DateTime.parse(output.strip)
+  rescue
+    nil
+  end
 
-    last_check = begin
-      DateTime.parse(output.strip)
-    rescue
-      nil
-    end
+  def warn_if_stale(last_check)
     return unless last_check
-
-    hours_since_check = ((DateTime.now - last_check) * 24).to_i
-    if hours_since_check > 24
-      add_warning(
-        title: "⚠️  macOS Update Check Stale",
-        message: "Last background update check was #{hours_since_check} hours ago.\nConsider checking System Settings > General > Software Update."
-      )
-    end
+    hours = ((DateTime.now - last_check) * 24).to_i
+    return unless hours > 24
+    add_warning(title: "⚠️  macOS Update Check Stale", message: "Last background update check was #{hours} hours ago.\nConsider checking System Settings > General > Software Update.")
   end
 end
