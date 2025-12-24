@@ -4,10 +4,12 @@ class Dotfiles::Step::CheckUnmanagedAppsStep < Dotfiles::Step
   end
 
   def run
-    apps = missing_apps.map { |path| "#{app_name(path)} (#{path})" }
+    apps = missing_apps
+    return if apps.empty?
+
     add_notice(
       title: "📦 Missing Applications",
-      message: apps.join("\n")
+      message: apps.map { |path| "#{app_name(path)} (#{path})" }.join("\n")
     )
   end
 

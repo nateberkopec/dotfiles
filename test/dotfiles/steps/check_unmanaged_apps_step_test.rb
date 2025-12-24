@@ -13,7 +13,7 @@ class CheckUnmanagedAppsStepTest < Minitest::Test
     step.run
 
     assert_equal 1, step.notices.size
-    assert_includes step.notices.first[:title], "Screen Studio"
+    assert_includes step.notices.first[:message], "Screen Studio"
   end
 
   def test_no_notice_for_installed_app
@@ -34,8 +34,8 @@ class CheckUnmanagedAppsStepTest < Minitest::Test
     step.run
 
     assert_equal 1, step.notices.size
-    assert_includes step.notices.first[:title], "Effortless"
-    refute step.notices.any? { |n| n[:title].include?("Monologue") }
+    assert_includes step.notices.first[:message], "Effortless"
+    refute_includes step.notices.first[:message], "Monologue"
   end
 
   def test_handles_empty_skipped_apps_file
@@ -67,7 +67,10 @@ class CheckUnmanagedAppsStepTest < Minitest::Test
 
     step.run
 
-    assert_equal 3, step.notices.size
+    assert_equal 1, step.notices.size
+    assert_includes step.notices.first[:message], "Screen Studio"
+    assert_includes step.notices.first[:message], "Monologue"
+    assert_includes step.notices.first[:message], "Effortless"
   end
 
   def test_filters_out_homebrew_managed_apps
@@ -82,7 +85,7 @@ class CheckUnmanagedAppsStepTest < Minitest::Test
     step.run
 
     assert_equal 1, step.notices.size
-    assert_includes step.notices.first[:title], "Screen Studio"
-    refute step.notices.any? { |n| n[:title].include?("Arc") }
+    assert_includes step.notices.first[:message], "Screen Studio"
+    refute_includes step.notices.first[:message], "Arc"
   end
 end
