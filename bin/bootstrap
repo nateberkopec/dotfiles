@@ -25,7 +25,7 @@ brew_quiet() {
 bootstrap_homebrew() {
     if ! command -v brew &> /dev/null; then
         debug "Installing Homebrew..."
-        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+        NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
     fi
 
     local brew_bin=""
@@ -35,6 +35,8 @@ bootstrap_homebrew() {
         brew_bin="/opt/homebrew/bin/brew"
     elif [ -x /usr/local/bin/brew ]; then
         brew_bin="/usr/local/bin/brew"
+    elif [ -x /home/linuxbrew/.linuxbrew/bin/brew ]; then
+        brew_bin="/home/linuxbrew/.linuxbrew/bin/brew"
     fi
 
     if [ -z "$brew_bin" ]; then
