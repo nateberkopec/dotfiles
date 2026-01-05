@@ -72,6 +72,16 @@ class Dotfiles::Step::InstallYknotifyStep < Dotfiles::Step
     @system.mkdir_p(script_dir)
     @system.write_file(script_path, script_content)
     @system.chmod(0o755, script_path)
+    install_icon
+  end
+
+  def install_icon
+    debug "Installing YubiKey icon (BSD 2-Clause, Yubico AB)..."
+    execute("curl -sL 'https://raw.githubusercontent.com/Yubico/yubikey-manager-qt/main/ykman-gui/images/windowicon.png' -o '#{icon_path}'")
+  end
+
+  def icon_path
+    File.join(script_dir, "yubikey-icon.png")
   end
 
   def install_launchagent
@@ -137,7 +147,7 @@ class Dotfiles::Step::InstallYknotifyStep < Dotfiles::Step
           # Send notification using terminal-notifier
           message="$(echo "$line" | jq -r '.type')"
           if [[ -x "$TERM_NTFY_BIN" ]]; then
-              "$TERM_NTFY_BIN" -title "yknotify" -message "$message" -sound Submarine -ignoreDnD
+              "$TERM_NTFY_BIN" -title "YubiKey" -message "Touch to confirm $message" -sound Submarine -ignoreDnD -contentImage "#{icon_path}"
           else
               # Fallback to AppleScript if terminal-notifier is not installed
               osascript -e "display notification \\"$message\\" with title \\"yknotify\\""
