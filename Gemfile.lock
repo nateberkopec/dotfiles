@@ -8,7 +8,7 @@ GEM
       path_expander (~> 2.0)
       prism (~> 1.7)
       sexp_processor (~> 4.0)
-    flog (4.9.2)
+    flog (4.9.3)
       path_expander (~> 2.0)
       prism (~> 1.7)
       sexp_processor (~> 4.8)
@@ -69,7 +69,7 @@ PLATFORMS
 
 DEPENDENCIES
   flay
-  flog
+  flog (~> 4.9.3)
   minitest
   rake
   standard
