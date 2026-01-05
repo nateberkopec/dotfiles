@@ -53,6 +53,7 @@ brew:
   - visual-studio-code
   - whatsapp
   - zoom
+  - steipete/tap/trimmy
 applications:
 - name: 1Password
   path: "/Applications/1Password.app"
@@ -108,6 +109,8 @@ trackpad_settings:
 screenshot_settings:
   com.apple.screencapture:
     location: "~/Documents/Inbox"
+login_items:
+- /Applications/Trimmy.app
 config_directory_items:
 - fish/config.fish
 - fish/functions/
