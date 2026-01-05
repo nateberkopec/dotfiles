@@ -1,6 +1,6 @@
 class Dotfiles::Step::InstallStarshipProfilesStep < Dotfiles::Step
   UPSTREAM_PR = "https://github.com/starship/starship/pull/6894".freeze
-  PROFILES_DIR = ".config/starship/profiles".freeze
+  PROFILES_DIR = "Library/Application Support/starship/profiles".freeze
 
   def self.depends_on
     [Dotfiles::Step::InstallBrewPackagesStep]
@@ -64,7 +64,7 @@ class Dotfiles::Step::InstallStarshipProfilesStep < Dotfiles::Step
   end
 
   def profiles_toml_path
-    File.join(@home, ".config/starship/profiles.toml")
+    File.join(@home, "Library/Application Support/starship/profiles.toml")
   end
 
   def default_profile_path

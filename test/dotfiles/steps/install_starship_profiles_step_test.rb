@@ -144,11 +144,11 @@ class InstallStarshipProfilesStepTest < StepTestCase
   end
 
   def profiles_dir
-    File.join(@home, ".config/starship/profiles")
+    File.join(@home, "Library/Application Support/starship/profiles")
   end
 
   def profiles_toml_path
-    File.join(@home, ".config/starship/profiles.toml")
+    File.join(@home, "Library/Application Support/starship/profiles.toml")
   end
 
   def default_profile_path

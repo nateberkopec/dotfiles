@@ -1,6 +1,7 @@
 if status is-interactive
   eval (/opt/homebrew/bin/brew shellenv)
 end
+fish_add_path --prepend ~/.cargo/bin
 fish_add_path /opt/homebrew/opt/libpq/bin
 fish_add_path ~/bin
 
@@ -24,7 +25,7 @@ alias ls eza
 alias ll "eza -la"
 alias tree "eza --tree"
 fzf --fish | source
-starship-profiles init fish | source
+starship init fish | source
 broot --print-shell-function fish | source
 gc-ai-abbr
 
