@@ -38,7 +38,7 @@ class Dotfiles::Step::InstallStarshipProfilesStep < Dotfiles::Step
   end
 
   def install_starship_profiles
-    execute("cargo install starship-profiles", quiet: false)
+    execute("cargo install starship-profiles")
   end
 
   def setup_profiles_config
@@ -48,8 +48,11 @@ class Dotfiles::Step::InstallStarshipProfilesStep < Dotfiles::Step
   end
 
   def starship_profiles_installed?
-    _, status = execute("command -v starship-profiles", quiet: true)
-    status == 0
+    @system.file_exist?(cargo_starship_path)
+  end
+
+  def cargo_starship_path
+    File.join(@home, ".cargo/bin/starship")
   end
 
   def profiles_config_exists?

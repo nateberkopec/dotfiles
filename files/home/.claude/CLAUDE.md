@@ -59,3 +59,7 @@ Keep files ~100 LOC. Split as needed.
 ### Code Style
 
 - Use boolean expressions with implicit return for predicate methods, not guard clauses or case statements with literal true/false.
+
+## Dotfiles
+
+My dotfiles in live ~/.dotfiles. See the README.md there for info on how they work. Dotfiles are made of "steps".

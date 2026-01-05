@@ -49,14 +49,14 @@ class InstallStarshipProfilesStepTest < StepTestCase
       "", 1
     )
     step.run
-    assert_executed("cargo install starship-profiles", quiet: false)
+    assert_executed("cargo install starship-profiles")
   end
 
   def test_run_installs_starship_profiles
     stub_pr_open
     step.run
 
-    assert_executed("cargo install starship-profiles", quiet: false)
+    assert_executed("cargo install starship-profiles")
   end
 
   def test_run_skips_install_when_already_installed
@@ -64,7 +64,7 @@ class InstallStarshipProfilesStepTest < StepTestCase
     stub_pr_open
     step.run
 
-    refute_executed("cargo install starship-profiles", quiet: false)
+    refute_executed("cargo install starship-profiles")
   end
 
   def test_run_creates_profiles_directory
@@ -107,11 +107,15 @@ class InstallStarshipProfilesStepTest < StepTestCase
   private
 
   def stub_starship_profiles_not_installed
-    @fake_system.stub_command("command -v starship-profiles", "", 1)
+    # Default state - file doesn't exist in fake filesystem
   end
 
   def stub_starship_profiles_installed
-    @fake_system.stub_command("command -v starship-profiles", "/usr/local/bin/starship-profiles", 0)
+    @fake_system.write_file(cargo_starship_path, "binary")
+  end
+
+  def cargo_starship_path
+    File.join(@home, ".cargo/bin/starship")
   end
 
   def stub_profiles_config_exists
