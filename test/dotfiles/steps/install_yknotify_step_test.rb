@@ -21,17 +21,20 @@ class InstallYknotifyStepTest < StepTestCase
 
   def test_run_installs_go_package_when_missing
     stub_yknotify_missing
+    stub_power_issue_open
     step.run
 
     assert_executed("mise use -g go@latest")
-    assert_executed("go install github.com/noperator/yknotify@latest")
+    assert_executed("git clone -b predicate-filter --depth 1 https://github.com/nateberkopec/yknotify.git /tmp/yknotify-build")
+    assert_executed("cd /tmp/yknotify-build && go build -o #{@home}/go/bin/yknotify .")
+    assert_executed("rm -rf /tmp/yknotify-build")
   end
 
   def test_run_skips_go_install_when_yknotify_exists
     stub_yknotify_on_path
     step.run
 
-    refute_executed("go install github.com/noperator/yknotify@latest")
+    refute_executed("git clone -b predicate-filter --depth 1 https://github.com/nateberkopec/yknotify.git /tmp/yknotify-build")
   end
 
   def test_run_installs_script_to_xdg_data_dir
@@ -123,6 +126,10 @@ class InstallYknotifyStepTest < StepTestCase
 
   def stub_mise_which_yknotify
     @fake_system.stub_command("mise which yknotify", "#{@home}/.local/share/mise/installs/go/latest/bin/yknotify", 0)
+  end
+
+  def stub_power_issue_open
+    @fake_system.stub_command("gh issue view 7 -R noperator/yknotify --json state -q '.state'", "OPEN", 0)
   end
 
   def script_dir
