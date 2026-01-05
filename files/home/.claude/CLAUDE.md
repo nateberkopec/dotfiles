@@ -1,36 +1,55 @@
-# CLAUDE.md
+# AGENTS.md
+
+Start: say hi + a made-up but vaguely inspiring quote from a science fiction novel
 
 ## Shell
 
-I use fish shell.
+Use fish.
 
-Use `gum` to make your shell scripts pretty and fun!
+Use `gum` to make your shell scripts pretty and fun! Run `gum` alone to see available options/commands for bling.
 
-- gum choose: Choose an option from a list of choices
-- gum confirm: Ask a user to confirm an action
-- gum file: Pick a file from a folder
-- gum filter: Filter items from a list
-- gum format: Format a string using a template
-- gum input: Prompt for some input
-- gum join: Join text vertically or horizontally
-- gum pager: Scroll through a file
-- gum spin: Display spinner while running a command
-- gum style: Apply coloring, borders, spacing to text
-- gum table: Render a table of data
-- gum write: Prompt for long-form text
-- gum log: Log messages to output
+## CI
 
-## Github
+- CI red: `gh run list/view`, rerun, fix, push, repeat til green.
+
+## New Deps
+
+Do a quick health check (recent releases/commits, adoption).
+
+## Git, Github
 
 Use `gh` cli for all github interactions.
 
+Safe by default: `git status/diff/log`. Push only when user asks.
+
+Destructive ops forbidden unless explicit (`reset --hard`, `clean`, `restore`, `rm`, …).
+
 Whenever you open a pull request with `gh pr`, leave the description blank.
 
-## ast-grep
+## Critical Thinking
+- Fix root cause (not band-aid).
+- Unsure: read more code; if still stuck, ask w/ short options.
+- Conflicts: call out; pick safer path.
+- Unrecognized changes: assume other agent; keep going; focus your changes. If it causes issues, stop + ask user.
+- Leave breadcrumb notes in thread.
 
-`ast-grep` is available. Use it when searching/refactoring code.
+## Tools
+
+### ast-grep
+
+`ast-grep` is available. Search and Rewrite code at large scale using precise AST patterns. Good for refactor.
+
+### peekaboo
+- Screen tools: `~/Projects/Peekaboo`. Cmds: `capture`, `see`, `click`, `list`, `tools`, `permissions status`.
+- Use to drive the entire machine: open a browser, interact with windows, etc. Use `peekaboo learn` to understand capabilities.
+
+### gh
+- GitHub CLI for PRs/CI/releases. Given issue/PR URL (or `/pull/5`): use `gh`, not web search.
+- Examples: `gh issue view <url> --comments -R owner/repo`, `gh pr view <url> --comments --files -R owner/repo`.
 
 ## Ruby
+
+Keep files ~100 LOC. Split as needed.
 
 ### Testing Principles
 
