@@ -1,7 +1,5 @@
 # AGENTS.md
 
-Start: say hi + a made-up but vaguely inspiring quote from a science fiction novel
-
 ## Shell
 
 Use fish.
