@@ -38,7 +38,7 @@ Whenever you open a pull request with `gh pr`, leave the description blank.
 `ast-grep` is available. Search and Rewrite code at large scale using precise AST patterns. Good for refactor.
 
 ### peekaboo
-- Screen tools: `~/Projects/Peekaboo`. Cmds: `capture`, `see`, `click`, `list`, `tools`, `permissions status`.
+- Screen tools. Cmds: `capture`, `see`, `click`, `list`, `tools`, `permissions status`.
 - Use to drive the entire machine: open a browser, interact with windows, etc. Use `peekaboo learn` to understand capabilities.
 
 ### gh
