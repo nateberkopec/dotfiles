@@ -63,8 +63,16 @@ class Dotfiles::Step::InstallYknotifyStep < Dotfiles::Step
   end
 
   def go_bin_path
-    # mise installs go binaries here
-    File.join(@home, "go/bin")
+    # Get GOBIN from go env (mise sets this to its install path)
+    output, _status = @system.execute("go env GOBIN")
+    gobin = output.strip
+    return gobin unless gobin.empty?
+
+    # Fallback to GOPATH/bin
+    output, _status = @system.execute("go env GOPATH")
+    gopath = output.strip
+    gopath = File.join(@home, "go") if gopath.empty?
+    File.join(gopath, "bin")
   end
 
   def install_script
