@@ -82,14 +82,22 @@ bootstrap_gum() {
 }
 
 bootstrap_ruby() {
-    # Resolve what ruby@latest actually means
-    local latest_version
-    latest_version=$(mise latest ruby)
-
-    # Check if that specific version is already installed
+    # Check if we have a suitable Ruby already installed
     if command -v ruby &> /dev/null; then
         local current_version
         current_version=$(ruby -v | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+        local major_version
+        major_version=$(echo "$current_version" | cut -d. -f1)
+
+        # In CI, accept any Ruby 3.x+ to avoid slow source builds
+        if [ "${CI:-}" = "true" ] && [ "$major_version" -ge 3 ]; then
+            debug "CI mode: Ruby $current_version is sufficient (>= 3.x), skipping mise Ruby installation"
+            return
+        fi
+
+        # Resolve what ruby@latest actually means
+        local latest_version
+        latest_version=$(mise latest ruby)
 
         if [ "$current_version" = "$latest_version" ]; then
             debug "Ruby $current_version already installed (matches ruby@latest), skipping mise Ruby installation"
@@ -98,6 +106,10 @@ bootstrap_ruby() {
             debug "Ruby $current_version installed but ruby@latest is $latest_version"
         fi
     fi
+
+    # Resolve what ruby@latest actually means (if not already resolved)
+    local latest_version
+    latest_version=${latest_version:-$(mise latest ruby)}
 
     debug "Installing Ruby $latest_version via mise..."
     mise use --global ruby@latest >/dev/null
