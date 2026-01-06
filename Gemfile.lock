@@ -69,7 +69,7 @@ PLATFORMS
 
 DEPENDENCIES
   flay
-  flog (~> 4.9.3)
+  flog (>= 4.9.3)
   minitest
   rake
   standard
