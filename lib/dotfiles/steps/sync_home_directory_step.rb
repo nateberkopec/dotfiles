@@ -44,10 +44,12 @@ class Dotfiles::Step::SyncHomeDirectoryStep < Dotfiles::Step
 
   def sync_from_repo_to_home
     each_file_in(source_dir).each { |src, _, dest| sync_file(src, dest) }
+    each_symlink_in(source_dir).each { |src, _, dest| sync_symlink(src, dest) }
   end
 
   def sync_from_home_to_repo
     each_file_in(source_dir).each { |repo, _, dest| sync_file(dest, repo) if @system.file_exist?(dest) }
+    each_symlink_in(source_dir).each { |repo, _, dest| sync_symlink(dest, repo) if @system.symlink?(dest) }
   end
 
   def sync_file(from, to)
@@ -55,20 +57,55 @@ class Dotfiles::Step::SyncHomeDirectoryStep < Dotfiles::Step
     copy_if_different(from, to)
   end
 
+  def sync_symlink(from, to)
+    ensure_parent_exists(to)
+    target = @system.readlink(from)
+    return if symlink_matches?(to, target)
+    @system.rm_rf(to)
+    @system.create_symlink(target, to)
+  end
+
+  def symlink_matches?(path, expected_target)
+    @system.symlink?(path) && @system.readlink(path) == expected_target
+  end
+
   def find_out_of_sync_files
-    each_file_in(source_dir)
-      .reject { |src, _, dest| file_in_sync?(src, dest) }
-      .map { |src, rel, dest| {src: src, dest: dest, relative: rel} }
+    files = find_out_of_sync(each_file_in(source_dir)) { |src, _, dest| file_in_sync?(src, dest) }
+    symlinks = find_out_of_sync(each_symlink_in(source_dir)) { |src, _, dest| symlink_in_sync?(src, dest) }
+    files + symlinks
+  end
+
+  def find_out_of_sync(entries)
+    entries.reject { |entry| yield(entry) }.map { |src, rel, dest| {src: src, dest: dest, relative: rel} }
+  end
+
+  def symlink_in_sync?(source, dest)
+    @system.symlink?(dest) && @system.readlink(dest) == @system.readlink(source)
   end
 
   def each_file_in(dir)
+    each_entry_in(dir, all_files_in(dir))
+  end
+
+  def each_symlink_in(dir)
+    each_entry_in(dir, all_symlinks_in(dir))
+  end
+
+  def each_entry_in(dir, paths)
     return [] unless @system.dir_exist?(dir)
-    all_files_in(dir).map { |path| [path, path.sub("#{dir}/", ""), File.join(@home, path.sub("#{dir}/", ""))] }
+    paths.map { |path| [path, path.sub("#{dir}/", ""), File.join(@home, path.sub("#{dir}/", ""))] }
   end
 
   def all_files_in(dir)
+    glob_entries(dir).select { |p| @system.file_exist?(p) && !@system.dir_exist?(p) && !@system.symlink?(p) }
+  end
+
+  def all_symlinks_in(dir)
+    glob_entries(dir).select { |path| @system.symlink?(path) }
+  end
+
+  def glob_entries(dir)
     @system.glob(File.join(dir, "**", "{*,.*}"), File::FNM_DOTMATCH)
-      .select { |path| @system.file_exist?(path) && !@system.dir_exist?(path) }
   end
 
   def file_in_sync?(source_file, dest_file)
