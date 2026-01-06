@@ -24,6 +24,18 @@ class Dotfiles
       Dir.exist?(path)
     end
 
+    def symlink?(path)
+      File.symlink?(path)
+    end
+
+    def readlink(path)
+      File.readlink(path)
+    end
+
+    def create_symlink(target, link_path)
+      File.symlink(target, link_path)
+    end
+
     def read_file(path)
       File.read(path)
     end
