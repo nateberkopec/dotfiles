@@ -29,6 +29,7 @@ jobs:
         CI: true
         NONINTERACTIVE: true
       run: |
+        set -o pipefail
         cd ${{ github.workspace }}
         chmod +x bin/dotf
         ./bin/dotf run 2>&1 | tee output.log
