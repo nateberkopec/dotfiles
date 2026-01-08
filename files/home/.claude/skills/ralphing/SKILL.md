@@ -45,6 +45,8 @@ Guidelines for stories:
 - **Explicit criteria**: Avoid vague ("Users can log in"), prefer specific checks
 - Story order = priority (first = highest)
 
+Note: Ralph is typically run in a git worktree. If already on the correct branch (or detached HEAD), the branch checkout is skipped.
+
 ### Step 2: Start the Loop
 
 ```bash
@@ -70,7 +72,7 @@ Keep polling until status is `complete` or `failed`.
 
 ## How the Loop Works
 
-1. `start` copies PRD, generates prompt, checks out branch, and spawns background process
+1. `start` copies PRD, generates prompt, checks out branch (if needed), and spawns background process
 2. Background loop: agent implements story -> commits -> runs tests
 3. If tests fail, reverts commit and retries (progress.txt preserved)
 4. Exits when agent signals `<promise>COMPLETE</promise>` or max iterations reached

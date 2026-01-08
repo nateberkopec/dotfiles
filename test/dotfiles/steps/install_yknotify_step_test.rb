@@ -114,6 +114,7 @@ class InstallYknotifyStepTest < StepTestCase
 
   def stub_yknotify_missing
     @fake_system.stub_command("command -v yknotify >/dev/null 2>&1", "", 1)
+    @fake_system.stub_command("mise which yknotify", "", 1)
   end
 
   def stub_terminal_notifier_on_path

@@ -21,12 +21,15 @@ case "${1:-}" in
     echo "$TEST_CMD" > "$RALPH_DIR/test_cmd"
     sed "s|<RALPH_DIR>|$RALPH_DIR|g" "$SCRIPT_DIR/prompt.md" > "$RALPH_DIR/prompt.md"
 
-    BRANCH=$(grep -oP '(?<=^Branch: `)[^`]+' "$RALPH_DIR/prd.md" || grep -oP '(?<=^Branch: )\S+' "$RALPH_DIR/prd.md")
+    BRANCH=$(sed -n 's/^Branch: `\([^`]*\)`$/\1/p' "$RALPH_DIR/prd.md" | head -1)
+    [ -z "$BRANCH" ] && BRANCH=$(sed -n 's/^Branch: \([^ ]*\)$/\1/p' "$RALPH_DIR/prd.md" | head -1)
     [ -z "$BRANCH" ] && echo "No Branch: found in PRD" && exit 1
     echo "$BRANCH" > "$RALPH_DIR/branch"
 
     cd "$REPO_PATH"
-    [ "$(git branch --show-current)" != "$BRANCH" ] && git checkout "$BRANCH" 2>/dev/null || git checkout -b "$BRANCH"
+    if [ "$(git branch --show-current)" != "$BRANCH" ]; then
+      git checkout "$BRANCH" 2>/dev/null || git checkout -b "$BRANCH"
+    fi
 
     nohup "$SCRIPT_DIR/ralph.sh" _run "$RALPH_DIR" > "$RALPH_DIR/output.log" 2>&1 &
     echo "$!" > "$RALPH_DIR/pid"
@@ -44,8 +47,10 @@ case "${1:-}" in
 
     echo "status: $STATUS"
     echo "iteration: $ITERATION/$MAX"
-    echo "---"
+    echo "--- progress ---"
     cat "$RALPH_DIR/progress.txt"
+    echo "--- output (last 5 lines) ---"
+    tail -5 "$RALPH_DIR/output.log" 2>/dev/null || echo "(no output yet)"
     ;;
 
   _run)
@@ -58,9 +63,11 @@ case "${1:-}" in
 
     for i in $(seq 1 $MAX_ITERATIONS); do
       echo "$i" > "$RALPH_DIR/iteration"
+      echo "=== Iteration $i ===" >> "$RALPH_DIR/output.log"
 
-      OUTPUT=$(OPENCODE_PERMISSION='{"*":"allow","external_directory":"allow"}' opencode run \
-        "$(cat "$RALPH_DIR/prompt.md")" 2>&1) || true
+      OPENCODE_PERMISSION='{"*":"allow","external_directory":"allow"}' opencode run \
+        "$(cat "$RALPH_DIR/prompt.md")" 2>&1 | tee -a "$RALPH_DIR/output.log"
+      OUTPUT=$(tail -1000 "$RALPH_DIR/output.log")
 
       if echo "$OUTPUT" | grep -q "<promise>COMPLETE</promise>"; then
         if [ -n "$TEST_CMD" ] && ! $TEST_CMD; then

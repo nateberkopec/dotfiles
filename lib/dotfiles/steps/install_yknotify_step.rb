@@ -27,7 +27,12 @@ class Dotfiles::Step::InstallYknotifyStep < Dotfiles::Step
   private
 
   def yknotify_installed?
-    command_exists?("yknotify")
+    command_exists?("yknotify") || mise_has_yknotify?
+  end
+
+  def mise_has_yknotify?
+    _, status = @system.execute("mise which yknotify")
+    status == 0
   end
 
   def terminal_notifier_installed?
