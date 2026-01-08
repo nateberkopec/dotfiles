@@ -30,8 +30,8 @@ print_learnings() {
 }
 
 for i in $(seq 1 $MAX_ITERATIONS); do
-  OUTPUT=$(cd "$REPO_PATH" && OPENCODE_PERMISSION='"allow"' opencode run \
-    -f "$RALPH_DIR/prompt.md" 2>&1 | tee /dev/stderr) || true
+  OUTPUT=$(cd "$REPO_PATH" && OPENCODE_PERMISSION='{"*":"allow","external_directory":"allow"}' opencode run \
+    "$(cat "$RALPH_DIR/prompt.md")" 2>&1 | tee /dev/stderr) || true
 
   if echo "$OUTPUT" | grep -q "<promise>COMPLETE</promise>"; then
     if [ -n "$TEST_CMD" ]; then

@@ -7,7 +7,7 @@
 3. Pick the first story with unchecked criteria
 4. Implement that ONE story
 5. Run typecheck and tests
-6. Commit: `feat: [ID] - [Title]`
+6. Commit (always use `--no-gpg-sign`): `git commit --no-gpg-sign -m "feat: [ID] - [Title]"`
 7. Update `<RALPH_DIR>/prd.md`: mark `[x]` for done
 8. Append learnings to `<RALPH_DIR>/progress.txt`
 
