@@ -53,26 +53,13 @@ class Dotfiles::Step::InstallYknotifyStep < Dotfiles::Step
     debug "Installing yknotify from fork (with predicate fix)..."
     execute("rm -rf /tmp/yknotify-build")
     execute("git clone -b predicate-filter --depth 1 https://github.com/nateberkopec/yknotify.git /tmp/yknotify-build")
-    execute("cd /tmp/yknotify-build && go build -o #{go_bin_path}/yknotify .")
+    execute("cd /tmp/yknotify-build && go install .")
     execute("rm -rf /tmp/yknotify-build")
   end
 
   def power_issue_closed?
     output, status = @system.execute("gh issue view 7 -R noperator/yknotify --json state -q '.state'")
     status == 0 && output.strip == "CLOSED"
-  end
-
-  def go_bin_path
-    # Get GOBIN from go env (mise sets this to its install path)
-    output, _status = @system.execute("go env GOBIN")
-    gobin = output.strip
-    return gobin unless gobin.empty?
-
-    # Fallback to GOPATH/bin
-    output, _status = @system.execute("go env GOPATH")
-    gopath = output.strip
-    gopath = File.join(@home, "go") if gopath.empty?
-    File.join(gopath, "bin")
   end
 
   def install_script

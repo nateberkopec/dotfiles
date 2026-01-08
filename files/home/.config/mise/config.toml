@@ -1,6 +1,7 @@
 [tools]
 ruby = "latest"
 node = "lts"
+go = "latest"
 watchexec = "latest"
 
 [settings]
