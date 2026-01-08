@@ -25,7 +25,5 @@ APPEND to `<RALPH_DIR>/progress.txt`:
 
 ## Stop Condition
 
-If ALL stories pass, reply:
+After completing your story, reply:
 <promise>COMPLETE</promise>
-
-Otherwise end normally.

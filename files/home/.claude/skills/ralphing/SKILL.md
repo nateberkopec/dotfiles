@@ -48,18 +48,35 @@ Guidelines for stories:
 ### Step 2: Start the Loop
 
 ```bash
-~/.codex/skills/ralphing/assets/ralph.sh <repo_path> /tmp/ralph/<uuid>/prd.md [max_iterations] [test_cmd]
+~/.claude/skills/ralphing/assets/ralph.sh start <repo_path> <prd.md> [max_iterations] [test_cmd]
 ```
+
+This returns a session directory (e.g., `/tmp/ralph/ABC123-...`) and runs the loop in the background.
+
+### Step 3: Monitor Progress
+
+Poll the session status periodically:
+
+```bash
+~/.claude/skills/ralphing/assets/ralph.sh status <ralph_dir>
+```
+
+This outputs:
+- `status`: `running`, `complete`, or `failed`
+- `iteration`: current/max iterations
+- Full contents of `progress.txt`
+
+Keep polling until status is `complete` or `failed`.
 
 ## How the Loop Works
 
-1. Copies PRD and generates prompt with session paths
-2. Checks out the branch specified in PRD
-3. Loops: agent implements story → commits → runs tests
-4. If tests fail, reverts commit and retries (progress.txt preserved)
-5. Exits when agent signals `<promise>COMPLETE</promise>`
+1. `start` copies PRD, generates prompt, checks out branch, and spawns background process
+2. Background loop: agent implements story -> commits -> runs tests
+3. If tests fail, reverts commit and retries (progress.txt preserved)
+4. Exits when agent signals `<promise>COMPLETE</promise>` or max iterations reached
+5. Parent agent polls `status` to observe progress without blocking
 
 ## Resources
 
-- `assets/ralph.sh` - the loop script
+- `assets/ralph.sh` - the loop script (start/status commands)
 - `assets/prompt.md` - prompt template (uses `<RALPH_DIR>` placeholder)
