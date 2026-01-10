@@ -52,7 +52,7 @@ bootstrap_homebrew() {
         printf '%s\n' "$shellenv_line" >> "$zprofile_path"
     fi
 
-    eval "$("$brew_bin" shellenv)"
+    eval "$("$brew_bin" shellenv -s bash)"
 }
 
 bootstrap_mise() {
