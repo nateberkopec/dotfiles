@@ -6,6 +6,15 @@ disabled = true
 [gcloud]
 disabled = true
 
+[azure]
+disabled = true
+
+[nodejs]
+disabled = true
+
+[package]
+disabled = true
+
 [mise]
 disabled = false
 healthy_symbol = '🟢'
@@ -17,3 +26,6 @@ when = "test -s /var/mail/$USER"
 symbol = "📬 "
 format = "[$symbol$output]($style) "
 style = "bold yellow"
+
+[cmd_duration]
+min_time = 500
