@@ -27,12 +27,24 @@ class Dotfiles::Step::InstallYknotifyStep < Dotfiles::Step
   private
 
   def yknotify_installed?
-    command_exists?("yknotify") || mise_has_yknotify?
+    command_exists?("yknotify") || mise_has_yknotify? || go_bin_has_yknotify?
   end
 
   def mise_has_yknotify?
-    _, status = @system.execute("mise which yknotify")
+    _, status = @system.execute("mise exec --no-prepare go@latest -- which yknotify 2>/dev/null")
     status == 0
+  end
+
+  def go_bin_has_yknotify?
+    @system.file_exist?(go_bin_yknotify)
+  end
+
+  def go_bin_dir
+    File.join(@home, "go/bin")
+  end
+
+  def go_bin_yknotify
+    File.join(go_bin_dir, "yknotify")
   end
 
   def terminal_notifier_installed?
@@ -56,10 +68,13 @@ class Dotfiles::Step::InstallYknotifyStep < Dotfiles::Step
     end
 
     debug "Installing yknotify from fork (with predicate fix)..."
+    execute("mkdir -p #{go_bin_dir}")
     execute("rm -rf /tmp/yknotify-build")
     execute("git clone -b predicate-filter --depth 1 https://github.com/nateberkopec/yknotify.git /tmp/yknotify-build")
-    execute("cd /tmp/yknotify-build && mise exec -- go install .")
+    output, status = execute("cd /tmp/yknotify-build && GOBIN=#{go_bin_dir} mise exec --no-prepare go@latest -- go install .")
+    raise "go install failed (status #{status}): #{output}" unless status == 0
     execute("rm -rf /tmp/yknotify-build")
+    execute("mise reshim")
   end
 
   def power_issue_closed?
@@ -109,7 +124,13 @@ class Dotfiles::Step::InstallYknotifyStep < Dotfiles::Step
   end
 
   def yknotify_bin_path
-    find_binary_path("mise which yknotify") || find_binary_path("which yknotify")
+    find_binary_path("mise exec --no-prepare go@latest -- which yknotify 2>/dev/null") ||
+      find_binary_path("which yknotify") ||
+      go_bin_yknotify_path
+  end
+
+  def go_bin_yknotify_path
+    go_bin_yknotify if @system.file_exist?(go_bin_yknotify)
   end
 
   def find_binary_path(command)
