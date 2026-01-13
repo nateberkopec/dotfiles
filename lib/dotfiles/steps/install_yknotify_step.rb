@@ -27,12 +27,16 @@ class Dotfiles::Step::InstallYknotifyStep < Dotfiles::Step
   private
 
   def yknotify_installed?
-    command_exists?("yknotify") || mise_has_yknotify?
+    command_exists?("yknotify") || mise_has_yknotify? || go_bin_has_yknotify?
   end
 
   def mise_has_yknotify?
     _, status = @system.execute("mise exec -- which yknotify 2>/dev/null")
     status == 0
+  end
+
+  def go_bin_has_yknotify?
+    @system.file_exist?(File.join(@home, "go/bin/yknotify"))
   end
 
   def terminal_notifier_installed?
@@ -110,7 +114,14 @@ class Dotfiles::Step::InstallYknotifyStep < Dotfiles::Step
   end
 
   def yknotify_bin_path
-    find_binary_path("mise exec -- which yknotify 2>/dev/null") || find_binary_path("which yknotify")
+    find_binary_path("mise exec -- which yknotify 2>/dev/null") ||
+      find_binary_path("which yknotify") ||
+      go_bin_yknotify_path
+  end
+
+  def go_bin_yknotify_path
+    path = File.join(@home, "go/bin/yknotify")
+    path if @system.file_exist?(path)
   end
 
   def find_binary_path(command)
