@@ -31,7 +31,7 @@ class Dotfiles::Step::InstallYknotifyStep < Dotfiles::Step
   end
 
   def mise_has_yknotify?
-    _, status = @system.execute("mise which yknotify")
+    _, status = @system.execute("mise exec -- which yknotify 2>/dev/null")
     status == 0
   end
 
@@ -109,7 +109,7 @@ class Dotfiles::Step::InstallYknotifyStep < Dotfiles::Step
   end
 
   def yknotify_bin_path
-    find_binary_path("mise which yknotify") || find_binary_path("which yknotify")
+    find_binary_path("mise exec -- which yknotify 2>/dev/null") || find_binary_path("which yknotify")
   end
 
   def find_binary_path(command)
