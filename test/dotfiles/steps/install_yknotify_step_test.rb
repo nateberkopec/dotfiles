@@ -26,7 +26,7 @@ class InstallYknotifyStepTest < StepTestCase
 
     assert_executed("mise use -g go@latest")
     assert_executed("git clone -b predicate-filter --depth 1 https://github.com/nateberkopec/yknotify.git /tmp/yknotify-build")
-    assert_executed("cd /tmp/yknotify-build && GOBIN=#{@home}/go/bin mise exec -- go install .")
+    assert_executed("cd /tmp/yknotify-build && GOBIN=#{@home}/go/bin mise exec --no-prepare go@latest -- go install .")
     assert_executed("rm -rf /tmp/yknotify-build")
     assert_executed("mise reshim")
   end
@@ -115,7 +115,7 @@ class InstallYknotifyStepTest < StepTestCase
 
   def stub_yknotify_missing
     @fake_system.stub_command("command -v yknotify >/dev/null 2>&1", "", 1)
-    @fake_system.stub_command("mise exec -- which yknotify 2>/dev/null", "", 1)
+    @fake_system.stub_command("mise exec --no-prepare go@latest -- which yknotify 2>/dev/null", "", 1)
   end
 
   def stub_terminal_notifier_on_path
@@ -127,7 +127,7 @@ class InstallYknotifyStepTest < StepTestCase
   end
 
   def stub_mise_which_yknotify
-    @fake_system.stub_command("mise exec -- which yknotify 2>/dev/null", "#{@home}/.local/share/mise/installs/go/latest/bin/yknotify", 0)
+    @fake_system.stub_command("mise exec --no-prepare go@latest -- which yknotify 2>/dev/null", "#{@home}/.local/share/mise/installs/go/latest/bin/yknotify", 0)
   end
 
   def stub_power_issue_open

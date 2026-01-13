@@ -31,7 +31,7 @@ class Dotfiles::Step::InstallYknotifyStep < Dotfiles::Step
   end
 
   def mise_has_yknotify?
-    _, status = @system.execute("mise exec -- which yknotify 2>/dev/null")
+    _, status = @system.execute("mise exec --no-prepare go@latest -- which yknotify 2>/dev/null")
     status == 0
   end
 
@@ -71,7 +71,7 @@ class Dotfiles::Step::InstallYknotifyStep < Dotfiles::Step
     execute("mkdir -p #{go_bin_dir}")
     execute("rm -rf /tmp/yknotify-build")
     execute("git clone -b predicate-filter --depth 1 https://github.com/nateberkopec/yknotify.git /tmp/yknotify-build")
-    output, status = execute("cd /tmp/yknotify-build && GOBIN=#{go_bin_dir} mise exec -- go install .")
+    output, status = execute("cd /tmp/yknotify-build && GOBIN=#{go_bin_dir} mise exec --no-prepare go@latest -- go install .")
     raise "go install failed (status #{status}): #{output}" unless status == 0
     execute("rm -rf /tmp/yknotify-build")
     execute("mise reshim")
@@ -124,7 +124,7 @@ class Dotfiles::Step::InstallYknotifyStep < Dotfiles::Step
   end
 
   def yknotify_bin_path
-    find_binary_path("mise exec -- which yknotify 2>/dev/null") ||
+    find_binary_path("mise exec --no-prepare go@latest -- which yknotify 2>/dev/null") ||
       find_binary_path("which yknotify") ||
       go_bin_yknotify_path
   end
