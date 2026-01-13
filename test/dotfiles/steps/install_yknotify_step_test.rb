@@ -114,7 +114,7 @@ class InstallYknotifyStepTest < StepTestCase
 
   def stub_yknotify_missing
     @fake_system.stub_command("command -v yknotify >/dev/null 2>&1", "", 1)
-    @fake_system.stub_command("mise which yknotify", "", 1)
+    @fake_system.stub_command("mise exec -- which yknotify 2>/dev/null", "", 1)
   end
 
   def stub_terminal_notifier_on_path
@@ -126,7 +126,7 @@ class InstallYknotifyStepTest < StepTestCase
   end
 
   def stub_mise_which_yknotify
-    @fake_system.stub_command("mise which yknotify", "#{@home}/.local/share/mise/installs/go/latest/bin/yknotify", 0)
+    @fake_system.stub_command("mise exec -- which yknotify 2>/dev/null", "#{@home}/.local/share/mise/installs/go/latest/bin/yknotify", 0)
   end
 
   def stub_power_issue_open
