@@ -13,6 +13,7 @@ brew:
   - broot
   - coreutils
   - difftastic
+  - duti
   - eza
   - fd
   - fish
@@ -114,3 +115,6 @@ login_items:
 config_directory_items:
 - fish/config.fish
 - fish/functions/
+file_associations:
+  com.microsoft.VSCode:
+  - .md
