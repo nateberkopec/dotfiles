@@ -36,7 +36,15 @@ class Dotfiles::Step::InstallYknotifyStep < Dotfiles::Step
   end
 
   def go_bin_has_yknotify?
-    @system.file_exist?(File.join(@home, "go/bin/yknotify"))
+    @system.file_exist?(go_bin_yknotify)
+  end
+
+  def go_bin_dir
+    File.join(@home, "go/bin")
+  end
+
+  def go_bin_yknotify
+    File.join(go_bin_dir, "yknotify")
   end
 
   def terminal_notifier_installed?
@@ -62,7 +70,7 @@ class Dotfiles::Step::InstallYknotifyStep < Dotfiles::Step
     debug "Installing yknotify from fork (with predicate fix)..."
     execute("rm -rf /tmp/yknotify-build")
     execute("git clone -b predicate-filter --depth 1 https://github.com/nateberkopec/yknotify.git /tmp/yknotify-build")
-    execute("cd /tmp/yknotify-build && mise exec -- go install .")
+    execute("cd /tmp/yknotify-build && GOBIN=#{go_bin_dir} mise exec -- go install .")
     execute("rm -rf /tmp/yknotify-build")
     execute("mise reshim")
   end
@@ -120,8 +128,7 @@ class Dotfiles::Step::InstallYknotifyStep < Dotfiles::Step
   end
 
   def go_bin_yknotify_path
-    path = File.join(@home, "go/bin/yknotify")
-    path if @system.file_exist?(path)
+    go_bin_yknotify if @system.file_exist?(go_bin_yknotify)
   end
 
   def find_binary_path(command)

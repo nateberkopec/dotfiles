@@ -26,7 +26,7 @@ class InstallYknotifyStepTest < StepTestCase
 
     assert_executed("mise use -g go@latest")
     assert_executed("git clone -b predicate-filter --depth 1 https://github.com/nateberkopec/yknotify.git /tmp/yknotify-build")
-    assert_executed("cd /tmp/yknotify-build && mise exec -- go install .")
+    assert_executed("cd /tmp/yknotify-build && GOBIN=#{@home}/go/bin mise exec -- go install .")
     assert_executed("rm -rf /tmp/yknotify-build")
     assert_executed("mise reshim")
   end
