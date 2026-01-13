@@ -68,9 +68,11 @@ class Dotfiles::Step::InstallYknotifyStep < Dotfiles::Step
     end
 
     debug "Installing yknotify from fork (with predicate fix)..."
+    execute("mkdir -p #{go_bin_dir}")
     execute("rm -rf /tmp/yknotify-build")
     execute("git clone -b predicate-filter --depth 1 https://github.com/nateberkopec/yknotify.git /tmp/yknotify-build")
-    execute("cd /tmp/yknotify-build && GOBIN=#{go_bin_dir} mise exec -- go install .")
+    output, status = execute("cd /tmp/yknotify-build && GOBIN=#{go_bin_dir} mise exec -- go install .")
+    raise "go install failed (status #{status}): #{output}" unless status == 0
     execute("rm -rf /tmp/yknotify-build")
     execute("mise reshim")
   end
