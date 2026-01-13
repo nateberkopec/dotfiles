@@ -37,6 +37,6 @@ class Dotfiles::Step::ConfigureFileAssociationsStep < Dotfiles::Step
   def current_handler(extension)
     output, status = execute("duti -x #{extension} 2>/dev/null")
     return nil unless status == 0
-    output.lines.find { |line| line.include?("Bundle ID") }&.split(":")&.last&.strip
+    output.lines[2]&.strip
   end
 end

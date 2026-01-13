@@ -20,7 +20,7 @@ class ConfigureFileAssociationsStepTest < StepTestCase
   def test_complete_when_handler_matches
     @fake_system.stub_command(
       "duti -x .md 2>/dev/null",
-      ".md:\n\tVisual Studio Code.app\n\t/Applications/Visual Studio Code.app\n\tBundle ID:  com.microsoft.VSCode",
+      "Visual Studio Code\n/Applications/Visual Studio Code.app\ncom.microsoft.VSCode",
       0
     )
     assert_complete
@@ -29,7 +29,7 @@ class ConfigureFileAssociationsStepTest < StepTestCase
   def test_incomplete_when_handler_differs
     @fake_system.stub_command(
       "duti -x .md 2>/dev/null",
-      ".md:\n\tTextEdit.app\n\t/System/Applications/TextEdit.app\n\tBundle ID:  com.apple.TextEdit",
+      "TextEdit\n/System/Applications/TextEdit.app\ncom.apple.TextEdit",
       0
     )
     assert_incomplete
