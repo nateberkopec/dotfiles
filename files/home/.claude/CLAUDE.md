@@ -2,7 +2,7 @@
 
 ## Shell
 
-Use fish.
+I use fish. When writing shell scripts intended for the user, use fish. For temporary stuff or stuff for your own use, you can use any shell you like, such as bash or zsh.
 
 Use `gum` to make your shell scripts pretty and fun! Run `gum` alone to see available options/commands for bling.
 
