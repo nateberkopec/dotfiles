@@ -111,10 +111,10 @@ screenshot_settings:
   com.apple.screencapture:
     location: "~/Documents/Inbox"
 login_items:
-- /Applications/Trimmy.app
+- "/Applications/Trimmy.app"
 config_directory_items:
 - fish/config.fish
 - fish/functions/
 file_associations:
   com.microsoft.VSCode:
-  - .md
+  - ".md"
