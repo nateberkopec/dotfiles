@@ -60,6 +60,7 @@ class Dotfiles::Step::InstallYknotifyStep < Dotfiles::Step
     execute("git clone -b predicate-filter --depth 1 https://github.com/nateberkopec/yknotify.git /tmp/yknotify-build")
     execute("cd /tmp/yknotify-build && mise exec -- go install .")
     execute("rm -rf /tmp/yknotify-build")
+    execute("mise reshim")
   end
 
   def power_issue_closed?

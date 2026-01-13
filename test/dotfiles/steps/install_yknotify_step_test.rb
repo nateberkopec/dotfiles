@@ -28,6 +28,7 @@ class InstallYknotifyStepTest < StepTestCase
     assert_executed("git clone -b predicate-filter --depth 1 https://github.com/nateberkopec/yknotify.git /tmp/yknotify-build")
     assert_executed("cd /tmp/yknotify-build && mise exec -- go install .")
     assert_executed("rm -rf /tmp/yknotify-build")
+    assert_executed("mise reshim")
   end
 
   def test_run_skips_go_install_when_yknotify_exists
