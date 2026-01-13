@@ -118,9 +118,15 @@ check_for_updates() {
     debug "Background fetch completed"
 
     # Check if main branch has updates available (compare main with origin/main)
-    LOCAL_MAIN=$(git rev-parse main 2>/dev/null)
-    REMOTE_MAIN=$(git rev-parse origin/main 2>/dev/null)
+    LOCAL_MAIN=$(git rev-parse main 2>/dev/null || echo "")
+    REMOTE_MAIN=$(git rev-parse origin/main 2>/dev/null || echo "")
     debug "After fetch - main: $LOCAL_MAIN, origin/main: $REMOTE_MAIN"
+
+    # Skip update check if either branch is missing (e.g., in CI)
+    if [ -z "$LOCAL_MAIN" ] || [ -z "$REMOTE_MAIN" ]; then
+        debug "Skipping update check - branch refs not available"
+        return 0
+    fi
 
     if [ "$LOCAL_MAIN" != "$REMOTE_MAIN" ]; then
         echo ""
