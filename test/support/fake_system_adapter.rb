@@ -12,6 +12,10 @@ class FakeSystemAdapter
     @filesystem[File.expand_path(path)] = content
   end
 
+  def stub_symlink(path, target)
+    @filesystem[File.expand_path(path)] = {symlink: target}
+  end
+
   def stub_command(command, output, exit_status = 0)
     if output.is_a?(Array)
       output_str, status = output
@@ -35,6 +39,24 @@ class FakeSystemAdapter
     @operations << [:dir_exist?, path]
     path = File.expand_path(path)
     (@filesystem[path] == :directory) || @filesystem.keys.any? { |k| k.start_with?("#{path}/") }
+  end
+
+  def symlink?(path)
+    @operations << [:symlink?, path]
+    entry = @filesystem[File.expand_path(path)]
+    entry.is_a?(Hash) && entry.key?(:symlink)
+  end
+
+  def readlink(path)
+    @operations << [:readlink, path]
+    entry = @filesystem[File.expand_path(path)]
+    raise Errno::EINVAL, path unless entry.is_a?(Hash) && entry.key?(:symlink)
+    entry[:symlink]
+  end
+
+  def create_symlink(target, link_path)
+    @operations << [:create_symlink, target, link_path]
+    @filesystem[File.expand_path(link_path)] = {symlink: target}
   end
 
   def read_file(path)
@@ -84,7 +106,7 @@ class FakeSystemAdapter
 
   def glob(pattern, flags = 0)
     @operations << [:glob, pattern, flags]
-    fnmatch_flags = File::FNM_PATHNAME | flags
+    fnmatch_flags = File::FNM_PATHNAME | File::FNM_EXTGLOB | flags
     @filesystem.keys.select { |k| File.fnmatch?(pattern, k, fnmatch_flags) }
   end
 
