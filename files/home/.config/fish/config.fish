@@ -20,6 +20,7 @@ zoxide init fish | source
 complete -c z -f -k -a "(zoxide query -l)"
 alias cd z
 abbr be "bundle exec"
+abbr cc "claude --allow-dangerously-skip-permissions"
 alias cat bat
 alias ls eza
 alias ll "eza -la"
