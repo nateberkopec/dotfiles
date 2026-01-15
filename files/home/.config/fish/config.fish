@@ -21,7 +21,7 @@ complete -c z -f -k -a "(zoxide query -l)"
 alias cd z
 abbr be "bundle exec"
 abbr cc "claude --allow-dangerously-skip-permissions"
-alias oc "OPENCODE_PERMISSION='{\"*\":\"allow\",\"external_directory\":[\"/tmp\"]}' opencode"
+alias oc "OPENCODE_PERMISSION='{\"*\":\"allow\",\"external_directory\":\"allow\"}' opencode"
 alias cat bat
 alias ls eza
 alias ll "eza -la"
