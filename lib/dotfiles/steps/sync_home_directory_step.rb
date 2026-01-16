@@ -121,14 +121,15 @@ class Dotfiles::Step::SyncHomeDirectoryStep < Dotfiles::Step
   def copy_if_different(from, to)
     return if files_match?(from, to)
 
-    remove_immutable_flag(to) if @system.file_exist?(to)
-    @system.cp(from, to)
+    begin
+      @system.cp(from, to)
+    rescue Errno::EPERM
+      remove_immutable_flag(to)
+      @system.cp(from, to)
+    end
   end
 
   def remove_immutable_flag(file)
-    output, status = execute("ls -lO '#{file}'")
-    return unless status == 0 && output.include?("schg")
-
     execute("chflags noschg '#{file}'", sudo: true)
   end
 end
