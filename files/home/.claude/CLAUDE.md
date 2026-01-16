@@ -18,6 +18,8 @@ Do a quick health check (recent releases/commits, adoption).
 
 Use `gh` cli for all github interactions.
 
+GPG sign is on by default, but you should always use --no-gpg-sign unless otherwise instructed.
+
 Safe by default: `git status/diff/log`. Push only when user asks.
 
 Destructive ops forbidden unless explicit (`reset --hard`, `clean`, `restore`, `rm`, …).
