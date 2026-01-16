@@ -1,4 +1,4 @@
-const RM_RF_PATTERN = /\brm\s+-[a-z]*r[a-z]*f[a-z]*\s+|\brm\s+-[a-z]*f[a-z]*r[a-z]*\s+/gi
+const RM_RF_PATTERN = /\brm\s+-[a-z]*r[a-z]*f[a-z]*\s+|\brm\s+-[a-z]*f[a-z]*r[a-z]*\s+/i
 
 export const RewriteRmRf = async () => {
   return {
@@ -10,7 +10,7 @@ export const RewriteRmRf = async () => {
       const command = output?.args?.command ?? ""
 
       if (RM_RF_PATTERN.test(command)) {
-        output.args.command = command.replace(RM_RF_PATTERN, "trash ")
+        output.args.command = command.replaceAll(RM_RF_PATTERN, "trash ")
       }
     }
   }

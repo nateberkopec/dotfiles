@@ -41,7 +41,7 @@ class RmRfHooksTest < Minitest::Test
 
   def test_python_and_js_patterns_are_equivalent
     py_core = extract_python_pattern.sub(/,\s*re\.IGNORECASE\s*$/, "").gsub(/^r"|"$/, "")
-    js_core = extract_js_pattern.gsub(%r{^/|/gi$}, "")
+    js_core = extract_js_pattern.gsub(%r{^/|/[gi]+$}, "")
     assert_equal py_core, js_core, "Python and JS patterns should be equivalent"
   end
 
