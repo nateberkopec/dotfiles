@@ -61,6 +61,7 @@ class Dotfiles::Step::SyncHomeDirectoryStep < Dotfiles::Step
     ensure_parent_exists(to)
     target = @system.readlink(from)
     return if symlink_matches?(to, target)
+
     @system.rm_rf(to)
     @system.create_symlink(target, to)
   end
@@ -75,8 +76,8 @@ class Dotfiles::Step::SyncHomeDirectoryStep < Dotfiles::Step
     files + symlinks
   end
 
-  def find_out_of_sync(entries)
-    entries.reject { |entry| yield(entry) }.map { |src, rel, dest| {src: src, dest: dest, relative: rel} }
+  def find_out_of_sync(entries, &block)
+    entries.reject(&block).map { |src, rel, dest| {src: src, dest: dest, relative: rel} }
   end
 
   def symlink_in_sync?(source, dest)
@@ -93,6 +94,7 @@ class Dotfiles::Step::SyncHomeDirectoryStep < Dotfiles::Step
 
   def each_entry_in(dir, paths)
     return [] unless @system.dir_exist?(dir)
+
     paths.map { |path| [path, path.sub("#{dir}/", ""), File.join(@home, path.sub("#{dir}/", ""))] }
   end
 
@@ -117,6 +119,17 @@ class Dotfiles::Step::SyncHomeDirectoryStep < Dotfiles::Step
   end
 
   def copy_if_different(from, to)
-    @system.cp(from, to) unless files_match?(from, to)
+    return if files_match?(from, to)
+
+    begin
+      @system.cp(from, to)
+    rescue Errno::EPERM
+      remove_immutable_flag(to)
+      @system.cp(from, to)
+    end
+  end
+
+  def remove_immutable_flag(file)
+    execute("chflags noschg '#{file}'", sudo: true)
   end
 end
