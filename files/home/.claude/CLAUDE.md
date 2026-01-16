@@ -6,6 +6,8 @@ I use fish. When writing shell scripts intended for the user, use fish. For temp
 
 Use `gum` to make your shell scripts pretty and fun! Run `gum` alone to see available options/commands for bling.
 
+Never use `rm -rf`; use `trash` instead.
+
 ## CI
 
 - CI red: `gh run list/view`, rerun, fix, push, repeat til green.
