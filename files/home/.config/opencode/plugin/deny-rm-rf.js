@@ -1,6 +1,6 @@
-const RM_RF_PATTERN = /(^|[;&|]\s*)\s*(?:sudo\s+)?(?:command\s+)?rm\s+-(?:rf|fr)\b/
+const RM_RF_PATTERN = /\brm\s+-[a-z]*r[a-z]*f[a-z]*\s+|\brm\s+-[a-z]*f[a-z]*r[a-z]*\s+/gi
 
-export const DenyRmRf = async () => {
+export const RewriteRmRf = async () => {
   return {
     "tool.execute.before": async (input, output) => {
       if (input.tool !== "bash") {
@@ -10,7 +10,7 @@ export const DenyRmRf = async () => {
       const command = output?.args?.command ?? ""
 
       if (RM_RF_PATTERN.test(command)) {
-        throw new Error("Refusing to run `rm -rf`. Use `trash` instead.")
+        output.args.command = command.replace(RM_RF_PATTERN, "trash ")
       }
     }
   }

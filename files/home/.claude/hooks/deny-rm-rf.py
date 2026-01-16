@@ -4,7 +4,7 @@ import re
 import sys
 
 RM_RF_PATTERN = re.compile(
-    r"(^|[;&|]\s*)\s*(?:sudo\s+)?(?:command\s+)?rm\s+-(?:rf|fr)\b"
+    r"\brm\s+-[a-z]*r[a-z]*f[a-z]*\s+|\brm\s+-[a-z]*f[a-z]*r[a-z]*\s+", re.IGNORECASE
 )
 
 
@@ -22,8 +22,8 @@ def main() -> int:
     command = tool_input.get("command", "")
 
     if RM_RF_PATTERN.search(command):
-        print("Refusing to run `rm -rf`. Use `trash` instead.", file=sys.stderr)
-        return 2
+        new_command = RM_RF_PATTERN.sub("trash ", command)
+        print(json.dumps({"updatedInput": {"command": new_command}}))
 
     return 0
 

@@ -4,9 +4,10 @@ require:
 Dotfiles/BanFileSystemClasses:
   Enabled: true
   Exclude:
-    - 'lib/dotfiles/system_adapter.rb'
-    - 'lib/dotfiles.rb'
-    - 'lib/dotfiles/updater.rb'
+    - "lib/dotfiles/system_adapter.rb"
+    - "lib/dotfiles.rb"
+    - "lib/dotfiles/updater.rb"
+    - "test/dotfiles/hooks/rm_rf_hooks_test.rb"
   Include:
     - 'lib/**/*.rb'
     - 'test/**/*.rb'
