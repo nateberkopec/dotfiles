@@ -58,6 +58,7 @@ class Dotfiles
 
     def self.finalize_visit(step, context)
       context[:temp_visited].delete(step)
+      return if context[:visited].key?(step)
       context[:visited][step] = true
       context[:result] << step
     end
