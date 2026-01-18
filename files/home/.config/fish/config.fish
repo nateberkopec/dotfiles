@@ -4,6 +4,7 @@ end
 fish_add_path ~/go/bin
 fish_add_path /opt/homebrew/opt/libpq/bin
 fish_add_path ~/bin
+fish_add_path ~/.local/bin
 
 set -g fish_greeting
 
