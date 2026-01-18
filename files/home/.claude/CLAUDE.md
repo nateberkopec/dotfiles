@@ -26,6 +26,10 @@ Destructive ops forbidden unless explicit (`reset --hard`, `clean`, `restore`, `
 
 Whenever you open a pull request with `gh pr`, leave the description blank.
 
+## Code Changes
+
+Avoid diff noise from purely stylistic changes (e.g., `'` vs `"`). Let linters handle style automatically.
+
 ## Critical Thinking
 - Fix root cause (not band-aid).
 - Unsure: read more code; if still stuck, ask w/ short options.
