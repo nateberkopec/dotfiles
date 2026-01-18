@@ -134,3 +134,52 @@ class StepTest < Minitest::Test
     assert_empty step.errors
   end
 end
+
+class TopologicalSortDuplicateRegressionTest < Minitest::Test
+  class SharedDependency < Dotfiles::Step
+    def run
+    end
+
+    def complete?
+      super
+      true
+    end
+  end
+
+  class SharedDependent1 < Dotfiles::Step
+    def self.depends_on
+      [SharedDependency]
+    end
+
+    def run
+    end
+
+    def complete?
+      super
+      true
+    end
+  end
+
+  class SharedDependent2 < Dotfiles::Step
+    def self.depends_on
+      [SharedDependency]
+    end
+
+    def run
+    end
+
+    def complete?
+      super
+      true
+    end
+  end
+
+  # Regression test: steps with shared dependencies should not appear multiple times
+  def test_topological_sort_does_not_duplicate_shared_dependencies
+    steps = [SharedDependent1, SharedDependent2, SharedDependency]
+    sorted = Dotfiles::Step.topological_sort(steps)
+
+    assert_equal 3, sorted.length
+    assert_equal 1, sorted.count(SharedDependency)
+  end
+end
