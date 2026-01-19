@@ -19,6 +19,7 @@ brew:
   - fish
   - fontconfig
   - fzf
+  - gemini-cli
   - gh
   - gnupg
   - jq
