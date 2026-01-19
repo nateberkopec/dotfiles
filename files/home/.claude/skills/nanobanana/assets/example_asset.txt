@@ -1,0 +1,10 @@
+Nano Banana prompt template
+
+Subject:
+Style or medium:
+Composition or camera angle:
+Lighting:
+Color palette:
+Background or environment:
+Constraints or exclusions:
+Output size or aspect ratio:
