@@ -1,0 +1,16 @@
+.envrc
+.worktrees
+devserver
+runtests
+.tool_versions
+.DS_Store
+.tool-versions
+vendor/bundle
+vendor/bundle/
+/vendor/bundle
+.vscode/
+.speedshop*
+*.local.*
+.githooks
+node_modules/
+.checkouts/
