@@ -13,7 +13,8 @@ class Dotfiles::Step::ProtectAgentHooksStep < Dotfiles::Step
     hook_files.each do |file|
       next unless @system.file_exist?(file)
 
-      execute("chflags schg '#{file}'", sudo: true)
+      _, status = execute("chflags schg '#{file}'", sudo: true)
+      add_error("Failed to protect #{file}") unless status == 0
     end
   end
 

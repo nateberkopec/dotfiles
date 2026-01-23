@@ -12,7 +12,8 @@ class Dotfiles::Step::SetFishDefaultShellStep < Dotfiles::Step
   def add_fish_to_shells
     debug "Adding Fish to allowed shells..."
     return debug("Skipping adding Fish to /etc/shells in CI (requires sudo)") if ci_or_noninteractive?
-    execute("bash -lc 'echo #{fish_path} >> /etc/shells'", sudo: true)
+    _, status = execute("bash -lc 'echo #{fish_path} >> /etc/shells'", sudo: true)
+    add_error("Failed to add Fish to /etc/shells") unless status == 0
   end
 
   def change_default_shell
