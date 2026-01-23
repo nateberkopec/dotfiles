@@ -61,7 +61,7 @@ class RmRfHooksTest < Minitest::Test
   end
 
   def extract_jq_pattern
-    extract_pattern(JQ_HOOK, /def\s+RM_RF_PATTERN:\s*"([^"]+)"/)
+    extract_pattern(JQ_HOOK, /def\s+RM_RF_PATTERN:\s*"([^"]+)"/).gsub("\\\\", "\\")
   end
 
   def extract_js_pattern
