@@ -40,7 +40,7 @@ class RmRfHooksTest < Minitest::Test
   end
 
   def test_jq_and_js_patterns_are_equivalent
-    jq_core = extract_jq_pattern.sub(/^\(\?i\)/, "")
+    jq_core = extract_jq_pattern
     js_core = extract_js_pattern.gsub(%r{^/|/[gi]+$}, "")
     assert_equal jq_core, js_core, "JQ and JS patterns should be equivalent"
   end
@@ -72,7 +72,7 @@ class RmRfHooksTest < Minitest::Test
     run_pattern_test("jq -n", <<~JQ)
       def rm_rf_pattern: #{pattern.to_json};
       (#{test_cases_json}) as $cases
-      | reduce $cases[] as $cmd ({}; . + { ($cmd): ($cmd | test(rm_rf_pattern)) })
+      | reduce $cases[] as $cmd ({}; . + { ($cmd): ($cmd | test(rm_rf_pattern; "i")) })
     JQ
   end
 
