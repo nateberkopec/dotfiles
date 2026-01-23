@@ -3,7 +3,7 @@ require "json"
 require "shellwords"
 
 class RmRfHooksTest < Minitest::Test
-  PYTHON_HOOK = File.expand_path("../../../files/home/.claude/hooks/deny-rm-rf.py", __dir__)
+  JQ_HOOK = File.expand_path("../../../files/home/.claude/hooks/deny-rm-rf.jq", __dir__)
   JS_HOOK = File.expand_path("../../../files/home/.config/opencode/plugin/deny-rm-rf.js", __dir__)
 
   SHOULD_MATCH = [
@@ -31,18 +31,18 @@ class RmRfHooksTest < Minitest::Test
     "rm -rf/foo"
   ].freeze
 
-  def test_python_hook_regex_matches_expected_cases
-    assert_pattern_matches("Python", extract_python_pattern, method(:run_python_pattern_test))
+  def test_jq_hook_regex_matches_expected_cases
+    assert_pattern_matches("JQ", extract_jq_pattern, method(:run_jq_pattern_test))
   end
 
   def test_js_hook_regex_matches_expected_cases
     assert_pattern_matches("JS", extract_js_pattern, method(:run_js_pattern_test))
   end
 
-  def test_python_and_js_patterns_are_equivalent
-    py_core = extract_python_pattern.sub(/,\s*re\.IGNORECASE\s*$/, "").gsub(/^r"|"$/, "")
+  def test_jq_and_js_patterns_are_equivalent
+    jq_core = extract_jq_pattern
     js_core = extract_js_pattern.gsub(%r{^/|/[gi]+$}, "")
-    assert_equal py_core, js_core, "Python and JS patterns should be equivalent"
+    assert_equal jq_core, js_core, "JQ and JS patterns should be equivalent"
   end
 
   private
@@ -60,23 +60,20 @@ class RmRfHooksTest < Minitest::Test
     match[1]
   end
 
-  def extract_python_pattern
-    extract_pattern(PYTHON_HOOK, /RM_RF_PATTERN\s*=\s*re\.compile\(\s*r"([^"]+)"/)
+  def extract_jq_pattern
+    extract_pattern(JQ_HOOK, /def\s+RM_RF_PATTERN:\s*"([^"]+)"/).gsub("\\\\", "\\")
   end
 
   def extract_js_pattern
     extract_pattern(JS_HOOK, %r{const RM_RF_PATTERN = (/[^/]+/[a-z]*)})
   end
 
-  def run_python_pattern_test(pattern)
-    run_pattern_test("python3 -c", <<~PYTHON)
-      import re
-      import json
-      pattern = re.compile(r"#{pattern}", re.IGNORECASE)
-      cases = json.loads('#{test_cases_json}')
-      results = {cmd: bool(pattern.search(cmd)) for cmd in cases}
-      print(json.dumps(results))
-    PYTHON
+  def run_jq_pattern_test(pattern)
+    run_pattern_test("jq -n", <<~JQ)
+      def rm_rf_pattern: #{pattern.to_json};
+      (#{test_cases_json}) as $cases
+      | reduce $cases[] as $cmd ({}; . + { ($cmd): ($cmd | test(rm_rf_pattern; "i")) })
+    JQ
   end
 
   def run_js_pattern_test(pattern)
