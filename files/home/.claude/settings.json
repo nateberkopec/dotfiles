@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "$HOME/.claude/hooks/deny-rm-rf.py"
+            "command": "$HOME/.claude/hooks/deny-rm-rf.jq"
           }
         ]
       }
