@@ -3,7 +3,7 @@ require "json"
 require "shellwords"
 
 class RmRfHooksTest < Minitest::Test
-  JQ_HOOK = File.expand_path("../../../files/home/.claude/hooks/deny-rm-rf.py", __dir__)
+  JQ_HOOK = File.expand_path("../../../files/home/.claude/hooks/deny-rm-rf.jq", __dir__)
   JS_HOOK = File.expand_path("../../../files/home/.config/opencode/plugin/deny-rm-rf.js", __dir__)
 
   SHOULD_MATCH = [
