@@ -21,9 +21,6 @@ jobs:
         ruby-version: '3.4'
         bundler-cache: false
 
-    - name: Install VS Code for file associations
-      run: brew install --cask visual-studio-code
-
     - name: Run dotfiles
       id: run
       timeout-minutes: 10
