@@ -20,7 +20,6 @@ class Dotfiles::Step::ConfigureFileAssociationsStep < Dotfiles::Step
 
   def complete?
     super
-    return true if ci_or_noninteractive?
     file_associations.each do |bundle_id, extensions|
       extensions.each do |ext|
         add_error("#{ext} not set to open with #{bundle_id}") unless current_handler(ext) == bundle_id
