@@ -44,6 +44,7 @@
 [core]
         excludesfile = /Users/nateberkopec/.gitignore
 	editor = code -w
+	hooksPath = /Users/nateberkopec/.git-hooks
 [pull]
         rebase = false
 [init]

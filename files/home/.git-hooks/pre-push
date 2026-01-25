@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Get repo root
+root="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+[[ -n "$root" ]] || exit 0
+cd "$root"
+
+# Optional opt-out
+[[ "${SKIP_GEM_PERMS_CHECK:-}" == "1" ]] && exit 0
+
+# Bail out quickly if no gemspec in root
+shopt -s nullglob
+gemspecs=( *.gemspec )
+[[ ${#gemspecs[@]} -gt 0 ]] || exit 0
+
+# Check gem file permissions
+ruby <<'RUBY'
+gemspecs = Dir["*.gemspec"]
+bad = []
+
+gemspecs.each do |gemspec|
+  spec = Gem::Specification.load(gemspec)
+  next unless spec
+  spec.files.each do |path|
+    next unless File.file?(path)
+    mode = File.stat(path).mode & 0o777
+    next unless (mode & 0o004).zero?
+    bad << "#{path} (#{format("%o", mode)})"
+  end
+end
+
+if bad.any?
+  warn "Non-world-readable files detected:"
+  bad.sort.each { |entry| warn "  - #{entry}" }
+  warn "\nSet SKIP_GEM_PERMS_CHECK=1 to bypass this check."
+  exit 1
+end
+RUBY
