@@ -2,7 +2,10 @@
 # frozen_string_literal: true
 
 # Vocabulary Profiler
-# Reads text from STDIN and reports what percentage uses the top 1000 basic English words
+# Usage: vocabulary_profiler.rb [filename] [branch]
+#   - If no arguments: reads from STDIN
+#   - If filename only: analyzes that file
+#   - If filename and branch: compares current file to version in branch
 # Word list from: https://simple.wikipedia.org/wiki/Wikipedia:List_of_1000_basic_words
 
 TOP_1000_WORDS = %w[
@@ -81,26 +84,73 @@ TOP_1000_WORDS = %w[
   zero zoo
 ].to_set.freeze
 
+def strip_code_blocks(text)
+  # Remove markdown code blocks (```...```)
+  text.gsub(/```.*?```/m, "")
+end
+
 def extract_words(text)
   text.downcase.scan(/[a-z]+/)
 end
 
-text = $stdin.read
+def calculate_top1000_percentage(text)
+  text = strip_code_blocks(text)
+  words = extract_words(text)
+  total_words = words.length
 
-if text.strip.empty?
-  warn "No input provided. Please pipe text to this script."
+  return 0.0 if total_words.zero?
+
+  basic_words = words.count { |w| TOP_1000_WORDS.include?(w) }
+  (basic_words.to_f / total_words * 100)
+end
+
+def get_file_from_branch(filename, branch)
+  `git show #{branch}:#{filename} 2>/dev/null`
+end
+
+# Parse arguments
+filename = ARGV[0]
+compare_branch = ARGV[1]
+
+# Get current text
+if filename
+  unless File.exist?(filename)
+    warn "File not found: #{filename}"
+    exit 1
+  end
+  current_text = File.read(filename)
+else
+  current_text = $stdin.read
+end
+
+if current_text.strip.empty?
+  warn "No input provided."
   exit 1
 end
 
-words = extract_words(text)
-total_words = words.length
+current_percentage = calculate_top1000_percentage(current_text)
 
-if total_words.zero?
-  warn "No words found in input."
-  exit 1
+# If comparing to a branch
+if compare_branch
+  unless filename
+    warn "Filename required for branch comparison"
+    exit 1
+  end
+
+  baseline_text = get_file_from_branch(filename, compare_branch)
+
+  if baseline_text.strip.empty?
+    warn "Could not read file from branch '#{compare_branch}'"
+    exit 1
+  end
+
+  baseline_percentage = calculate_top1000_percentage(baseline_text)
+  improvement = current_percentage - baseline_percentage
+
+  puts "Top 1000 Words Comparison"
+  puts "  #{compare_branch}: %.1f%%" % baseline_percentage
+  puts "  current: %.1f%%" % current_percentage
+  puts "  improvement: %+.1f%%" % improvement
+else
+  puts "Words in top 1000: %.1f%%" % current_percentage
 end
-
-basic_words = words.count { |w| TOP_1000_WORDS.include?(w) }
-percentage = (basic_words.to_f / total_words * 100)
-
-puts format("Words in top 1000: %d / %d (%.1f%%)", basic_words, total_words, percentage)

@@ -26,13 +26,19 @@ Use these to call out any semantic sections.
 
 ### Reading level
 
-I prefer a Fleisch-Kincaid reading level of 9th grade or below. Revise the README until it is below a 9th grade level. Use `scripts/flesch_kincaid.rb`.
+I prefer a Fleisch-Kincaid reading level of 9th grade or below. Revise the README until it is below a 9th grade level.
+
+Use `scripts/flesch_kincaid.rb <filename> [branch]` to check the grade level. If a branch is provided (typically `main`), the script will show the improvement compared to that branch.
+
+**IMPORTANT**: Code blocks in markdown are ignored by the analysis scripts and should NEVER be modified for readability purposes.
 
 ### ESL audience
 
 Many of the people reading a software project README are not native speakers of English.
 
-`scripts/top1000.txt` is available for profiling what % of a text's words are in the top 1000 most common in English. Aim to increase this number.
+Use `scripts/vocabulary_profiler.rb <filename> [branch]` to check what % of words are in the top 1000 most common in English. If a branch is provided (typically `main`), the script will show the improvement compared to that branch. Aim to increase this percentage.
+
+**IMPORTANT**: Code blocks in markdown are ignored by the analysis scripts and should NEVER be modified for readability purposes.
 
 DO use active voice where possible.
 DON'T assume passive constructions are easy just because the words are simple.
