@@ -118,6 +118,8 @@ spotlight_settings:
   - "/"
   - "/System/Volumes/Data"
   check_interval_seconds: 60
+  disabled_volumes:
+  - "~/Documents/Code.nosync"
 login_items:
 - "/Applications/Trimmy.app"
 config_directory_items:

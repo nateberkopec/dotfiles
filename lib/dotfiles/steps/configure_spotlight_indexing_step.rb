@@ -191,12 +191,11 @@ class Dotfiles::Step::ConfigureSpotlightIndexingStep < Dotfiles::Step
   end
 
   def battery_volumes
-    volumes = spotlight_settings.fetch("battery_volumes", default_battery_volumes)
-    Array(volumes).compact.uniq - disabled_volumes
+    normalize_volumes(spotlight_settings.fetch("battery_volumes", default_battery_volumes)) - disabled_volumes
   end
 
   def disabled_volumes
-    Array(spotlight_settings.fetch("disabled_volumes", [])).compact.uniq
+    normalize_volumes(spotlight_settings.fetch("disabled_volumes", []))
   end
 
   def check_interval_seconds
@@ -206,6 +205,10 @@ class Dotfiles::Step::ConfigureSpotlightIndexingStep < Dotfiles::Step
 
   def default_battery_volumes
     ["/", "/System/Volumes/Data"]
+  end
+
+  def normalize_volumes(volumes)
+    Array(volumes).compact.map { |volume| expand_path_with_home(volume) }.uniq
   end
 
   def shell_escape(value)

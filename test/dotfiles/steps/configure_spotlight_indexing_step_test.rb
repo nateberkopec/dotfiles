@@ -42,6 +42,15 @@ class ConfigureSpotlightIndexingStepTest < StepTestCase
     assert_executed("sudo mdutil -i off /Volumes/Archive", quiet: false)
   end
 
+  def test_run_expands_tilde_for_disabled_volumes
+    write_spotlight_config("battery_disable" => false, "disabled_volumes" => ["~/Documents/Code.nosync"])
+    stub_mdutil_status(expanded_home_code_dir, "Indexing enabled.")
+
+    step.run
+
+    assert_executed("sudo mdutil -i off #{expanded_home_code_dir}", quiet: false)
+  end
+
   def test_complete_when_battery_mode_installed
     write_spotlight_config
     stub_fish_path
@@ -106,5 +115,9 @@ class ConfigureSpotlightIndexingStepTest < StepTestCase
 
   def launchdaemon_path
     "/Library/LaunchDaemons/com.user.spotlight-battery.plist"
+  end
+
+  def expanded_home_code_dir
+    File.join(@home, "Documents", "Code.nosync")
   end
 end
