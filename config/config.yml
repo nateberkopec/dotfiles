@@ -112,6 +112,12 @@ trackpad_settings:
 screenshot_settings:
   com.apple.screencapture:
     location: "~/Documents/Inbox"
+spotlight_settings:
+  battery_disable: true
+  battery_volumes:
+  - "/"
+  - "/System/Volumes/Data"
+  check_interval_seconds: 60
 login_items:
 - "/Applications/Trimmy.app"
 config_directory_items:
