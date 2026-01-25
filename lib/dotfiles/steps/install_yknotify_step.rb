@@ -63,23 +63,11 @@ class Dotfiles::Step::InstallYknotifyStep < Dotfiles::Step
     debug "Ensuring Go is available via mise..."
     execute("mise use -g go@latest")
 
-    if power_issue_closed?
-      raise "yknotify power issue #7 is closed! Switch back to upstream: go install github.com/noperator/yknotify@latest"
-    end
-
-    debug "Installing yknotify from fork (with predicate fix)..."
+    debug "Installing yknotify from upstream..."
     execute("mkdir -p #{go_bin_dir}")
-    execute("rm -rf /tmp/yknotify-build")
-    execute("git clone -b predicate-filter --depth 1 https://github.com/nateberkopec/yknotify.git /tmp/yknotify-build")
-    output, status = execute("cd /tmp/yknotify-build && GOBIN=#{go_bin_dir} mise exec --no-prepare go@latest -- go install .")
+    output, status = execute("GOBIN=#{go_bin_dir} mise exec --no-prepare go@latest -- go install github.com/noperator/yknotify@999f01c")
     raise "go install failed (status #{status}): #{output}" unless status == 0
-    execute("rm -rf /tmp/yknotify-build")
     execute("mise reshim")
-  end
-
-  def power_issue_closed?
-    output, status = @system.execute("gh issue view 7 -R noperator/yknotify --json state -q '.state'")
-    status == 0 && output.strip == "CLOSED"
   end
 
   def install_script
