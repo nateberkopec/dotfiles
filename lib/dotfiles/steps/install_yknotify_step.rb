@@ -143,7 +143,7 @@ class Dotfiles::Step::InstallYknotifyStep < Dotfiles::Step
       TERM_NTFY_BIN="#{terminal_notifier_path}"
 
       # Tighten log predicate to reduce background CPU usage.
-      YKNTFY_PREDICATE='(processImagePath == "/kernel" AND senderImagePath ENDSWITH "IOHIDFamily" AND (eventMessage CONTAINS "IOHIDLibUserClient" OR eventMessage CONTAINS "AppleUserUSBHostHIDDevice" OR eventMessage ENDSWITH "startQueue" OR eventMessage ENDSWITH "stopQueue")) OR (processImagePath ENDSWITH "usbsmartcardreaderd" AND subsystem CONTAINS "CryptoTokenKit" AND eventMessage == "Time extension received")'
+      YKNTFY_PREDICATE='(processImagePath == "/kernel" AND senderImagePath ENDSWITH "IOHIDFamily" AND (eventMessage CONTAINS "IOHIDLibUserClient" OR eventMessage CONTAINS "AppleUserUSBHostHIDDevice" OR eventMessage ENDSWITH "startQueue" OR eventMessage ENDSWITH "stopQueue")) OR (processImagePath ENDSWITH "usbsmartcardreaderd" AND subsystem CONTAINS "CryptoTokenKit")'
       YKNTFY_ARGS=(-predicate "$YKNTFY_PREDICATE")
 
       # Stream yknotify output and process each line
