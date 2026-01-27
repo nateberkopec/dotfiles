@@ -17,11 +17,6 @@
   "git.confirmSync": false,
   "git.openRepositoryInParentFolders": "always",
 
-  "gitlens.advanced.messages": {
-    "suppressIntegrationDisconnectedTooManyFailedRequestsWarning": true,
-    "suppressRebaseSwitchToTextWarning": true
-  },
-
   "github.copilot.chat.agent.thinkingTool": true,
   "github.copilot.chat.codesearch.enabled": true,
   "github.copilot.enable": {
