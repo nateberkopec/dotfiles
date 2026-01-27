@@ -1,0 +1,60 @@
+#!/usr/bin/env fish
+
+set -l root (git rev-parse --show-toplevel 2>/dev/null)
+if test -z "$root"
+  exit 0
+end
+
+cd "$root"
+
+if not test -f "bin/dotf"
+  exit 0
+end
+
+if not test -f "Brewfile"
+  exit 0
+end
+
+if not test -f "lib/dotfiles.rb"
+  exit 0
+end
+
+if test "$SKIP_PRECOMMIT_LINT" = "1"
+  exit 0
+end
+
+function announce
+  set -l message $argv[1]
+  if type -q gum
+    gum style --border rounded --border-foreground 33 --padding "0 1" "$message"
+  else
+    echo "$message"
+  end
+end
+
+function fail
+  set -l message $argv[1]
+  if type -q gum
+    gum style --border double --border-foreground 196 --padding "0 1" "$message"
+  else
+    echo "$message"
+  end
+end
+
+function run_or_fail
+  set -l label $argv[1]
+  set -e argv[1]
+
+  announce "🔍 $label"
+  command $argv
+  if test $status -ne 0
+    fail "❌ $label failed"
+    exit 1
+  end
+end
+
+run_or_fail "standardrb" bundle exec standardrb
+run_or_fail "flog" bundle exec rake flog
+run_or_fail "flay" bundle exec rake flay
+
+announce "✅ Linters passed"

@@ -5,30 +5,40 @@ class ProtectGitHooksStepTest < StepTestCase
 
   def setup
     super
-    @hook_file = File.join(@home, ".git-hooks", "pre-push")
+    @hook_files = [
+      File.join(@home, ".git-hooks", "pre-commit"),
+      File.join(@home, ".git-hooks", "pre-push")
+    ]
   end
 
-  def test_run_protects_hook_file
-    @fake_system.filesystem[@hook_file] = "hook content"
+  def test_run_protects_hook_files
+    @hook_files.each { |file| @fake_system.filesystem[file] = "hook content" }
     step.run
 
-    assert_executed("sudo chflags schg '#{@hook_file}'", quiet: false)
+    @hook_files.each do |file|
+      assert_executed("sudo chflags schg '#{file}'", quiet: false)
+    end
   end
 
-  def test_run_skips_missing_hook_file
+  def test_run_skips_missing_hook_files
     step.run
-    refute_executed("sudo chflags schg '#{@hook_file}'", quiet: false)
+    @hook_files.each do |file|
+      refute_executed("sudo chflags schg '#{file}'", quiet: false)
+    end
   end
 
-  def test_complete_when_hook_file_is_immutable
-    @fake_system.filesystem[@hook_file] = "hook content"
-    stub_immutable(@hook_file, true)
+  def test_complete_when_hook_files_are_immutable
+    @hook_files.each do |file|
+      @fake_system.filesystem[file] = "hook content"
+      stub_immutable(file, true)
+    end
     assert_complete
   end
 
   def test_incomplete_when_hook_file_is_not_immutable
-    @fake_system.filesystem[@hook_file] = "hook content"
-    stub_immutable(@hook_file, false)
+    file = @hook_files.first
+    @fake_system.filesystem[file] = "hook content"
+    stub_immutable(file, false)
     assert_incomplete
   end
 
@@ -37,8 +47,9 @@ class ProtectGitHooksStepTest < StepTestCase
   end
 
   def test_complete_in_ci
-    @fake_system.filesystem[@hook_file] = "hook content"
-    stub_immutable(@hook_file, false)
+    file = @hook_files.first
+    @fake_system.filesystem[file] = "hook content"
+    stub_immutable(file, false)
     ENV["CI"] = "true"
     assert_complete
   ensure

@@ -30,6 +30,7 @@ class Dotfiles::Step::ProtectGitHooksStep < Dotfiles::Step
 
   def hook_files
     [
+      File.join(@home, ".git-hooks", "pre-commit"),
       File.join(@home, ".git-hooks", "pre-push")
     ]
   end
