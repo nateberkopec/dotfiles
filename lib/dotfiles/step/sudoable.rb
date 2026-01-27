@@ -34,6 +34,10 @@ class Dotfiles
         gum_cmd = "gum style --foreground '#ff6b6b' --border double --align center --width 50 --margin '1 0' --padding '1 2' '🔒 Admin Privileges Required' '#{step_name}' '' 'Command: #{command}' '' 'This is required to complete setup'"
         @system.execute(gum_cmd, quiet: false)
       end
+
+      def ci_or_noninteractive?
+        ENV["CI"] || ENV["NONINTERACTIVE"]
+      end
     end
   end
 end

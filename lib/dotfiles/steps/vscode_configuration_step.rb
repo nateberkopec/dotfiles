@@ -1,4 +1,6 @@
 class Dotfiles::Step::VSCodeConfigurationStep < Dotfiles::Step
+  prepend Dotfiles::Step::Sudoable
+
   macos_only
 
   def self.display_name
@@ -10,19 +12,16 @@ class Dotfiles::Step::VSCodeConfigurationStep < Dotfiles::Step
   end
 
   def run
-    install_vscode_extensions unless ci_or_noninteractive?
+    install_vscode_extensions
   end
 
   def complete?
     super
-    unless ci_or_noninteractive?
-      add_error("VSCode extensions not fully installed") unless extensions_installed?
-    end
+    add_error("VSCode extensions not fully installed") unless extensions_installed?
     @errors.empty?
   end
 
   def should_run?
-    return false if ci_or_noninteractive?
     !extensions_installed?
   end
 

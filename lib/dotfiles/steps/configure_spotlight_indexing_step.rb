@@ -21,9 +21,7 @@ class Dotfiles::Step::ConfigureSpotlightIndexingStep < Dotfiles::Step
     if battery_mode_enabled?
       add_error("Fish not found for Spotlight battery toggle") unless fish_path
       add_error("Spotlight battery script not installed at #{script_path}") unless script_installed?
-      unless ci_or_noninteractive?
-        add_error("LaunchDaemon not installed at #{launchdaemon_path}") unless launchdaemon_installed?
-      end
+      add_error("LaunchDaemon not installed at #{launchdaemon_path}") unless launchdaemon_installed?
     end
 
     disabled_volumes.each do |volume|

@@ -136,10 +136,6 @@ class Dotfiles
       @system.execute("HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 brew #{command} 2>&1")
     end
 
-    def ci_or_noninteractive?
-      ENV["CI"] || ENV["NONINTERACTIVE"]
-    end
-
     def user_has_admin_rights?
       groups, = @system.execute("groups")
       groups.include?("admin")
