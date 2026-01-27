@@ -1,4 +1,6 @@
 class Dotfiles::Step::ProtectGitHooksStep < Dotfiles::Step
+  prepend Dotfiles::Step::Sudoable
+
   macos_only
 
   def self.display_name
@@ -19,8 +21,6 @@ class Dotfiles::Step::ProtectGitHooksStep < Dotfiles::Step
   end
 
   def complete?
-    return true if ci_or_noninteractive?
-
     hook_files.all? { |file| !@system.file_exist?(file) || file_immutable?(file) }
   end
 
@@ -28,6 +28,7 @@ class Dotfiles::Step::ProtectGitHooksStep < Dotfiles::Step
 
   def hook_files
     [
+      File.join(@home, ".git-hooks", "pre-commit"),
       File.join(@home, ".git-hooks", "pre-push")
     ]
   end

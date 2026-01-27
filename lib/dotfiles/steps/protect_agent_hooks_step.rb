@@ -1,4 +1,6 @@
 class Dotfiles::Step::ProtectAgentHooksStep < Dotfiles::Step
+  prepend Dotfiles::Step::Sudoable
+
   macos_only
 
   def self.display_name
@@ -19,8 +21,6 @@ class Dotfiles::Step::ProtectAgentHooksStep < Dotfiles::Step
   end
 
   def complete?
-    return true if ci_or_noninteractive?
-
     hook_files.all? { |file| !@system.file_exist?(file) || file_immutable?(file) }
   end
 

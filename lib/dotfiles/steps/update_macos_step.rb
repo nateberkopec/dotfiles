@@ -8,7 +8,7 @@ class Dotfiles::Step::UpdateMacOSStep < Dotfiles::Step
   end
 
   def should_run?
-    user_has_admin_rights? && !ci_or_noninteractive? && minor_updates_available.any?
+    user_has_admin_rights? && minor_updates_available.any?
   end
 
   def run
@@ -23,8 +23,6 @@ class Dotfiles::Step::UpdateMacOSStep < Dotfiles::Step
 
   def complete?
     super
-    return true if ci_or_noninteractive?
-
     check_background_update_freshness
     updates = minor_updates_available
     updates.each { |update| add_error("macOS update available: #{update}") }

@@ -1,6 +1,8 @@
 require "shellwords"
 
 class Dotfiles::Step::ConfigureSpotlightIndexingStep < Dotfiles::Step
+  prepend Dotfiles::Step::Sudoable
+
   macos_only
 
   def self.depends_on

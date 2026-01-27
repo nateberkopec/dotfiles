@@ -1,6 +1,8 @@
 require "shellwords"
 
 class Dotfiles::Step::InstallFontsStep < Dotfiles::Step
+  prepend Dotfiles::Step::Sudoable
+
   macos_only
 
   def self.depends_on
@@ -18,7 +20,6 @@ class Dotfiles::Step::InstallFontsStep < Dotfiles::Step
 
   def complete?
     super
-    return true if ci_or_noninteractive?
     unless fc_list_available?
       add_error("Failed to check installed fonts (fc-list command failed)")
       return false

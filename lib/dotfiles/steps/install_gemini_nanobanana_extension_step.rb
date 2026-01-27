@@ -1,11 +1,11 @@
 class Dotfiles::Step::InstallGeminiNanobananaExtensionStep < Dotfiles::Step
+  prepend Dotfiles::Step::Sudoable
+
   def self.depends_on
     [Dotfiles::Step::InstallBrewPackagesStep]
   end
 
   def should_run?
-    return false if ci_or_noninteractive?
-
     !extension_installed?
   end
 
@@ -17,8 +17,6 @@ class Dotfiles::Step::InstallGeminiNanobananaExtensionStep < Dotfiles::Step
 
   def complete?
     super
-    return true if ci_or_noninteractive?
-
     add_error("gemini CLI not found on PATH") unless command_exists?("gemini")
     add_error("Nano Banana extension not installed at #{extension_path}") unless extension_installed?
     @errors.empty?

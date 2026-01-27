@@ -1,4 +1,6 @@
 class Dotfiles::Step::SetupSSHKeysStep < Dotfiles::Step
+  prepend Dotfiles::Step::Sudoable
+
   SSH_CONFIG_PATH = File.expand_path("~/.ssh/config")
   OP_AGENT_PATH = "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
 
@@ -7,10 +9,6 @@ class Dotfiles::Step::SetupSSHKeysStep < Dotfiles::Step
   end
 
   def should_run?
-    if ci_or_noninteractive?
-      debug "Skipping 1Password SSH agent setup in CI/non-interactive environment"
-      return false
-    end
     !complete?
   end
 
@@ -48,7 +46,6 @@ class Dotfiles::Step::SetupSSHKeysStep < Dotfiles::Step
 
   def complete?
     super
-    return true if ci_or_noninteractive?
     unless @system.file_exist?(SSH_CONFIG_PATH)
       add_error("SSH config file does not exist at #{SSH_CONFIG_PATH}")
       return false
