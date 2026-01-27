@@ -1,4 +1,5 @@
 class Dotfiles::Step::ProtectAgentHooksStep < Dotfiles::Step
+  prepend Dotfiles::Step::Sudoable
   macos_only
 
   def self.display_name

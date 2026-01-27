@@ -62,6 +62,14 @@ class ConfigureSpotlightIndexingStepTest < StepTestCase
     assert_complete
   end
 
+  def test_complete_in_ci_when_launchdaemon_missing
+    write_spotlight_config
+    stub_fish_path
+    @fake_system.write_file(script_path, "")
+
+    with_ci { assert_complete }
+  end
+
   def test_incomplete_when_indexing_enabled_on_disabled_volume
     write_spotlight_config("battery_disable" => false, "disabled_volumes" => ["/Volumes/Archive"])
     stub_df_mount("/Volumes/Archive", "/Volumes/Archive")

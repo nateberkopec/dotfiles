@@ -118,25 +118,8 @@ class Dotfiles
       Dotfiles.debug(message)
     end
 
-    def execute(command, quiet: true, sudo: false)
-      return skip_sudo_command(command) if sudo && ci_or_noninteractive?
-      sudo ? execute_with_sudo(command) : run_command(command, quiet: quiet)
-    end
-
-    def skip_sudo_command(command)
-      debug "Skipping sudo command in CI/non-interactive environment: #{command}"
-      ["", 0]
-    end
-
-    def execute_with_sudo(command)
-      display_sudo_warning(command)
-      run_command("sudo #{command}", quiet: false)
-    end
-
-    def display_sudo_warning(command)
-      step_name = self.class.name.gsub(/Step$/, "").gsub(/([A-Z])/, ' \1').strip
-      gum_cmd = "gum style --foreground '#ff6b6b' --border double --align center --width 50 --margin '1 0' --padding '1 2' '🔒 Admin Privileges Required' '#{step_name}' '' 'Command: #{command}' '' 'This is required to complete setup'"
-      @system.execute(gum_cmd, quiet: false)
+    def execute(command, quiet: true)
+      run_command(command, quiet: quiet)
     end
 
     def run_command(cmd, quiet:)

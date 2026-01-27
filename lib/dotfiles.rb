@@ -6,6 +6,7 @@ require "config"
 require "system_adapter"
 require "step"
 require "step/defaultable"
+require "step/sudoable"
 Dir.glob(File.join(__dir__, "dotfiles", "steps", "*.rb")).sort.each { |file| require file }
 require "runner"
 require "updater"
