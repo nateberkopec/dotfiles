@@ -1,5 +1,6 @@
 class Dotfiles::Step::SetFishDefaultShellStep < Dotfiles::Step
   prepend Dotfiles::Step::Sudoable
+
   def self.depends_on
     [Dotfiles::Step::InstallBrewPackagesStep]
   end

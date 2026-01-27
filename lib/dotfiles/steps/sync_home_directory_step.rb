@@ -1,5 +1,6 @@
 class Dotfiles::Step::SyncHomeDirectoryStep < Dotfiles::Step
   prepend Dotfiles::Step::Sudoable
+
   def self.display_name
     "Home Directory Files"
   end
