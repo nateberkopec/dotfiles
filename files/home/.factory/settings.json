@@ -1,3 +1,4 @@
 {
-  "allowBackgroundProcesses": true
+  "allowBackgroundProcesses": true,
+  "enableReadinessReport": true
 }
