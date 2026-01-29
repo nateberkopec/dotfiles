@@ -16,13 +16,14 @@ set -x LC_ALL en_US.UTF-8
 set -x MAKEFLAGS -j(nproc)
 set -x EDITOR "code --wait"
 set -x FZF_DEFAULT_COMMAND "fd --type f"
+set -x AGENT_CMD "droid ."
 
 zoxide init fish | source
 complete -c z -f -k -a "(zoxide query -l)"
 alias cd z
 abbr be "bundle exec"
 abbr cc "claude --allow-dangerously-skip-permissions"
-alias oc "OPENCODE_PERMISSION='{\"*\":\"allow\",\"external_directory\":\"allow\"}' opencode"
+alias oc droid
 alias cat bat
 alias ls eza
 alias ll "eza -la"
