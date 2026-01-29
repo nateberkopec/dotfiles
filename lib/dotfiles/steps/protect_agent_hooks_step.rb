@@ -1,5 +1,6 @@
 class Dotfiles::Step::ProtectAgentHooksStep < Dotfiles::Step
   prepend Dotfiles::Step::Sudoable
+  include Dotfiles::Step::Protectable
 
   macos_only
 
@@ -11,19 +12,6 @@ class Dotfiles::Step::ProtectAgentHooksStep < Dotfiles::Step
     [Dotfiles::Step::SyncHomeDirectoryStep]
   end
 
-  def run
-    hook_files.each do |file|
-      next unless @system.file_exist?(file)
-
-      _, status = execute("chflags schg '#{file}'", sudo: true)
-      add_error("Failed to protect #{file}") unless status == 0
-    end
-  end
-
-  def complete?
-    hook_files.all? { |file| !@system.file_exist?(file) || file_immutable?(file) }
-  end
-
   private
 
   def hook_files
@@ -31,10 +19,5 @@ class Dotfiles::Step::ProtectAgentHooksStep < Dotfiles::Step
       File.join(@home, ".claude", "hooks", "deny-rm-rf.jq"),
       File.join(@home, ".config", "opencode", "plugin", "deny-rm-rf.js")
     ]
-  end
-
-  def file_immutable?(file)
-    output, status = execute("ls -lO '#{file}'")
-    status == 0 && output.include?("schg")
   end
 end
