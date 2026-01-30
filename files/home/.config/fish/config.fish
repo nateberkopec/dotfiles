@@ -30,7 +30,6 @@ alias ll "eza -la"
 alias tree "eza --tree"
 fzf --fish | source
 broot --print-shell-function fish | source
-gc-ai-abbr
 
 function mosh
   command mosh --predict=experimental $argv

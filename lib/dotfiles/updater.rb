@@ -54,7 +54,7 @@ class Dotfiles
 
     def create_commit
       flags = ENV["GIT_COMMIT_FLAGS"] || ""
-      system("fish -c 'gc-ai #{flags}'") || system("git commit #{flags} -m 'Update dotfiles from system'")
+      system("git commit #{flags} -m 'Update dotfiles from system'")
     end
 
     def command_exists?(cmd)
