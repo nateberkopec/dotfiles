@@ -6,6 +6,8 @@ fish_add_path /opt/homebrew/opt/libpq/bin
 fish_add_path ~/bin
 fish_add_path ~/.local/bin
 
+ulimit -S -n 4000
+
 set -g fish_greeting
 
 function fish_greeting
