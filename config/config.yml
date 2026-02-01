@@ -8,63 +8,38 @@ standard_folders:
 - Documents/Code.nosync/personal
 - Documents/Code.nosync/upstream
 packages:
-- - bat
-  - bat
-- - broot
-  - broot
-- - coreutils
-  - coreutils
-- - difftastic
-  - difftastic
-- - duti
-  - null
-- - eza
-  - eza
-- - fd
-  - fd-find
-- - fish
-  - fish
-- - fontconfig
-  - fontconfig
-- - fzf
-  - fzf
-- - gemini-cli
-  - null
-- - gh
-  - gh
-- - gnupg
-  - gnupg
-- - gum
-  - gum
-- - jq
-  - jq
-- - libyaml
-  - libyaml-dev
-- - llm
-  - null
-- - mise
-  - null
-- - pinentry-mac
-  - pinentry-tty
-- - ripgrep
-  - ripgrep
-- - rust
-  - - rustc
-    - cargo
-- - starship
-  - starship
-- - thefuck
-  - thefuck
-- - terminal-notifier
-  - null
-- - trash
-  - trash-cli
-- - ykman
-  - yubikey-manager
-- - yq
-  - yq
-- - zoxide
-  - zoxide
+  bat: { brew: bat, debian: bat }
+  broot: { brew: broot, debian: broot }
+  coreutils: { brew: coreutils, debian: coreutils }
+  difftastic: { brew: difftastic, debian: difftastic }
+  duti: { brew: duti, debian: null }
+  eza: { brew: eza, debian: eza }
+  fd: { brew: fd, debian: fd-find }
+  fish: { brew: fish, debian: fish }
+  fontconfig: { brew: fontconfig, debian: fontconfig }
+  fzf: { brew: fzf, debian: fzf }
+  gemini-cli: { brew: gemini-cli, debian: null }
+  gh: { brew: gh, debian: gh }
+  gnupg: { brew: gnupg, debian: gnupg }
+  gum: { brew: gum, debian: gum }
+  jq: { brew: jq, debian: jq }
+  libyaml: { brew: libyaml, debian: libyaml-dev }
+  llm: { brew: llm, debian: null }
+  mise: { brew: mise, debian: null }
+  pinentry-mac: { brew: pinentry-mac, debian: pinentry-tty }
+  ripgrep: { brew: ripgrep, debian: ripgrep }
+  rust:
+    brew: rust
+    debian:
+      - rustc
+      - cargo
+  starship: { brew: starship, debian: starship }
+  thefuck: { brew: thefuck, debian: thefuck }
+  terminal-notifier: { brew: terminal-notifier, debian: null }
+  trash: { brew: trash, debian: trash-cli }
+  ykman: { brew: ykman, debian: yubikey-manager }
+  yq: { brew: yq, debian: yq }
+  zoxide: { brew: zoxide, debian: zoxide }
 debian_sources:
   - name: gierens
     repo: http://deb.gierens.de

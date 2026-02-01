@@ -58,7 +58,7 @@ class Dotfiles
     end
 
     def package_matrix
-      return config.fetch("packages", []) if config.key?("packages")
+      return package_matrix_from_config if config.key?("packages")
       legacy = config.fetch("brew", {}).fetch("packages", [])
       legacy.map { |pkg| [pkg, nil] }
     end
@@ -93,6 +93,31 @@ class Dotfiles
     end
 
     private
+
+    def package_matrix_from_config
+      raw = config.fetch("packages", [])
+      case raw
+      when Hash
+        raw.values.map { |entry| package_pair_from_entry(entry) }
+      when Array
+        raw
+      else
+        []
+      end
+    end
+
+    def package_pair_from_entry(entry)
+      case entry
+      when Hash
+        brew = entry["brew"] || entry[:brew]
+        debian = entry["debian"] || entry[:debian]
+        [brew, debian]
+      when Array
+        entry
+      else
+        [entry, nil]
+      end
+    end
 
     def normalize_debian_entry(entry)
       case entry
