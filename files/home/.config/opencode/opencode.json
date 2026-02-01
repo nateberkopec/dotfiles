@@ -9,7 +9,7 @@
         "baseURL": "http://127.0.0.1:5001/v1"
       },
       "models": {
-        "glm-4.7-flash": {
+        "mlx-community/GLM-4.7-Flash-bf16": {
           "name": "GLM 4.7 Flash BF16",
           "limit": {
             "context": 128000,
@@ -19,5 +19,5 @@
       }
     }
   },
-  "model": "local-mlx/glm-4.7-flash"
+  "model": "local-mlx/mlx-community/GLM-4.7-Flash-bf16"
 }
