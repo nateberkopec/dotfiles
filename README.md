@@ -44,12 +44,6 @@ Linux support is in progress and targets Debian-compatible systems (Ubuntu 22.04
 
 Packages are defined in `config/config.yml` as a map of package name to `{brew, debian}` entries, with optional `debian_sources` for extra APT repos and `debian_non_apt_packages` for cargo/binary installs.
 
-Local Docker test:
-
-```bash
-./bin/test-debian
-```
-
 ## Commands
 
 | Command | What it does |
