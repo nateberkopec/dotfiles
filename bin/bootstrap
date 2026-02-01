@@ -138,12 +138,18 @@ bootstrap_mise() {
 
 bootstrap_gum() {
     if ! command -v gum &> /dev/null; then
-        debug "Installing gum..."
-        if is_macos; then
-            brew_quiet install gum
+        if command -v mise &> /dev/null; then
+            debug "Installing gum via mise..."
+            mise use --global gum@latest >/dev/null
+            mise install gum@latest >/dev/null
         else
-            ensure_sudo
-            run_with_sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y gum || true
+            debug "Installing gum..."
+            if is_macos; then
+                brew_quiet install gum
+            else
+                ensure_sudo
+                run_with_sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y gum || true
+            fi
         fi
     else
         debug "gum already installed"
