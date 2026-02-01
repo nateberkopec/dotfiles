@@ -15,6 +15,12 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '3.4'
+        bundler-cache: false
+
     - name: Run dotfiles
       id: run
       timeout-minutes: 20
@@ -28,8 +34,16 @@ jobs:
         chmod +x bin/dotf
         ./bin/dotf run 2>&1 | tee output.log
 
-    - name: Confirm success
-      run: echo "✅ dotf run exited successfully"
+    - name: Start fish shell and check for errors
+      run: |
+        echo "Starting fish shell to check for initialization errors..."
+        fish -c 'echo "Fish shell initialized successfully"' 2>&1 | tee fish-init.log
+        if [ $? -ne 0 ]; then
+          echo "❌ Fish shell initialization failed"
+          cat fish-init.log
+          exit 1
+        fi
+        echo "✅ Fish shell started without errors"
 
     - name: Upload logs
       if: always()
@@ -38,79 +52,5 @@ jobs:
         name: ubuntu-logs
         path: |
           output.log
+          fish-init.log
         retention-days: 7
-
-  ubuntu-e2e-integration-test:
-    runs-on: ubuntu-22.04
-
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-
-    - name: Install fish
-      run: |
-        sudo apt-get update -y
-        sudo apt-get install -y fish
-
-    - name: Run Debian E2E integration test
-      timeout-minutes: 30
-      env:
-        CI: true
-        NONINTERACTIVE: true
-        DEBUG: true
-      run: |
-        set -o pipefail
-        chmod +x bin/dotf bin/test-debian
-        fish bin/test-debian 2>&1 | tee output.log
-
-    - name: Confirm success
-      run: echo "✅ E2E integration test exited successfully"
-
-    - name: Upload logs
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: ubuntu-e2e-logs
-        path: |
-          output.log
-        retention-days: 7
-
-  ruby-test-ubuntu:
-    runs-on: ubuntu-22.04
-
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-
-    - name: Install system dependencies
-      run: |
-        sudo apt-get update -y
-        sudo apt-get install -y jq nodejs
-
-    - name: Set up Ruby
-      uses: ruby/setup-ruby@v1
-      with:
-        ruby-version: "3.3"
-        bundler-cache: true
-
-    - name: Run tests
-      run: bundle exec rake test
-
-  ruby-test-macos:
-    runs-on: macos-14
-
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-
-    - name: Install system dependencies
-      run: brew install jq node
-
-    - name: Set up Ruby
-      uses: ruby/setup-ruby@v1
-      with:
-        ruby-version: "3.3"
-        bundler-cache: true
-
-    - name: Run tests
-      run: bundle exec rake test

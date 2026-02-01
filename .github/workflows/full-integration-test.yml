@@ -34,9 +34,6 @@ jobs:
         chmod +x bin/dotf
         ./bin/dotf run 2>&1 | tee output.log
 
-    - name: Confirm success
-      run: echo "✅ dotf run exited successfully"
-
     - name: Start fish shell and check for errors
       run: |
         echo "Starting fish shell to check for initialization errors..."
