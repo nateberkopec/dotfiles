@@ -49,7 +49,11 @@ class Dotfiles
     end
 
     def confirm_commit?
-      system("gum confirm 'Proceed with commit?'")
+      return system("gum confirm 'Proceed with commit?'") if gum_available?
+
+      print "Proceed with commit? [y/N]: "
+      response = $stdin.gets.to_s.strip.downcase
+      %w[y yes].include?(response)
     end
 
     def create_commit
@@ -81,7 +85,13 @@ class Dotfiles
 
     def display_scan_result(result)
       puts "\n"
-      system("gum style --border rounded --padding '1 2' --border-foreground '#ffcc00' '🔍 Security Scan Result' '' '#{result.gsub("'", "'\\''").strip}'")
+      if gum_available?
+        system("gum style --border rounded --padding '1 2' --border-foreground '#ffcc00' '🔍 Security Scan Result' '' '#{result.gsub("'", "'\\''").strip}'")
+      else
+        puts "🔍 Security Scan Result"
+        puts ""
+        puts result.strip
+      end
       puts "\n"
     end
 
@@ -102,6 +112,10 @@ class Dotfiles
 
         Be concise. Only report actual concerns, not false positives like example values or placeholders.
       PROMPT
+    end
+
+    def gum_available?
+      @gum_available ||= Dotfiles.command_exists?("gum")
     end
   end
 end

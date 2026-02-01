@@ -31,8 +31,16 @@ class Dotfiles
 
       def display_sudo_warning(command)
         step_name = self.class.name.gsub(/Step$/, "").gsub(/([A-Z])/, ' \1').strip
-        gum_cmd = "gum style --foreground '#ff6b6b' --border double --align center --width 50 --margin '1 0' --padding '1 2' '🔒 Admin Privileges Required' '#{step_name}' '' 'Command: #{command}' '' 'This is required to complete setup'"
-        @system.execute(gum_cmd, quiet: false)
+        if command_exists?("gum")
+          gum_cmd = "gum style --foreground '#ff6b6b' --border double --align center --width 50 --margin '1 0' --padding '1 2' '🔒 Admin Privileges Required' '#{step_name}' '' 'Command: #{command}' '' 'This is required to complete setup'"
+          @system.execute(gum_cmd, quiet: false)
+        else
+          puts "🔒 Admin Privileges Required"
+          puts step_name
+          puts "Command: #{command}"
+          puts "This is required to complete setup"
+          puts ""
+        end
       end
 
       def ci_or_noninteractive?

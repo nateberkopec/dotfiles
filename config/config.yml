@@ -7,35 +7,89 @@ standard_folders:
 - Documents/Code.nosync/business
 - Documents/Code.nosync/personal
 - Documents/Code.nosync/upstream
-brew:
-  packages:
+packages:
+- - bat
   - bat
+- - broot
   - broot
+- - coreutils
   - coreutils
+- - difftastic
   - difftastic
-  - duti
+- - duti
+  - null
+- - eza
   - eza
-  - fd
+- - fd
+  - fd-find
+- - fish
   - fish
+- - fontconfig
   - fontconfig
+- - fzf
   - fzf
-  - gemini-cli
+- - gemini-cli
+  - null
+- - gh
   - gh
+- - gnupg
   - gnupg
+- - gum
+  - gum
+- - jq
   - jq
-  - libyaml
-  - llm
-  - mise
-  - pinentry-mac
+- - libyaml
+  - libyaml-dev
+- - llm
+  - null
+- - mise
+  - null
+- - pinentry-mac
+  - pinentry-tty
+- - ripgrep
   - ripgrep
-  - rust
+- - rust
+  - - rustc
+    - cargo
+- - starship
   - starship
+- - thefuck
   - thefuck
-  - terminal-notifier
-  - trash
-  - ykman
+- - terminal-notifier
+  - null
+- - trash
+  - trash-cli
+- - ykman
+  - yubikey-manager
+- - yq
   - yq
+- - zoxide
   - zoxide
+debian_sources:
+  - name: gierens
+    repo: http://deb.gierens.de
+    suite: stable
+    components:
+      - main
+    key_url: https://raw.githubusercontent.com/eza-community/eza/main/deb.asc
+  - name: azlux
+    repo: http://packages.azlux.fr/debian/
+    suite: stable
+    components:
+      - main
+    key_url: https://azlux.fr/repo.gpg
+  - name: charm
+    repo: https://repo.charm.sh/apt/
+    suite: "*"
+    components:
+      - "*"
+    key_url: https://repo.charm.sh/apt/gpg.key
+debian_non_apt_packages:
+  - broot
+  - difftastic
+  - starship
+  - yq
+brew:
   casks:
   - nikitabobko/tap/aerospace
   - claude-code

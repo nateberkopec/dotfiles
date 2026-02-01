@@ -6,7 +6,7 @@ class Dotfiles::Step::SyncHomeDirectoryStep < Dotfiles::Step
   end
 
   def self.depends_on
-    [Dotfiles::Step::InstallBrewPackagesStep]
+    Dotfiles::Step.system_packages_steps
   end
 
   def run

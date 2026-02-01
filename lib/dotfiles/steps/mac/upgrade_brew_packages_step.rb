@@ -1,4 +1,6 @@
 class Dotfiles::Step::UpgradeBrewPackagesStep < Dotfiles::Step
+  macos_only
+
   def self.depends_on
     [Dotfiles::Step::InstallBrewPackagesStep]
   end

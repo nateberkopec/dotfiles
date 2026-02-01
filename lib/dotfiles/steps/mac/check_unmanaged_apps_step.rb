@@ -37,7 +37,7 @@ class Dotfiles::Step::CheckUnmanagedAppsStep < Dotfiles::Step
   end
 
   def homebrew_paths
-    @config.packages.fetch("applications", []).map { |app| app["path"] }
+    @config.applications.map { |app| app["path"] }
   end
 
   def app_name(path)

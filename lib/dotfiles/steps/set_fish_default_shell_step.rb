@@ -2,11 +2,12 @@ class Dotfiles::Step::SetFishDefaultShellStep < Dotfiles::Step
   prepend Dotfiles::Step::Sudoable
 
   def self.depends_on
-    [Dotfiles::Step::InstallBrewPackagesStep]
+    Dotfiles::Step.system_packages_steps
   end
 
   def run
     debug "Setting Fish as the default shell..."
+    return add_error("Fish not found on PATH") if fish_path.empty?
     add_fish_to_shells unless fish_in_shells?
     change_default_shell
   end
@@ -24,6 +25,7 @@ class Dotfiles::Step::SetFishDefaultShellStep < Dotfiles::Step
 
   def complete?
     super
+    add_error("Fish not found on PATH") if fish_path.empty?
     add_error("Fish is not set as the default shell (current: #{current_shell.strip})") unless fish_is_default?
     @errors.empty?
   end
@@ -31,18 +33,27 @@ class Dotfiles::Step::SetFishDefaultShellStep < Dotfiles::Step
   private
 
   def fish_path
-    @fish_path ||= @system.execute("which fish").first
+    return @fish_path if defined?(@fish_path)
+    output, status = @system.execute("command -v fish 2>/dev/null")
+    @fish_path = (status == 0) ? output.strip : ""
   end
 
   def fish_in_shells?
+    return false if fish_path.empty?
     @system.readlines("/etc/shells").any? { |line| line.strip == fish_path }
   end
 
   def current_shell
-    execute("dscl . -read ~/ UserShell", quiet: true).first
+    if @system.macos?
+      execute("dscl . -read ~/ UserShell", quiet: true).first
+    else
+      output, = execute("getent passwd #{ENV.fetch("USER", "")}", quiet: true)
+      output.to_s.split(":").last.to_s
+    end
   end
 
   def fish_is_default?
+    return false if fish_path.empty?
     current_shell.include?(fish_path)
   end
 end

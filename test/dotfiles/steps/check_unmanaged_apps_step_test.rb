@@ -76,11 +76,9 @@ class CheckUnmanagedAppsStepTest < Minitest::Test
   def test_filters_out_homebrew_managed_apps
     step = create_step(Dotfiles::Step::CheckUnmanagedAppsStep)
     step.config.unmanaged_apps = ["/Applications/Screen Studio.app", "/Applications/Arc.app"]
-    step.config.packages = {
-      "applications" => [
-        {"name" => "Arc", "path" => "/Applications/Arc.app", "brew_cask" => "arc"}
-      ]
-    }
+    step.config.applications = [
+      {"name" => "Arc", "path" => "/Applications/Arc.app", "brew_cask" => "arc"}
+    ]
 
     step.run
 

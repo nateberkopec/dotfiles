@@ -21,6 +21,18 @@ class Dotfiles
       @macos_only || false
     end
 
+    def self.debian_only
+      @debian_only = true
+    end
+
+    def self.debian_only?
+      @debian_only || false
+    end
+
+    def self.system_packages_steps
+      [Dotfiles::Step::InstallBrewPackagesStep, Dotfiles::Step::InstallDebianPackagesStep]
+    end
+
     def self.display_name
       name.gsub(/^Dotfiles::Step::/, "").gsub(/Step$/, "").gsub(/([A-Z]+)([A-Z][a-z])/, '\1 \2').gsub(/([a-z\d])([A-Z])/, '\1 \2')
     end
@@ -93,6 +105,7 @@ class Dotfiles
 
     def should_run?
       return false if self.class.macos_only? && !@system.macos?
+      return false if self.class.debian_only? && !@system.debian?
       !complete?
     end
 
@@ -103,6 +116,12 @@ class Dotfiles
     def complete?
       @errors.clear
       false
+    end
+
+    def allowed_on_platform?
+      return false if self.class.macos_only? && !@system.macos?
+      return false if self.class.debian_only? && !@system.debian?
+      true
     end
 
     # Optional: steps can implement update logic to sync

@@ -1,4 +1,6 @@
 class Dotfiles::Step::InstallHomebrewStep < Dotfiles::Step
+  macos_only
+
   attr_reader :skipped_due_to_admin
 
   BREW_BINARIES = ["/opt/homebrew/bin/brew", "/usr/local/bin/brew", "/home/linuxbrew/.linuxbrew/bin/brew"].freeze

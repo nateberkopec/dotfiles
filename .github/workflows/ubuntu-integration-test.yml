@@ -1,0 +1,41 @@
+name: Ubuntu Integration Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  ubuntu-integration-test:
+    runs-on: ubuntu-22.04
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Run dotfiles
+      id: run
+      timeout-minutes: 20
+      env:
+        DEBUG: true
+        CI: true
+        NONINTERACTIVE: true
+      run: |
+        set -o pipefail
+        cd ${{ github.workspace }}
+        chmod +x bin/dotf
+        ./bin/dotf run 2>&1 | tee output.log
+
+    - name: Confirm success
+      run: echo "✅ dotf run exited successfully"
+
+    - name: Upload logs
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: ubuntu-logs
+        path: |
+          output.log
+        retention-days: 7

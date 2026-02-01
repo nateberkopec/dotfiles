@@ -1,13 +1,21 @@
 ---
 dotfiles_repo: https://github.com/test/dotfiles.git
 
+packages:
+  - [fish, fish]
+  - [git, git]
 brew:
-  packages:
-    - fish
-    - git
   casks:
     - firefox
     - dropbox
+debian_sources:
+  - name: example
+    repo: http://example.invalid/debian
+    suite: stable
+    components:
+      - main
+debian_non_apt_packages:
+  - starship
 
 config_directory_items:
   - fish/config.fish

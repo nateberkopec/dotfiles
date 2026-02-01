@@ -12,6 +12,29 @@ class ConfigTest < Minitest::Test
 
     assert_equal ["fish", "git"], packages["brew"]["packages"]
     assert_equal ["firefox", "dropbox"], packages["brew"]["casks"]
+    assert_equal ["fish", "git"], packages["debian"]["packages"]
+  end
+
+  def test_loads_debian_sources_from_yaml
+    config = Dotfiles::Config.new(@fixtures_dir)
+
+    assert_equal(
+      [
+        {
+          "name" => "example",
+          "repo" => "http://example.invalid/debian",
+          "suite" => "stable",
+          "components" => ["main"]
+        }
+      ],
+      config.debian_sources
+    )
+  end
+
+  def test_loads_debian_non_apt_packages_from_yaml
+    config = Dotfiles::Config.new(@fixtures_dir)
+
+    assert_equal(["starship"], config.debian_non_apt_packages)
   end
 
   def test_dotfiles_repo_from_config
@@ -26,7 +49,14 @@ class ConfigTest < Minitest::Test
 
   def test_missing_config_file_returns_empty
     config = Dotfiles::Config.new("/nonexistent/dir")
-    assert_equal({"brew" => {}, "applications" => []}, config.packages)
+    assert_equal(
+      {
+        "brew" => {"packages" => [], "casks" => []},
+        "debian" => {"packages" => [], "sources" => []},
+        "applications" => []
+      },
+      config.packages
+    )
   end
 
   def test_fetch_returns_config_value
