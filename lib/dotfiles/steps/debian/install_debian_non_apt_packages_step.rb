@@ -1,3 +1,4 @@
+require "json"
 require "securerandom"
 
 class Dotfiles::Step::InstallDebianNonAptPackagesStep < Dotfiles::Step
@@ -13,6 +14,13 @@ class Dotfiles::Step::InstallDebianNonAptPackagesStep < Dotfiles::Step
     "aarch64" => "yq_linux_arm64",
     "arm64" => "yq_linux_arm64"
   }.freeze
+  GHOSTTY_APPIMAGE_REPO = "pkgforge-dev/ghostty-appimage".freeze
+  GHOSTTY_APPIMAGE_ARCH = {
+    "x86_64" => "x86_64",
+    "aarch64" => "aarch64",
+    "arm64" => "aarch64"
+  }.freeze
+  CLAUDE_CODE_INSTALL_URL = "https://claude.ai/install.sh".freeze
 
   def self.display_name
     "Debian Non-Apt Packages"
@@ -28,6 +36,8 @@ class Dotfiles::Step::InstallDebianNonAptPackagesStep < Dotfiles::Step
 
   def run
     install_cargo_packages
+    install_claude_code if configured_packages.include?("claude-code")
+    install_ghostty if configured_packages.include?("ghostty")
     install_yq if configured_packages.include?("yq")
     @configured_packages = @missing_packages = nil
   end
@@ -49,11 +59,10 @@ class Dotfiles::Step::InstallDebianNonAptPackagesStep < Dotfiles::Step
   end
 
   def package_installed?(pkg)
-    command = if pkg == "difftastic"
-      "difft"
-    else
-      pkg
-    end
+    command = {
+      "claude-code" => "claude",
+      "difftastic" => "difft"
+    }.fetch(pkg, pkg)
     bin_paths = [File.join(@home, ".local", "bin", command), File.join(@home, ".cargo", "bin", command)]
     command_exists?(command) || bin_paths.any? { |path| @system.file_exist?(path) }
   end
@@ -104,31 +113,75 @@ class Dotfiles::Step::InstallDebianNonAptPackagesStep < Dotfiles::Step
       add_error("Unsupported architecture for yq: #{system_arch}")
       return
     end
-    tmp = temp_path("yq")
-    output, status = execute("curl -fsSL https://github.com/mikefarah/yq/releases/latest/download/#{asset} -o #{tmp}")
-    if status != 0
-      add_error("yq download failed (status #{status}): #{output}")
-      @system.rm_rf(tmp)
+    dest = File.join(@home, ".local", "bin", "yq")
+    url = "https://github.com/mikefarah/yq/releases/latest/download/#{asset}"
+    download_and_install(url, dest, label: "yq", error_prefix: "yq")
+  end
+
+  def install_claude_code
+    return if package_installed?("claude-code")
+    output, status = execute("curl -fsSL #{CLAUDE_CODE_INSTALL_URL} | bash")
+    add_error("Claude Code install failed (status #{status}): #{output}") unless status == 0
+  end
+
+  def install_ghostty
+    return if package_installed?("ghostty")
+    asset_url = ghostty_appimage_url
+    unless asset_url
+      add_error("Ghostty AppImage not available for architecture: #{system_arch}")
       return
     end
-    dest = File.join(@home, ".local", "bin", "yq")
-    @system.mkdir_p(File.dirname(dest))
-    output, status = execute("install -m 755 #{tmp} #{dest}")
-    @system.rm_rf(tmp)
-    add_error("yq install failed (status #{status}): #{output}") unless status == 0
+    dest = File.join(@home, ".local", "bin", "ghostty")
+    download_and_install(asset_url, dest, label: "ghostty", error_prefix: "Ghostty")
+  end
+
+  def ghostty_appimage_url
+    arch = GHOSTTY_APPIMAGE_ARCH[system_arch]
+    return nil unless arch
+    release = ghostty_release
+    return nil unless release
+    assets = release.fetch("assets", [])
+    asset = assets.find { |item| item.fetch("name", "").end_with?("#{arch}.AppImage") }
+    asset&.fetch("browser_download_url", nil)
+  end
+
+  def ghostty_release
+    output, status = execute("curl -fsSL https://api.github.com/repos/#{GHOSTTY_APPIMAGE_REPO}/releases")
+    return nil unless status == 0
+    releases = JSON.parse(output)
+    releases.find { |release| !release["prerelease"] } || releases.first
+  rescue JSON::ParserError => e
+    add_error("Ghostty release metadata parse failed: #{e.message}")
+    nil
   end
 
   def system_arch
-    return @system_arch if defined?(@system_arch)
-    output, status = @system.execute("uname -m")
-    @system_arch = if status == 0
-      output.strip
-    else
-      ""
+    @system_arch ||= begin
+      output, status = @system.execute("uname -m")
+      if status == 0
+        output.strip
+      else
+        ""
+      end
     end
   end
 
   def temp_path(label)
     File.join("/tmp", "dotfiles-#{label}-#{SecureRandom.hex(6)}")
+  end
+
+  def download_and_install(url, dest, label:, error_prefix:)
+    tmp = temp_path(label)
+    output, status = execute("curl -fsSL #{url} -o #{tmp}")
+    if status != 0
+      add_error("#{error_prefix} download failed (status #{status}): #{output}")
+      @system.rm_rf(tmp)
+      return false
+    end
+    @system.mkdir_p(File.dirname(dest))
+    output, status = execute("install -m 755 #{tmp} #{dest}")
+    @system.rm_rf(tmp)
+    add_error("#{error_prefix} install failed (status #{status}): #{output}") unless status == 0
+    status == 0
   end
 end

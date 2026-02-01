@@ -8,10 +8,13 @@ standard_folders:
 - Documents/Code.nosync/personal
 - Documents/Code.nosync/upstream
 packages:
+  1password: { brew: null, debian: 1password }
   bat: { brew: bat, debian: bat }
   broot: { brew: broot, debian: broot }
+  claude-code: { brew: null, debian: claude-code }
   coreutils: { brew: coreutils, debian: coreutils }
   difftastic: { brew: difftastic, debian: difftastic }
+  docker: { brew: null, debian: docker.io }
   duti: { brew: duti, debian: null }
   eza: { brew: eza, debian: eza }
   fd: { brew: fd, debian: fd-find }
@@ -20,7 +23,9 @@ packages:
   fzf: { brew: fzf, debian: fzf }
   gemini-cli: { brew: gemini-cli, debian: null }
   gh: { brew: gh, debian: gh }
+  ghostty: { brew: null, debian: ghostty }
   gnupg: { brew: gnupg, debian: gnupg }
+  google-chrome: { brew: null, debian: google-chrome-stable }
   gum: { brew: gum, debian: gum }
   jq: { brew: jq, debian: jq }
   libyaml: { brew: libyaml, debian: libyaml-dev }
@@ -59,9 +64,17 @@ debian_sources:
     components:
       - "*"
     key_url: https://repo.charm.sh/apt/gpg.key
+  - name: 1password
+    line: "deb [arch=amd64 signed-by=/usr/share/keyrings/1password-archive-keyring.gpg] https://downloads.1password.com/linux/debian/amd64 stable main"
+    key_url: https://downloads.1password.com/linux/keys/1password.asc
+  - name: google-chrome
+    line: "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome-archive-keyring.gpg] http://dl.google.com/linux/chrome/deb/ stable main"
+    key_url: https://dl.google.com/linux/linux_signing_key.pub
 debian_non_apt_packages:
   - broot
+  - claude-code
   - difftastic
+  - ghostty
   - starship
   - yq
 brew:
