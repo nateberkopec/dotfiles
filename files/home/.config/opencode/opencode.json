@@ -3,21 +3,21 @@
   "formatter": false,
   "provider": {
     "local-mlx": {
-      "name": "openai",
-      "apiKey": "not-needed",
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Local MLX",
       "options": {
         "baseURL": "http://127.0.0.1:5001/v1"
+      },
+      "models": {
+        "glm-4.7-flash": {
+          "name": "GLM 4.7 Flash BF16",
+          "limit": {
+            "context": 128000,
+            "output": 8192
+          }
+        }
       }
     }
   },
-  "model": {
-    "big": {
-      "provider": "local-mlx",
-      "model": "mlx-community/GLM-4.7-Flash-bf16"
-    },
-    "small": {
-      "provider": "local-mlx",
-      "model": "mlx-community/GLM-4.7-Flash-bf16"
-    }
-  }
+  "model": "local-mlx/glm-4.7-flash"
 }
