@@ -1,4 +1,23 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "formatter": false
+  "formatter": false,
+  "provider": {
+    "local-mlx": {
+      "name": "openai",
+      "apiKey": "not-needed",
+      "options": {
+        "baseURL": "http://127.0.0.1:5001/v1"
+      }
+    }
+  },
+  "model": {
+    "big": {
+      "provider": "local-mlx",
+      "model": "mlx-community/GLM-4.7-Flash-bf16"
+    },
+    "small": {
+      "provider": "local-mlx",
+      "model": "mlx-community/GLM-4.7-Flash-bf16"
+    }
+  }
 }

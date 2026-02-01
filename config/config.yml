@@ -128,3 +128,5 @@ config_directory_items:
 file_associations:
   com.microsoft.VSCode:
   - ".md"
+  company.thebrowser.Browser:
+  - ".svg"
