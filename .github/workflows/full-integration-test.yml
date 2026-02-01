@@ -1,4 +1,4 @@
-name: Full Integration Test
+name: Integration Test
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  full-integration-test:
+  macos-integration-test:
     runs-on: macos-latest
 
     steps:
