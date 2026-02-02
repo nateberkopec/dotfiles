@@ -22,6 +22,7 @@ class Dotfiles::Step::UpdateDebianStep < Dotfiles::Step
 
   def complete?
     super
+    return true if ci_or_noninteractive?
     release_updates_available.each { |release| add_error("Release upgrade available: #{release}") }
     release_updates_available.empty?
   end
@@ -33,5 +34,9 @@ class Dotfiles::Step::UpdateDebianStep < Dotfiles::Step
     output, status = execute("do-release-upgrade -c", quiet: true)
     return [] unless status == 0
     output.scan(/New release '([^']+)'/).flatten
+  end
+
+  def ci_or_noninteractive?
+    ENV["CI"] || ENV["NONINTERACTIVE"]
   end
 end

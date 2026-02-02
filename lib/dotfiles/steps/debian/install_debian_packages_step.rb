@@ -20,6 +20,12 @@ class Dotfiles::Step::InstallDebianPackagesStep < Dotfiles::Step
 
   def complete?
     super
+    if ci_or_noninteractive?
+      report_unavailable_packages
+      missing_installable.each { |pkg| add_warning(title: "⚠️  Debian package not installed", message: pkg) }
+      missing_sources.each { |msg| add_warning(title: "⚠️  Debian source issue", message: msg) }
+      return true
+    end
     report_unavailable_packages
     missing_installable.each { |pkg| add_error("Debian package not installed: #{pkg}") }
     missing_sources.each { |msg| add_error(msg) }
@@ -209,5 +215,9 @@ class Dotfiles::Step::InstallDebianPackagesStep < Dotfiles::Step
     @missing_packages = nil
     @available_packages = nil
     @unavailable_packages = nil
+  end
+
+  def ci_or_noninteractive?
+    ENV["CI"] || ENV["NONINTERACTIVE"]
   end
 end
