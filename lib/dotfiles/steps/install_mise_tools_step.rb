@@ -1,4 +1,5 @@
 require "json"
+require "shellwords"
 
 class Dotfiles::Step::InstallMiseToolsStep < Dotfiles::Step
   def self.depends_on
@@ -92,7 +93,7 @@ class Dotfiles::Step::InstallMiseToolsStep < Dotfiles::Step
   end
 
   def install_tool(spec)
-    execute("mise use -g #{spec}")
+    execute("#{mise_command} use -g #{spec}")
   end
 
   def mise_available?
@@ -110,7 +111,7 @@ class Dotfiles::Step::InstallMiseToolsStep < Dotfiles::Step
   def installed_tools
     return @installed_tools if instance_variable_defined?(:@installed_tools) && !@installed_tools.nil?
 
-    output, status = execute("mise ls --global --json")
+    output, status = execute("#{mise_command} ls --global --json")
     if status != 0
       @installed_tools_error = "mise ls --global --json failed (status #{status})"
       @installed_tools = {}
@@ -168,5 +169,9 @@ class Dotfiles::Step::InstallMiseToolsStep < Dotfiles::Step
     @installed_tools = nil
     @missing_tools = nil
     @installed_tools_error = nil
+  end
+
+  def mise_command
+    "mise --cd #{Shellwords.shellescape(@home)}"
   end
 end

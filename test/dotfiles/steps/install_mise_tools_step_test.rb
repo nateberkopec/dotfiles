@@ -13,7 +13,7 @@ class InstallMiseToolsStepTest < StepTestCase
 
   def test_should_run_when_configured_and_missing
     @fake_system.stub_command("command -v mise >/dev/null 2>&1", "", exit_status: 0)
-    @fake_system.stub_command("mise ls --global --json", "{}", exit_status: 0)
+    @fake_system.stub_command(mise_global_list_command, "{}", exit_status: 0)
     write_config("config", "mise_tools" => ["node@lts", "npm:@openai/codex"])
 
     assert_should_run
@@ -22,7 +22,7 @@ class InstallMiseToolsStepTest < StepTestCase
   def test_complete_when_tools_installed
     @fake_system.stub_command("command -v mise >/dev/null 2>&1", "", exit_status: 0)
     @fake_system.stub_command(
-      "mise ls --global --json",
+      mise_global_list_command,
       {
         "node" => [{"requested_version" => "lts"}],
         "npm:@openai/codex" => [{"requested_version" => "latest"}]
@@ -44,7 +44,7 @@ class InstallMiseToolsStepTest < StepTestCase
   def test_should_run_with_platform_specific_tool
     @fake_system.stub_debian
     @fake_system.stub_command("command -v mise >/dev/null 2>&1", "", exit_status: 0)
-    @fake_system.stub_command("mise ls --global --json", "{}", exit_status: 0)
+    @fake_system.stub_command(mise_global_list_command, "{}", exit_status: 0)
     write_config(
       "config",
       "mise_tools" => [
@@ -66,5 +66,11 @@ class InstallMiseToolsStepTest < StepTestCase
 
     refute_should_run
     assert_complete
+  end
+
+  private
+
+  def mise_global_list_command
+    "mise --cd #{@home} ls --global --json"
   end
 end
