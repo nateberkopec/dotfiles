@@ -54,7 +54,10 @@ class Dotfiles::Step::InstallDebianCargoPackagesStep < Dotfiles::Step
 
   def install_cargo_package(cargo, pkg)
     crate = cargo_packages.fetch(pkg)
-    output, status = execute("#{cargo} install --locked --root #{File.join(@home, ".local")} #{crate}")
+    output, status = execute(
+      "#{cargo} install --locked --root #{File.join(@home, ".local")} #{crate}",
+      quiet: !@debug
+    )
     add_error("cargo install #{crate} failed (status #{status}): #{output}") unless status == 0
   end
 
