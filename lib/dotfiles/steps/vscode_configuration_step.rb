@@ -47,10 +47,6 @@ class Dotfiles::Step::VSCodeConfigurationStep < Dotfiles::Step
     expected_extensions.all? { |ext| installed.include?(ext) }
   end
 
-  def installed_extensions
-    execute("code --list-extensions").first.split("\n")
-  end
-
   def expected_extensions
     @system.readlines(extensions_file).map(&:strip)
   end
@@ -59,19 +55,31 @@ class Dotfiles::Step::VSCodeConfigurationStep < Dotfiles::Step
     return unless @system.file_exist?(extensions_file)
     debug "Installing VSCode extensions..."
     installed = installed_extensions
-    expected_extensions.each { |ext| install_extension_if_missing(ext, installed) }
+    installed_any = false
+    expected_extensions.each do |ext|
+      installed_any ||= install_extension_if_missing(ext, installed)
+    end
+    @installed_extensions = nil if installed_any
   end
 
   def install_extension_if_missing(extension, installed)
     if installed.include?(extension)
       debug "VSCode extension already installed: #{extension}"
+      false
     else
       debug "Installing VSCode extension: #{extension}"
       execute("code --install-extension #{extension}")
+      true
     end
   end
 
   def config_home
     ENV.fetch("XDG_CONFIG_HOME", File.join(@home, ".config"))
+  end
+
+  def installed_extensions
+    return @installed_extensions if @installed_extensions
+    output, = execute("code --list-extensions")
+    @installed_extensions = output.split("\n")
   end
 end

@@ -18,17 +18,14 @@ class Dotfiles::Step::UpgradeBrewPackagesStep < Dotfiles::Step
   private
 
   def check_outdated_packages
-    output, = @system.execute("brew upgrade -n")
-    debug("brew upgrade -n output: #{output.inspect}")
-    return if output.strip.empty?
-
-    first_line = output.strip.split("\n").first
-    package_count = first_line[/Would upgrade (\d+) outdated package/, 1]&.to_i || 0
-    return if package_count.zero?
+    output, = @system.execute("brew outdated --quiet")
+    debug("brew outdated --quiet output: #{output.inspect}")
+    packages = output.lines.map(&:strip).reject(&:empty?)
+    return if packages.empty?
 
     add_notice(
       title: "🍺 Homebrew Updates Available",
-      message: "#{package_count} package(s) have updates available.\n\nRun 'brew upgrade' to update them."
+      message: "#{packages.count} package(s) have updates available.\n\nRun 'brew upgrade' to update them."
     )
   end
 end
