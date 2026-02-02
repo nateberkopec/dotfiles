@@ -108,7 +108,7 @@ class Dotfiles::Step::InstallMiseToolsStep < Dotfiles::Step
   end
 
   def installed_tools
-    return @installed_tools if defined?(@installed_tools)
+    return @installed_tools if instance_variable_defined?(:@installed_tools) && !@installed_tools.nil?
 
     output, status = execute("mise ls --global --json")
     if status != 0
@@ -117,7 +117,26 @@ class Dotfiles::Step::InstallMiseToolsStep < Dotfiles::Step
       return @installed_tools
     end
 
-    @installed_tools = JSON.parse(output)
+    parsed = JSON.parse(output)
+    @installed_tools = case parsed
+    when nil
+      {}
+    when Hash
+      parsed
+    when Array
+      parsed.each_with_object({}) do |entry, acc|
+        case entry
+        when String
+          acc[entry] = true
+        when Hash
+          key = entry["tool"] || entry[:tool] || entry["spec"] || entry[:spec] || entry["name"] || entry[:name]
+          acc[key] = entry if key
+        end
+      end
+    else
+      @installed_tools_error = "mise ls --global --json returned unsupported JSON: #{parsed.class}"
+      {}
+    end
   rescue JSON::ParserError => e
     @installed_tools_error = "mise ls --global --json parse failed: #{e.message}"
     @installed_tools = {}
