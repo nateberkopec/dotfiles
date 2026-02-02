@@ -48,7 +48,21 @@ class Dotfiles
       end
 
       def install
-        raise NotImplementedError, "Subclasses must implement #install"
+        return if installed?
+        output, status = execute("curl -fsSL #{install_script_url} | #{install_shell}")
+        add_error("#{install_error_label} install failed (status #{status}): #{output}") unless status == 0
+      end
+
+      def install_script_url
+        raise NotImplementedError, "Subclasses must implement #install_script_url"
+      end
+
+      def install_shell
+        "sh"
+      end
+
+      def install_error_label
+        package_name
       end
     end
   end

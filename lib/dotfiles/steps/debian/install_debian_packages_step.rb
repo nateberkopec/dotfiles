@@ -21,18 +21,9 @@ class Dotfiles::Step::InstallDebianPackagesStep < Dotfiles::Step
   def complete?
     super
     report_unavailable_packages
-    if ENV["CI"] || ENV["NONINTERACTIVE"]
-      if missing_installable.any?
-        add_warning(
-          title: "⚠️  Debian packages not installed",
-          message: missing_installable.map { |pkg| "• #{pkg}" }.join("\n")
-        )
-      end
-      missing_sources.each { |msg| add_warning(title: "⚠️  Debian source issue", message: msg) }
-      return true
-    end
-    missing_installable.each { |pkg| add_error("Debian package not installed: #{pkg}") }
-    missing_sources.each { |msg| add_error(msg) }
+    return true if noninteractive_complete?
+
+    report_missing_install_errors
     missing_installable.empty? && missing_sources.empty?
   end
 
@@ -40,6 +31,34 @@ class Dotfiles::Step::InstallDebianPackagesStep < Dotfiles::Step
 
   def debian_sources
     @config.fetch("debian_sources", [])
+  end
+
+  def noninteractive_complete?
+    return false unless noninteractive_mode?
+
+    report_missing_install_warnings
+    true
+  end
+
+  def noninteractive_mode?
+    ENV["CI"] || ENV["NONINTERACTIVE"]
+  end
+
+  def report_missing_install_warnings
+    add_missing_installable_warning if missing_installable.any?
+    missing_sources.each { |msg| add_warning(title: "⚠️  Debian source issue", message: msg) }
+  end
+
+  def add_missing_installable_warning
+    add_warning(
+      title: "⚠️  Debian packages not installed",
+      message: missing_installable.map { |pkg| "• #{pkg}" }.join("\n")
+    )
+  end
+
+  def report_missing_install_errors
+    missing_installable.each { |pkg| add_error("Debian package not installed: #{pkg}") }
+    missing_sources.each { |msg| add_error(msg) }
   end
 
   def configured_packages
@@ -67,13 +86,11 @@ class Dotfiles::Step::InstallDebianPackagesStep < Dotfiles::Step
   end
 
   def package_installed?(pkg)
-    _, status = @system.execute("dpkg -s #{pkg} >/dev/null 2>&1")
-    status == 0
+    command_succeeds?("dpkg -s #{pkg} >/dev/null 2>&1")
   end
 
   def package_available?(pkg)
-    _, status = @system.execute("apt-cache show #{pkg} >/dev/null 2>&1")
-    status == 0
+    command_succeeds?("apt-cache show #{pkg} >/dev/null 2>&1")
   end
 
   def ensure_sources

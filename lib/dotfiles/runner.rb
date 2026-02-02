@@ -149,10 +149,34 @@ class Dotfiles
     end
 
     def merge_step_result(data, results)
-      results[:table_data] << [data[:index], "#{data[:name]},#{data[:complete] ? "✓" : "✗"},#{data[:step].ran? ? "Yes" : "No"}"]
+      append_table_row(data, results)
+      append_failed_step(data, results)
+      append_step_messages(data, results)
+    end
+
+    def append_table_row(data, results)
+      results[:table_data] << [data[:index], table_row_status(data), table_row_ran(data)]
+    end
+
+    def table_row_status(data)
+      "#{data[:name]},#{data[:complete] ? "✓" : "✗"}"
+    end
+
+    def table_row_ran(data)
+      data[:step].ran? ? "Yes" : "No"
+    end
+
+    def append_failed_step(data, results)
       results[:failed_steps] << data[:name] unless data[:complete]
+    end
+
+    def append_step_messages(data, results)
       results[:warnings].concat(data[:step].warnings)
       results[:notices].concat(data[:step].notices)
+      append_step_errors(data, results)
+    end
+
+    def append_step_errors(data, results)
       results[:errors].concat(data[:step].errors.map { |err| {step: data[:name], message: err} })
     end
 

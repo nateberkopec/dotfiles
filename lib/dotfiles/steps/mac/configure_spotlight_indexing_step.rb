@@ -16,25 +16,10 @@ class Dotfiles::Step::ConfigureSpotlightIndexingStep < Dotfiles::Step
 
   def complete?
     super
-    return true unless battery_mode_enabled? || disabled_volumes.any?
+    return true unless spotlight_configured?
 
-    if battery_mode_enabled?
-      add_error("Fish not found for Spotlight battery toggle") unless fish_path
-      add_error("Spotlight battery script not installed at #{script_path}") unless script_installed?
-      add_error("LaunchDaemon not installed at #{launchdaemon_path}") unless launchdaemon_installed?
-    end
-
-    disabled_volumes.each do |volume|
-      if volume_root?(volume)
-        add_error("Spotlight indexing still enabled for #{volume}") unless indexing_disabled?(volume)
-      else
-        unless @system.dir_exist?(volume)
-          add_error("Spotlight exclusion directory missing: #{volume}")
-          next
-        end
-        add_error("Spotlight exclusion file missing for #{volume}") unless metadata_never_index_exists?(volume)
-      end
-    end
+    check_battery_toggle if battery_mode_enabled?
+    check_disabled_volumes
 
     @errors.empty?
   end
@@ -47,6 +32,33 @@ class Dotfiles::Step::ConfigureSpotlightIndexingStep < Dotfiles::Step
     install_script unless script_installed?
     install_launchdaemon unless launchdaemon_installed?
     load_launchdaemon
+  end
+
+  def spotlight_configured?
+    battery_mode_enabled? || disabled_volumes.any?
+  end
+
+  def check_battery_toggle
+    add_error("Fish not found for Spotlight battery toggle") unless fish_path
+    add_error("Spotlight battery script not installed at #{script_path}") unless script_installed?
+    add_error("LaunchDaemon not installed at #{launchdaemon_path}") unless launchdaemon_installed?
+  end
+
+  def check_disabled_volumes
+    disabled_volumes.each { |volume| check_disabled_volume(volume) }
+  end
+
+  def check_disabled_volume(volume)
+    if volume_root?(volume)
+      add_error("Spotlight indexing still enabled for #{volume}") unless indexing_disabled?(volume)
+      return
+    end
+
+    unless @system.dir_exist?(volume)
+      add_error("Spotlight exclusion directory missing: #{volume}")
+      return
+    end
+    add_error("Spotlight exclusion file missing for #{volume}") unless metadata_never_index_exists?(volume)
   end
 
   def install_script

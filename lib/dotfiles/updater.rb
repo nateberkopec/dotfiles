@@ -1,12 +1,7 @@
-require "fileutils"
-require "open3"
-require "config"
-require "step"
-Dir.glob(File.join(__dir__, "steps", "*.rb")).sort.each { |file| require file }
-
 class Dotfiles
   class Updater
     def initialize(log_file = nil)
+      self.class.load_dependencies
       Dotfiles.log_file = log_file
       @debug = ENV["DEBUG"] == "true"
       @config = Config.new(Dotfiles.determine_dotfiles_dir)
@@ -24,6 +19,21 @@ class Dotfiles
 
     def step_params
       {debug: @debug, dotfiles_repo: @config.dotfiles_repo, dotfiles_dir: @config.dotfiles_dir, home: @config.home}
+    end
+
+    def self.load_dependencies
+      return if @dependencies_loaded
+
+      require "open3"
+      require "config"
+      require "step"
+      load_step_files
+
+      @dependencies_loaded = true
+    end
+
+    def self.load_step_files
+      Dir.glob(File.join(__dir__, "steps", "*.rb")).sort.each { |file| require file }
     end
 
     private

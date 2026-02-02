@@ -1,16 +1,8 @@
 #!/usr/bin/env ruby
 
-$LOAD_PATH.unshift(File.expand_path("dotfiles", __dir__))
+require_relative "dotfiles/loader"
 
-require "config"
-require "system_adapter"
-require "step"
-require "step/defaultable"
-require "step/sudoable"
-require "step/protectable"
-Dir.glob(File.join(__dir__, "dotfiles", "steps", "**", "*.rb")).sort.each { |file| require file }
-require "runner"
-require "updater"
+Dotfiles::Loader.load!
 
 class Dotfiles
   @log_file = nil

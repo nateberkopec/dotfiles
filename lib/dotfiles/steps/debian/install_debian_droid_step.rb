@@ -13,9 +13,11 @@ class Dotfiles::Step::InstallDebianDroidStep < Dotfiles::Step
     "droid"
   end
 
-  def install
-    return if installed?
-    output, status = execute("curl -fsSL #{DROID_INSTALL_URL} | sh")
-    add_error("Droid install failed (status #{status}): #{output}") unless status == 0
+  def install_script_url
+    DROID_INSTALL_URL
+  end
+
+  def install_error_label
+    "Droid"
   end
 end

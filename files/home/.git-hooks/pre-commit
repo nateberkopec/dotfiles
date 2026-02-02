@@ -23,9 +23,6 @@ if test "$SKIP_PRECOMMIT_LINT" = "1"
   exit 0
 end
 
-set -lx FLOG_THRESHOLD 50
-set -lx FLAY_THRESHOLD 100
-
 function announce
   set -l message $argv[1]
   if type -q gum

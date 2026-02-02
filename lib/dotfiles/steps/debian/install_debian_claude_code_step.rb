@@ -17,9 +17,15 @@ class Dotfiles::Step::InstallDebianClaudeCodeStep < Dotfiles::Step
     "claude"
   end
 
-  def install
-    return if installed?
-    output, status = execute("curl -fsSL #{CLAUDE_CODE_INSTALL_URL} | bash")
-    add_error("Claude Code install failed (status #{status}): #{output}") unless status == 0
+  def install_script_url
+    CLAUDE_CODE_INSTALL_URL
+  end
+
+  def install_shell
+    "bash"
+  end
+
+  def install_error_label
+    "Claude Code"
   end
 end

@@ -144,9 +144,13 @@ class Dotfiles
       @system.execute(cmd, quiet: quiet)
     end
 
-    def command_exists?(command)
-      _, status = @system.execute("command -v #{command} >/dev/null 2>&1")
+    def command_succeeds?(command)
+      _, status = @system.execute(command)
       status == 0
+    end
+
+    def command_exists?(command)
+      command_succeeds?("command -v #{command} >/dev/null 2>&1")
     end
 
     def brew_quiet(command)

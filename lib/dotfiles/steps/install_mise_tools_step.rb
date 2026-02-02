@@ -137,37 +137,57 @@ class Dotfiles::Step::InstallMiseToolsStep < Dotfiles::Step
   end
 
   def installed_tools
-    return @installed_tools if instance_variable_defined?(:@installed_tools) && !@installed_tools.nil?
+    return @installed_tools if installed_tools_cached?
 
     output, status = execute("#{mise_command} ls --installed --json")
-    if status != 0
-      @installed_tools_error = "mise ls --installed --json failed (status #{status})"
-      @installed_tools = {}
-      return @installed_tools
-    end
+    return record_installed_tools_error("mise ls --installed --json failed (status #{status})") unless status == 0
 
+    parse_installed_tools(output)
+  end
+
+  def installed_tools_cached?
+    instance_variable_defined?(:@installed_tools) && !@installed_tools.nil?
+  end
+
+  def parse_installed_tools(output)
     parsed = JSON.parse(output)
-    @installed_tools = case parsed
-    when nil
-      {}
-    when Hash
-      parsed
-    when Array
-      parsed.each_with_object({}) do |entry, acc|
-        case entry
-        when String
-          acc[entry] = true
-        when Hash
-          key = entry["tool"] || entry[:tool] || entry["spec"] || entry[:spec] || entry["name"] || entry[:name]
-          acc[key] = entry if key
-        end
-      end
-    else
-      @installed_tools_error = "mise ls --installed --json returned unsupported JSON: #{parsed.class}"
-      {}
-    end
+    @installed_tools = normalize_installed_tools(parsed)
   rescue JSON::ParserError => e
-    @installed_tools_error = "mise ls --installed --json parse failed: #{e.message}"
+    record_installed_tools_error("mise ls --installed --json parse failed: #{e.message}")
+  end
+
+  def normalize_installed_tools(parsed)
+    return {} if parsed.nil?
+    return parsed if parsed.is_a?(Hash)
+    return normalize_installed_tool_entries(parsed) if parsed.is_a?(Array)
+
+    record_installed_tools_error("mise ls --installed --json returned unsupported JSON: #{parsed.class}")
+    {}
+  end
+
+  def normalize_installed_tool_entries(entries)
+    entries.each_with_object({}) do |entry, acc|
+      key, value = normalize_installed_tool_entry(entry)
+      acc[key] = value if key
+    end
+  end
+
+  def normalize_installed_tool_entry(entry)
+    case entry
+    when String
+      [entry, true]
+    when Hash
+      key = installed_tool_key(entry)
+      [key, entry] if key
+    end
+  end
+
+  def installed_tool_key(entry)
+    entry["tool"] || entry[:tool] || entry["spec"] || entry[:spec] || entry["name"] || entry[:name]
+  end
+
+  def record_installed_tools_error(message)
+    @installed_tools_error = message
     @installed_tools = {}
   end
 
