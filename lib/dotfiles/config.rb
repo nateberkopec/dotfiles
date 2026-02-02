@@ -1,4 +1,5 @@
 require "yaml"
+require "package_matrix"
 
 class Dotfiles
   class Config
@@ -16,12 +17,19 @@ class Dotfiles
     end
 
     def packages
-      {"brew" => config.fetch("brew", {}), "applications" => config.fetch("applications", [])}
+      {
+        "brew" => {"packages" => brew_packages, "casks" => brew_casks},
+        "debian" => {"packages" => debian_packages, "sources" => debian_sources},
+        "applications" => applications
+      }
     end
 
     def packages=(hash)
       @config ||= {}
       @config["brew"] = hash["brew"] if hash.key?("brew")
+      @config["packages"] = hash["packages"] if hash.key?("packages")
+      @config["debian_non_apt_packages"] = hash["debian_non_apt_packages"] if hash.key?("debian_non_apt_packages")
+      @config["debian_sources"] = hash["debian_sources"] if hash.key?("debian_sources")
       @config["applications"] = hash["applications"] if hash.key?("applications")
     end
 
@@ -48,6 +56,39 @@ class Dotfiles
 
     def fetch(key, default = nil)
       config.fetch(key, default)
+    end
+
+    def package_matrix
+      @package_matrix ||= PackageMatrix.new(config)
+    end
+
+    def brew_packages
+      package_matrix.brew_packages
+    end
+
+    def debian_packages
+      package_matrix.debian_packages
+    end
+
+    def debian_sources
+      config.fetch("debian_sources", [])
+    end
+
+    def debian_non_apt_packages
+      config.fetch("debian_non_apt_packages", []).map(&:to_s)
+    end
+
+    def applications
+      config.fetch("applications", [])
+    end
+
+    def applications=(apps)
+      @config ||= {}
+      @config["applications"] = apps
+    end
+
+    def brew_casks
+      config.fetch("brew", {}).fetch("casks", [])
     end
 
     private

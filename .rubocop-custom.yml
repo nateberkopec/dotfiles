@@ -1,5 +1,6 @@
 require:
   - ./lib/rubocop/ban_file_system_classes.rb
+  - ./lib/rubocop/ban_ci_or_noninteractive_method.rb
 
 Dotfiles/BanFileSystemClasses:
   Enabled: true
@@ -8,6 +9,12 @@ Dotfiles/BanFileSystemClasses:
     - 'lib/dotfiles.rb'
     - 'lib/dotfiles/updater.rb'
     - 'test/dotfiles/hooks/rm_rf_hooks_test.rb'
+  Include:
+    - 'lib/**/*.rb'
+    - 'test/**/*.rb'
+
+Dotfiles/BanCiOrNoninteractiveMethod:
+  Enabled: true
   Include:
     - 'lib/**/*.rb'
     - 'test/**/*.rb'

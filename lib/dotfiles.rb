@@ -8,7 +8,7 @@ require "step"
 require "step/defaultable"
 require "step/sudoable"
 require "step/protectable"
-Dir.glob(File.join(__dir__, "dotfiles", "steps", "*.rb")).sort.each { |file| require file }
+Dir.glob(File.join(__dir__, "dotfiles", "steps", "**", "*.rb")).sort.each { |file| require file }
 require "runner"
 require "updater"
 

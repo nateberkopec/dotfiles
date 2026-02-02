@@ -1,4 +1,6 @@
 class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
+  macos_only
+
   def self.depends_on
     [Dotfiles::Step::InstallHomebrewStep, Dotfiles::Step::UpdateHomebrewStep]
   end

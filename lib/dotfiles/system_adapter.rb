@@ -7,6 +7,14 @@ class Dotfiles
       RUBY_PLATFORM.include?("darwin")
     end
 
+    def linux?
+      RUBY_PLATFORM.include?("linux")
+    end
+
+    def debian?
+      linux? && File.exist?("/etc/debian_version")
+    end
+
     def running_codespaces?
       ENV["CODESPACES"] == "true"
     end

@@ -1,4 +1,4 @@
-name: Full Integration Test
+name: Integration Test
 
 on:
   push:
@@ -8,8 +8,14 @@ on:
   workflow_dispatch:
 
 jobs:
-  full-integration-test:
-    runs-on: macos-latest
+  integration-test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - macos-latest
+          - ubuntu-22.04
 
     steps:
     - name: Checkout repository
@@ -34,13 +40,15 @@ jobs:
         chmod +x bin/dotf
         ./bin/dotf run 2>&1 | tee output.log
 
-    - name: Confirm success
-      run: echo "✅ dotf run exited successfully"
-
     - name: Start fish shell and check for errors
       run: |
         echo "Starting fish shell to check for initialization errors..."
-        /opt/homebrew/bin/fish -c 'echo "Fish shell initialized successfully"' 2>&1 | tee fish-init.log
+        if [ "${{ runner.os }}" = "macOS" ]; then
+          fish_bin="/opt/homebrew/bin/fish"
+        else
+          fish_bin="fish"
+        fi
+        "${fish_bin}" -c 'echo "Fish shell initialized successfully"' 2>&1 | tee fish-init.log
         if [ $? -ne 0 ]; then
           echo "❌ Fish shell initialization failed"
           cat fish-init.log
@@ -52,7 +60,7 @@ jobs:
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: logs
+        name: logs-${{ matrix.os }}
         path: |
           output.log
           fish-init.log

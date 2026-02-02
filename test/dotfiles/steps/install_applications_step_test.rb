@@ -6,7 +6,7 @@ class InstallApplicationsStepTest < StepTestCase
   def setup
     super
     @config = step.config
-    @config.packages = {"applications" => apps}
+    @config.applications = apps
   end
 
   def test_complete_when_all_apps_present

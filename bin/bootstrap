@@ -2,6 +2,14 @@
 
 set -e
 
+is_macos() {
+    [ "$(uname -s)" = "Darwin" ]
+}
+
+is_linux() {
+    [ "$(uname -s)" = "Linux" ]
+}
+
 debug() {
     if [ "${DEBUG:-false}" = "true" ]; then
         # Use gdate if available (GNU coreutils on macOS), otherwise use standard date without milliseconds
@@ -14,6 +22,21 @@ debug() {
     fi
 }
 
+ensure_sudo() {
+    if [ "$(id -u)" -ne 0 ] && ! command -v sudo &> /dev/null; then
+        echo "Error: sudo is required but not available"
+        exit 1
+    fi
+}
+
+run_with_sudo() {
+    if [ "$(id -u)" -eq 0 ]; then
+        "$@"
+    else
+        sudo "$@"
+    fi
+}
+
 brew_quiet() {
     if [ "${DEBUG:-false}" = "true" ]; then
         HOMEBREW_NO_AUTO_UPDATE=1 brew "$@"
@@ -23,6 +46,10 @@ brew_quiet() {
 }
 
 bootstrap_homebrew() {
+    if ! is_macos; then
+        return 0
+    fi
+
     if ! command -v brew &> /dev/null; then
         debug "Installing Homebrew..."
         NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
@@ -55,10 +82,47 @@ bootstrap_homebrew() {
     eval "$("$brew_bin" shellenv -s bash)"
 }
 
+bootstrap_debian_prereqs() {
+    if ! is_linux; then
+        return 0
+    fi
+
+    ensure_sudo
+    debug "Installing Debian prerequisites..."
+    run_with_sudo apt-get update -y
+    run_with_sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y \
+        ca-certificates \
+        curl \
+        git \
+        gnupg \
+        build-essential \
+        libssl-dev \
+        libreadline-dev \
+        zlib1g-dev \
+        libyaml-dev \
+        libffi-dev \
+        libgdbm-dev \
+        libncurses5-dev \
+        libdb-dev \
+        libbz2-dev \
+        liblzma-dev \
+        libsqlite3-dev \
+        pkg-config \
+        unzip \
+        xz-utils
+}
+
 bootstrap_mise() {
     if ! command -v mise &> /dev/null; then
         debug "Installing mise..."
-        brew_quiet install mise
+        if is_macos; then
+            brew_quiet install mise
+        else
+            curl -fsSL https://mise.jdx.dev/install.sh | sh
+            if [ -d "$HOME/.local/bin" ]; then
+                export PATH="$HOME/.local/bin:$PATH"
+            fi
+        fi
     else
         debug "mise already installed"
     fi
@@ -74,8 +138,19 @@ bootstrap_mise() {
 
 bootstrap_gum() {
     if ! command -v gum &> /dev/null; then
-        debug "Installing gum..."
-        brew_quiet install gum
+        if command -v mise &> /dev/null; then
+            debug "Installing gum via mise..."
+            mise use --global gum@latest >/dev/null
+            mise install gum@latest >/dev/null
+        else
+            debug "Installing gum..."
+            if is_macos; then
+                brew_quiet install gum
+            else
+                ensure_sudo
+                run_with_sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y gum
+            fi
+        fi
     else
         debug "gum already installed"
     fi
@@ -122,6 +197,7 @@ main() {
     debug "Bootstrapping development environment..."
 
     bootstrap_homebrew
+    bootstrap_debian_prereqs
     bootstrap_mise
     bootstrap_ruby
     bootstrap_gum

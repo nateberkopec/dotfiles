@@ -6,6 +6,34 @@ class FakeSystemAdapter
     @filesystem = {}
     @exit_statuses = []
     @command_outputs = {}
+    @macos = false
+    @linux = false
+    @debian = false
+  end
+
+  def macos?
+    @macos
+  end
+
+  def linux?
+    @linux
+  end
+
+  def debian?
+    @debian
+  end
+
+  def stub_macos(value = true)
+    @macos = value
+  end
+
+  def stub_linux(value = true)
+    @linux = value
+  end
+
+  def stub_debian(value = true)
+    @debian = value
+    @linux = value
   end
 
   def stub_file_content(path, content)

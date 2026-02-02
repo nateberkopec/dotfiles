@@ -3,6 +3,7 @@ require "test_helper"
 class VSCodeConfigurationStepTest < Minitest::Test
   def setup
     super
+    @fake_system.stub_macos
     @step = create_step(Dotfiles::Step::VSCodeConfigurationStep)
     @extensions_file = "#{@home}/Library/Application Support/Code/User/extensions.txt"
   end

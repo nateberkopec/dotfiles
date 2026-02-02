@@ -3,18 +3,19 @@ require "test_helper"
 class SetFishDefaultShellStepTest < Minitest::Test
   def setup
     super
+    @fake_system.stub_macos
     @step = create_step(Dotfiles::Step::SetFishDefaultShellStep)
   end
 
   def test_complete_when_fish_is_default_shell
-    @fake_system.stub_command("which fish", "/opt/homebrew/bin/fish\n")
+    @fake_system.stub_command("command -v fish 2>/dev/null", "/opt/homebrew/bin/fish\n")
     @fake_system.stub_command("dscl . -read ~/ UserShell", "UserShell: /opt/homebrew/bin/fish")
 
     assert @step.complete?
   end
 
   def test_incomplete_when_different_shell
-    @fake_system.stub_command("which fish", "/opt/homebrew/bin/fish\n")
+    @fake_system.stub_command("command -v fish 2>/dev/null", "/opt/homebrew/bin/fish\n")
     @fake_system.stub_command("dscl . -read ~/ UserShell", "UserShell: /bin/zsh")
 
     refute @step.complete?
@@ -39,7 +40,7 @@ class SetFishDefaultShellStepTest < Minitest::Test
   private
 
   def stub_shell_mismatch
-    @fake_system.stub_command("which fish", "/opt/homebrew/bin/fish\n")
+    @fake_system.stub_command("command -v fish 2>/dev/null", "/opt/homebrew/bin/fish\n")
     @fake_system.stub_command("dscl . -read ~/ UserShell", "UserShell: /bin/zsh")
   end
 end
