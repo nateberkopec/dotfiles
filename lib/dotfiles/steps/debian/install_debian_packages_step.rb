@@ -22,7 +22,12 @@ class Dotfiles::Step::InstallDebianPackagesStep < Dotfiles::Step
     super
     if ci_or_noninteractive?
       report_unavailable_packages
-      missing_installable.each { |pkg| add_warning(title: "⚠️  Debian package not installed", message: pkg) }
+      if missing_installable.any?
+        add_warning(
+          title: "⚠️  Debian packages not installed",
+          message: missing_installable.map { |pkg| "• #{pkg}" }.join("\n")
+        )
+      end
       missing_sources.each { |msg| add_warning(title: "⚠️  Debian source issue", message: msg) }
       return true
     end
