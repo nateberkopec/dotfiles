@@ -17,10 +17,9 @@ class Dotfiles
     end
 
     def packages
-      matrix = PackageMatrix.new(config)
       {
-        "brew" => {"packages" => matrix.brew_packages, "casks" => brew_casks},
-        "debian" => {"packages" => matrix.debian_packages, "sources" => debian_sources},
+        "brew" => {"packages" => brew_packages, "casks" => brew_casks},
+        "debian" => {"packages" => debian_packages, "sources" => debian_sources},
         "applications" => applications
       }
     end
@@ -60,15 +59,15 @@ class Dotfiles
     end
 
     def package_matrix
-      PackageMatrix.new(config).matrix
+      @package_matrix ||= PackageMatrix.new(config)
     end
 
     def brew_packages
-      PackageMatrix.new(config).brew_packages
+      package_matrix.brew_packages
     end
 
     def debian_packages
-      PackageMatrix.new(config).debian_packages
+      package_matrix.debian_packages
     end
 
     def debian_sources

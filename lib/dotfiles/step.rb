@@ -104,9 +104,7 @@ class Dotfiles
     end
 
     def should_run?
-      return false if self.class.macos_only? && !@system.macos?
-      return false if self.class.debian_only? && !@system.debian?
-      !complete?
+      allowed_on_platform? && !complete?
     end
 
     def run
