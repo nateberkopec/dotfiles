@@ -177,34 +177,21 @@ check_hostname() {
 
     if [ "$master_hostname" != "$current_hostname" ]; then
         echo ""
-        if command -v gum &> /dev/null; then
-            gum style --border double --border-foreground 208 --padding "1 2" --width 60 \
-                "⚠️  Hostname Mismatch" \
-                "" \
-                "Master hostname: $master_hostname" \
-                "Current hostname: $current_hostname" \
-                "" \
-                "You are not on the master machine."
-            echo ""
+        gum style --border double --border-foreground 208 --padding "1 2" --width 60 \
+            "⚠️  Hostname Mismatch" \
+            "" \
+            "Master hostname: $master_hostname" \
+            "Current hostname: $current_hostname" \
+            "" \
+            "You are not on the master machine."
+        echo ""
 
-            if ! gum confirm "Continue with dotf update anyway?"; then
-                echo "Update cancelled."
-                exit 0
-            fi
-
-            echo ""
-        else
-            echo "⚠️  Hostname Mismatch"
-            echo "Master hostname: $master_hostname"
-            echo "Current hostname: $current_hostname"
-            echo "You are not on the master machine."
-            read -r -p "Continue with dotf update anyway? [y/N] " reply
-            case "$reply" in
-                y|Y|yes|YES) ;;
-                *) echo "Update cancelled."; exit 0 ;;
-            esac
-            echo ""
+        if ! gum confirm "Continue with dotf update anyway?"; then
+            echo "Update cancelled."
+            exit 0
         fi
+
+        echo ""
     fi
 }
 
@@ -233,7 +220,6 @@ cmd_update() {
     update_dotfiles_repo
 
     cd "$DOTFILES_DIR"
-    ensure_mise_env
 
     # Ensure working directory is clean before running step updates
     # This prevents pulled changes from being mixed with step updates
