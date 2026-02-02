@@ -172,7 +172,7 @@ class Dotfiles::Step::InstallDebianNonAptPackagesStep < Dotfiles::Step
       when Hash
         raw.transform_keys(&:to_s)
       when Array
-        raw.map(&:to_s).index_with(&:to_s)
+        raw.map { |item| [item.to_s, item.to_s] }.to_h
       else
         {}
       end
