@@ -1,8 +1,0 @@
-{
-  "setup-worktree": [
-    "mise trust",
-    "mise install",
-    "mise exec -- bundle install"
-  ]
-}
-
