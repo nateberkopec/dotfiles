@@ -1,9 +1,7 @@
 require "json"
 
 class Dotfiles::Step::InstallDebianGhosttyStep < Dotfiles::Step
-  include Dotfiles::Step::DebianNonAptHelper
-
-  debian_only
+  include Dotfiles::Step::DebianNonAptStep
 
   GHOSTTY_APPIMAGE_REPO = "pkgforge-dev/ghostty-appimage".freeze
   GHOSTTY_APPIMAGE_ARCH = {
@@ -16,33 +14,13 @@ class Dotfiles::Step::InstallDebianGhosttyStep < Dotfiles::Step
     "Ghostty"
   end
 
-  def self.depends_on
-    [Dotfiles::Step::InstallDebianPackagesStep]
-  end
-
-  def should_run?
-    configured? && !package_installed?("ghostty")
-  end
-
-  def run
-    install_ghostty if configured?
-  end
-
-  def complete?
-    super
-    return true unless configured?
-    return true if package_installed?("ghostty")
-    add_error("Non-APT package not installed: ghostty")
-    false
-  end
-
   private
 
-  def configured?
-    @config.debian_non_apt_packages.include?("ghostty")
+  def package_name
+    "ghostty"
   end
 
-  def install_ghostty
+  def install
     install_direct_download(
       name: "ghostty",
       url: ghostty_appimage_url,

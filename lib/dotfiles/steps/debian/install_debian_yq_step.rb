@@ -1,39 +1,17 @@
 class Dotfiles::Step::InstallDebianYqStep < Dotfiles::Step
-  include Dotfiles::Step::DebianNonAptHelper
-
-  debian_only
+  include Dotfiles::Step::DebianNonAptStep
 
   def self.display_name
     "yq"
   end
 
-  def self.depends_on
-    [Dotfiles::Step::InstallDebianPackagesStep]
-  end
-
-  def should_run?
-    configured? && !package_installed?("yq")
-  end
-
-  def run
-    install_yq if configured?
-  end
-
-  def complete?
-    super
-    return true unless configured?
-    return true if package_installed?("yq")
-    add_error("Non-APT package not installed: yq")
-    false
-  end
-
   private
 
-  def configured?
-    @config.debian_non_apt_packages.include?("yq")
+  def package_name
+    "yq"
   end
 
-  def install_yq
+  def install
     install_direct_download(
       name: "yq",
       url: yq_download_url,

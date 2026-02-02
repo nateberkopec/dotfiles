@@ -148,7 +148,7 @@ bootstrap_gum() {
                 brew_quiet install gum
             else
                 ensure_sudo
-                run_with_sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y gum || true
+                run_with_sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y gum
             fi
         fi
     else
