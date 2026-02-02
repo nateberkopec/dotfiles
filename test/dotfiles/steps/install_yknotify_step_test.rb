@@ -24,15 +24,23 @@ class InstallYknotifyStepTest < StepTestCase
     step.run
 
     assert_executed("mise use -g go@latest")
-    assert_executed("GOBIN=#{@home}/go/bin mise exec --no-prepare go@latest -- go install github.com/noperator/yknotify@999f01c")
+    assert_executed("GOBIN=#{@home}/go/bin #{mise_exec_command("go install github.com/noperator/yknotify@999f01c")}")
     assert_executed("mise reshim")
+  end
+
+  def test_run_installs_go_package_with_no_prepare_when_supported
+    stub_mise_exec_supports_no_prepare
+    stub_yknotify_missing
+    step.run
+
+    assert_executed("GOBIN=#{@home}/go/bin #{mise_exec_command("go install github.com/noperator/yknotify@999f01c")}")
   end
 
   def test_run_skips_go_install_when_yknotify_exists
     stub_yknotify_on_path
     step.run
 
-    refute_executed("GOBIN=#{@home}/go/bin mise exec --no-prepare go@latest -- go install github.com/noperator/yknotify@999f01c")
+    refute_executed("GOBIN=#{@home}/go/bin #{mise_exec_command("go install github.com/noperator/yknotify@999f01c")}")
   end
 
   def test_run_installs_script_to_xdg_data_dir
@@ -112,7 +120,7 @@ class InstallYknotifyStepTest < StepTestCase
 
   def stub_yknotify_missing
     @fake_system.stub_command("command -v yknotify >/dev/null 2>&1", "", 1)
-    @fake_system.stub_command("mise exec --no-prepare go@latest -- which yknotify 2>/dev/null", "", 1)
+    @fake_system.stub_command(mise_exec_command("which yknotify 2>/dev/null"), "", 1)
   end
 
   def stub_terminal_notifier_on_path
@@ -124,7 +132,20 @@ class InstallYknotifyStepTest < StepTestCase
   end
 
   def stub_mise_which_yknotify
-    @fake_system.stub_command("mise exec --no-prepare go@latest -- which yknotify 2>/dev/null", "#{@home}/.local/share/mise/installs/go/latest/bin/yknotify", 0)
+    @fake_system.stub_command(mise_exec_command("which yknotify 2>/dev/null"), "#{@home}/.local/share/mise/installs/go/latest/bin/yknotify", 0)
+  end
+
+  def stub_mise_exec_supports_no_prepare
+    @supports_no_prepare = true
+    @fake_system.stub_command("mise exec --help", "Usage: mise exec --no-prepare", 0)
+  end
+
+  def mise_exec_command(command)
+    parts = ["mise", "exec"]
+    parts << "--no-prepare" if @supports_no_prepare
+    parts << "go@latest"
+    parts << "--"
+    "#{parts.join(" ")} #{command}"
   end
 
   def script_dir

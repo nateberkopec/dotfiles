@@ -31,7 +31,7 @@ class Dotfiles::Step::InstallYknotifyStep < Dotfiles::Step
   end
 
   def mise_has_yknotify?
-    _, status = @system.execute("mise exec --no-prepare go@latest -- which yknotify 2>/dev/null")
+    _, status = @system.execute(mise_exec_command("which yknotify 2>/dev/null"))
     status == 0
   end
 
@@ -65,7 +65,7 @@ class Dotfiles::Step::InstallYknotifyStep < Dotfiles::Step
 
     debug "Installing yknotify from upstream..."
     execute("mkdir -p #{go_bin_dir}")
-    output, status = execute("GOBIN=#{go_bin_dir} mise exec --no-prepare go@latest -- go install github.com/noperator/yknotify@999f01c")
+    output, status = execute("GOBIN=#{go_bin_dir} #{mise_exec_command("go install github.com/noperator/yknotify@999f01c")}")
     raise "go install failed (status #{status}): #{output}" unless status == 0
     execute("mise reshim")
   end
@@ -112,7 +112,7 @@ class Dotfiles::Step::InstallYknotifyStep < Dotfiles::Step
   end
 
   def yknotify_bin_path
-    find_binary_path("mise exec --no-prepare go@latest -- which yknotify 2>/dev/null") ||
+    find_binary_path(mise_exec_command("which yknotify 2>/dev/null")) ||
       find_binary_path("which yknotify") ||
       go_bin_yknotify_path
   end
@@ -124,6 +124,20 @@ class Dotfiles::Step::InstallYknotifyStep < Dotfiles::Step
   def find_binary_path(command)
     output, status = @system.execute(command)
     output.strip if status == 0 && !output.strip.empty?
+  end
+
+  def mise_exec_command(command)
+    parts = ["mise", "exec"]
+    parts << "--no-prepare" if mise_exec_supports_no_prepare?
+    parts << "go@latest"
+    parts << "--"
+    "#{parts.join(" ")} #{command}"
+  end
+
+  def mise_exec_supports_no_prepare?
+    return @mise_exec_supports_no_prepare if instance_variable_defined?(:@mise_exec_supports_no_prepare)
+    output, status = @system.execute("mise exec --help")
+    @mise_exec_supports_no_prepare = status == 0 && output.include?("--no-prepare")
   end
 
   def terminal_notifier_path
