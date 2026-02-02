@@ -1,4 +1,6 @@
 class Dotfiles::Step::UpdateDebianStep < Dotfiles::Step
+  include Dotfiles::Step::Sudoable
+
   debian_only
 
   def self.display_name
@@ -34,9 +36,5 @@ class Dotfiles::Step::UpdateDebianStep < Dotfiles::Step
     output, status = execute("do-release-upgrade -c", quiet: true)
     return [] unless status == 0
     output.scan(/New release '([^']+)'/).flatten
-  end
-
-  def ci_or_noninteractive?
-    ENV["CI"] || ENV["NONINTERACTIVE"]
   end
 end
