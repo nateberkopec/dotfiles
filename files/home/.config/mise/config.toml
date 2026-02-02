@@ -2,6 +2,13 @@
 ruby = "latest"
 node = "lts"
 go = "latest"
+rust = "latest"
+"cargo:broot" = "latest"
+"cargo:difftastic" = "latest"
+"cargo:starship" = "latest"
+"npm:@openai/codex" = "latest"
+"npm:@anthropic-ai/claude-code" = "latest"
+"go:github.com/mikefarah/yq/v4" = "latest"
 watchexec = "latest"
 fnox = "latest"
 

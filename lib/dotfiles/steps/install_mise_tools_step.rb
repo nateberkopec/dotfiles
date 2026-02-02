@@ -3,7 +3,7 @@ require "shellwords"
 
 class Dotfiles::Step::InstallMiseToolsStep < Dotfiles::Step
   def self.depends_on
-    Dotfiles::Step.system_packages_steps
+    [Dotfiles::Step::SyncHomeDirectoryStep]
   end
 
   def should_run?
@@ -16,6 +16,8 @@ class Dotfiles::Step::InstallMiseToolsStep < Dotfiles::Step
     return unless configured_tools?
     return unless mise_available?
 
+    @install_errors = {}
+    @install_outputs = {}
     ordered_tools(missing_tools).each { |spec| install_tool(spec) }
     reset_cache
   end
@@ -30,6 +32,10 @@ class Dotfiles::Step::InstallMiseToolsStep < Dotfiles::Step
     end
 
     add_error(@installed_tools_error) if @installed_tools_error
+    install_errors.values.each { |message| add_error(message) }
+    if ran? && install_errors.empty? && missing_tools.any?
+      add_error("mise reported success but tools are still missing; check `mise config ls --json` and MISE_* env vars for the global config path")
+    end
     missing_tools.each { |spec| add_error("mise tool not installed: #{spec}") }
     @errors.empty?
   end
@@ -93,7 +99,29 @@ class Dotfiles::Step::InstallMiseToolsStep < Dotfiles::Step
   end
 
   def install_tool(spec)
-    execute("#{mise_command} use -g #{spec}")
+    output, status = execute("#{mise_command} install --yes #{spec}")
+    store_install_output(spec, output)
+    return if status == 0
+
+    install_errors[spec] = format_install_error(spec, status, output)
+  end
+
+  def install_errors
+    @install_errors ||= {}
+  end
+
+  def store_install_output(spec, output)
+    cleaned = output.to_s.strip.gsub(/\s+/, " ")
+    return if cleaned.empty?
+
+    @install_outputs[spec] = cleaned
+    debug "mise output (#{spec}): #{cleaned}"
+  end
+
+  def format_install_error(spec, status, output)
+    cleaned = output.to_s.strip.gsub(/\s+/, " ")
+    return "mise install --yes #{spec} failed (status #{status})" if cleaned.empty?
+    "mise install --yes #{spec} failed (status #{status}): #{cleaned}"
   end
 
   def mise_available?
@@ -111,9 +139,9 @@ class Dotfiles::Step::InstallMiseToolsStep < Dotfiles::Step
   def installed_tools
     return @installed_tools if instance_variable_defined?(:@installed_tools) && !@installed_tools.nil?
 
-    output, status = execute("#{mise_command} ls --global --json")
+    output, status = execute("#{mise_command} ls --installed --json")
     if status != 0
-      @installed_tools_error = "mise ls --global --json failed (status #{status})"
+      @installed_tools_error = "mise ls --installed --json failed (status #{status})"
       @installed_tools = {}
       return @installed_tools
     end
@@ -135,11 +163,11 @@ class Dotfiles::Step::InstallMiseToolsStep < Dotfiles::Step
         end
       end
     else
-      @installed_tools_error = "mise ls --global --json returned unsupported JSON: #{parsed.class}"
+      @installed_tools_error = "mise ls --installed --json returned unsupported JSON: #{parsed.class}"
       {}
     end
   rescue JSON::ParserError => e
-    @installed_tools_error = "mise ls --global --json parse failed: #{e.message}"
+    @installed_tools_error = "mise ls --installed --json parse failed: #{e.message}"
     @installed_tools = {}
   end
 
