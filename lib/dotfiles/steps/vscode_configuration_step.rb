@@ -43,7 +43,8 @@ class Dotfiles::Step::VSCodeConfigurationStep < Dotfiles::Step
 
   def extensions_installed?
     return true unless @system.file_exist?(extensions_file) && command_exists?("code")
-    expected_extensions.all? { |ext| installed_extensions.include?(ext) }
+    installed = installed_extensions
+    expected_extensions.all? { |ext| installed.include?(ext) }
   end
 
   def installed_extensions
