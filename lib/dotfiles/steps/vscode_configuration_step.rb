@@ -1,14 +1,12 @@
 class Dotfiles::Step::VSCodeConfigurationStep < Dotfiles::Step
   prepend Dotfiles::Step::Sudoable
 
-  macos_only
-
   def self.display_name
     "VS Code Configuration"
   end
 
   def self.depends_on
-    [Dotfiles::Step::InstallApplicationsStep]
+    Dotfiles::Step.system_packages_steps
   end
 
   def run
@@ -26,7 +24,6 @@ class Dotfiles::Step::VSCodeConfigurationStep < Dotfiles::Step
   end
 
   def update
-    extensions_file = File.join(@home, "Library", "Application Support", "Code", "User", "extensions.txt")
     if command_exists?("code")
       stdout, = execute("code --list-extensions")
       @system.mkdir_p(File.dirname(extensions_file))
@@ -37,7 +34,11 @@ class Dotfiles::Step::VSCodeConfigurationStep < Dotfiles::Step
   private
 
   def extensions_file
-    File.join(@home, "Library", "Application Support", "Code", "User", "extensions.txt")
+    if @system.macos?
+      File.join(@home, "Library", "Application Support", "Code", "User", "extensions.txt")
+    else
+      File.join(config_home, "Code", "User", "extensions.txt")
+    end
   end
 
   def extensions_installed?
@@ -67,5 +68,9 @@ class Dotfiles::Step::VSCodeConfigurationStep < Dotfiles::Step
       debug "Installing VSCode extension: #{extension}"
       execute("code --install-extension #{extension}")
     end
+  end
+
+  def config_home
+    ENV.fetch("XDG_CONFIG_HOME", File.join(@home, ".config"))
   end
 end

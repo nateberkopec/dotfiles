@@ -160,6 +160,8 @@ Steps are automatically registered when they inherit from `Dotfiles::Step`. The 
 
 No manual registration required - just create the class and it's available.
 
+Steps can live in `lib/dotfiles/steps/`, `lib/dotfiles/steps/mac/`, or `lib/dotfiles/steps/debian/`. Use `macos_only` or `debian_only` on a step class to limit it to that platform.
+
 ## Testing Steps
 
 Steps should be tested with both unit tests and integration tests. Mock the `SystemAdapter` to avoid file system side effects.

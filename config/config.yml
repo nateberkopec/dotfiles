@@ -7,35 +7,87 @@ standard_folders:
 - Documents/Code.nosync/business
 - Documents/Code.nosync/personal
 - Documents/Code.nosync/upstream
-brew:
-  packages:
-  - bat
+packages:
+  1password: { brew: null, debian: 1password }
+  bat: { brew: bat, debian: bat }
+  broot: { brew: broot, debian: broot }
+  claude-code: { brew: null, debian: claude-code }
+  coreutils: { brew: coreutils, debian: coreutils }
+  difftastic: { brew: difftastic, debian: difftastic }
+  docker: { brew: null, debian: docker.io }
+  duti: { brew: duti, debian: null }
+  eza: { brew: eza, debian: eza }
+  fd: { brew: fd, debian: fd-find }
+  fish: { brew: fish, debian: fish }
+  fontconfig: { brew: fontconfig, debian: fontconfig }
+  fzf: { brew: fzf, debian: fzf }
+  gemini-cli: { brew: gemini-cli, debian: null }
+  gh: { brew: gh, debian: gh }
+  ghostty: { brew: null, debian: ghostty }
+  gnupg: { brew: gnupg, debian: gnupg }
+  google-chrome: { brew: null, debian: google-chrome-stable }
+  gum: { brew: gum, debian: gum }
+  jq: { brew: jq, debian: jq }
+  libyaml: { brew: libyaml, debian: libyaml-dev }
+  llm: { brew: llm, debian: null }
+  mise: { brew: mise, debian: null }
+  pinentry-mac: { brew: pinentry-mac, debian: pinentry-tty }
+  ripgrep: { brew: ripgrep, debian: ripgrep }
+  rust:
+    brew: rust
+    debian:
+      - rustc
+      - cargo
+  starship: { brew: starship, debian: starship }
+  thefuck: { brew: thefuck, debian: thefuck }
+  terminal-notifier: { brew: terminal-notifier, debian: null }
+  trash: { brew: trash, debian: trash-cli }
+  ykman: { brew: ykman, debian: yubikey-manager }
+  yq: { brew: yq, debian: yq }
+  zoxide: { brew: zoxide, debian: zoxide }
+debian_sources:
+  - name: gierens
+    repo: http://deb.gierens.de
+    suite: stable
+    components:
+      - main
+    key_url: https://raw.githubusercontent.com/eza-community/eza/main/deb.asc
+  - name: azlux
+    repo: http://packages.azlux.fr/debian/
+    suite: stable
+    components:
+      - main
+    key_url: https://azlux.fr/repo.gpg
+  - name: charm
+    repo: https://repo.charm.sh/apt/
+    suite: "*"
+    components:
+      - "*"
+    key_url: https://repo.charm.sh/apt/gpg.key
+  - name: 1password
+    line: "deb [arch=amd64 signed-by=/usr/share/keyrings/1password-archive-keyring.gpg] https://downloads.1password.com/linux/debian/amd64 stable main"
+    key_url: https://downloads.1password.com/linux/keys/1password.asc
+  - name: google-chrome
+    line: "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome-archive-keyring.gpg] http://dl.google.com/linux/chrome/deb/ stable main"
+    key_url: https://dl.google.com/linux/linux_signing_key.pub
+debian_non_apt_packages:
   - broot
-  - coreutils
+  - claude-code
   - difftastic
-  - duti
-  - eza
-  - fd
-  - fish
-  - fontconfig
-  - fzf
-  - gemini-cli
-  - gh
-  - gnupg
-  - jq
-  - libyaml
-  - llm
-  - mise
-  - pinentry-mac
-  - ripgrep
-  - rust
+  - ghostty
   - starship
-  - thefuck
-  - terminal-notifier
-  - trash
-  - ykman
   - yq
-  - zoxide
+debian_non_apt_cargo_packages:
+  - broot
+  - difftastic
+  - starship
+debian_non_apt_yq:
+  url: https://github.com/mikefarah/yq/releases/latest/download
+  assets:
+    x86_64: yq_linux_amd64
+    aarch64: yq_linux_arm64
+    arm64: yq_linux_arm64
+brew:
   casks:
   - nikitabobko/tap/aerospace
   - claude-code

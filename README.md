@@ -34,6 +34,16 @@ For verbose output:
 DEBUG=true ./bin/dotf run
 ```
 
+## Linux (Debian/Ubuntu)
+
+Linux support is in progress and targets Debian-compatible systems (Ubuntu 22.04+).
+
+```bash
+./bin/dotf run
+```
+
+Packages are defined in `config/config.yml` as a map of package name to `{brew, debian}` entries, with optional `debian_sources` for extra APT repos and `debian_non_apt_packages` for cargo/binary installs.
+
 ## Commands
 
 | Command | What it does |

@@ -57,6 +57,11 @@ class Dotfiles
     end
 
     def check_single_step_should_run(step, index, mutex, steps_to_run)
+      unless step.allowed_on_platform?
+        mutex.synchronize { printf "." }
+        return
+      end
+
       should_run = Dotfiles.debug_benchmark("Should run step: #{@step_classes[index].display_name}") { step.should_run? }
       mutex.synchronize do
         printf "."
@@ -135,7 +140,11 @@ class Dotfiles
     def build_step_data(step_class, index)
       step = @step_instances[index]
       step_name = step_class.display_name
-      complete = Dotfiles.debug_benchmark("Complete check: #{step_name}") { !!step.complete? }
+      complete = if step.allowed_on_platform?
+        Dotfiles.debug_benchmark("Complete check: #{step_name}") { !!step.complete? }
+      else
+        true
+      end
       {index: index, name: step_name, complete: complete, step: step}
     end
 
@@ -149,9 +158,7 @@ class Dotfiles
 
     def display_results_table(table_data)
       csv_data = "Step,Status,Ran?\n" + table_data.join("\n")
-      IO.popen(["gum", "table", "--border", "rounded", "--widths", "25,8,8", "--print"], "w") do |io|
-        io.write(csv_data)
-      end
+      IO.popen(["gum", "table", "--border", "rounded", "--widths", "25,8,8", "--print"], "w") { |io| io.write(csv_data) }
     end
 
     def display_errors(errors)

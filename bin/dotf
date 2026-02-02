@@ -47,6 +47,16 @@ ensure_homebrew_env() {
     fi
 }
 
+ensure_mise_env() {
+    if [ -d "$HOME/.local/bin" ]; then
+        export PATH="$HOME/.local/bin:$PATH"
+    fi
+
+    if command -v mise &> /dev/null; then
+        eval "$(mise activate bash)"
+    fi
+}
+
 update_dotfiles_repo() {
     debug "Updating dotfiles repository..."
     cd "$DOTFILES_DIR"
@@ -140,6 +150,7 @@ cmd_run() {
     start_background_fetch
     "$SCRIPT_DIR/bootstrap"
     ensure_homebrew_env
+    ensure_mise_env
 
     cd "$DOTFILES_DIR"
     ruby -r ./lib/dotfiles.rb -e "Dotfiles::Runner.new('$LOG_FILE').run"
