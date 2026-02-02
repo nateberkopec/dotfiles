@@ -20,7 +20,7 @@ class Dotfiles::Step::InstallDebianPackagesStep < Dotfiles::Step
 
   def complete?
     super
-    if ci_or_noninteractive?
+    if ENV["CI"] || ENV["NONINTERACTIVE"]
       report_unavailable_packages
       if missing_installable.any?
         add_warning(
@@ -220,9 +220,5 @@ class Dotfiles::Step::InstallDebianPackagesStep < Dotfiles::Step
     @missing_packages = nil
     @available_packages = nil
     @unavailable_packages = nil
-  end
-
-  def ci_or_noninteractive?
-    ENV["CI"] || ENV["NONINTERACTIVE"]
   end
 end
