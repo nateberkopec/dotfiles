@@ -158,8 +158,6 @@ class Dotfiles
 
     def display_results_table(table_data)
       csv_data = "Step,Status,Ran?\n" + table_data.join("\n")
-      return display_results_table_plain(csv_data) unless gum_available?
-
       IO.popen(["gum", "table", "--border", "rounded", "--widths", "25,8,8", "--print"], "w") { |io| io.write(csv_data) }
     end
 
@@ -199,21 +197,7 @@ class Dotfiles
     end
 
     def gum_style(color, lines, border: "rounded", width: 60)
-      if gum_available?
-        system("gum", "style", "--foreground", color, "--border", border, "--align", "left", "--width", width.to_s, "--margin", "1 0", "--padding", "1 2", *lines)
-      else
-        puts lines.join("\n")
-        puts ""
-      end
-    end
-
-    def gum_available?
-      @gum_available ||= Dotfiles.command_exists?("gum")
-    end
-
-    def display_results_table_plain(csv_data)
-      puts ""
-      puts csv_data
+      system("gum", "style", "--foreground", color, "--border", border, "--align", "left", "--width", width.to_s, "--margin", "1 0", "--padding", "1 2", *lines)
     end
   end
 end

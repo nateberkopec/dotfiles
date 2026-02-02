@@ -4,16 +4,6 @@ require "securerandom"
 class Dotfiles::Step::InstallDebianNonAptPackagesStep < Dotfiles::Step
   debian_only
 
-  CARGO_PACKAGES = {
-    "broot" => "broot",
-    "difftastic" => "difftastic",
-    "starship" => "starship"
-  }.freeze
-  YQ_ASSETS = {
-    "x86_64" => "yq_linux_amd64",
-    "aarch64" => "yq_linux_arm64",
-    "arm64" => "yq_linux_arm64"
-  }.freeze
   GHOSTTY_APPIMAGE_REPO = "pkgforge-dev/ghostty-appimage".freeze
   GHOSTTY_APPIMAGE_ARCH = {
     "x86_64" => "x86_64",
@@ -68,7 +58,7 @@ class Dotfiles::Step::InstallDebianNonAptPackagesStep < Dotfiles::Step
   end
 
   def install_cargo_packages
-    packages = configured_packages.select { |pkg| CARGO_PACKAGES.key?(pkg) && !package_installed?(pkg) }
+    packages = configured_packages.select { |pkg| cargo_packages.key?(pkg) && !package_installed?(pkg) }
     return if packages.empty?
     cargo = cargo_command
     unless cargo
@@ -79,7 +69,7 @@ class Dotfiles::Step::InstallDebianNonAptPackagesStep < Dotfiles::Step
   end
 
   def install_cargo_package(cargo, pkg)
-    crate = CARGO_PACKAGES.fetch(pkg)
+    crate = cargo_packages.fetch(pkg)
     output, status = execute("#{cargo} install --locked --root #{File.join(@home, ".local")} #{crate}")
     add_error("cargo install #{crate} failed (status #{status}): #{output}") unless status == 0
   end
@@ -107,15 +97,12 @@ class Dotfiles::Step::InstallDebianNonAptPackagesStep < Dotfiles::Step
   end
 
   def install_yq
-    return if package_installed?("yq")
-    asset = YQ_ASSETS[system_arch]
-    unless asset
-      add_error("Unsupported architecture for yq: #{system_arch}")
-      return
-    end
-    dest = File.join(@home, ".local", "bin", "yq")
-    url = "https://github.com/mikefarah/yq/releases/latest/download/#{asset}"
-    download_and_install(url, dest, label: "yq", error_prefix: "yq")
+    install_direct_download(
+      name: "yq",
+      url: yq_download_url,
+      error_prefix: "yq",
+      error_message: "yq download not configured for architecture: #{system_arch}"
+    )
   end
 
   def install_claude_code
@@ -125,14 +112,12 @@ class Dotfiles::Step::InstallDebianNonAptPackagesStep < Dotfiles::Step
   end
 
   def install_ghostty
-    return if package_installed?("ghostty")
-    asset_url = ghostty_appimage_url
-    unless asset_url
-      add_error("Ghostty AppImage not available for architecture: #{system_arch}")
-      return
-    end
-    dest = File.join(@home, ".local", "bin", "ghostty")
-    download_and_install(asset_url, dest, label: "ghostty", error_prefix: "Ghostty")
+    install_direct_download(
+      name: "ghostty",
+      url: ghostty_appimage_url,
+      error_prefix: "Ghostty",
+      error_message: "Ghostty AppImage not available for architecture: #{system_arch}"
+    )
   end
 
   def ghostty_appimage_url
@@ -168,6 +153,40 @@ class Dotfiles::Step::InstallDebianNonAptPackagesStep < Dotfiles::Step
 
   def temp_path(label)
     File.join("/tmp", "dotfiles-#{label}-#{SecureRandom.hex(6)}")
+  end
+
+  def install_direct_download(name:, url:, error_prefix:, error_message:)
+    return if package_installed?(name)
+    unless url
+      add_error(error_message)
+      return
+    end
+    dest = File.join(@home, ".local", "bin", name)
+    download_and_install(url, dest, label: name, error_prefix: error_prefix)
+  end
+
+  def cargo_packages
+    @cargo_packages ||= begin
+      raw = @config.fetch("debian_non_apt_cargo_packages", [])
+      case raw
+      when Hash
+        raw.transform_keys(&:to_s)
+      when Array
+        raw.map(&:to_s).index_with(&:to_s)
+      else
+        {}
+      end
+    end
+  end
+
+  def yq_download_url
+    config = @config.fetch("debian_non_apt_yq", {})
+    base = config.fetch("url", nil)
+    return nil unless base
+    assets = config.fetch("assets", {}).transform_keys(&:to_s)
+    asset = assets[system_arch]
+    return nil unless asset
+    "#{base}/#{asset}"
   end
 
   def download_and_install(url, dest, label:, error_prefix:)

@@ -77,6 +77,16 @@ debian_non_apt_packages:
   - ghostty
   - starship
   - yq
+debian_non_apt_cargo_packages:
+  - broot
+  - difftastic
+  - starship
+debian_non_apt_yq:
+  url: https://github.com/mikefarah/yq/releases/latest/download
+  assets:
+    x86_64: yq_linux_amd64
+    aarch64: yq_linux_arm64
+    arm64: yq_linux_arm64
 brew:
   casks:
   - nikitabobko/tap/aerospace
