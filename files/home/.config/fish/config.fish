@@ -62,7 +62,7 @@ end
 
 # try-cli init (requires mise-installed Ruby and gem)
 if command -v try >/dev/null 2>&1
-  eval (env SHELL=(status fish-path) try init | string collect)
+eval (env SHELL=(status fish-path) command try init ~/src/tries | string collect)
 end
 
 # starship prompt
