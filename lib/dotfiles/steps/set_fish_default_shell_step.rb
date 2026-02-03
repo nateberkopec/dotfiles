@@ -38,17 +38,7 @@ class Dotfiles::Step::SetFishDefaultShellStep < Dotfiles::Step
   end
 
   def fish_path
-    return @fish_path if defined?(@fish_path)
-    output, status = @system.execute("command -v fish 2>/dev/null")
-    return @fish_path = output.strip if status == 0 && !output.strip.empty?
-
-    candidates = [
-      "/opt/homebrew/bin/fish",
-      "/usr/local/bin/fish",
-      "/usr/bin/fish",
-      "/home/linuxbrew/.linuxbrew/bin/fish"
-    ]
-    @fish_path = candidates.find { |path| @system.file_exist?(path) }.to_s
+    find_fish_path
   end
 
   def fish_in_shells?

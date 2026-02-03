@@ -183,15 +183,7 @@ class Dotfiles::Step::ConfigureSpotlightIndexingStep < Dotfiles::Step
   end
 
   def fish_path
-    @fish_path ||= begin
-      output, status = @system.execute("command -v fish 2>/dev/null")
-      path = output.strip if status == 0 && !output.strip.empty?
-      path || fallback_fish_path
-    end
-  end
-
-  def fallback_fish_path
-    ["/opt/homebrew/bin/fish", "/usr/local/bin/fish", "/usr/bin/fish"].find { |path| @system.file_exist?(path) }
+    find_fish_path
   end
 
   def script_dir
