@@ -1,8 +1,14 @@
 if status is-interactive
-  eval (/opt/homebrew/bin/brew shellenv)
+  # macOS Homebrew setup
+  if test -f /opt/homebrew/bin/brew
+    eval (/opt/homebrew/bin/brew shellenv)
+  end
 end
 fish_add_path ~/go/bin
-fish_add_path /opt/homebrew/opt/libpq/bin
+# macOS-specific libpq
+if test -d /opt/homebrew/opt/libpq/bin
+  fish_add_path /opt/homebrew/opt/libpq/bin
+end
 fish_add_path ~/bin
 fish_add_path ~/.local/bin
 
@@ -20,6 +26,12 @@ set -x EDITOR "code --wait"
 set -x FZF_DEFAULT_COMMAND "fd --type f"
 set -x AGENT_CMD "droid ."
 
+# Activate mise early so cargo/gem/npm tools are available
+if command -v mise >/dev/null 2>&1
+  mise activate fish | source
+  set -gx PATH ~/.cargo/bin $PATH
+end
+
 zoxide init fish | source
 complete -c z -f -k -a "(zoxide query -l)"
 alias cd z
@@ -31,7 +43,9 @@ alias ls eza
 alias ll "eza -la"
 alias tree "eza --tree"
 fzf --fish | source
-broot --print-shell-function fish | source
+if command -v broot >/dev/null 2>&1
+  broot --print-shell-function fish | source
+end
 
 function mosh
   command mosh --predict=experimental $argv
@@ -41,14 +55,22 @@ if test -f ~/.config/fish/private.fish
   source ~/.config/fish/private.fish
 end
 
-alias mosh-mbp "mosh --server='SHELL=/opt/homebrew/bin/fish /opt/homebrew/bin/mosh-server' nateberkopec@MBP-Server.local"
+# macOS-specific mosh alias
+if test -f /opt/homebrew/bin/mosh-server
+  alias mosh-mbp "mosh --server='SHELL=/opt/homebrew/bin/fish /opt/homebrew/bin/mosh-server' nateberkopec@MBP-Server.local"
+end
 
-eval (env SHELL=(status fish-path) try init | string collect)
+# try-cli init (requires mise-installed Ruby and gem)
+if command -v try >/dev/null 2>&1
+  eval (env SHELL=(status fish-path) try init | string collect)
+end
 
-mise activate fish | source
-set -gx PATH ~/.cargo/bin $PATH
-starship init fish | source
+# starship prompt
+if command -v starship >/dev/null 2>&1
+  starship init fish | source
+end
 
-# Added by OrbStack: command-line tools and integration
-# This won't be added again if you remove it.
-source ~/.orbstack/shell/init2.fish 2>/dev/null || :
+# OrbStack integration (macOS only)
+if test -f ~/.orbstack/shell/init2.fish
+  source ~/.orbstack/shell/init2.fish 2>/dev/null || :
+end
