@@ -2,7 +2,7 @@ class Dotfiles::Step::InstallYknotifyStep < Dotfiles::Step
   macos_only
 
   def self.depends_on
-    [Dotfiles::Step::InstallBrewPackagesStep]
+    [Dotfiles::Step::InstallMiseToolsStep, Dotfiles::Step::InstallBrewPackagesStep]
   end
 
   def should_run?
@@ -10,7 +10,6 @@ class Dotfiles::Step::InstallYknotifyStep < Dotfiles::Step
   end
 
   def run
-    install_go_package unless yknotify_installed?
     install_script unless script_installed?
     install_launchagent unless launchagent_installed?
     load_launchagent
@@ -27,24 +26,7 @@ class Dotfiles::Step::InstallYknotifyStep < Dotfiles::Step
   private
 
   def yknotify_installed?
-    command_exists?("yknotify") || mise_has_yknotify? || go_bin_has_yknotify?
-  end
-
-  def mise_has_yknotify?
-    _, status = @system.execute(mise_exec_command("which yknotify 2>/dev/null"))
-    status == 0
-  end
-
-  def go_bin_has_yknotify?
-    @system.file_exist?(go_bin_yknotify)
-  end
-
-  def go_bin_dir
-    File.join(@home, "go/bin")
-  end
-
-  def go_bin_yknotify
-    File.join(go_bin_dir, "yknotify")
+    command_exists?("yknotify")
   end
 
   def terminal_notifier_installed?
@@ -57,17 +39,6 @@ class Dotfiles::Step::InstallYknotifyStep < Dotfiles::Step
 
   def script_installed?
     @system.file_exist?(script_path)
-  end
-
-  def install_go_package
-    debug "Ensuring Go is available via mise..."
-    execute("mise use -g go@latest")
-
-    debug "Installing yknotify from upstream..."
-    execute("mkdir -p #{go_bin_dir}")
-    output, status = execute("GOBIN=#{go_bin_dir} #{mise_exec_command("go install github.com/noperator/yknotify@999f01c")}")
-    raise "go install failed (status #{status}): #{output}" unless status == 0
-    execute("mise reshim")
   end
 
   def install_script
@@ -112,32 +83,8 @@ class Dotfiles::Step::InstallYknotifyStep < Dotfiles::Step
   end
 
   def yknotify_bin_path
-    find_binary_path(mise_exec_command("which yknotify 2>/dev/null")) ||
-      find_binary_path("which yknotify") ||
-      go_bin_yknotify_path
-  end
-
-  def go_bin_yknotify_path
-    go_bin_yknotify if @system.file_exist?(go_bin_yknotify)
-  end
-
-  def find_binary_path(command)
-    output, status = @system.execute(command)
+    output, status = @system.execute("which yknotify 2>/dev/null")
     output.strip if status == 0 && !output.strip.empty?
-  end
-
-  def mise_exec_command(command)
-    parts = ["mise", "exec"]
-    parts << "--no-prepare" if mise_exec_supports_no_prepare?
-    parts << "go@latest"
-    parts << "--"
-    "#{parts.join(" ")} #{command}"
-  end
-
-  def mise_exec_supports_no_prepare?
-    return @mise_exec_supports_no_prepare if instance_variable_defined?(:@mise_exec_supports_no_prepare)
-    output, status = @system.execute("mise exec --help")
-    @mise_exec_supports_no_prepare = status == 0 && output.include?("--no-prepare")
   end
 
   def terminal_notifier_path

@@ -1,4 +1,3 @@
-require "json"
 require "shellwords"
 
 class Dotfiles::Step::InstallMiseToolsStep < Dotfiles::Step
@@ -7,9 +6,7 @@ class Dotfiles::Step::InstallMiseToolsStep < Dotfiles::Step
   end
 
   def should_run?
-    return false unless configured_tools?
-    return true unless mise_available?
-    !missing_tools.empty?
+    install_needed?
   end
 
   def run
@@ -18,7 +15,7 @@ class Dotfiles::Step::InstallMiseToolsStep < Dotfiles::Step
 
     @install_errors = {}
     @install_outputs = {}
-    ordered_tools(missing_tools).each { |spec| install_tool(spec) }
+    install_tools
     reset_cache
   end
 
@@ -31,12 +28,10 @@ class Dotfiles::Step::InstallMiseToolsStep < Dotfiles::Step
       return false
     end
 
-    add_error(@installed_tools_error) if @installed_tools_error
     install_errors.values.each { |message| add_error(message) }
-    if ran? && install_errors.empty? && missing_tools.any?
-      add_error("mise reported success but tools are still missing; check `mise config ls --json` and MISE_* env vars for the global config path")
+    if ran? && install_errors.empty? && install_needed?
+      add_error("mise reported success but tools are still missing; check `mise install --dry-run` and MISE_* env vars for the global config path")
     end
-    missing_tools.each { |spec| add_error("mise tool not installed: #{spec}") }
     @errors.empty?
   end
 
@@ -98,12 +93,12 @@ class Dotfiles::Step::InstallMiseToolsStep < Dotfiles::Step
     end
   end
 
-  def install_tool(spec)
-    output, status = execute("#{mise_command} install --yes #{spec}")
-    store_install_output(spec, output)
+  def install_tools
+    output, status = execute(install_command)
+    store_install_output("install", output)
     return if status == 0
 
-    install_errors[spec] = format_install_error(spec, status, output)
+    install_errors["install"] = format_install_error(install_command, status, output)
   end
 
   def install_errors
@@ -118,108 +113,41 @@ class Dotfiles::Step::InstallMiseToolsStep < Dotfiles::Step
     debug "mise output (#{spec}): #{cleaned}"
   end
 
-  def format_install_error(spec, status, output)
+  def format_install_error(command, status, output)
     cleaned = output.to_s.strip.gsub(/\s+/, " ")
-    return "mise install --yes #{spec} failed (status #{status})" if cleaned.empty?
-    "mise install --yes #{spec} failed (status #{status}): #{cleaned}"
+    return "#{command} failed (status #{status})" if cleaned.empty?
+    "#{command} failed (status #{status}): #{cleaned}"
   end
 
   def mise_available?
     command_exists?("mise")
   end
 
-  def missing_tools
-    @missing_tools ||= begin
-      return configured_tools unless mise_available?
-      installed = installed_tools
-      configured_tools.reject { |spec| tool_configured?(installed, spec) }
-    end
-  end
+  def install_needed?
+    return false unless configured_tools?
+    return true unless mise_available?
 
-  def installed_tools
-    return @installed_tools if installed_tools_cached?
+    output, status = execute(install_command(dry_run: true))
+    return true unless status == 0
 
-    output, status = execute("#{mise_command} ls --installed --json")
-    return record_installed_tools_error("mise ls --installed --json failed (status #{status})") unless status == 0
-
-    parse_installed_tools(output)
-  end
-
-  def installed_tools_cached?
-    instance_variable_defined?(:@installed_tools) && !@installed_tools.nil?
-  end
-
-  def parse_installed_tools(output)
-    parsed = JSON.parse(output)
-    @installed_tools = normalize_installed_tools(parsed)
-  rescue JSON::ParserError => e
-    record_installed_tools_error("mise ls --installed --json parse failed: #{e.message}")
-  end
-
-  def normalize_installed_tools(parsed)
-    return {} if parsed.nil?
-    return parsed if parsed.is_a?(Hash)
-    return normalize_installed_tool_entries(parsed) if parsed.is_a?(Array)
-
-    record_installed_tools_error("mise ls --installed --json returned unsupported JSON: #{parsed.class}")
-    {}
-  end
-
-  def normalize_installed_tool_entries(entries)
-    entries.each_with_object({}) do |entry, acc|
-      key, value = normalize_installed_tool_entry(entry)
-      acc[key] = value if key
-    end
-  end
-
-  def normalize_installed_tool_entry(entry)
-    case entry
-    when String
-      [entry, true]
-    when Hash
-      key = installed_tool_key(entry)
-      [key, entry] if key
-    end
-  end
-
-  def installed_tool_key(entry)
-    entry["tool"] || entry[:tool] || entry["spec"] || entry[:spec] || entry["name"] || entry[:name]
-  end
-
-  def record_installed_tools_error(message)
-    @installed_tools_error = message
-    @installed_tools = {}
-  end
-
-  def tool_configured?(installed, spec)
-    installed.key?(tool_key(spec))
-  end
-
-  def tool_key(spec)
-    base = spec.split("[", 2).first
-    return base if base.nil?
-
-    if base.start_with?("npm:")
-      return base if base.count("@") == 1
-      return strip_version(base)
-    end
-
-    return strip_version(base) if base.include?("@")
-    base
-  end
-
-  def strip_version(base)
-    head, sep, = base.rpartition("@")
-    sep.empty? ? base : head
+    output.to_s.lines.any? { |line| line.include?("would install") }
   end
 
   def reset_cache
-    @installed_tools = nil
-    @missing_tools = nil
-    @installed_tools_error = nil
+    @install_errors = nil
+    @install_outputs = nil
   end
 
   def mise_command
     "mise --cd #{Shellwords.shellescape(@home)}"
+  end
+
+  def install_command(dry_run: false)
+    specs = ordered_tools(configured_tools)
+    command = "#{mise_command} install --yes"
+    command = "#{command} --dry-run" if dry_run
+    return command if specs.empty?
+
+    "#{command} #{specs.join(" ")}"
   end
 end

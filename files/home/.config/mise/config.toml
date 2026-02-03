@@ -10,6 +10,7 @@ rust = "latest"
 "npm:@openai/codex" = "latest"
 "npm:@anthropic-ai/claude-code" = "latest"
 "go:github.com/mikefarah/yq/v4" = "latest"
+"go:github.com/noperator/yknotify" = "latest"
 watchexec = "latest"
 fnox = "latest"
 

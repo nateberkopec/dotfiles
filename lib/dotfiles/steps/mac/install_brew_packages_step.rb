@@ -23,6 +23,23 @@ class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
     log_installation_results(output, exit_status)
   end
 
+  def complete?
+    super
+    return true if ran?
+    unless @system.file_exist?(@brewfile_path)
+      add_error("Brewfile does not exist at #{@brewfile_path}")
+      return false
+    end
+    raise "packages_already_installed? must be called before complete?" if @packages_installed_status.nil?
+    add_error("Some Homebrew packages are not installed") unless @packages_installed_status
+    @packages_installed_status
+  end
+
+  def update
+  end
+
+  private
+
   def packages_already_installed?
     return @packages_installed_status unless @packages_installed_status.nil?
 
@@ -70,23 +87,6 @@ class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
     debug "brew bundle install exited with status #{exit_status}"
     debug "Output:\n#{output}" if @debug
   end
-
-  def complete?
-    super
-    return true if ran?
-    unless @system.file_exist?(@brewfile_path)
-      add_error("Brewfile does not exist at #{@brewfile_path}")
-      return false
-    end
-    raise "packages_already_installed? must be called before complete?" if @packages_installed_status.nil?
-    add_error("Some Homebrew packages are not installed") unless @packages_installed_status
-    @packages_installed_status
-  end
-
-  def update
-  end
-
-  private
 
   def generate_brewfile
     brew_config = @config.packages&.dig("brew") || {}
