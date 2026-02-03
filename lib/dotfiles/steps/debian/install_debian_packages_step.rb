@@ -1,5 +1,3 @@
-require "securerandom"
-
 class Dotfiles::Step::InstallDebianPackagesStep < Dotfiles::Step
   include Dotfiles::Step::DebianPackages
 
@@ -210,10 +208,6 @@ class Dotfiles::Step::InstallDebianPackagesStep < Dotfiles::Step
       message: unavailable_packages.map { |pkg| "• #{pkg}" }.join("\n")
     )
     @reported_unavailable = true
-  end
-
-  def temp_path(label)
-    File.join("/tmp", "dotfiles-#{label}-#{SecureRandom.hex(6)}")
   end
 
   def reset_cache

@@ -238,5 +238,10 @@ class Dotfiles
       ]
       @fish_path = candidates.find { |path| @system.file_exist?(path) }.to_s
     end
+
+    def temp_path(label)
+      require "securerandom"
+      File.join("/tmp", "dotfiles-#{label}-#{SecureRandom.hex(6)}")
+    end
   end
 end

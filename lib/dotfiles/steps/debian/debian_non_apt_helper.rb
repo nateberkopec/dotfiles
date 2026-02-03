@@ -1,5 +1,3 @@
-require "securerandom"
-
 class Dotfiles
   class Step
     module DebianNonAptHelper
@@ -19,10 +17,6 @@ class Dotfiles
           return "" unless status == 0
           output.strip
         end
-      end
-
-      def temp_path(label)
-        File.join("/tmp", "dotfiles-#{label}-#{SecureRandom.hex(6)}")
       end
 
       def install_direct_download(name:, url:, error_prefix:, error_message:)
