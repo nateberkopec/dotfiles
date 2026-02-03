@@ -217,6 +217,18 @@ class Dotfiles::Step::InstallDebianPackagesStep < Dotfiles::Step
     @reported_unavailable = true
   end
 
+  def package_installed?(pkg)
+    return docker_installed? if pkg == "docker.io"
+    super
+  end
+
+  def docker_installed?
+    return true if command_exists?("docker")
+    %w[docker-ce docker-ce-cli containerd.io].any? do |name|
+      command_succeeds?("dpkg -s #{name} >/dev/null 2>&1")
+    end
+  end
+
   def record_update_failure(output, status)
     @update_failed_status = status
     @update_failed_output = output

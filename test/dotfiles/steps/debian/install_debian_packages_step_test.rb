@@ -57,6 +57,18 @@ class InstallDebianPackagesStepTest < StepTestCase
     assert_includes step.errors, "apt-get install failed (status 100): E: Unable to locate package ripgrep"
   end
 
+  def test_docker_io_skipped_when_docker_available
+    @fake_system.stub_command("command -v docker >/dev/null 2>&1", "", exit_status: 0)
+    write_config(
+      "config",
+      "packages" => {
+        "docker" => {"debian" => "docker.io"}
+      }
+    )
+
+    refute_should_run
+  end
+
   private
 
   def stub_package_missing(name)
