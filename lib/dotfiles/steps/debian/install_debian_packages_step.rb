@@ -36,8 +36,13 @@ class Dotfiles::Step::InstallDebianPackagesStep < Dotfiles::Step
   def noninteractive_complete?
     return false unless noninteractive_mode?
 
-    report_missing_install_warnings
-    true
+    if ENV["CI"] == "true"
+      report_missing_install_errors
+      missing_installable.empty? && missing_sources.empty?
+    else
+      report_missing_install_warnings
+      true
+    end
   end
 
   def noninteractive_mode?

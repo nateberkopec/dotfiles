@@ -37,6 +37,7 @@ class Dotfiles
       when Hash
         brew = entry["brew"] || entry[:brew]
         debian = entry["debian"] || entry[:debian]
+        raise ArgumentError, "Package entry must set brew or debian" if brew.nil? && debian.nil?
         [brew, debian]
       when Array
         entry

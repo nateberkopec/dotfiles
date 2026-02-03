@@ -48,7 +48,7 @@ class InstallMiseToolsStepTest < StepTestCase
     write_config(
       "config",
       "mise_tools" => [
-        {"tool" => "github:pkgforge-dev/ghostty-appimage[bin=ghostty]", "platforms" => ["linux"]}
+        {"tool" => "github:example/example[bin=example]", "platforms" => ["linux"]}
       ]
     )
 
@@ -60,7 +60,7 @@ class InstallMiseToolsStepTest < StepTestCase
     write_config(
       "config",
       "mise_tools" => [
-        {"tool" => "github:pkgforge-dev/ghostty-appimage[bin=ghostty]", "platforms" => ["linux"]}
+        {"tool" => "github:example/example[bin=example]", "platforms" => ["linux"]}
       ]
     )
 

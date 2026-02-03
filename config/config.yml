@@ -10,9 +10,7 @@ standard_folders:
 packages:
   1password: { brew: null, debian: 1password }
   bat: { brew: bat, debian: bat }
-  broot: { brew: null, debian: null }
   coreutils: { brew: coreutils, debian: coreutils }
-  difftastic: { brew: null, debian: null }
   docker: { brew: null, debian: docker.io }
   droid: { brew: null, debian: droid }
   duti: { brew: duti, debian: null }
@@ -20,10 +18,8 @@ packages:
   fd: { brew: fd, debian: fd-find }
   fish: { brew: fish, debian: fish }
   fontconfig: { brew: fontconfig, debian: fontconfig }
-  fzf: { brew: fzf, debian: fzf }
   gemini-cli: { brew: gemini-cli, debian: null }
-  gh: { brew: gh, debian: gh }
-  ghostty: { brew: null, debian: null }
+  gh: { brew: gh, debian: null }
   gnupg: { brew: gnupg, debian: gnupg }
   google-chrome: { brew: null, debian: google-chrome-stable }
   gum: { brew: gum, debian: gum }
@@ -33,13 +29,11 @@ packages:
   mise: { brew: mise, debian: mise }
   pinentry-mac: { brew: pinentry-mac, debian: pinentry-tty }
   ripgrep: { brew: ripgrep, debian: ripgrep }
-  starship: { brew: null, debian: null }
+  snapd: { brew: null, debian: snapd }
   thefuck: { brew: thefuck, debian: thefuck }
   terminal-notifier: { brew: terminal-notifier, debian: null }
   trash: { brew: trash, debian: trash-cli }
   ykman: { brew: ykman, debian: yubikey-manager }
-  yq: { brew: null, debian: null }
-  zoxide: { brew: zoxide, debian: zoxide }
 debian_sources:
   - name: gierens
     repo: http://deb.gierens.de
@@ -70,9 +64,15 @@ debian_sources:
     key_url: https://mise.jdx.dev/gpg-key.pub
 debian_non_apt_packages:
   - droid
+debian_snap_packages:
+  - name: ghostty
+    classic: true
 mise_tools:
   - go@latest
   - rust@latest
+  - fzf@latest
+  - gh@latest
+  - zoxide@latest
   - cargo:broot
   - cargo:difftastic
   - cargo:starship
@@ -81,9 +81,6 @@ mise_tools:
   - npm:@openai/codex
   - npm:@anthropic-ai/claude-code
   - go:github.com/mikefarah/yq/v4@latest
-  - tool: github:pkgforge-dev/ghostty-appimage[bin=ghostty]
-    platforms:
-      - linux
 brew:
   casks:
   - nikitabobko/tap/aerospace

@@ -32,6 +32,16 @@ class PackageMatrixTest < Minitest::Test
     assert_equal [["fish", "fish"], ["ripgrep", ["ripgrep", "rg"]]], matrix.matrix
   end
 
+  def test_matrix_raises_when_entry_missing_values
+    matrix = Dotfiles::PackageMatrix.new(
+      "packages" => {
+        "empty" => {"brew" => nil, "debian" => nil}
+      }
+    )
+
+    assert_raises(ArgumentError) { matrix.matrix }
+  end
+
   def test_matrix_reads_legacy_brew_packages
     matrix = Dotfiles::PackageMatrix.new(
       "brew" => {"packages" => ["jq", "rg"]}

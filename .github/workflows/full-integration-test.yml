@@ -41,8 +41,13 @@ jobs:
         ./bin/dotf run 2>&1 | tee output.log
 
     - name: Start fish shell and check for errors
+      if: steps.run.outcome == 'success'
       run: |
         set -o pipefail
+        if grep -q -e "Debian packages not installed" -e "Debian Packages Not Found" output.log; then
+          echo "Skipping fish check due to missing Debian packages."
+          exit 0
+        fi
         echo "Starting fish shell to check for initialization errors..."
         if [ "${{ runner.os }}" = "macOS" ]; then
           fish_bin="/opt/homebrew/bin/fish"
