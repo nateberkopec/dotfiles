@@ -42,11 +42,16 @@ jobs:
 
     - name: Start fish shell and check for errors
       run: |
+        set -o pipefail
         echo "Starting fish shell to check for initialization errors..."
         if [ "${{ runner.os }}" = "macOS" ]; then
           fish_bin="/opt/homebrew/bin/fish"
         else
           fish_bin="fish"
+        fi
+        if ! command -v "${fish_bin}" >/dev/null 2>&1; then
+          echo "❌ Fish shell not found at ${fish_bin}"
+          exit 1
         fi
         "${fish_bin}" -c 'echo "Fish shell initialized successfully"' 2>&1 | tee fish-init.log
         if [ $? -ne 0 ]; then
