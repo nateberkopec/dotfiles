@@ -22,13 +22,7 @@ class Dotfiles::Step::ConfigureScreenshotsStep < Dotfiles::Step
 
   private
 
-  def screenshot_settings
-    @config.fetch("screenshot_settings", {})
-  end
-
-  def setting_entries
-    screenshot_settings.flat_map do |domain, settings|
-      settings.map { |key, value| [domain, key, value] }
-    end
+  def config_key
+    "screenshot_settings"
   end
 end

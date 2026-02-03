@@ -19,13 +19,7 @@ class Dotfiles::Step::DisableAnimationsStep < Dotfiles::Step
 
   private
 
-  def animation_settings
-    @config.fetch("animation_settings", {})
-  end
-
-  def setting_entries
-    animation_settings.flat_map do |domain, settings|
-      settings.map { |key, value| [domain, key, value] }
-    end
+  def config_key
+    "animation_settings"
   end
 end

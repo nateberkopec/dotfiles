@@ -17,13 +17,7 @@ class Dotfiles::Step::ConfigureTrackpadStep < Dotfiles::Step
 
   private
 
-  def trackpad_settings
-    @config.fetch("trackpad_settings", {})
-  end
-
-  def setting_entries
-    trackpad_settings.flat_map do |domain, settings|
-      settings.map { |key, value| [domain, key, value] }
-    end
+  def config_key
+    "trackpad_settings"
   end
 end

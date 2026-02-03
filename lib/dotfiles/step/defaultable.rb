@@ -72,6 +72,16 @@ class Dotfiles
         return str.to_f if str.match?(/^-?\d+\.\d+$/)
         str
       end
+
+      # Default implementation for setting_entries
+      # Steps can override config_key to use different config keys
+      def setting_entries
+        return [] unless respond_to?(:config_key, true)
+        settings = @config.fetch(config_key, {})
+        settings.flat_map do |domain, domain_settings|
+          domain_settings.map { |key, value| [domain, key, value] }
+        end
+      end
     end
   end
 end
