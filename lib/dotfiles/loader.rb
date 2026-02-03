@@ -18,6 +18,7 @@ class Dotfiles
       require "step/defaultable"
       require "step/sudoable"
       require "step/protectable"
+      require "step/launchctl"
     end
 
     def self.require_steps

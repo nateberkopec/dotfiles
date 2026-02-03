@@ -1,6 +1,7 @@
 require "shellwords"
 
 class Dotfiles::Step::ConfigureSpotlightIndexingStep < Dotfiles::Step
+  include Dotfiles::Step::LaunchCtl
   prepend Dotfiles::Step::Sudoable
 
   macos_only
@@ -29,9 +30,9 @@ class Dotfiles::Step::ConfigureSpotlightIndexingStep < Dotfiles::Step
   def install_battery_toggle
     return unless fish_path
 
-    install_script unless script_installed?
-    install_launchdaemon unless launchdaemon_installed?
-    load_launchdaemon
+    install_script(script_path, script_content) unless script_installed?(script_path)
+    install_spotlight_launchdaemon unless plist_installed?(launchdaemon_path)
+    load_launchdaemon(launchdaemon_path)
   end
 
   def spotlight_configured?
@@ -40,8 +41,8 @@ class Dotfiles::Step::ConfigureSpotlightIndexingStep < Dotfiles::Step
 
   def check_battery_toggle
     add_error("Fish not found for Spotlight battery toggle") unless fish_path
-    add_error("Spotlight battery script not installed at #{script_path}") unless script_installed?
-    add_error("LaunchDaemon not installed at #{launchdaemon_path}") unless launchdaemon_installed?
+    add_error("Spotlight battery script not installed at #{script_path}") unless script_installed?(script_path)
+    add_error("LaunchDaemon not installed at #{launchdaemon_path}") unless plist_installed?(launchdaemon_path)
   end
 
   def check_disabled_volumes
@@ -59,26 +60,6 @@ class Dotfiles::Step::ConfigureSpotlightIndexingStep < Dotfiles::Step
       return
     end
     add_error("Spotlight exclusion file missing for #{volume}") unless metadata_never_index_exists?(volume)
-  end
-
-  def install_script
-    debug "Installing Spotlight battery script to #{script_path}..."
-    @system.mkdir_p(script_dir)
-    @system.write_file(script_path, script_content)
-    @system.chmod(0o755, script_path)
-  end
-
-  def install_launchdaemon
-    debug "Installing LaunchDaemon to #{launchdaemon_path}..."
-    @system.mkdir_p(script_dir)
-    @system.write_file(launchdaemon_source_path, plist_content)
-    execute("install -m 644 #{shell_escape(launchdaemon_source_path)} #{shell_escape(launchdaemon_path)}", sudo: true)
-  end
-
-  def load_launchdaemon
-    debug "Loading LaunchDaemon..."
-    execute("launchctl bootout system #{shell_escape(launchdaemon_path)} 2>/dev/null || true", sudo: true)
-    execute("launchctl bootstrap system #{shell_escape(launchdaemon_path)}", sudo: true)
   end
 
   def disable_configured_volumes
@@ -190,6 +171,12 @@ class Dotfiles::Step::ConfigureSpotlightIndexingStep < Dotfiles::Step
     File.join(@home, ".local", "share", "spotlight")
   end
 
+  def install_spotlight_launchdaemon
+    @system.mkdir_p(script_dir)
+    @system.write_file(launchdaemon_source_path, plist_content)
+    execute("install -m 644 #{Shellwords.escape(launchdaemon_source_path)} #{Shellwords.escape(launchdaemon_path)}", sudo: true)
+  end
+
   def script_path
     File.join(script_dir, "spotlight-battery.fish")
   end
@@ -204,14 +191,6 @@ class Dotfiles::Step::ConfigureSpotlightIndexingStep < Dotfiles::Step
 
   def launchdaemon_label
     "com.user.spotlight-battery"
-  end
-
-  def script_installed?
-    @system.file_exist?(script_path)
-  end
-
-  def launchdaemon_installed?
-    @system.file_exist?(launchdaemon_path)
   end
 
   def spotlight_settings

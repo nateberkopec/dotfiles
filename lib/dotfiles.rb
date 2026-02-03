@@ -41,12 +41,17 @@ class Dotfiles
   end
 
   def self.determine_dotfiles_dir
+    env_dir = ENV["DOTFILES_DIR"].to_s.strip
+    if !env_dir.empty?
+      expanded = File.expand_path(env_dir)
+      return expanded if Dir.exist?(expanded)
+    end
+
+    cwd = Dir.pwd
+    return cwd if File.exist?(File.join(cwd, "config", "config.yml"))
+
     # In CI, the dotfiles are in the current working directory
     # In normal usage, they're in ~/.dotfiles
-    if ENV["CI"]
-      Dir.pwd
-    else
-      File.expand_path("~/.dotfiles")
-    end
+    ENV["CI"] ? cwd : File.expand_path("~/.dotfiles")
   end
 end

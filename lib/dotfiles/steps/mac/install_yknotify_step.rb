@@ -1,4 +1,6 @@
 class Dotfiles::Step::InstallYknotifyStep < Dotfiles::Step
+  include Dotfiles::Step::LaunchCtl
+
   macos_only
 
   def self.depends_on
@@ -10,9 +12,9 @@ class Dotfiles::Step::InstallYknotifyStep < Dotfiles::Step
   end
 
   def run
-    install_script unless script_installed?
-    install_launchagent unless launchagent_installed?
-    load_launchagent
+    install_yknotify_script unless script_installed?(script_path)
+    install_plist(launchagent_path, plist_content) unless plist_installed?(launchagent_path)
+    load_launchagent(launchagent_path)
   end
 
   def complete?
@@ -34,18 +36,11 @@ class Dotfiles::Step::InstallYknotifyStep < Dotfiles::Step
   end
 
   def launchagent_installed?
-    @system.file_exist?(launchagent_path)
+    plist_installed?(launchagent_path)
   end
 
-  def script_installed?
-    @system.file_exist?(script_path)
-  end
-
-  def install_script
-    debug "Installing yknotify.sh to #{script_path}..."
-    @system.mkdir_p(script_dir)
-    @system.write_file(script_path, script_content)
-    @system.chmod(0o755, script_path)
+  def install_yknotify_script
+    install_script(script_path, script_content)
     install_icon
   end
 
@@ -56,18 +51,6 @@ class Dotfiles::Step::InstallYknotifyStep < Dotfiles::Step
 
   def icon_path
     File.join(script_dir, "yubikey-icon.png")
-  end
-
-  def install_launchagent
-    debug "Installing LaunchAgent to #{launchagent_path}..."
-    @system.mkdir_p(File.dirname(launchagent_path))
-    @system.write_file(launchagent_path, plist_content)
-  end
-
-  def load_launchagent
-    debug "Loading LaunchAgent..."
-    execute("launchctl unload #{launchagent_path} 2>/dev/null || true")
-    execute("launchctl load #{launchagent_path}")
   end
 
   def script_dir
