@@ -13,7 +13,10 @@ class Dotfiles::Step::InstallDebianPackagesStep < Dotfiles::Step
 
   def run
     sources_changed = ensure_sources
-    update_apt if sources_changed || missing_packages.any?
+    if sources_changed || missing_packages.any?
+      output, status = update_apt
+      record_update_failure(output, status) if status != 0
+    end
     install_packages
     reset_cache
   end
@@ -21,6 +24,7 @@ class Dotfiles::Step::InstallDebianPackagesStep < Dotfiles::Step
   def complete?
     super
     report_unavailable_packages
+    report_apt_failures
     return true if noninteractive_complete?
 
     report_missing_install_errors
@@ -197,8 +201,11 @@ class Dotfiles::Step::InstallDebianPackagesStep < Dotfiles::Step
     packages = missing_packages & available_packages
     return if packages.empty?
 
-    output, status = execute("#{sudo_prefix}DEBIAN_FRONTEND=noninteractive apt-get install -y #{packages.join(" ")}")
-    add_error("apt-get install failed (status #{status}): #{output}") unless status == 0
+    output, status = run_apt("apt-get install -y #{packages.join(" ")}")
+    return if status == 0
+
+    @install_failed_status = status
+    @install_failed_output = output
   end
 
   def report_unavailable_packages
@@ -208,6 +215,20 @@ class Dotfiles::Step::InstallDebianPackagesStep < Dotfiles::Step
       message: unavailable_packages.map { |pkg| "• #{pkg}" }.join("\n")
     )
     @reported_unavailable = true
+  end
+
+  def record_update_failure(output, status)
+    @update_failed_status = status
+    @update_failed_output = output
+  end
+
+  def report_apt_failures
+    if @update_failed_status
+      add_error("apt-get update failed (status #{@update_failed_status}): #{@update_failed_output}")
+    end
+    if @install_failed_status
+      add_error("apt-get install failed (status #{@install_failed_status}): #{@install_failed_output}")
+    end
   end
 
   def reset_cache

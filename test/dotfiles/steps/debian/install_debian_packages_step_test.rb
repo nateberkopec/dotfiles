@@ -35,6 +35,28 @@ class InstallDebianPackagesStepTest < StepTestCase
     assert_incomplete
   end
 
+  def test_reports_apt_install_failure
+    stub_package_missing("ripgrep")
+    write_config(
+      "config",
+      "packages" => {
+        "ripgrep" => {"debian" => "ripgrep"}
+      }
+    )
+
+    @fake_system.stub_command("sudo DEBIAN_FRONTEND=noninteractive apt-get update -y", "", exit_status: 0)
+    @fake_system.stub_command(
+      "sudo DEBIAN_FRONTEND=noninteractive apt-get install -y ripgrep",
+      "E: Unable to locate package ripgrep",
+      exit_status: 100
+    )
+
+    step.run
+
+    refute step.complete?
+    assert_includes step.errors, "apt-get install failed (status 100): E: Unable to locate package ripgrep"
+  end
+
   private
 
   def stub_package_missing(name)
