@@ -1,5 +1,0 @@
-# This file contains fish universal variable definitions.
-# VERSION: 3.0
-SETUVAR __fish_initialized:4300
-SETUVAR fish_user_paths:/Users/nateberkopec/go/bin\x1e/Users/nateberkopec/bin\x1e/opt/homebrew/opt/libpq/bin\x1e/Applications/Ghostty\x2eapp/Contents/MacOS
-SETUVAR gh_status_indicator:

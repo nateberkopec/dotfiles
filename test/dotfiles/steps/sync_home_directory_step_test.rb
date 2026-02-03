@@ -75,6 +75,13 @@ class SyncHomeDirectoryStepTest < StepTestCase
     refute_should_run
   end
 
+  def test_should_not_run_when_only_ignored_file_differs
+    stub_source_file(".config/fish/fish_variables", "repo content")
+
+    refute_should_run
+    assert_complete
+  end
+
   private
 
   def source_path(relative)

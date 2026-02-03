@@ -22,7 +22,9 @@ class Dotfiles::Step::SyncHomeDirectoryStep < Dotfiles::Step
   end
 
   def should_run?
-    !find_out_of_sync_files.empty?
+    out_of_sync = find_out_of_sync_files
+    debug_out_of_sync(out_of_sync)
+    !out_of_sync.empty?
   end
 
   def update
@@ -96,8 +98,8 @@ class Dotfiles::Step::SyncHomeDirectoryStep < Dotfiles::Step
 
   def each_entry_in(dir, paths)
     return [] unless @system.dir_exist?(dir)
-
     paths.map { |path| [path, path.sub("#{dir}/", ""), File.join(@home, path.sub("#{dir}/", ""))] }
+      .reject { |_, rel, _| ignored_relative_paths.include?(rel) }
   end
 
   def all_files_in(dir)
@@ -110,6 +112,12 @@ class Dotfiles::Step::SyncHomeDirectoryStep < Dotfiles::Step
 
   def glob_entries(dir)
     @system.glob(File.join(dir, "**", "{*,.*}"), File::FNM_DOTMATCH)
+  end
+
+  def ignored_relative_paths
+    [
+      ".config/fish/fish_variables"
+    ]
   end
 
   def file_in_sync?(source_file, dest_file)
@@ -134,5 +142,12 @@ class Dotfiles::Step::SyncHomeDirectoryStep < Dotfiles::Step
   def remove_immutable_flag(file)
     _, status = execute("chflags noschg '#{file}'", sudo: true)
     raise Errno::EPERM, "Failed to remove immutable flag from #{file}" unless status == 0
+  end
+
+  def debug_out_of_sync(out_of_sync)
+    return unless @debug
+    return if out_of_sync.empty?
+    items = out_of_sync.map { |file| collapse_path_to_home(file[:dest]) }
+    debug "Home directory files out of sync: #{items.join(", ")}"
   end
 end
