@@ -60,9 +60,29 @@ if test -f /opt/homebrew/bin/mosh-server
   alias mosh-mbp "mosh --server='SHELL=/opt/homebrew/bin/fish /opt/homebrew/bin/mosh-server' nateberkopec@MBP-Server.local"
 end
 
-# try-cli init (requires mise-installed Ruby and gem)
-if command -v try >/dev/null 2>&1
-eval (env SHELL=(status fish-path) command try init ~/src/tries | string collect)
+# try-cli wrapper (avoid evaling Cancelled output)
+set -g __try_rb (command ls -1t "$HOME/.local/share/mise/installs/gem-try-cli"/*/libexec/gems/try-cli-*/try.rb 2>/dev/null | head -n 1)
+set -g __try_path "$HOME/src/tries"
+if test -n "$__try_rb"
+  function try
+    set -l out (env SHELL=(status fish-path) command /usr/bin/env ruby "$__try_rb" exec --path "$__try_path" $argv 2>/dev/tty | string collect)
+    set -l try_status $status
+    set -l warning "# if you can read this, you didn't launch try from an alias. run try --help."
+
+    if test $try_status -eq 0
+      if string match -q "*$warning*" -- $out
+        eval $out
+      else if test -n "$out"
+        echo $out
+      end
+    else if test -n "$out"
+      echo $out
+    end
+  end
+else if command -v try >/dev/null 2>&1
+  function try
+    command try $argv
+  end
 end
 
 # starship prompt
