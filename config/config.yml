@@ -81,6 +81,9 @@ mise_tools:
   - npm:@openai/codex
   - npm:@anthropic-ai/claude-code
   - go:github.com/mikefarah/yq/v4@latest
+  - tool: go:github.com/noperator/yknotify@latest
+    platforms:
+    - macos
 brew:
   casks:
   - nikitabobko/tap/aerospace
