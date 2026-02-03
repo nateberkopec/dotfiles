@@ -12,6 +12,15 @@ class Dotfiles::Step::ConfigureDockStep < Dotfiles::Step
     execute("killall Dock")
   end
 
+  def complete?
+    super
+    check_dock_settings
+    check_dock_items
+    @errors.empty?
+  end
+
+  private
+
   def configure_dock_behavior
     execute("defaults write com.apple.dock autohide -bool true")
     execute("defaults write com.apple.dock orientation left")
@@ -29,13 +38,6 @@ class Dotfiles::Step::ConfigureDockStep < Dotfiles::Step
     "<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>file://#{inbox_path}/</string><key>_CFURLStringType</key><integer>15</integer></dict></dict></dict>"
   end
 
-  def complete?
-    super
-    check_dock_settings
-    check_dock_items
-    @errors.empty?
-  end
-
   def check_dock_settings
     add_error("Dock autohide not set to true") unless defaults_read_equals?(build_read_command("com.apple.dock", "autohide"), "1")
     add_error("Dock orientation not set to left") unless defaults_read_equals?(build_read_command("com.apple.dock", "orientation"), "left")
@@ -47,8 +49,6 @@ class Dotfiles::Step::ConfigureDockStep < Dotfiles::Step
     add_error("Dock persistent-apps is not empty") unless persistent_apps_empty?
     add_error("Inbox folder not in Dock persistent-others") unless inbox_in_persistent_others?
   end
-
-  private
 
   def inbox_path
     File.join(@home, "Documents", "Inbox")

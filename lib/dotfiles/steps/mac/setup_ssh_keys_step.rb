@@ -20,6 +20,18 @@ class Dotfiles::Step::SetupSSHKeysStep < Dotfiles::Step
     show_setup_notice if configure_ssh_agent
   end
 
+  def complete?
+    super
+    unless @system.file_exist?(SSH_CONFIG_PATH)
+      add_error("SSH config file does not exist at #{SSH_CONFIG_PATH}")
+      return false
+    end
+    validate_ssh_config(@system.read_file(SSH_CONFIG_PATH))
+    @errors.empty?
+  end
+
+  private
+
   def configure_ssh_agent
     @system.file_exist?(SSH_CONFIG_PATH) ? append_agent_config : create_ssh_config
   end
@@ -44,16 +56,6 @@ class Dotfiles::Step::SetupSSHKeysStep < Dotfiles::Step
 
   def show_setup_notice
     add_notice(title: "ℹ️  1Password SSH Agent Setup Required", message: "To complete SSH setup:\n1. Open 1Password app\n2. Go to Settings → Developer\n3. Enable 'Use the SSH agent'")
-  end
-
-  def complete?
-    super
-    unless @system.file_exist?(SSH_CONFIG_PATH)
-      add_error("SSH config file does not exist at #{SSH_CONFIG_PATH}")
-      return false
-    end
-    validate_ssh_config(@system.read_file(SSH_CONFIG_PATH))
-    @errors.empty?
   end
 
   def validate_ssh_config(content)

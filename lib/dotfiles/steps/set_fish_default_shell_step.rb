@@ -12,6 +12,15 @@ class Dotfiles::Step::SetFishDefaultShellStep < Dotfiles::Step
     change_default_shell
   end
 
+  def complete?
+    super
+    add_error("Fish not found on PATH") if fish_path.empty?
+    add_error("Fish is not set as the default shell (current: #{current_shell.strip})") unless fish_is_default?
+    @errors.empty?
+  end
+
+  private
+
   def add_fish_to_shells
     debug "Adding Fish to allowed shells..."
     _, status = execute("bash -lc 'echo #{fish_path} >> /etc/shells'", sudo: true)
@@ -27,15 +36,6 @@ class Dotfiles::Step::SetFishDefaultShellStep < Dotfiles::Step
       execute("chsh -s #{fish_path} #{user}")
     end
   end
-
-  def complete?
-    super
-    add_error("Fish not found on PATH") if fish_path.empty?
-    add_error("Fish is not set as the default shell (current: #{current_shell.strip})") unless fish_is_default?
-    @errors.empty?
-  end
-
-  private
 
   def fish_path
     return @fish_path if defined?(@fish_path)

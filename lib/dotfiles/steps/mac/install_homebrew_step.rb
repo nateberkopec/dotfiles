@@ -20,6 +20,17 @@ class Dotfiles::Step::InstallHomebrewStep < Dotfiles::Step
     configure_shell_environment
   end
 
+  def complete?
+    super
+    return true if command_exists?("brew")
+    return true if @skipped_due_to_admin
+
+    add_error("Homebrew is not installed")
+    false
+  end
+
+  private
+
   def skip_without_admin
     debug "Skipping Homebrew installation: no admin rights"
     @skipped_due_to_admin = true
@@ -48,14 +59,5 @@ class Dotfiles::Step::InstallHomebrewStep < Dotfiles::Step
     brew_bin_dir = File.dirname(brew_bin)
     path_entries = ENV.fetch("PATH", "").split(":")
     ENV["PATH"] = ([brew_bin_dir] + path_entries).uniq.join(":") unless path_entries.include?(brew_bin_dir)
-  end
-
-  def complete?
-    super
-    return true if command_exists?("brew")
-    return true if @skipped_due_to_admin
-
-    add_error("Homebrew is not installed")
-    false
   end
 end

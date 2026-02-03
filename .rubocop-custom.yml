@@ -1,6 +1,7 @@
 require:
   - ./lib/rubocop/ban_file_system_classes.rb
   - ./lib/rubocop/ban_ci_or_noninteractive_method.rb
+  - ./lib/rubocop/step_public_methods.rb
 
 Dotfiles/BanFileSystemClasses:
   Enabled: true
@@ -18,3 +19,8 @@ Dotfiles/BanCiOrNoninteractiveMethod:
   Include:
     - 'lib/**/*.rb'
     - 'test/**/*.rb'
+
+Dotfiles/StepPublicMethods:
+  Enabled: true
+  Include:
+    - 'lib/dotfiles/steps/**/*.rb'
