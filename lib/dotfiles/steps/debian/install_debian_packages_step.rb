@@ -1,6 +1,8 @@
 require "securerandom"
 
 class Dotfiles::Step::InstallDebianPackagesStep < Dotfiles::Step
+  include Dotfiles::Step::DebianPackages
+
   debian_only
 
   def self.display_name
@@ -88,14 +90,6 @@ class Dotfiles::Step::InstallDebianPackagesStep < Dotfiles::Step
 
   def available_packages
     @available_packages ||= configured_packages.select { |pkg| package_available?(pkg) }
-  end
-
-  def package_installed?(pkg)
-    command_succeeds?("dpkg -s #{pkg} >/dev/null 2>&1")
-  end
-
-  def package_available?(pkg)
-    command_succeeds?("apt-cache show #{pkg} >/dev/null 2>&1")
   end
 
   def ensure_sources
@@ -199,10 +193,6 @@ class Dotfiles::Step::InstallDebianPackagesStep < Dotfiles::Step
       entries << "APT keyring missing: #{signed_by}"
     end
     entries
-  end
-
-  def update_apt
-    execute("#{sudo_prefix}DEBIAN_FRONTEND=noninteractive apt-get update -y")
   end
 
   def install_packages

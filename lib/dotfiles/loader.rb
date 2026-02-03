@@ -19,6 +19,7 @@ class Dotfiles
       require "step/sudoable"
       require "step/protectable"
       require "step/launchctl"
+      require "step/debian_packages"
     end
 
     def self.require_steps
