@@ -2,6 +2,7 @@ GEM
   remote: https://rubygems.org/
   specs:
     ast (2.4.3)
+    csv (3.3.5)
     erubi (1.13.1)
     flay (2.14.1)
       erubi (~> 1.10)
@@ -68,6 +69,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  csv
   flay
   flog (>= 4.9.3)
   minitest

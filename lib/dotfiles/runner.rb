@@ -1,3 +1,5 @@
+require "csv"
+
 class Dotfiles
   class Runner
     def initialize(log_file = nil)
@@ -115,7 +117,7 @@ class Dotfiles
       mutex, results = Mutex.new, empty_results
       spawn_result_threads(mutex, results).each(&:join)
       puts ""
-      results[:table_data] = results[:table_data].sort_by(&:first).map(&:last)
+      results[:table_data] = results[:table_data].sort_by(&:first).map { |row| row.drop(1) }
       results
     end
 
@@ -155,11 +157,7 @@ class Dotfiles
     end
 
     def append_table_row(data, results)
-      results[:table_data] << [data[:index], table_row_status(data), table_row_ran(data)]
-    end
-
-    def table_row_status(data)
-      "#{data[:name]},#{data[:complete] ? "✓" : "✗"}"
+      results[:table_data] << [data[:index], data[:name], data[:complete] ? "✓" : "✗", table_row_ran(data)]
     end
 
     def table_row_ran(data)
@@ -181,7 +179,10 @@ class Dotfiles
     end
 
     def display_results_table(table_data)
-      csv_data = "Step,Status,Ran?\n" + table_data.join("\n")
+      csv_data = CSV.generate do |csv|
+        csv << ["Step", "Status", "Ran?"]
+        table_data.each { |row| csv << row }
+      end
       IO.popen(["gum", "table", "--border", "rounded", "--widths", "25,8,8", "--print"], "w") { |io| io.write(csv_data) }
     end
 
