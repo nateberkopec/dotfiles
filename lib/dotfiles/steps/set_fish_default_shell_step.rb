@@ -20,7 +20,12 @@ class Dotfiles::Step::SetFishDefaultShellStep < Dotfiles::Step
 
   def change_default_shell
     debug "Changing default shell to Fish..."
-    execute("chsh -s #{fish_path}")
+    user = unix_username
+    if user.empty?
+      execute("chsh -s #{fish_path}")
+    else
+      execute("chsh -s #{fish_path} #{user}")
+    end
   end
 
   def complete?
@@ -55,9 +60,33 @@ class Dotfiles::Step::SetFishDefaultShellStep < Dotfiles::Step
     if @system.macos?
       execute("dscl . -read ~/ UserShell", quiet: true).first
     else
-      output, = execute("getent passwd #{ENV.fetch("USER", "")}", quiet: true)
-      output.to_s.split(":").last.to_s
+      shell = shell_from_getent(unix_uid)
+      return shell unless shell.empty?
+      shell = shell_from_getent(unix_username)
+      return shell unless shell.empty?
+      ENV.fetch("SHELL", "")
     end
+  end
+
+  def shell_from_getent(key)
+    return "" if key.to_s.strip.empty?
+    output, status = execute("getent passwd #{key}", quiet: true)
+    return "" unless status == 0 && !output.to_s.strip.empty?
+    output.to_s.split(":").last.to_s
+  end
+
+  def unix_username
+    command_output("id -un")
+  end
+
+  def unix_uid
+    command_output("id -u")
+  end
+
+  def command_output(command)
+    output, status = execute(command, quiet: true)
+    return "" unless status == 0
+    output.strip
   end
 
   def fish_is_default?
