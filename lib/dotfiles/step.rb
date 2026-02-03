@@ -201,5 +201,28 @@ class Dotfiles
       return false unless @system.file_exist?(file1) && @system.file_exist?(file2)
       file_hash(file1) == file_hash(file2)
     end
+
+    def sudo_prefix
+      return "" if root?
+      "sudo "
+    end
+
+    def root?
+      output, status = @system.execute("id -u")
+      status == 0 && output.strip == "0"
+    end
+
+    def hash_value(entry, *keys)
+      return nil unless entry.is_a?(Hash)
+
+      keys.each do |key|
+        return entry[key] if entry.key?(key)
+        string_key = key.to_s
+        return entry[string_key] if entry.key?(string_key)
+        symbol_key = key.to_sym
+        return entry[symbol_key] if entry.key?(symbol_key)
+      end
+      nil
+    end
   end
 end

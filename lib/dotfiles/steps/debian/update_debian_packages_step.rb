@@ -46,10 +46,4 @@ class Dotfiles::Step::UpdateDebianPackagesStep < Dotfiles::Step
       message: "#{packages.count} package(s) have updates available.\n\nRun 'sudo apt-get upgrade' to update them."
     )
   end
-
-  def sudo_prefix
-    output, status = @system.execute("id -u")
-    return "" if status == 0 && output.strip == "0"
-    "sudo "
-  end
 end

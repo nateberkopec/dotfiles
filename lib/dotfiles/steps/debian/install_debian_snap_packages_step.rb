@@ -44,10 +44,10 @@ class Dotfiles::Step::InstallDebianSnapPackagesStep < Dotfiles::Step
   def normalize_entry(entry)
     case entry
     when Hash
-      name = entry["name"] || entry[:name] || entry["snap"] || entry[:snap]
+      name = hash_value(entry, :name, :snap)
       {
         name: name.to_s,
-        classic: entry["classic"] || entry[:classic] || false
+        classic: hash_value(entry, :classic) || false
       }
     else
       {name: entry.to_s, classic: false}
@@ -79,15 +79,5 @@ class Dotfiles::Step::InstallDebianSnapPackagesStep < Dotfiles::Step
     output, status = execute("#{sudo_prefix}#{args.join(" ")}")
     return if status == 0
     add_error("snap install #{pkg[:name]} failed (status #{status}): #{output}")
-  end
-
-  def sudo_prefix
-    return "" if root?
-    "sudo "
-  end
-
-  def root?
-    output, status = @system.execute("id -u")
-    status == 0 && output.strip == "0"
   end
 end

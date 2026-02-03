@@ -222,16 +222,6 @@ class Dotfiles::Step::InstallDebianPackagesStep < Dotfiles::Step
     @reported_unavailable = true
   end
 
-  def sudo_prefix
-    return "" if root?
-    "sudo "
-  end
-
-  def root?
-    output, status = @system.execute("id -u")
-    status == 0 && output.strip == "0"
-  end
-
   def temp_path(label)
     File.join("/tmp", "dotfiles-#{label}-#{SecureRandom.hex(6)}")
   end

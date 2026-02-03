@@ -73,9 +73,9 @@ class Dotfiles::Step::InstallMiseToolsStep < Dotfiles::Step
     when String
       {spec: entry}
     when Hash
-      spec = entry["tool"] || entry[:tool] || entry["spec"] || entry[:spec]
+      spec = hash_value(entry, :tool, :spec)
       return nil unless spec
-      platforms = entry["platforms"] || entry[:platforms]
+      platforms = hash_value(entry, :platforms)
       {spec: spec.to_s, platforms: Array(platforms).map(&:to_s)}
     end
   end
