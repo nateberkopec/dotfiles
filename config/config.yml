@@ -76,6 +76,7 @@ mise_tools:
   - cargo:broot
   - cargo:difftastic
   - cargo:starship
+  - gem:try-cli
   - node@lts
   - npm:@openai/codex
   - npm:@anthropic-ai/claude-code

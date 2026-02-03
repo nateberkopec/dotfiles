@@ -43,7 +43,7 @@ end
 
 alias mosh-mbp "mosh --server='SHELL=/opt/homebrew/bin/fish /opt/homebrew/bin/mosh-server' nateberkopec@MBP-Server.local"
 
-eval (env SHELL=(status fish-path) ~/Documents/Code.nosync/upstream/try/try.rb init | string collect)
+eval (env SHELL=(status fish-path) try init | string collect)
 
 mise activate fish | source
 set -gx PATH ~/.cargo/bin $PATH

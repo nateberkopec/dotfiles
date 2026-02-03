@@ -1,0 +1,28 @@
+#!/usr/bin/env fish
+
+function _try_print_error
+  if type -q gum
+    gum style --foreground 1 --bold $argv >&2
+  else
+    echo $argv >&2
+  end
+end
+
+set -l installs_dir ""
+if set -q MISE_INSTALLS_DIR
+  set installs_dir $MISE_INSTALLS_DIR
+else if set -q MISE_DATA_DIR
+  set installs_dir "$MISE_DATA_DIR/installs"
+else
+  set installs_dir "$HOME/.local/share/mise/installs"
+end
+
+set -l gem_root "$installs_dir/gem-try-cli"
+set -l try_rb (command ls -1t $gem_root/*/libexec/gems/try-cli-*/try.rb 2>/dev/null | head -n 1)
+
+if test -z "$try_rb"
+  _try_print_error "try: unable to locate try.rb under $gem_root"
+  exit 1
+end
+
+exec /usr/bin/env ruby "$try_rb" $argv
