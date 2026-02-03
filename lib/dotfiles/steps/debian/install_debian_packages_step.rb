@@ -157,7 +157,7 @@ class Dotfiles::Step::InstallDebianPackagesStep < Dotfiles::Step
 
     suite = source.fetch("suite", "stable")
     components = Array(source.fetch("components", ["main"])).join(" ")
-    signed_by = source["signed_by"] || (source["key_url"] ? source_keyring_path(source) : nil)
+    signed_by = source_keyring_for(source)
     options = signed_by ? " [signed-by=#{signed_by}]" : ""
     "deb#{options} #{repo} #{suite} #{components}"
   end
@@ -177,24 +177,32 @@ class Dotfiles::Step::InstallDebianPackagesStep < Dotfiles::Step
   end
 
   def missing_source_entries(source)
-    entries = []
     list_path = source_list_path(source)
     expected = source_line(source)
-    if expected
-      if !@system.file_exist?(list_path)
-        entries << "APT source missing: #{list_path}"
-      else
-        current = @system.read_file(list_path).strip
-        entries << "APT source mismatch: #{list_path}" unless current == expected
-      end
-    end
+    missing_source_list_entries(list_path, expected) + missing_source_key_entries(source)
+  end
 
+  def missing_source_list_entries(list_path, expected)
+    return [] unless expected
+    return ["APT source missing: #{list_path}"] unless @system.file_exist?(list_path)
+    return [] if current_sources(list_path).include?(expected)
+    ["APT source mismatch: #{list_path}"]
+  end
+
+  def current_sources(list_path)
+    @system.read_file(list_path).lines.map(&:strip).reject { |line| line.empty? || line.start_with?("#") }
+  end
+
+  def missing_source_key_entries(source)
+    signed_by = source_keyring_for(source)
+    return [] unless signed_by
+    return [] if @system.file_exist?(signed_by)
+    ["APT keyring missing: #{signed_by}"]
+  end
+
+  def source_keyring_for(source)
     key_url = source["key_url"]
-    signed_by = source["signed_by"] || (key_url ? source_keyring_path(source) : nil)
-    if signed_by && !@system.file_exist?(signed_by)
-      entries << "APT keyring missing: #{signed_by}"
-    end
-    entries
+    source["signed_by"] || (key_url ? source_keyring_path(source) : nil)
   end
 
   def install_packages

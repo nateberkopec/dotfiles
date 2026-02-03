@@ -69,6 +69,21 @@ class InstallDebianPackagesStepTest < StepTestCase
     refute_should_run
   end
 
+  def test_source_mismatch_ignores_comment_lines
+    source_line = "deb [signed-by=/usr/share/keyrings/example-archive-keyring.gpg] https://example.invalid stable main"
+    write_config(
+      "config",
+      "debian_sources" => [
+        {"name" => "example", "line" => source_line}
+      ]
+    )
+
+    list_path = "/etc/apt/sources.list.d/example.list"
+    @fake_system.stub_file_content(list_path, "# managed by package\n#{source_line}\n")
+
+    assert_empty step.send(:missing_sources)
+  end
+
   private
 
   def stub_package_missing(name)
