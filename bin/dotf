@@ -57,97 +57,9 @@ ensure_mise_env() {
     fi
 }
 
-update_dotfiles_repo() {
-    debug "Updating dotfiles repository..."
-    cd "$DOTFILES_DIR"
-
-    # Check if we're on main branch - if not, skip git update
-    current_branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
-    debug "Current branch: $current_branch"
-    if [ "$current_branch" != "main" ]; then
-        debug "Not on main branch, skipping git update"
-        return 0
-    fi
-
-    # Check if there are changes to pull first (avoid slow fetch if unnecessary)
-    LOCAL=$(git rev-parse @ 2>/dev/null)
-    REMOTE=$(git rev-parse @{u} 2>/dev/null)
-    debug "Local commit: $LOCAL"
-    debug "Remote commit (before fetch): $REMOTE"
-
-    # Only fetch if we might be behind
-    debug "Fetching from origin main..."
-    if ! git fetch origin main 2>/dev/null; then
-        echo "Error: Failed to fetch from remote"
-        exit 1
-    fi
-    debug "Fetch completed successfully"
-
-    # Re-check after fetch
-    REMOTE=$(git rev-parse @{u} 2>/dev/null)
-    debug "Remote commit (after fetch): $REMOTE"
-
-    if [ "$LOCAL" != "$REMOTE" ]; then
-        echo "Pulling latest changes from remote..."
-        debug "Local and remote differ, pulling changes..."
-        if ! git pull --ff-only 2>/dev/null; then
-            echo "Error: Failed to pull changes. Please resolve any conflicts manually."
-            exit 1
-        fi
-        echo "Successfully updated dotfiles repository"
-        debug "Repository updated successfully"
-    else
-        debug "Repository is up to date"
-    fi
-}
-
-start_background_fetch() {
-    cd "$DOTFILES_DIR"
-
-    # Start fetch in background (always fetch to keep origin/main updated)
-    debug "Starting background fetch from origin main..."
-    git fetch origin main >/dev/null 2>&1 &
-    FETCH_PID=$!
-    debug "Background fetch started with PID: $FETCH_PID"
-}
-
-check_for_updates() {
-    cd "$DOTFILES_DIR"
-
-    # If no fetch was started, nothing to check
-    if [ -z "$FETCH_PID" ]; then
-        debug "No background fetch to check"
-        return 0
-    fi
-
-    debug "Waiting for background fetch to complete..."
-    if ! wait "$FETCH_PID"; then
-        debug "Background fetch failed"
-        return 0
-    fi
-    debug "Background fetch completed"
-
-    # Check if main branch has updates available (compare main with origin/main)
-    LOCAL_MAIN=$(git rev-parse main 2>/dev/null || echo "")
-    REMOTE_MAIN=$(git rev-parse origin/main 2>/dev/null || echo "")
-    debug "After fetch - main: $LOCAL_MAIN, origin/main: $REMOTE_MAIN"
-
-    # Skip update check if either branch is missing (e.g., in CI)
-    if [ -z "$LOCAL_MAIN" ] || [ -z "$REMOTE_MAIN" ]; then
-        debug "Skipping update check - branch refs not available"
-        return 0
-    fi
-
-    if [ "$LOCAL_MAIN" != "$REMOTE_MAIN" ]; then
-        echo ""
-        echo "📦 Updates available! Run 'dotf update' to pull the latest changes."
-    fi
-}
-
 cmd_run() {
     init_logging
     debug "Starting dotf run command"
-    start_background_fetch
     "$SCRIPT_DIR/bootstrap"
     ensure_homebrew_env
     ensure_mise_env
@@ -155,82 +67,7 @@ cmd_run() {
     cd "$DOTFILES_DIR"
     ruby -r ./lib/dotfiles.rb -e "Dotfiles::Runner.new('$LOG_FILE').run"
 
-    check_for_updates
     debug "Run complete"
-}
-
-check_hostname() {
-    cd "$DOTFILES_DIR"
-
-    local hostname_config="$DOTFILES_DIR/config/hostname.yml"
-
-    if [ ! -f "$hostname_config" ]; then
-        debug "No hostname config found, skipping check"
-        return 0
-    fi
-
-    local master_hostname=$(grep "^master_hostname:" "$hostname_config" | sed 's/^master_hostname: *//')
-    local current_hostname=$(hostname)
-
-    debug "Master hostname: $master_hostname"
-    debug "Current hostname: $current_hostname"
-
-    if [ "$master_hostname" != "$current_hostname" ]; then
-        echo ""
-        gum style --border double --border-foreground 208 --padding "1 2" --width 60 \
-            "⚠️  Hostname Mismatch" \
-            "" \
-            "Master hostname: $master_hostname" \
-            "Current hostname: $current_hostname" \
-            "" \
-            "You are not on the master machine."
-        echo ""
-
-        if ! gum confirm "Continue with dotf update anyway?"; then
-            echo "Update cancelled."
-            exit 0
-        fi
-
-        echo ""
-    fi
-}
-
-cmd_update() {
-    init_logging
-    debug "Starting dotf update command"
-    local git_flags=""
-
-    while [[ $# -gt 0 ]]; do
-        case "$1" in
-            --no-gpg-sign)
-                git_flags="$git_flags --no-gpg-sign"
-                shift
-                ;;
-            --no-verify)
-                git_flags="$git_flags --no-verify"
-                shift
-                ;;
-            *)
-                shift
-                ;;
-        esac
-    done
-
-    check_hostname
-    update_dotfiles_repo
-
-    cd "$DOTFILES_DIR"
-
-    # Ensure working directory is clean before running step updates
-    # This prevents pulled changes from being mixed with step updates
-    if [ -n "$(git status --porcelain)" ]; then
-        echo "Error: Working directory has uncommitted changes after pull."
-        echo "Please commit or stash these changes before running update."
-        exit 1
-    fi
-
-    GIT_COMMIT_FLAGS="$git_flags" ruby -r ./lib/dotfiles.rb -e "Dotfiles::Updater.new('$LOG_FILE').run"
-    debug "Update complete"
 }
 
 cmd_help() {
@@ -241,12 +78,7 @@ Usage: dotf <command> [options]
 
 Commands:
   run       Set up development environment from scratch
-  update    Update dotfiles from the system
   help      Show this help message
-
-Options (for update command):
-  --no-gpg-sign    Skip GPG signing when committing
-  --no-verify      Skip git pre-commit and commit-msg hooks
 
 Logging:
   Logs are always written to logs/ directory with timestamped filenames.
@@ -254,9 +86,6 @@ Logging:
 
 Examples:
   dotf run                              # Initial setup
-  dotf update                           # Update dotfiles
-  dotf update --no-gpg-sign             # Update without GPG signing
-  dotf update --no-gpg-sign --no-verify # Update without GPG or hooks
   DEBUG=true dotf run                   # Run with debug output to console
 EOF
 }
@@ -270,10 +99,6 @@ main() {
     case "$1" in
         run)
             cmd_run
-            ;;
-        update)
-            shift
-            cmd_update "$@"
             ;;
         help|--help|-h)
             cmd_help

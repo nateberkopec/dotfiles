@@ -49,7 +49,6 @@ Packages are defined in `config/config.yml` as a map of package name to `{brew, 
 | Command | What it does |
 |---------|--------------|
 | `dotf run` | Set up your Mac. Safe to run many times. |
-| `dotf update` | Pull config changes from your system back into this repo |
 | `dotf help` | Show help |
 
 ## How It Works

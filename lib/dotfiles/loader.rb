@@ -30,7 +30,6 @@ class Dotfiles
 
     def self.require_runtime
       require "runner"
-      require "updater"
     end
   end
 end

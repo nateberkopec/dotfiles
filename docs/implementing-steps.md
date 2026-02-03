@@ -41,16 +41,6 @@ def complete?
 end
 ```
 
-### `update` (optional)
-
-Syncs configuration from the system back into the dotfiles repository. Implement this to support the `dotf update` command.
-
-```ruby
-def update
-  copy_if_exists(app_path("vscode_settings"), dotfiles_source("vscode_settings"))
-end
-```
-
 ## Class Methods
 
 ### `self.depends_on`
