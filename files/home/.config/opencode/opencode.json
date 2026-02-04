@@ -15,6 +15,29 @@
             "context": 128000,
             "output": 8192
           }
+        },
+        "mlx-community/Qwen3-Coder-Next-4bit": {
+          "name": "Qwen3 Coder Next 4-bit",
+          "limit": {
+            "context": 262144,
+            "output": 32768
+          }
+        }
+      }
+    },
+    "local-llama": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Local llama.cpp",
+      "options": {
+        "baseURL": "http://127.0.0.1:5002/v1"
+      },
+      "models": {
+        "gpt-oss-120b": {
+          "name": "GPT-OSS 120B MXFP4",
+          "limit": {
+            "context": 128000,
+            "output": 8192
+          }
         }
       }
     }

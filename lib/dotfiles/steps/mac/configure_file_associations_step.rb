@@ -11,6 +11,7 @@ class Dotfiles::Step::ConfigureFileAssociationsStep < Dotfiles::Step
 
   def run
     file_associations.each do |bundle_id, extensions|
+      next unless bundle_id_installed?(bundle_id)
       extensions.each do |ext|
         debug "Setting #{ext} files to open with #{bundle_id}..."
         execute("duti -s #{bundle_id} #{ext} all")
@@ -21,6 +22,7 @@ class Dotfiles::Step::ConfigureFileAssociationsStep < Dotfiles::Step
   def complete?
     super
     file_associations.each do |bundle_id, extensions|
+      next unless bundle_id_installed?(bundle_id)
       extensions.each do |ext|
         add_error("#{ext} not set to open with #{bundle_id}") unless current_handler(ext) == bundle_id
       end
@@ -37,6 +39,12 @@ class Dotfiles::Step::ConfigureFileAssociationsStep < Dotfiles::Step
   def current_handler(extension)
     output, status = execute("duti -x #{extension} 2>/dev/null")
     return nil unless status == 0
-    output.lines[2]&.strip
+    output.lines.map(&:strip).reject(&:empty?).last
+  end
+
+  def bundle_id_installed?(bundle_id)
+    output, status = execute("mdfind \"kMDItemCFBundleIdentifier == '#{bundle_id}'\"")
+    return false unless status == 0
+    output.lines.any? { |line| line.strip.end_with?(".app") }
   end
 end
