@@ -13,6 +13,8 @@ rust = "latest"
 "go:github.com/noperator/yknotify" = "latest"
 watchexec = "latest"
 fnox = "latest"
+fzf = "latest"
+zoxide = "latest"
 
 [settings]
 idiomatic_version_file_enable_tools = ["ruby", "node"]
