@@ -22,9 +22,18 @@
             "context": 262144,
             "output": 32768
           }
-        },
-        "mlx-community/gpt-oss-120b-MXFP4-Q8": {
-          "name": "GPT-OSS 120B MXFP4-Q8",
+        }
+      }
+    },
+    "local-llama": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Local llama.cpp",
+      "options": {
+        "baseURL": "http://127.0.0.1:5002/v1"
+      },
+      "models": {
+        "gpt-oss-120b": {
+          "name": "GPT-OSS 120B MXFP4",
           "limit": {
             "context": 128000,
             "output": 8192
