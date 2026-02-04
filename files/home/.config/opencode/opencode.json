@@ -2,47 +2,29 @@
   "$schema": "https://opencode.ai/config.json",
   "formatter": false,
   "provider": {
-    "local-glm": {
+    "local-mlx": {
       "npm": "@ai-sdk/openai-compatible",
-      "name": "GLM 4.7 Flash",
+      "name": "Local MLX",
       "options": {
         "baseURL": "http://127.0.0.1:5001/v1"
       },
       "models": {
         "mlx-community/GLM-4.7-Flash-8bit": {
-          "name": "8-bit",
+          "name": "GLM 4.7 Flash 8-bit",
           "limit": {
             "context": 128000,
             "output": 8192
           }
-        }
-      }
-    },
-    "local-qwen": {
-      "npm": "@ai-sdk/openai-compatible",
-      "name": "Qwen3 Coder Next",
-      "options": {
-        "baseURL": "http://127.0.0.1:5002/v1"
-      },
-      "models": {
+        },
         "mlx-community/Qwen3-Coder-Next-4bit": {
-          "name": "4-bit",
+          "name": "Qwen3 Coder Next 4-bit",
           "limit": {
             "context": 262144,
             "output": 32768
           }
-        }
-      }
-    },
-    "local-gptoss": {
-      "npm": "@ai-sdk/openai-compatible",
-      "name": "GPT-OSS 120B",
-      "options": {
-        "baseURL": "http://127.0.0.1:5003/v1"
-      },
-      "models": {
+        },
         "mlx-community/gpt-oss-120b-MXFP4-Q8": {
-          "name": "MXFP4-Q8",
+          "name": "GPT-OSS 120B MXFP4-Q8",
           "limit": {
             "context": 128000,
             "output": 8192
@@ -51,5 +33,5 @@
       }
     }
   },
-  "model": "local-glm/mlx-community/GLM-4.7-Flash-8bit"
+  "model": "local-mlx/mlx-community/GLM-4.7-Flash-8bit"
 }
