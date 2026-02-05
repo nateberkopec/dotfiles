@@ -158,6 +158,12 @@ trackpad_settings:
     TrackpadTwoFingerDoubleTapGesture: 1
   NSGlobalDomain:
     com.apple.mouse.scaling: 2
+dock_settings:
+  com.apple.dock:
+    autohide: 1
+    orientation: left
+    autohide-delay: 0
+    autohide-time-modifier: 0.4
 screenshot_settings:
   com.apple.screencapture:
     location: "~/Documents/Inbox"
