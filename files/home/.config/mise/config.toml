@@ -23,3 +23,7 @@ experimental = true
 fetch_remote_versions_cache = "7d"
 http_timeout = "5s"
 fetch_remote_versions_timeout = "5s"
+
+[env]
+CARGO_HTTP_TIMEOUT = "5"
+GO_GET_TIMEOUT = "5s"
