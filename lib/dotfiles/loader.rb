@@ -32,6 +32,7 @@ class Dotfiles
     end
 
     def self.require_runtime
+      require "output_formatter"
       require "runner"
     end
   end
