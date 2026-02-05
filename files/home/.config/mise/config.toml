@@ -20,3 +20,6 @@ zoxide = "latest"
 idiomatic_version_file_enable_tools = ["ruby", "node"]
 legacy_version_file = true
 experimental = true
+fetch_remote_versions_cache = "7d"
+http_timeout = "5s"
+fetch_remote_versions_timeout = "5s"
