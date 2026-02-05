@@ -50,10 +50,7 @@ class ProtectGitHooksStepTest < StepTestCase
     file = @hook_files.first
     @fake_system.filesystem[file] = "hook content"
     stub_immutable(file, false)
-    ENV["CI"] = "true"
-    assert_complete
-  ensure
-    ENV.delete("CI")
+    with_ci { assert_complete }
   end
 
   private

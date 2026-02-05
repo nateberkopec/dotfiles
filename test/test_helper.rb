@@ -35,10 +35,15 @@ class Minitest::Test
     step_class.new(**defaults.merge(overrides))
   end
 
-  def with_ci
-    ENV["CI"] = "true"
+  def with_env(vars)
+    originals = vars.keys.to_h { |k| [k, ENV[k]] }
+    vars.each { |k, v| ENV[k] = v }
     yield
   ensure
-    ENV.delete("CI")
+    originals.each { |k, v| v.nil? ? ENV.delete(k) : ENV[k] = v }
+  end
+
+  def with_ci(&block)
+    with_env("CI" => "true", &block)
   end
 end

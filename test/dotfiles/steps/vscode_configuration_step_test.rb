@@ -9,23 +9,17 @@ class VSCodeConfigurationStepTest < Minitest::Test
   end
 
   def test_complete_in_ci_mode
-    ENV["CI"] = "true"
-    assert @step.complete?
-    ENV.delete("CI")
+    with_ci { assert @step.complete? }
   end
 
   def test_should_not_run_in_ci_mode
-    ENV["CI"] = "true"
-    refute @step.should_run?
-    ENV.delete("CI")
+    with_ci { refute @step.should_run? }
   end
 
   def test_run_installs_extensions_from_file
     @fake_system.stub_file_content(@extensions_file, "ms-python.python\nms-vscode.cpptools\n")
     @fake_system.stub_command("code --list-extensions", "ms-python.python")
 
-    ENV["NONINTERACTIVE"] = nil
-    ENV["CI"] = nil
     @step.run
 
     assert @fake_system.received_operation?(:execute, "code --install-extension ms-vscode.cpptools", quiet: true)

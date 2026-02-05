@@ -23,18 +23,12 @@ class SetFishDefaultShellStepTest < Minitest::Test
 
   def test_complete_returns_true_in_ci
     stub_shell_mismatch
-    ENV["CI"] = "true"
-    assert @step.complete?
-  ensure
-    ENV.delete("CI")
+    with_ci { assert @step.complete? }
   end
 
   def test_complete_returns_true_in_noninteractive
     stub_shell_mismatch
-    ENV["NONINTERACTIVE"] = "true"
-    assert @step.complete?
-  ensure
-    ENV.delete("NONINTERACTIVE")
+    with_env("NONINTERACTIVE" => "true") { assert @step.complete? }
   end
 
   private
