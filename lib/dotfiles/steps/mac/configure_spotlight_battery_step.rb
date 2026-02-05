@@ -1,6 +1,6 @@
 require "shellwords"
 
-class Dotfiles::Step::ConfigureSpotlightIndexingStep < Dotfiles::Step
+class Dotfiles::Step::ConfigureSpotlightBatteryStep < Dotfiles::Step
   include Dotfiles::Step::LaunchCtl
   prepend Dotfiles::Step::Sudoable
 
@@ -10,88 +10,31 @@ class Dotfiles::Step::ConfigureSpotlightIndexingStep < Dotfiles::Step
     [Dotfiles::Step::InstallBrewPackagesStep]
   end
 
+  def should_run?
+    battery_mode_enabled? && !battery_toggle_installed?
+  end
+
   def run
-    install_battery_toggle if battery_mode_enabled?
-    disable_configured_volumes if disabled_volumes.any?
-  end
-
-  def complete?
-    super
-    return true unless spotlight_configured?
-
-    check_battery_toggle if battery_mode_enabled?
-    check_disabled_volumes
-
-    @errors.empty?
-  end
-
-  private
-
-  def install_battery_toggle
     return unless fish_path
-
     install_script(script_path, script_content) unless script_installed?(script_path)
     install_spotlight_launchdaemon unless plist_installed?(launchdaemon_path)
     load_launchdaemon(launchdaemon_path)
   end
 
-  def spotlight_configured?
-    battery_mode_enabled? || disabled_volumes.any?
-  end
+  def complete?
+    super
+    return true unless battery_mode_enabled?
 
-  def check_battery_toggle
     add_error("Fish not found for Spotlight battery toggle") unless fish_path
     add_error("Spotlight battery script not installed at #{script_path}") unless script_installed?(script_path)
     add_error("LaunchDaemon not installed at #{launchdaemon_path}") unless plist_installed?(launchdaemon_path)
+    @errors.empty?
   end
 
-  def check_disabled_volumes
-    disabled_volumes.each { |volume| check_disabled_volume(volume) }
-  end
+  private
 
-  def check_disabled_volume(volume)
-    if volume_root?(volume)
-      add_error("Spotlight indexing still enabled for #{volume}") unless indexing_disabled?(volume)
-      return
-    end
-
-    unless @system.dir_exist?(volume)
-      add_error("Spotlight exclusion directory missing: #{volume}")
-      return
-    end
-    add_error("Spotlight exclusion file missing for #{volume}") unless metadata_never_index_exists?(volume)
-  end
-
-  def disable_configured_volumes
-    disabled_volumes.each do |volume|
-      if volume_root?(volume)
-        next if indexing_disabled?(volume)
-        execute("mdutil -i off #{shell_escape(volume)}", sudo: true)
-      else
-        ensure_metadata_never_index(volume)
-      end
-    end
-  end
-
-  def indexing_disabled?(volume)
-    output, status = execute("mdutil -s #{shell_escape(volume)}", quiet: true)
-    return false unless status == 0
-    output.downcase.include?("disabled")
-  end
-
-  def ensure_metadata_never_index(path)
-    return if metadata_never_index_exists?(path)
-    return unless @system.dir_exist?(path)
-
-    @system.write_file(metadata_never_index_path(path), "")
-  end
-
-  def metadata_never_index_exists?(path)
-    @system.file_exist?(metadata_never_index_path(path))
-  end
-
-  def metadata_never_index_path(path)
-    File.join(path, ".metadata_never_index")
+  def battery_toggle_installed?
+    script_installed?(script_path) && plist_installed?(launchdaemon_path)
   end
 
   def script_content
@@ -202,11 +145,8 @@ class Dotfiles::Step::ConfigureSpotlightIndexingStep < Dotfiles::Step
   end
 
   def battery_volumes
-    normalize_volumes(spotlight_settings.fetch("battery_volumes", default_battery_volumes)) - disabled_volumes
-  end
-
-  def disabled_volumes
-    normalize_volumes(spotlight_settings.fetch("disabled_volumes", []))
+    disabled = normalize_volumes(spotlight_settings.fetch("disabled_volumes", []))
+    normalize_volumes(spotlight_settings.fetch("battery_volumes", default_battery_volumes)) - disabled
   end
 
   def check_interval_seconds
@@ -220,21 +160,5 @@ class Dotfiles::Step::ConfigureSpotlightIndexingStep < Dotfiles::Step
 
   def normalize_volumes(volumes)
     Array(volumes).compact.map { |volume| expand_path_with_home(volume) }.uniq
-  end
-
-  def volume_root?(path)
-    mount_point_for(path) == path
-  end
-
-  def mount_point_for(path)
-    output, status = execute("df -P #{shell_escape(path)}", quiet: true)
-    return nil unless status == 0
-    lines = output.split("\n")
-    return nil if lines.length < 2
-    lines.last.split(/\s+/).last
-  end
-
-  def shell_escape(value)
-    Shellwords.escape(value)
   end
 end
