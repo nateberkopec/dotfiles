@@ -44,6 +44,7 @@ class InstallMiseToolsStepTest < StepTestCase
   end
 
   def test_should_run_with_platform_specific_tool
+    ENV.delete("MISE_OFFLINE")
     @fake_system.stub_debian
     @fake_system.stub_command("command -v mise >/dev/null 2>&1", "", exit_status: 0)
     @fake_system.stub_command(
