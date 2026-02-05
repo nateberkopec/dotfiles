@@ -12,6 +12,7 @@ class InstallMiseToolsStepTest < StepTestCase
   end
 
   def test_should_run_when_configured_and_missing
+    ENV.delete("MISE_OFFLINE")
     @fake_system.stub_command("command -v mise >/dev/null 2>&1", "", exit_status: 0)
     @fake_system.stub_command(
       mise_install_command("node@lts", "npm:@openai/codex", dry_run: true),
@@ -71,6 +72,21 @@ class InstallMiseToolsStepTest < StepTestCase
 
     refute_should_run
     assert_complete
+  end
+
+  def test_should_not_run_when_mise_offline
+    ENV["MISE_OFFLINE"] = "1"
+    @fake_system.stub_command("command -v mise >/dev/null 2>&1", "", exit_status: 0)
+    @fake_system.stub_command(
+      mise_install_command("node@lts", dry_run: true),
+      "mise node@20.0.0                ⇢ would install\n",
+      exit_status: 0
+    )
+    write_config("config", "mise_tools" => ["node@lts"])
+
+    refute_should_run
+  ensure
+    ENV.delete("MISE_OFFLINE")
   end
 
   def test_run_installs_configured_tools

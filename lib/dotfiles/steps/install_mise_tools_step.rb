@@ -6,7 +6,7 @@ class Dotfiles::Step::InstallMiseToolsStep < Dotfiles::Step
   end
 
   def should_run?
-    install_needed?
+    !mise_offline? && install_needed?
   end
 
   def run
@@ -121,6 +121,10 @@ class Dotfiles::Step::InstallMiseToolsStep < Dotfiles::Step
 
   def mise_available?
     command_exists?("mise")
+  end
+
+  def mise_offline?
+    ENV["MISE_OFFLINE"] == "1"
   end
 
   def install_needed?
