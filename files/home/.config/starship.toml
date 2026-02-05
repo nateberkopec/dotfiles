@@ -20,6 +20,25 @@ disabled = false
 healthy_symbol = '🟢'
 unhealthy_symbol = '🔴'
 
+[custom.network_check]
+command = '''
+if timeout 0.1s curl -s --head https://1.1.1.1 >/dev/null 2>&1; then
+  echo "online" > /tmp/mise_network_status
+else
+  echo "offline" > /tmp/mise_network_status
+fi
+cat /tmp/mise_network_status
+'''
+when = "true"
+format = ""
+
+[custom.mise_network]
+command = "echo 'OFFLINE'"
+when = "test -n \"$MISE_OFFLINE\""
+symbol = "📡 "
+format = "[$symbol$output]($style) "
+style = "bold yellow"
+
 [custom.localmail]
 command = "grep -c '^From ' /var/mail/$USER 2>/dev/null || echo 0"
 when = "test -s /var/mail/$USER"

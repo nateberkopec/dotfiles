@@ -32,6 +32,17 @@ if command -v mise >/dev/null 2>&1
   set -gx PATH ~/.cargo/bin $PATH
 end
 
+# Apply network status from starship check
+function __mise_apply_network_status --on-event fish_prompt
+  if test -f /tmp/mise_network_status
+    if test (cat /tmp/mise_network_status) = "offline"
+      set -gx MISE_OFFLINE 1
+    else
+      set -ge MISE_OFFLINE
+    end
+  end
+end
+
 zoxide init fish | source
 complete -c z -f -k -a "(zoxide query -l)"
 alias cd z
