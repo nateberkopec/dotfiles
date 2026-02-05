@@ -16,6 +16,7 @@ class Dotfiles
       require "system_adapter"
       require "step"
       require "step/defaultable"
+      require "step/defaults_step"
       require "step/sudoable"
       require "step/protectable"
       require "step/launchctl"
