@@ -212,19 +212,6 @@ class Dotfiles
       status == 0 && output.strip == "0"
     end
 
-    def hash_value(entry, *keys)
-      return nil unless entry.is_a?(Hash)
-
-      keys.each do |key|
-        return entry[key] if entry.key?(key)
-        string_key = key.to_s
-        return entry[string_key] if entry.key?(string_key)
-        symbol_key = key.to_sym
-        return entry[symbol_key] if entry.key?(symbol_key)
-      end
-      nil
-    end
-
     def find_fish_path
       return @fish_path if defined?(@fish_path)
       output, status = @system.execute("command -v fish 2>/dev/null")

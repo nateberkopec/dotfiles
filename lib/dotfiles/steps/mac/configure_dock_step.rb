@@ -7,25 +7,22 @@ class Dotfiles::Step::ConfigureDockStep < Dotfiles::Step
   end
 
   def run
-    configure_dock_behavior
+    run_defaults_write
     configure_dock_items
     execute("killall Dock")
   end
 
   def complete?
     super
-    check_dock_settings
+    defaults_complete?("Dock")
     check_dock_items
     @errors.empty?
   end
 
   private
 
-  def configure_dock_behavior
-    execute("defaults write com.apple.dock autohide -bool true")
-    execute("defaults write com.apple.dock orientation left")
-    execute("defaults write com.apple.dock autohide-delay -float 0")
-    execute("defaults write com.apple.dock autohide-time-modifier -float 0.4")
+  def config_key
+    "dock_settings"
   end
 
   def configure_dock_items
@@ -36,13 +33,6 @@ class Dotfiles::Step::ConfigureDockStep < Dotfiles::Step
 
   def inbox_tile_data
     "<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>file://#{inbox_path}/</string><key>_CFURLStringType</key><integer>15</integer></dict></dict></dict>"
-  end
-
-  def check_dock_settings
-    add_error("Dock autohide not set to true") unless defaults_read_equals?(build_read_command("com.apple.dock", "autohide"), "1")
-    add_error("Dock orientation not set to left") unless defaults_read_equals?(build_read_command("com.apple.dock", "orientation"), "left")
-    add_error("Dock autohide-delay not set to 0") unless defaults_read_equals?(build_read_command("com.apple.dock", "autohide-delay"), "0")
-    add_error("Dock autohide-time-modifier not set to 0.4") unless defaults_read_equals?(build_read_command("com.apple.dock", "autohide-time-modifier"), "0.4")
   end
 
   def check_dock_items
