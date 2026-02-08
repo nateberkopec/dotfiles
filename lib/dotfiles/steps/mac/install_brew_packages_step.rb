@@ -70,15 +70,16 @@ class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
   end
 
   def format_skipped_warning(skipped)
-    lines = ["No admin rights detected."]
-    append_skipped_items(lines, "formulae", skipped[:packages])
-    append_skipped_items(lines, "casks", skipped[:casks])
-    lines.join("\n")
+    [
+      "No admin rights detected.",
+      *skipped_items_lines("formulae", skipped[:packages]),
+      *skipped_items_lines("casks", skipped[:casks])
+    ].join("\n")
   end
 
-  def append_skipped_items(lines, label, items)
-    return if items.empty?
-    lines.concat(["\nSkipped #{label}:"] + items.map { |item| "• #{item}" })
+  def skipped_items_lines(label, items)
+    return [] if items.empty?
+    ["\nSkipped #{label}:", *items.map { |item| "• #{item}" }]
   end
 
   def log_installation_results(output, exit_status)
@@ -95,8 +96,9 @@ class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
   end
 
   def build_brewfile_content(brew_config)
-    lines = (brew_config["packages"] || []).map { |pkg| "brew \"#{pkg}\"" }
-    lines += (brew_config["casks"] || []).map { |cask| "cask \"#{cask}\"" }
-    lines.join("\n") + "\n"
+    [
+      *(brew_config["packages"] || []).map { |pkg| "brew \"#{pkg}\"" },
+      *(brew_config["casks"] || []).map { |cask| "cask \"#{cask}\"" }
+    ].join("\n") + "\n"
   end
 end

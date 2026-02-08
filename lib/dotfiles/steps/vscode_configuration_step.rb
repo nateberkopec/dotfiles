@@ -54,23 +54,12 @@ class Dotfiles::Step::VSCodeConfigurationStep < Dotfiles::Step
   def install_vscode_extensions
     return unless @system.file_exist?(extensions_file)
     debug "Installing VSCode extensions..."
-    installed = installed_extensions
-    installed_any = false
-    expected_extensions.each do |ext|
-      installed_any ||= install_extension_if_missing(ext, installed)
+    missing = expected_extensions.reject { |ext| installed_extensions.include?(ext) }
+    missing.each do |ext|
+      debug "Installing VSCode extension: #{ext}"
+      execute("code --install-extension #{ext}")
     end
-    @installed_extensions = nil if installed_any
-  end
-
-  def install_extension_if_missing(extension, installed)
-    if installed.include?(extension)
-      debug "VSCode extension already installed: #{extension}"
-      false
-    else
-      debug "Installing VSCode extension: #{extension}"
-      execute("code --install-extension #{extension}")
-      true
-    end
+    @installed_extensions = nil if missing.any?
   end
 
   def config_home

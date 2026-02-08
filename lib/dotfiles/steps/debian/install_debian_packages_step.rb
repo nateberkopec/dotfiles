@@ -95,14 +95,11 @@ class Dotfiles::Step::InstallDebianPackagesStep < Dotfiles::Step
   end
 
   def ensure_sources
-    debian_sources.reduce(false) { |changed, source| ensure_source(source) || changed }
+    debian_sources.map { |source| ensure_source(source) }.any?
   end
 
   def ensure_source(source)
-    changed = false
-    changed |= ensure_source_key(source)
-    changed |= ensure_source_list(source)
-    changed
+    [ensure_source_key(source), ensure_source_list(source)].any?
   end
 
   def ensure_source_key(source)
