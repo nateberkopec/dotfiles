@@ -34,7 +34,7 @@ jobs:
         DEBUG: true
         CI: true
         NONINTERACTIVE: true
-        MISE_CI_TOOLS: "fzf@latest,go:github.com/noperator/yknotify@latest"
+        MISE_CI_TOOLS: "fzf@latest,go@latest"
       run: |
         set -o pipefail
         cd ${{ github.workspace }}
