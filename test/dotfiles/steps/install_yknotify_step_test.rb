@@ -3,6 +3,14 @@ require "test_helper"
 class InstallYknotifyStepTest < StepTestCase
   step_class Dotfiles::Step::InstallYknotifyStep
 
+  def test_skips_in_ci
+    @fake_system.stub_macos
+    with_ci do
+      refute step.should_run?
+      assert step.complete?
+    end
+  end
+
   def test_should_run_when_yknotify_not_installed
     stub_yknotify_missing
     assert_should_run
