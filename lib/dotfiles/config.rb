@@ -63,6 +63,7 @@ class Dotfiles
     end
 
     def brew_packages
+      return ENV["BREW_CI_PACKAGES"].split(",").map(&:strip) if ENV["BREW_CI_PACKAGES"]
       package_matrix.brew_packages
     end
 
@@ -88,6 +89,7 @@ class Dotfiles
     end
 
     def brew_casks
+      return ENV["BREW_CI_CASKS"].split(",").map(&:strip) if ENV["BREW_CI_CASKS"]
       config.fetch("brew", {}).fetch("casks", [])
     end
 
