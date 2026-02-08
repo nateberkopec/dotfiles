@@ -1,4 +1,6 @@
-class Dotfiles::Step::DisableAnimationsStep < Dotfiles::Step::DefaultsStep
+class Dotfiles::Step::DisableAnimationsStep < Dotfiles::Step
+  include Dotfiles::Step::DefaultsConfigurable
+
   defaults_config_key "animation_settings"
   defaults_display_name "Animation"
 

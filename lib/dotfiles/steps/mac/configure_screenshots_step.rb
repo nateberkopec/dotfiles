@@ -1,4 +1,6 @@
-class Dotfiles::Step::ConfigureScreenshotsStep < Dotfiles::Step::DefaultsStep
+class Dotfiles::Step::ConfigureScreenshotsStep < Dotfiles::Step
+  include Dotfiles::Step::DefaultsConfigurable
+
   defaults_config_key "screenshot_settings"
   defaults_display_name "Screenshot"
 
