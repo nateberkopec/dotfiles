@@ -6,7 +6,14 @@ class Dotfiles::Step::ConfigureFileAssociationsStep < Dotfiles::Step
   end
 
   def self.depends_on
-    [Dotfiles::Step::InstallBrewPackagesStep]
+    [Dotfiles::Step::InstallBrewPackagesStep, Dotfiles::Step::InstallApplicationsStep]
+  end
+
+  def should_run?
+    return false unless allowed_on_platform?
+    return false if file_associations.empty?
+
+    file_associations.keys.any? { |bundle_id| !bundle_id_installed?(bundle_id) } || !complete?
   end
 
   def run

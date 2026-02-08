@@ -5,12 +5,27 @@ class ConfigureFileAssociationsStepTest < StepTestCase
 
   def setup
     super
+    @fake_system.stub_macos
     write_config(:file_associations, {
       "file_associations" => {
         "com.microsoft.VSCode" => [".md"]
       }
     })
     stub_bundle_installed("com.microsoft.VSCode", "/Applications/Visual Studio Code.app")
+  end
+
+  def test_should_run_when_bundle_missing
+    stub_bundle_missing("com.microsoft.VSCode")
+    assert_should_run
+  end
+
+  def test_should_not_run_when_handler_matches
+    @fake_system.stub_command(
+      "duti -x .md 2>/dev/null",
+      "Visual Studio Code\n/Applications/Visual Studio Code.app\ncom.microsoft.VSCode",
+      0
+    )
+    refute_should_run
   end
 
   def test_runs_duti_command_for_each_extension
