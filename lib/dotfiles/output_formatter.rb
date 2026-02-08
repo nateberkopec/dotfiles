@@ -2,8 +2,11 @@ require "csv"
 
 class Dotfiles
   class OutputFormatter
-    def initialize(results)
+    def initialize(results, popen_call: IO.method(:popen), system_call: Kernel.method(:system), exit_call: Kernel.method(:exit))
       @results = results
+      @popen_call = popen_call
+      @system_call = system_call
+      @exit_call = exit_call
     end
 
     def display
@@ -21,7 +24,7 @@ class Dotfiles
         csv << ["Step", "Status", "Ran?"]
         @results[:table_data].each { |row| csv << row }
       end
-      IO.popen(["gum", "table", "--border", "rounded", "--widths", "25,8,8", "--print"], "w") { |io| io.write(csv_data) }
+      @popen_call.call(["gum", "table", "--border", "rounded", "--widths", "25,8,8", "--print"], "w") { |io| io.write(csv_data) }
     end
 
     def display_errors
@@ -53,7 +56,7 @@ class Dotfiles
     def display_failure
       failed = @results[:failed_steps]
       gum_style("#ff5555", ["❌ Installation Failed!", "", "Incomplete steps:", *failed.map { |s| "• #{s}" }], border: "thick")
-      exit 1
+      @exit_call.call(1)
     end
 
     def display_success
@@ -61,7 +64,7 @@ class Dotfiles
     end
 
     def gum_style(color, lines, border: "rounded", width: 60)
-      system("gum", "style", "--foreground", color, "--border", border, "--align", "left", "--width", width.to_s, "--margin", "1 0", "--padding", "1 2", *lines)
+      @system_call.call("gum", "style", "--foreground", color, "--border", border, "--align", "left", "--width", width.to_s, "--margin", "1 0", "--padding", "1 2", *lines)
     end
   end
 end
