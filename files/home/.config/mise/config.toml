@@ -8,13 +8,13 @@ rust = "latest"
 "cargo:starship" = "latest"
 "gem:try-cli" = "latest"
 "npm:@openai/codex" = "latest"
-"npm:@anthropic-ai/claude-code" = "latest"
 "go:github.com/mikefarah/yq/v4" = "latest"
 "go:github.com/noperator/yknotify" = "latest"
 watchexec = "latest"
 fnox = "latest"
 fzf = "latest"
 zoxide = "latest"
+claude = "latest"
 
 [settings]
 idiomatic_version_file_enable_tools = ["ruby", "node"]
