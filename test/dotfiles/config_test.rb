@@ -73,4 +73,25 @@ class ConfigTest < Minitest::Test
     config = Dotfiles::Config.new(@fixtures_dir)
     assert_equal "https://github.com/test/dotfiles.git", config["dotfiles_repo"]
   end
+
+  def test_brew_ci_packages_overrides_config
+    with_env("BREW_CI_PACKAGES" => "bat, ripgrep") do
+      config = Dotfiles::Config.new(@fixtures_dir)
+      assert_equal ["bat", "ripgrep"], config.brew_packages
+    end
+  end
+
+  def test_brew_ci_casks_overrides_config
+    with_env("BREW_CI_CASKS" => "ghostty, cursor") do
+      config = Dotfiles::Config.new(@fixtures_dir)
+      assert_equal ["ghostty", "cursor"], config.brew_casks
+    end
+  end
+
+  def test_brew_ci_casks_empty_string_returns_empty_array
+    with_env("BREW_CI_CASKS" => "") do
+      config = Dotfiles::Config.new(@fixtures_dir)
+      assert_equal [], config.brew_casks
+    end
+  end
 end
