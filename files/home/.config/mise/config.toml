@@ -17,6 +17,7 @@ zoxide = "latest"
 claude = "latest"
 
 [settings]
+env_shell_expand = false
 idiomatic_version_file_enable_tools = ["ruby", "node"]
 legacy_version_file = true
 experimental = true
