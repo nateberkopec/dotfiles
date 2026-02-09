@@ -80,6 +80,7 @@ mise_tools:
   - node@lts
   - npm:@openai/codex
   - npm:@anthropic-ai/claude-code
+  - npm:@mariozechner/pi-coding-agent
   - go:github.com/mikefarah/yq/v4@latest
   - tool: go:github.com/noperator/yknotify@latest
     platforms:
@@ -158,12 +159,6 @@ trackpad_settings:
     TrackpadTwoFingerDoubleTapGesture: 1
   NSGlobalDomain:
     com.apple.mouse.scaling: 2
-dock_settings:
-  com.apple.dock:
-    autohide: 1
-    orientation: left
-    autohide-delay: 0
-    autohide-time-modifier: 0.4
 screenshot_settings:
   com.apple.screencapture:
     location: "~/Documents/Inbox"
