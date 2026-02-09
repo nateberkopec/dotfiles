@@ -16,6 +16,7 @@ class Dotfiles
       require "system_adapter"
       require "step"
       require "step/defaultable"
+      require "step/defaults_configurable"
       require "step/sudoable"
       require "step/protectable"
       require "step/launchctl"
@@ -31,6 +32,7 @@ class Dotfiles
     end
 
     def self.require_runtime
+      require "output_formatter"
       require "runner"
     end
   end

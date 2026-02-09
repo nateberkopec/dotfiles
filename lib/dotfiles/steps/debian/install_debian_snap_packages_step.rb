@@ -44,10 +44,10 @@ class Dotfiles::Step::InstallDebianSnapPackagesStep < Dotfiles::Step
   def normalize_entry(entry)
     case entry
     when Hash
-      name = hash_value(entry, :name, :snap)
+      name = entry["name"] || entry["snap"]
       {
         name: name.to_s,
-        classic: hash_value(entry, :classic) || false
+        classic: entry["classic"] || false
       }
     else
       {name: entry.to_s, classic: false}
