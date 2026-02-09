@@ -3,7 +3,6 @@ anthropic.claude-code
 castwide.solargraph
 dbaeumer.vscode-eslint
 esbenp.prettier-vscode
-github.copilot
 github.copilot-chat
 github.vscode-pull-request-github
 ms-vscode-remote.remote-containers
