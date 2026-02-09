@@ -59,7 +59,11 @@ class Dotfiles::Step::InstallMiseToolsStep < Dotfiles::Step
   end
 
   def configured_tool_entries
-    raw = @config.fetch("mise_tools", [])
+    raw = if ENV["MISE_CI_TOOLS"]
+      ENV["MISE_CI_TOOLS"].split(",").map(&:strip)
+    else
+      @config.fetch("mise_tools", [])
+    end
     Array(raw).filter_map { |entry| normalize_tool_entry(entry) }
   end
 
