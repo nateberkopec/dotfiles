@@ -98,6 +98,18 @@ class InstallMiseToolsStepTest < StepTestCase
     assert_executed(mise_install_command("node@lts"))
   end
 
+  def test_mise_ci_tools_overrides_config
+    with_env("MISE_CI_TOOLS" => "fzf@latest, zoxide@latest") do
+      @fake_system.stub_command("command -v mise >/dev/null 2>&1", "", exit_status: 0)
+      @fake_system.stub_command(mise_install_command("fzf@latest", "zoxide@latest"), "", exit_status: 0)
+      write_config("config", "mise_tools" => ["node@lts", "rust@latest"])
+
+      step.run
+
+      assert_executed(mise_install_command("fzf@latest", "zoxide@latest"))
+    end
+  end
+
   private
 
   def mise_install_command(*specs, dry_run: false)
