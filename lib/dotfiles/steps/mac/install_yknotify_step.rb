@@ -8,6 +8,7 @@ class Dotfiles::Step::InstallYknotifyStep < Dotfiles::Step
   end
 
   def should_run?
+    return false if ENV["CI"]
     !yknotify_installed? || !launchagent_installed?
   end
 
@@ -18,6 +19,7 @@ class Dotfiles::Step::InstallYknotifyStep < Dotfiles::Step
   end
 
   def complete?
+    return true if ENV["CI"]
     super
     add_error("yknotify binary not found on PATH") unless yknotify_installed?
     add_error("terminal-notifier not found on PATH") unless terminal_notifier_installed?

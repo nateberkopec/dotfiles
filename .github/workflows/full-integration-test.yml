@@ -34,8 +34,8 @@ jobs:
         DEBUG: true
         CI: true
         NONINTERACTIVE: true
-        MISE_CI_TOOLS: "fzf@latest,go:github.com/noperator/yknotify@latest"
-        BREW_CI_PACKAGES: "fish,mise"
+        MISE_CI_TOOLS: "fzf@latest"
+        BREW_CI_PACKAGES: "fish,duti,mise"
         BREW_CI_CASKS: ""
       run: |
         set -o pipefail
