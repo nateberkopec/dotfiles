@@ -34,6 +34,7 @@ jobs:
         DEBUG: true
         CI: true
         NONINTERACTIVE: true
+        GITHUB_TOKEN: ${{ github.token }}
         MISE_CI_TOOLS: "fzf@latest"
         BREW_CI_PACKAGES: "fish,duti,mise"
         BREW_CI_CASKS: ""
