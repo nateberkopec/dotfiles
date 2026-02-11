@@ -1,6 +1,6 @@
 ---
 name: implicit-subagent-router
-description: Claude Code-style automatic delegation policy for pi-subagents. Use when tasks should be routed to specialized subagents by default, with dynamic agent creation, execution, and cleanup.
+description: Use this skill to decide when subagents are worth it: delegate complex multi-step work, independent tasks that can run in parallel, context-heavy investigations that benefit from isolation, or tasks needing specialist tools/personas. Keep tiny 1-2 step requests in the main agent.
 ---
 
 # Implicit Subagent Router
