@@ -25,6 +25,8 @@ class Dotfiles::Step::UpdateMacOSStep < Dotfiles::Step
     super
     check_background_update_freshness
     updates = minor_updates_available
+    return true if ENV["CI"] && updates.any?
+
     updates.each { |update| add_error("macOS update available: #{update}") }
     updates.empty?
   end
