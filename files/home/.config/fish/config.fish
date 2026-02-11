@@ -22,7 +22,14 @@ end
 set -x LANG en_US.UTF-8
 set -x LC_ALL en_US.UTF-8
 set -x MAKEFLAGS -j(nproc)
-set -x EDITOR "code --wait"
+if status is-interactive
+  set -x EDITOR "code --wait"
+  set -x VISUAL "code --wait"
+else
+  set -x EDITOR true
+  set -x VISUAL true
+  set -x GIT_EDITOR true
+end
 set -x FZF_DEFAULT_COMMAND "fd --type f"
 set -x AGENT_CMD "droid ."
 
