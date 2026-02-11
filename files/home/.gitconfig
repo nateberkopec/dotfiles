@@ -57,3 +57,5 @@
 	program = gpg
 [diff]
         external = difft
+[include]
+	path = ~/.gitconfig.local
