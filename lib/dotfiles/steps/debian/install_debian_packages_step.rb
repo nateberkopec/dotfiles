@@ -1,6 +1,9 @@
 class Dotfiles::Step::InstallDebianPackagesStep < Dotfiles::Step
   include Dotfiles::Step::DebianPackages
 
+  CONTAINER_UNSUPPORTED_PACKAGES = %w[1password google-chrome-stable].freeze
+  CONTAINER_UNSUPPORTED_SOURCES = %w[1password google-chrome].freeze
+
   debian_only
 
   def self.display_name
@@ -34,7 +37,10 @@ class Dotfiles::Step::InstallDebianPackagesStep < Dotfiles::Step
   private
 
   def debian_sources
-    @config.fetch("debian_sources", [])
+    sources = @config.fetch("debian_sources", [])
+    return sources unless running_in_container?
+
+    sources.reject { |source| CONTAINER_UNSUPPORTED_SOURCES.include?(source["name"].to_s) }
   end
 
   def noninteractive_complete?
@@ -71,7 +77,10 @@ class Dotfiles::Step::InstallDebianPackagesStep < Dotfiles::Step
   end
 
   def configured_packages
-    @configured_packages ||= @config.packages.fetch("debian", {}).fetch("packages", []).uniq - non_apt_packages
+    @configured_packages ||= begin
+      packages = @config.packages.fetch("debian", {}).fetch("packages", []).uniq - non_apt_packages
+      running_in_container? ? (packages - CONTAINER_UNSUPPORTED_PACKAGES) : packages
+    end
   end
 
   def missing_packages
@@ -232,6 +241,10 @@ class Dotfiles::Step::InstallDebianPackagesStep < Dotfiles::Step
     %w[docker-ce docker-ce-cli containerd.io].any? do |name|
       command_succeeds?("dpkg -s #{name} >/dev/null 2>&1")
     end
+  end
+
+  def running_in_container?
+    @system.respond_to?(:running_container?) && @system.running_container?
   end
 
   def record_update_failure(output, status)

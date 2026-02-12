@@ -213,7 +213,8 @@ class Dotfiles
     end
 
     def find_fish_path
-      return @fish_path if defined?(@fish_path)
+      return @fish_path if defined?(@fish_path) && !@fish_path.to_s.empty?
+
       output, status = @system.execute("command -v fish 2>/dev/null")
       return @fish_path = output.strip if status == 0 && !output.strip.empty?
 

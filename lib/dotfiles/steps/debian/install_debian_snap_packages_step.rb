@@ -12,11 +12,12 @@ class Dotfiles::Step::InstallDebianSnapPackagesStep < Dotfiles::Step
   end
 
   def should_run?
-    allowed_on_platform? && configured? && missing_packages.any?
+    allowed_on_platform? && configured? && !skip_snap_packages? && missing_packages.any?
   end
 
   def run
     return unless configured?
+    return if skip_snap_packages?
     return unless ensure_snap_available
 
     missing_packages.each { |pkg| install_snap(pkg) }
@@ -25,6 +26,7 @@ class Dotfiles::Step::InstallDebianSnapPackagesStep < Dotfiles::Step
   def complete?
     super
     return true unless configured?
+    return true if skip_snap_packages?
     return false unless ensure_snap_available
 
     missing_packages.each { |pkg| add_error("Snap package not installed: #{pkg[:name]}") }
@@ -79,5 +81,9 @@ class Dotfiles::Step::InstallDebianSnapPackagesStep < Dotfiles::Step
     output, status = execute("#{sudo_prefix}#{args.join(" ")}")
     return if status == 0
     add_error("snap install #{pkg[:name]} failed (status #{status}): #{output}")
+  end
+
+  def skip_snap_packages?
+    @system.respond_to?(:running_container?) && @system.running_container?
   end
 end

@@ -84,6 +84,26 @@ class InstallDebianPackagesStepTest < StepTestCase
     assert_empty step.send(:missing_sources)
   end
 
+  def test_skips_amd64_only_packages_and_sources_in_container
+    @fake_system.stub_debian
+    @fake_system.stub_running_container
+    write_config(
+      "config",
+      "packages" => {
+        "one_password" => {"debian" => "1password"},
+        "chrome" => {"debian" => "google-chrome-stable"}
+      },
+      "debian_sources" => [
+        {"name" => "1password", "line" => "deb https://example.invalid stable main"},
+        {"name" => "google-chrome", "line" => "deb https://example.invalid stable main"}
+      ]
+    )
+
+    refute_should_run
+    assert_complete
+    assert_empty step.warnings
+  end
+
   private
 
   def stub_package_missing(name)

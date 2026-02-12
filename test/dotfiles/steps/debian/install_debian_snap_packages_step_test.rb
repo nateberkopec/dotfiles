@@ -29,6 +29,17 @@ class InstallDebianSnapPackagesStepTest < StepTestCase
     assert_incomplete
   end
 
+  def test_skips_snap_packages_in_container
+    @fake_system.stub_debian
+    @fake_system.stub_running_container
+    stub_snap_available
+    stub_snap_missing("ghostty")
+    write_config("config", "debian_snap_packages" => [{"name" => "ghostty", "classic" => true}])
+
+    refute_should_run
+    assert_complete
+  end
+
   private
 
   def stub_snap_available
