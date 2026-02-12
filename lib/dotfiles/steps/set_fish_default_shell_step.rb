@@ -34,7 +34,14 @@ class Dotfiles::Step::SetFishDefaultShellStep < Dotfiles::Step
       execute("chsh -s #{fish_path}")
     else
       execute("chsh -s #{fish_path} #{user}")
+      fallback_to_usermod(user) if @system.linux? && !fish_is_default?
     end
+  end
+
+  def fallback_to_usermod(user)
+    debug "chsh did not change shell; trying usermod fallback..."
+    _, status = execute("usermod --shell #{fish_path} #{user}", sudo: true)
+    add_error("Failed to set Fish shell with usermod") unless status == 0
   end
 
   def fish_path

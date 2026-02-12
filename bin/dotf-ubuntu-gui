@@ -1,0 +1,116 @@
+#!/usr/bin/env fish
+
+if test (count $argv) -gt 0
+    echo "Usage: ./bin/dotf-ubuntu-gui"
+    exit 1
+end
+
+set -l script_dir (cd (dirname (status --current-filename)); and pwd)
+set -l repo_root (dirname $script_dir)
+cd $repo_root
+
+set -l image_name dotf-ubuntu-22.04-gui
+set -l docker_platform linux/amd64
+set -g container_name dotf-ubuntu-gui-(random)
+set -l novnc_host_port 6080
+set -l vnc_host_port 5900
+set -l novnc_url "http://127.0.0.1:$novnc_host_port/vnc.html?autoconnect=1&resize=scale"
+set -g container_started 0
+
+function has_gum
+    type -q gum
+end
+
+function say --argument-names message
+    if has_gum
+        gum style --foreground 212 --bold $message
+    else
+        echo $message
+    end
+end
+
+function ensure_docker_running
+    if not type -q docker
+        say "Docker CLI not found. Install Docker/OrbStack and rerun ./bin/dotf-ubuntu-gui"
+        exit 1
+    end
+
+    set -l docker_output (docker info 2>&1)
+    if test $status -ne 0
+        if string match -qi "*orbstack*" -- $docker_output
+            say "Docker daemon is unavailable (OrbStack appears to be down). Start OrbStack and rerun ./bin/dotf-ubuntu-gui"
+        else
+            say "Docker daemon is unavailable. Start Docker/OrbStack and rerun ./bin/dotf-ubuntu-gui"
+        end
+        exit 1
+    end
+end
+
+function cleanup --on-event fish_exit
+    if test "$container_started" = "1"
+        say "Stopping container $container_name"
+        docker rm -f $container_name >/dev/null 2>&1
+    end
+end
+
+ensure_docker_running
+
+say "Building Docker image ($image_name, platform $docker_platform)..."
+if has_gum
+    gum spin --title "docker build" -- docker build --platform $docker_platform -f tools/ubuntu-22.04/Dockerfile.gui -t $image_name .
+    or exit 1
+else
+    docker build --platform $docker_platform -f tools/ubuntu-22.04/Dockerfile.gui -t $image_name .
+    or exit 1
+end
+
+say "Starting container ($container_name)..."
+docker run --detach \
+    --platform $docker_platform \
+    --name $container_name \
+    --publish 127.0.0.1:$novnc_host_port:6080 \
+    --publish 127.0.0.1:$vnc_host_port:5900 \
+    $image_name >/dev/null
+or exit 1
+set container_started 1
+sleep 1
+
+if not docker ps --filter "name=$container_name" --format '{{.Names}}' | grep -q "$container_name"
+    say "Container exited early. Recent logs:"
+    docker logs $container_name --tail 100
+    exit 1
+end
+
+set -l novnc_ready 0
+if type -q curl
+    for attempt in (seq 1 80)
+        if curl --silent --fail "http://127.0.0.1:$novnc_host_port/vnc.html" >/dev/null
+            set novnc_ready 1
+            break
+        end
+        sleep 0.25
+    end
+else
+    sleep 2
+    set novnc_ready 1
+end
+
+if test "$novnc_ready" != "1"
+    say "noVNC did not become ready on port $novnc_host_port. Recent container logs:"
+    docker logs $container_name --tail 120
+    say "noVNC log (if available):"
+    docker exec $container_name bash -lc 'test -f /tmp/novnc.log && tail -n 80 /tmp/novnc.log || echo "(no /tmp/novnc.log yet)"'
+    exit 1
+end
+
+say "Opening noVNC in browser: $novnc_url"
+if type -q open
+    open $novnc_url >/dev/null 2>&1
+else if type -q xdg-open
+    xdg-open $novnc_url >/dev/null 2>&1
+else
+    say "No browser opener found. Open manually: $novnc_url"
+end
+
+say "Streaming container logs (Ctrl-C to stop)..."
+docker logs --follow $container_name

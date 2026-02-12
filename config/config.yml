@@ -64,9 +64,8 @@ debian_sources:
     key_url: https://mise.jdx.dev/gpg-key.pub
 debian_non_apt_packages:
   - droid
-debian_snap_packages:
-  - name: ghostty
-    classic: true
+  - ghostty
+debian_snap_packages: []
 mise_tools:
   - go@latest
   - rust@latest
