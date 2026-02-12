@@ -23,6 +23,10 @@ class FakeSystemAdapter
     @debian
   end
 
+  def running_container?
+    @running_container || false
+  end
+
   def stub_macos(value = true)
     @macos = value
   end
@@ -34,6 +38,10 @@ class FakeSystemAdapter
   def stub_debian(value = true)
     @debian = value
     @linux = value
+  end
+
+  def stub_running_container(value = true)
+    @running_container = value
   end
 
   def stub_file_content(path, content)

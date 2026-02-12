@@ -31,6 +31,16 @@ class SetFishDefaultShellStepTest < Minitest::Test
     with_env("NONINTERACTIVE" => "true") { assert @step.complete? }
   end
 
+  def test_rechecks_fish_path_after_initial_miss
+    @fake_system.stub_command("command -v fish 2>/dev/null", "", exit_status: 1)
+    @fake_system.stub_command("dscl . -read ~/ UserShell", "UserShell: /usr/bin/fish")
+
+    refute @step.complete?
+
+    @fake_system.stub_file_content("/usr/bin/fish", "")
+    assert @step.complete?
+  end
+
   private
 
   def stub_shell_mismatch
