@@ -1,0 +1,50 @@
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8 \
+    DISPLAY=:1 \
+    VNC_PORT=5900 \
+    NOVNC_PORT=6080 \
+    DOTF_LOG=/tmp/dotf-run.stdout.log
+
+RUN apt-get update -y \
+    && apt-get install -y --no-install-recommends \
+        ca-certificates \
+        curl \
+        dbus-x11 \
+        git \
+        gnupg \
+        novnc \
+        procps \
+        ruby-full \
+        sudo \
+        tigervnc-common \
+        tigervnc-standalone-server \
+        tzdata \
+        websockify \
+        xfce4 \
+        xfce4-terminal \
+        xauth \
+        xterm \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN useradd -m -s /bin/bash runner \
+    && echo "runner ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/runner \
+    && chmod 0440 /etc/sudoers.d/runner
+
+WORKDIR /home/runner/dotfiles
+COPY . /home/runner/dotfiles
+COPY tools/ubuntu-22.04/entrypoint-gui.sh /usr/local/bin/dotf-ubuntu-gui-entrypoint
+
+RUN chown -R runner:runner /home/runner/dotfiles \
+    && chmod +x /home/runner/dotfiles/bin/dotf \
+    && chmod +x /home/runner/dotfiles/bin/bootstrap \
+    && chmod +x /usr/local/bin/dotf-ubuntu-gui-entrypoint
+
+USER runner
+ENV HOME=/home/runner
+
+EXPOSE 5900 6080
+
+ENTRYPOINT ["/usr/local/bin/dotf-ubuntu-gui-entrypoint"]

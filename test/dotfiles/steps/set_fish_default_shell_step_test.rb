@@ -41,6 +41,24 @@ class SetFishDefaultShellStepTest < Minitest::Test
     assert @step.complete?
   end
 
+  def test_run_falls_back_to_usermod_when_chsh_does_not_change_shell
+    @fake_system.stub_macos(false)
+    @fake_system.stub_debian
+    @fake_system.stub_running_container
+    @fake_system.stub_file_content("/etc/shells", "/usr/bin/fish\n")
+
+    @fake_system.stub_command("command -v fish 2>/dev/null", "/usr/bin/fish\n")
+    @fake_system.stub_command("id -un", "runner\n")
+    @fake_system.stub_command("id -u", "1000\n")
+    @fake_system.stub_command("getent passwd 1000", "runner:x:1000:1000::/home/runner:/bin/bash")
+    @fake_system.stub_command("chsh -s /usr/bin/fish runner", "")
+    @fake_system.stub_command("sudo usermod --shell /usr/bin/fish runner", "")
+
+    @step.run
+
+    assert @fake_system.received_operation?(:execute, "sudo usermod --shell /usr/bin/fish runner", {quiet: false})
+  end
+
   private
 
   def stub_shell_mismatch
