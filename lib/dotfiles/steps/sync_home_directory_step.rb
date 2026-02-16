@@ -34,8 +34,44 @@ class Dotfiles::Step::SyncHomeDirectoryStep < Dotfiles::Step
 
   private
 
-  def source_dir
-    File.join(@dotfiles_dir, "files", "home")
+  def source_dirs
+    dirs = [File.join(@dotfiles_dir, "files", "home")]
+    platform_dir = platform_source_dir
+    host_dir = host_source_dir
+    dirs << platform_dir if platform_dir && @system.dir_exist?(platform_dir)
+    dirs << host_dir if host_dir && @system.dir_exist?(host_dir)
+    dirs
+  end
+
+  def platform_source_dir
+    if @system.macos?
+      File.join(@dotfiles_dir, "files", "home.macos")
+    elsif @system.linux?
+      File.join(@dotfiles_dir, "files", "home.linux")
+    end
+  end
+
+  def host_source_dir
+    hostname = @system.hostname
+    return if hostname.nil? || hostname.empty?
+    File.join(@dotfiles_dir, "files", "home.hosts", hostname)
+  end
+
+  def effective_entries
+    entries_by_relative = {}
+
+    source_dirs.each do |dir|
+      merge_entries(entries_by_relative, :file, each_file_in(dir))
+      merge_entries(entries_by_relative, :symlink, each_symlink_in(dir))
+    end
+
+    entries_by_relative.values.sort_by { |entry| entry[:relative] }
+  end
+
+  def merge_entries(entries_by_relative, type, entries)
+    entries.each do |src, rel, dest|
+      entries_by_relative[rel] = {type: type, src: src, dest: dest, relative: rel}
+    end
   end
 
   def sync_all_files(from_system: false)
@@ -47,13 +83,23 @@ class Dotfiles::Step::SyncHomeDirectoryStep < Dotfiles::Step
   end
 
   def sync_from_repo_to_home
-    each_file_in(source_dir).each { |src, _, dest| sync_file(src, dest) }
-    each_symlink_in(source_dir).each { |src, _, dest| sync_symlink(src, dest) }
+    effective_entries.each { |entry| sync_entry(entry) }
   end
 
   def sync_from_home_to_repo
-    each_file_in(source_dir).each { |repo, _, dest| sync_file(dest, repo) if @system.file_exist?(dest) }
-    each_symlink_in(source_dir).each { |repo, _, dest| sync_symlink(dest, repo) if @system.symlink?(dest) }
+    effective_entries.each { |entry| sync_entry_from_home(entry) }
+  end
+
+  def sync_entry(entry)
+    apply_entry_operation(entry, file_method: :sync_file, symlink_method: :sync_symlink)
+  end
+
+  def sync_entry_from_home(entry)
+    if entry[:type] == :file
+      sync_file(entry[:dest], entry[:src]) if @system.file_exist?(entry[:dest])
+    elsif @system.symlink?(entry[:dest])
+      sync_symlink(entry[:dest], entry[:src])
+    end
   end
 
   def sync_file(from, to)
@@ -75,13 +121,16 @@ class Dotfiles::Step::SyncHomeDirectoryStep < Dotfiles::Step
   end
 
   def find_out_of_sync_files
-    files = find_out_of_sync(each_file_in(source_dir)) { |src, _, dest| file_in_sync?(src, dest) }
-    symlinks = find_out_of_sync(each_symlink_in(source_dir)) { |src, _, dest| symlink_in_sync?(src, dest) }
-    files + symlinks
+    effective_entries.reject { |entry| entry_in_sync?(entry) }
   end
 
-  def find_out_of_sync(entries, &block)
-    entries.reject(&block).map { |src, rel, dest| {src: src, dest: dest, relative: rel} }
+  def entry_in_sync?(entry)
+    apply_entry_operation(entry, file_method: :file_in_sync?, symlink_method: :symlink_in_sync?)
+  end
+
+  def apply_entry_operation(entry, file_method:, symlink_method:)
+    method = (entry[:type] == :file) ? file_method : symlink_method
+    send(method, entry[:src], entry[:dest])
   end
 
   def symlink_in_sync?(source, dest)

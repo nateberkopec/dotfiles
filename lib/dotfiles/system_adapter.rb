@@ -1,5 +1,6 @@
 require "fileutils"
 require "open3"
+require "socket"
 
 class Dotfiles
   class SystemAdapter
@@ -13,6 +14,10 @@ class Dotfiles
 
     def debian?
       linux? && File.exist?("/etc/debian_version")
+    end
+
+    def hostname
+      Socket.gethostname
     end
 
     def running_codespaces?
