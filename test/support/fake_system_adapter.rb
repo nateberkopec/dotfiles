@@ -1,5 +1,5 @@
 class FakeSystemAdapter
-  attr_reader :operations, :filesystem, :exit_statuses
+  attr_reader :operations, :filesystem, :exit_statuses, :hostname
 
   def initialize
     @operations = []
@@ -9,6 +9,7 @@ class FakeSystemAdapter
     @macos = false
     @linux = false
     @debian = false
+    @hostname = "test-host"
   end
 
   def macos?
@@ -42,6 +43,10 @@ class FakeSystemAdapter
 
   def stub_running_container(value = true)
     @running_container = value
+  end
+
+  def stub_hostname(value)
+    @hostname = value
   end
 
   def stub_file_content(path, content)

@@ -82,18 +82,68 @@ class SyncHomeDirectoryStepTest < StepTestCase
     assert_complete
   end
 
+  def test_run_prefers_platform_specific_file_over_shared_file
+    @fake_system.stub_macos
+    stub_source_file(".config/ghostty/config.platform", "font-size = 18")
+    stub_source_file(".config/ghostty/config.platform", "font-size = 16", root: "home.macos")
+
+    step.run
+
+    assert_command_run(
+      :cp,
+      source_path(".config/ghostty/config.platform", root: "home.macos"),
+      home_path(".config/ghostty/config.platform")
+    )
+    refute_command_run(
+      :cp,
+      source_path(".config/ghostty/config.platform", root: "home"),
+      home_path(".config/ghostty/config.platform")
+    )
+  end
+
+  def test_should_not_run_when_platform_specific_file_is_in_sync
+    @fake_system.stub_macos
+    stub_source_file(".config/ghostty/config.platform", "font-size = 18")
+    stub_source_file(".config/ghostty/config.platform", "font-size = 16", root: "home.macos")
+    @fake_system.stub_file_content(home_path(".config/ghostty/config.platform"), "font-size = 16")
+
+    refute_should_run
+    assert_complete
+  end
+
+  def test_run_prefers_host_specific_file_over_platform_file
+    @fake_system.stub_macos
+    @fake_system.stub_hostname("workspaces")
+    stub_source_file(".config/ghostty/config.platform", "font-size = 18")
+    stub_source_file(".config/ghostty/config.platform", "font-size = 16", root: "home.macos")
+    stub_source_file(".config/ghostty/config.platform", "font-size = 12", root: "home.hosts/workspaces")
+
+    step.run
+
+    assert_command_run(
+      :cp,
+      source_path(".config/ghostty/config.platform", root: "home.hosts/workspaces"),
+      home_path(".config/ghostty/config.platform")
+    )
+    refute_command_run(
+      :cp,
+      source_path(".config/ghostty/config.platform", root: "home.macos"),
+      home_path(".config/ghostty/config.platform")
+    )
+  end
+
   private
 
-  def source_path(relative)
-    File.join(@dotfiles_dir, "files", "home", relative)
+  def source_path(relative, root: "home")
+    File.join(@dotfiles_dir, "files", root, relative)
   end
 
   def home_path(relative)
     File.join(@home, relative)
   end
 
-  def stub_source_file(relative, content)
-    path = source_path(relative)
+  def stub_source_file(relative, content, root: "home")
+    path = source_path(relative, root: root)
     @fake_system.mkdir_p(File.dirname(path))
     @fake_system.stub_file_content(path, content)
   end

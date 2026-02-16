@@ -1,5 +1,5 @@
 theme = Retro Legends
-font-size = 18
+config-file = ./config.platform
 macos-titlebar-style = transparent
 macos-titlebar-proxy-icon = hidden
 font-feature = -calt
