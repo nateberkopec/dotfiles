@@ -80,10 +80,13 @@ mise_tools:
   - npm:@openai/codex
   - npm:@anthropic-ai/claude-code
   - npm:@mariozechner/pi-coding-agent
+  - npm:@tobilu/qmd
   - go:github.com/mikefarah/yq/v4@latest
   - tool: go:github.com/noperator/yknotify@latest
     platforms:
     - macos
+qmd_collections:
+  - ruby
 brew:
   casks:
   - nikitabobko/tap/aerospace

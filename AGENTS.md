@@ -52,6 +52,15 @@ Avoid diff noise from purely stylistic changes (e.g., `'` vs `"`). Let linters h
 - GitHub CLI for PRs/CI/releases. Given issue/PR URL (or `/pull/5`): use `gh`, not web search.
 - Examples: `gh issue view <url> --comments -R owner/repo`, `gh pr view <url> --comments --files -R owner/repo`.
 
+### qmd
+
+- Local search/RAG for document collections. Installed via mise (`npm:@tobilu/qmd`).
+- Collections defined in `config/config.yml` under `qmd_collections`, stored at `~/Documents/qmd/<name>/`.
+- Important collections to know:
+  - `ruby` - consult this collection when doing complex tasks with Ruby, such as refactoring, planning a feature, performance optimization.
+- Usage: `qmd --help`.
+- **Never commit collection contents to git.** Collections contain user documents and must remain local-only.
+
 ## Ruby
 
 Keep files ~100 LOC. Split as needed.
