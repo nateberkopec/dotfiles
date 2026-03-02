@@ -1,0 +1,214 @@
+#!/usr/bin/env python3
+"""Print labels on a Brother PT-P900W via its raster protocol over TCP."""
+
+import argparse
+import os
+import socket
+import struct
+import sys
+
+import yaml
+from PIL import Image, ImageDraw, ImageFont
+
+CONFIG_PATH = os.path.expanduser("~/.config/label/config.yaml")
+
+# PT-P900W: 560-pin print head, 70 bytes per raster line, 360 dpi
+TOTAL_PINS = 560
+BYTES_PER_LINE = 70
+DPI = 360
+
+# Tape width (mm) -> (printable pixels, right margin pins)
+TAPE_INFO = {
+    3.5: (48, 264),
+    6:   (64, 256),
+    9:   (106, 235),
+    12:  (150, 213),
+    18:  (234, 171),
+    24:  (320, 128),
+    36:  (454, 61),
+}
+
+# Tape width mm -> media byte
+TAPE_MEDIA_BYTE = {3.5: 0x04, 6: 0x06, 9: 0x09, 12: 0x0C, 18: 0x12, 24: 0x18, 36: 0x24}
+
+
+def load_config():
+    if os.path.exists(CONFIG_PATH):
+        with open(CONFIG_PATH) as f:
+            return yaml.safe_load(f) or {}
+    return {}
+
+
+def parse_args():
+    cfg = load_config()
+    p = argparse.ArgumentParser(description="Print a label on a Brother PT-P900W")
+    p.add_argument("text", help="Text to print")
+    p.add_argument("--printer-ip", default=cfg.get("printer_ip", "192.168.1.86"))
+    p.add_argument("--printer-port", type=int, default=cfg.get("printer_port", 9100))
+    p.add_argument("--tape-width", type=float, default=cfg.get("tape_width", 12),
+                    choices=sorted(TAPE_INFO.keys()))
+    p.add_argument("--font", default=cfg.get("font", "/System/Library/Fonts/Helvetica.ttc"))
+    p.add_argument("--font-index", type=int, default=cfg.get("font_index", 1),
+                    help="Face index within .ttc font collections (0=Regular, 1=Bold, ...)")
+    p.add_argument("--font-size", default=cfg.get("font_size", "auto"),
+                    help="Font size in points, or 'auto'")
+    p.add_argument("--margin", type=int, default=cfg.get("margin", 14),
+                    help="Left/right margin in pixels")
+    p.add_argument("--dry-run", action="store_true", help="Save a PNG preview instead of printing")
+    return p.parse_args()
+
+
+def render_text(text, tape_width, font_path, font_index, font_size, margin):
+    print_height, _ = TAPE_INFO[tape_width]
+
+    def load_font(size):
+        return ImageFont.truetype(font_path, size, index=font_index)
+
+    # Auto-size: largest font that fits the tape height with padding
+    if font_size == "auto" or font_size is None:
+        pad = 4
+        size = print_height - pad
+        while size > 6:
+            font = load_font(size)
+            bbox = font.getbbox(text)
+            h = bbox[3] - bbox[1]
+            if h <= print_height - pad:
+                break
+            size -= 1
+        font_size = size
+    else:
+        font_size = int(font_size)
+
+    font = load_font(font_size)
+    bbox = font.getbbox(text)
+    text_w = bbox[2] - bbox[0]
+    text_h = bbox[3] - bbox[1]
+
+    img_w = text_w + 2 * margin
+    img_h = print_height
+
+    img = Image.new("1", (img_w, img_h), color=1)  # 1-bit, white background
+    draw = ImageDraw.Draw(img)
+
+    y = (img_h - text_h) // 2 - bbox[1]
+    x = margin - bbox[0]
+    draw.text((x, y), text, font=font, fill=0)  # black text
+
+    return img
+
+
+def image_to_raster(img, tape_width):
+    """Convert a 1-bit PIL image to PT-P900W raster lines.
+
+    Each raster line is one vertical column of dots across the tape.
+    We iterate over x (label length) and map each y pixel to the
+    corresponding pin in the 560-pin print head.
+    """
+    print_height, right_margin = TAPE_INFO[tape_width]
+    pixels = img.load()
+
+    raster_lines = []
+    for x in range(img.width):
+        line = bytearray(BYTES_PER_LINE)
+        for y in range(img.height):
+            if pixels[x, y] == 0:  # black pixel
+                pin = right_margin + y
+                byte_idx = pin // 8
+                bit_idx = 7 - (pin % 8)
+                line[byte_idx] |= (1 << bit_idx)
+        raster_lines.append(bytes(line))
+
+    return raster_lines
+
+
+def build_print_job(raster_lines, tape_width, margin_dots):
+    """Assemble the full byte sequence for a PT-P900W print job."""
+    buf = bytearray()
+
+    # 1. Invalidate (clear receive buffer)
+    buf += b'\x00' * 200
+
+    # 2. Initialize
+    buf += b'\x1b\x40'
+
+    # 3. Switch to raster mode
+    buf += b'\x1b\x69\x61\x01'
+
+    # 4. Various mode: auto-cut on
+    buf += b'\x1b\x69\x4d\x40'
+
+    # 5. Advanced mode: no chain printing (cut after last label)
+    buf += b'\x1b\x69\x4b\x08'
+
+    # 6. Margin
+    buf += b'\x1b\x69\x64'
+    buf += struct.pack('<H', margin_dots)
+
+    # 7. Print information
+    num_raster = len(raster_lines)
+    media_byte = TAPE_MEDIA_BYTE[tape_width]
+    buf += b'\x1b\x69\x7a'
+    buf += bytes([
+        0xC4,        # valid flags: quality | recovery | width | media type
+        0x00,        # media type: not specified (continuous)
+        media_byte,  # media width in mm
+        0x00,        # media length (0 = continuous)
+    ])
+    buf += struct.pack('<I', num_raster)  # raster line count, LE 32-bit
+    buf += bytes([0x00, 0x00])  # page=0 (single page), reserved
+
+    # 8. No compression
+    buf += b'\x4d\x00'
+
+    # 9. Raster data
+    for line in raster_lines:
+        if line == b'\x00' * BYTES_PER_LINE:
+            buf += b'\x5a'  # blank line shortcut
+        else:
+            buf += b'\x47'
+            buf += struct.pack('<H', BYTES_PER_LINE)
+            buf += line
+
+    # 10. Print and feed (end of job)
+    buf += b'\x1a'
+
+    return bytes(buf)
+
+
+def send_to_printer(data, ip, port):
+    print(f"Connecting to {ip}:{port}...")
+    sock = socket.create_connection((ip, port), timeout=10)
+    sock.sendall(data)
+    sock.close()
+    print("Print job sent.")
+
+
+def main():
+    args = parse_args()
+
+    if args.tape_width not in TAPE_INFO:
+        print(f"Unsupported tape width: {args.tape_width}mm", file=sys.stderr)
+        sys.exit(1)
+
+    print_height, _ = TAPE_INFO[args.tape_width]
+    print(f"Tape: {args.tape_width}mm ({print_height}px height), margin: {args.margin}px")
+
+    img = render_text(args.text, args.tape_width, args.font, args.font_index, args.font_size, args.margin)
+    print(f"Label image: {img.width}x{img.height}px")
+
+    if args.dry_run:
+        out = "label_preview.png"
+        # Scale up for readability
+        preview = img.resize((img.width * 3, img.height * 3), Image.NEAREST)
+        preview.save(out)
+        print(f"Preview saved to {out}")
+        return
+
+    raster_lines = image_to_raster(img, args.tape_width)
+    data = build_print_job(raster_lines, args.tape_width, args.margin)
+    print(f"Sending {len(raster_lines)} raster lines ({len(data)} bytes)...")
+    send_to_printer(data, args.printer_ip, args.printer_port)
+
+
+if __name__ == "__main__":
+    main()

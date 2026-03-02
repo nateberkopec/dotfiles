@@ -1,0 +1,7 @@
+printer_ip: "192.168.1.86"
+printer_port: 9100
+tape_width: 12
+font: "/System/Library/Fonts/Helvetica.ttc"
+font_index: 1  # 0=Regular, 1=Bold, 2=Oblique, 3=Bold Oblique, 4=Light
+font_size: auto
+margin: 14
