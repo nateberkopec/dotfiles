@@ -2,7 +2,7 @@ require "shellwords"
 
 class Dotfiles::Step::InstallMiseToolsStep < Dotfiles::Step
   def self.depends_on
-    [Dotfiles::Step::SyncHomeDirectoryStep]
+    [Dotfiles::Step::FixMiseRubygemsPluginStep]
   end
 
   def should_run?

@@ -1,0 +1,28 @@
+{
+  "lastChangelogVersion": "0.57.1",
+  "defaultProvider": "openai-codex",
+  "defaultModel": "gpt-5.4",
+  "defaultThinkingLevel": "high",
+  "hideThinkingBlock": false,
+  "packages": [
+    "npm:pi-mcp-adapter",
+    "npm:pi-ding",
+    "npm:pi-subagents"
+  ],
+  "ding": {
+    "enabled": true,
+    "player": "afplay",
+    "path": "/System/Library/Sounds/Glass.aiff"
+  },
+  "enabledModels": [
+    "anthropic/claude-opus-4-6",
+    "openai-codex/gpt-5.3-codex",
+    "openai-codex/gpt-5.4"
+  ],
+  "retry": {
+    "enabled": true,
+    "maxRetries": 5,
+    "baseDelayMs": 2000,
+    "maxDelayMs": 30000
+  }
+}
