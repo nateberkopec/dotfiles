@@ -44,10 +44,6 @@ Avoid diff noise from purely stylistic changes (e.g., `'` vs `"`). Let linters h
 
 `ast-grep` is available. Search and Rewrite code at large scale using precise AST patterns. Good for refactor.
 
-### peekaboo
-- Screen tools. Cmds: `capture`, `see`, `click`, `list`, `tools`, `permissions status`.
-- Use to drive the entire machine: open a browser, interact with windows, etc. Use `peekaboo learn` to understand capabilities.
-
 ### gh
 - GitHub CLI for PRs/CI/releases. Given issue/PR URL (or `/pull/5`): use `gh`, not web search.
 - Examples: `gh issue view <url> --comments -R owner/repo`, `gh pr view <url> --comments --files -R owner/repo`.
