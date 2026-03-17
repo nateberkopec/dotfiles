@@ -11,4 +11,6 @@ abbr -a dfu './bin/dotf update'
 """
 
 [tools]
+fd = "latest"
 go = "latest"
+rg = "latest"
