@@ -31,7 +31,7 @@ else
   set -x GIT_EDITOR true
 end
 set -x FZF_DEFAULT_COMMAND "fd --type f"
-set -x AGENT_CMD "droid ."
+set -x AGENT_CMD "pi"
 
 # Activate mise early so cargo/gem/npm tools are available
 if command -v mise >/dev/null 2>&1

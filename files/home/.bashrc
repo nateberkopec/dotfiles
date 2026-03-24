@@ -42,7 +42,7 @@ else
 fi
 
 export FZF_DEFAULT_COMMAND="fd --type f"
-export AGENT_CMD="droid ."
+export AGENT_CMD="pi"
 
 # Activate mise early so cargo/gem/npm tools are available.
 if command -v mise >/dev/null 2>&1; then
