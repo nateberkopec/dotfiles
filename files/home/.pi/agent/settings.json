@@ -1,7 +1,7 @@
 {
   "lastChangelogVersion": "0.62.0",
-  "defaultProvider": "openai-codex",
-  "defaultModel": "gpt-5.4",
+  "defaultProvider": "google-gemini-cli",
+  "defaultModel": "gemini-2.5-pro",
   "defaultThinkingLevel": "high",
   "hideThinkingBlock": false,
   "packages": [
@@ -22,6 +22,9 @@
     "path": "/System/Library/Sounds/Glass.aiff"
   },
   "enabledModels": [
+    "google-gemini-cli/gemini-2.5-pro",
+    "google-gemini-cli/gemini-2.5-flash",
+    "google-gemini-cli/gemini-3.1-pro-preview",
     "anthropic/claude-opus-4-6",
     "openai-codex/gpt-5.3-codex",
     "openai-codex/gpt-5.4"
