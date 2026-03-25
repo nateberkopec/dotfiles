@@ -1,0 +1,99 @@
+{
+  "providers": {
+    "openrouter": {
+      "modelOverrides": {
+        "anthropic/claude-3-haiku": {
+          "compat": {
+            "openRouterRouting": {
+              "only": ["anthropic"]
+            }
+          }
+        },
+        "anthropic/claude-3.5-haiku": {
+          "compat": {
+            "openRouterRouting": {
+              "only": ["anthropic"]
+            }
+          }
+        },
+        "anthropic/claude-3.5-sonnet": {
+          "compat": {
+            "openRouterRouting": {
+              "only": ["anthropic"]
+            }
+          }
+        },
+        "anthropic/claude-3.7-sonnet": {
+          "compat": {
+            "openRouterRouting": {
+              "only": ["anthropic"]
+            }
+          }
+        },
+        "anthropic/claude-3.7-sonnet:thinking": {
+          "compat": {
+            "openRouterRouting": {
+              "only": ["anthropic"]
+            }
+          }
+        },
+        "anthropic/claude-haiku-4.5": {
+          "compat": {
+            "openRouterRouting": {
+              "only": ["anthropic"]
+            }
+          }
+        },
+        "anthropic/claude-opus-4": {
+          "compat": {
+            "openRouterRouting": {
+              "only": ["anthropic"]
+            }
+          }
+        },
+        "anthropic/claude-opus-4.1": {
+          "compat": {
+            "openRouterRouting": {
+              "only": ["anthropic"]
+            }
+          }
+        },
+        "anthropic/claude-opus-4.5": {
+          "compat": {
+            "openRouterRouting": {
+              "only": ["anthropic"]
+            }
+          }
+        },
+        "anthropic/claude-opus-4.6": {
+          "compat": {
+            "openRouterRouting": {
+              "only": ["anthropic"]
+            }
+          }
+        },
+        "anthropic/claude-sonnet-4": {
+          "compat": {
+            "openRouterRouting": {
+              "only": ["anthropic"]
+            }
+          }
+        },
+        "anthropic/claude-sonnet-4.5": {
+          "compat": {
+            "openRouterRouting": {
+              "only": ["anthropic"]
+            }
+          }
+        },
+        "anthropic/claude-sonnet-4.6": {
+          "compat": {
+            "openRouterRouting": {
+              "only": ["anthropic"]
+            }
+          }
+        }
+      }
+    }
+  }
+}
