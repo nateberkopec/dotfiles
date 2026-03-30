@@ -28,8 +28,14 @@ class Dotfiles
 
       def load_launchagent(plist_path)
         debug "Loading LaunchAgent..."
-        execute("launchctl unload #{Shellwords.escape(plist_path)} 2>/dev/null || true")
-        execute("launchctl load #{Shellwords.escape(plist_path)}")
+        domain = "gui/#{Process.uid}"
+        service = "#{domain}/#{File.basename(plist_path, ".plist")}"
+        escaped_path = Shellwords.escape(plist_path)
+
+        execute("launchctl bootout #{Shellwords.escape(domain)} #{escaped_path} 2>/dev/null || true")
+        execute("launchctl enable #{Shellwords.escape(service)}")
+        execute("launchctl bootstrap #{Shellwords.escape(domain)} #{escaped_path}")
+        execute("launchctl kickstart -k #{Shellwords.escape(service)}")
       end
 
       def load_launchdaemon(plist_path)

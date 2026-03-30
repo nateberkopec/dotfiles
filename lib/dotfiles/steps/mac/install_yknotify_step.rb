@@ -9,12 +9,12 @@ class Dotfiles::Step::InstallYknotifyStep < Dotfiles::Step
 
   def should_run?
     return false if ENV["CI"]
-    !yknotify_installed? || !launchagent_installed?
+    !yknotify_installed? || !script_current? || !launchagent_current? || !launchagent_loaded?
   end
 
   def run
-    install_yknotify_script unless script_installed?(script_path)
-    install_plist(launchagent_path, plist_content) unless plist_installed?(launchagent_path)
+    install_yknotify_script unless script_current?
+    install_plist(launchagent_path, plist_content) unless launchagent_current?
     load_launchagent(launchagent_path)
   end
 
@@ -23,7 +23,9 @@ class Dotfiles::Step::InstallYknotifyStep < Dotfiles::Step
     super
     add_error("yknotify binary not found on PATH") unless yknotify_installed?
     add_error("terminal-notifier not found on PATH") unless terminal_notifier_installed?
-    add_error("LaunchAgent not installed at #{launchagent_path}") unless launchagent_installed?
+    add_error("yknotify script not installed at #{script_path}") unless script_current?
+    add_error("LaunchAgent not installed at #{launchagent_path}") unless launchagent_current?
+    add_error("LaunchAgent not loaded: #{launchagent_label}") unless launchagent_loaded?
     @errors.empty?
   end
 
@@ -37,8 +39,16 @@ class Dotfiles::Step::InstallYknotifyStep < Dotfiles::Step
     command_exists?("terminal-notifier")
   end
 
-  def launchagent_installed?
-    plist_installed?(launchagent_path)
+  def script_current?
+    file_installed_with_content?(script_path, script_content)
+  end
+
+  def launchagent_current?
+    file_installed_with_content?(launchagent_path, plist_content)
+  end
+
+  def launchagent_loaded?
+    command_succeeds?("launchctl print gui/#{Process.uid}/#{launchagent_label} >/dev/null 2>&1")
   end
 
   def install_yknotify_script
@@ -67,9 +77,16 @@ class Dotfiles::Step::InstallYknotifyStep < Dotfiles::Step
     File.join(@home, "Library/LaunchAgents/com.user.yknotify.plist")
   end
 
-  def yknotify_bin_path
-    output, status = @system.execute("which yknotify 2>/dev/null")
-    output.strip if status == 0 && !output.strip.empty?
+  def launchagent_label
+    File.basename(launchagent_path, ".plist")
+  end
+
+  def file_installed_with_content?(path, content)
+    @system.file_exist?(path) && @system.read_file(path) == content
+  end
+
+  def mise_bin_path
+    "/opt/homebrew/opt/mise/bin/mise"
   end
 
   def terminal_notifier_path
@@ -81,37 +98,39 @@ class Dotfiles::Step::InstallYknotifyStep < Dotfiles::Step
       #!/bin/bash
 
       # List of sounds: https://apple.stackexchange.com/a/479714
+      export PATH="#{@home}/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 
-      # Adjust as needed
-      YKNTFY_BIN="#{yknotify_bin_path}"
+      MISE_BIN="#{mise_bin_path}"
+      YKNTFY_BIN="$($MISE_BIN which yknotify 2>/dev/null)"
+      if [[ -z "$YKNTFY_BIN" ]]; then
+          YKNTFY_BIN="$(command -v yknotify 2>/dev/null)"
+      fi
+      if [[ -z "$YKNTFY_BIN" || ! -x "$YKNTFY_BIN" ]]; then
+          echo "yknotify binary not found" >&2
+          exit 1
+      fi
 
-      # brew install terminal-notifier
       TERM_NTFY_BIN="#{terminal_notifier_path}"
+      ICON_PATH="#{icon_path}"
 
       # Tighten log predicate to reduce background CPU usage.
       YKNTFY_PREDICATE='(processImagePath == "/kernel" AND senderImagePath ENDSWITH "IOHIDFamily" AND (eventMessage CONTAINS "IOHIDLibUserClient" OR eventMessage CONTAINS "AppleUserUSBHostHIDDevice" OR eventMessage ENDSWITH "startQueue" OR eventMessage ENDSWITH "stopQueue")) OR (processImagePath ENDSWITH "usbsmartcardreaderd" AND subsystem CONTAINS "CryptoTokenKit")'
       YKNTFY_ARGS=(-predicate "$YKNTFY_PREDICATE")
 
-      # Stream yknotify output and process each line
       LAST_NTFY=0
       while IFS= read -r line; do
-
-          # 2-second delay between notifications
           NOW="$(date +%s)"
           if [[ "$NOW" -le "$((LAST_NTFY + 2))" ]]; then
               continue
           fi
           LAST_NTFY="$NOW"
 
-          # Send notification using terminal-notifier
           message="$(echo "$line" | jq -r '.type')"
           if [[ -x "$TERM_NTFY_BIN" ]]; then
-              "$TERM_NTFY_BIN" -title "YubiKey" -message "Touch to confirm $message" -sound Submarine -ignoreDnD -contentImage "#{icon_path}"
+              "$TERM_NTFY_BIN" -title "YubiKey" -message "Touch to confirm $message" -sound Submarine -ignoreDnD -contentImage "$ICON_PATH"
           else
-              # Fallback to AppleScript if terminal-notifier is not installed
               osascript -e "display notification \\"$message\\" with title \\"yknotify\\""
           fi
-
       done < <("$YKNTFY_BIN" "${YKNTFY_ARGS[@]}")
     BASH
   end
