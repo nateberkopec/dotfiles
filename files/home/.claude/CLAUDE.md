@@ -54,3 +54,19 @@ I keep useful information in qmd. This useful information is stored in "document
   - `ruby-perf` - consult this collection when doing complex tasks with Ruby performance.
 - Usage: `qmd --help`.
 - **Never commit collection contents to git.** Collections contain user documents and must remain local-only.
+
+## General project setup and structure
+
+I may ask you to "set up my standard dev environment" or "change to my standard dev approach". That means this.
+
+In general, my development environments all have the following structure:
+
+* **All tools configured via mise**. If I own the repo and it's mostly mine, I commit the `mise.toml` file and work in there. If it's someone else's repo (most commits are not mine) and `mise.toml` does not exist, I'll put my mise config in `mise.local.toml`. I install all dev tools this way.
+* **Project tasks have frontends as mise task** I like to have the following standard sets of mise tasks:
+  * `test`
+  * `serve` or `dev`, which may use [pitchfork](https://pitchfork.jdx.dev/) for running multiple processes.
+  * `lint`
+  * `build`, for artifacts
+* **I like git hooks, and manage them with `hk`** This [project](https://hk.jdx.dev/) manages git hooks.
+  * `hk` runs hooks in parallel, so rather than have one shell task that combines things, like lint and test, split them out so hk runs them in parallel.
+  * I almost always want linting and testing to run before every commit.
