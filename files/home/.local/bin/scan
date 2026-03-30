@@ -134,8 +134,6 @@ def parse_args():
     p.add_argument("--dpi", type=int, default=cfg.get("dpi", 300),
                    choices=[75, 100, 150, 200, 300, 600],
                    help="Scan resolution (default: 300)")
-    p.add_argument("--open", action="store_true", default=cfg.get("open", False),
-                   help="Open the scanned file after saving")
     return p.parse_args()
 
 
@@ -168,8 +166,6 @@ def main():
     os.rename(tmp_path, output)
     print(output)
 
-    if args.open:
-        subprocess.run(["open", output])
 
 
 if __name__ == "__main__":
