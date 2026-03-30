@@ -41,15 +41,6 @@ class Dotfiles
       config["home"] || ENV["HOME"]
     end
 
-    def unmanaged_apps
-      config.fetch("unmanaged_apps", [])
-    end
-
-    def unmanaged_apps=(list)
-      @config ||= {}
-      @config["unmanaged_apps"] = list
-    end
-
     def [](key)
       config[key]
     end

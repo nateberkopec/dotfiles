@@ -117,14 +117,6 @@ applications:
 - name: Arc
   path: "/Applications/Arc.app"
   brew_cask: arc
-unmanaged_apps:
-- "/Applications/Safari.app"
-- "/Applications/Deckset.app"
-- "/Applications/Screen Studio.app"
-- "/Applications/Monologue.app"
-- "/Applications/Effortless.app"
-- "/Applications/Conductor.app"
-- "/Applications/Zwift.app"
 animation_settings:
   NSGlobalDomain:
     NSAutomaticWindowAnimationsEnabled: 0
