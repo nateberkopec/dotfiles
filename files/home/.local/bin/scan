@@ -1,0 +1,172 @@
+#!/usr/bin/env python3
+"""Scan a document from a network scanner (Canon TS3500 / eSCL AirScan) via ImageCaptureCore."""
+
+import argparse
+import os
+import subprocess
+import sys
+import tempfile
+import textwrap
+
+CONFIG_PATH = os.path.expanduser("~/.config/scan/config.yaml")
+
+SWIFT_SRC = textwrap.dedent("""\
+    import ImageCaptureCore
+    import AppKit
+    import Foundation
+    import UniformTypeIdentifiers
+
+    class ScanDelegate: NSObject, ICDeviceBrowserDelegate, ICScannerDeviceDelegate {
+        var browser: ICDeviceBrowser!
+        var scanner: ICScannerDevice?
+        let outputPath: String
+        let resolution: Int
+
+        init(outputPath: String, resolution: Int) {
+            self.outputPath = outputPath
+            self.resolution = resolution
+        }
+
+        func start() {
+            browser = ICDeviceBrowser()
+            browser.delegate = self
+            browser.browsedDeviceTypeMask = ICDeviceTypeMask(rawValue:
+                ICDeviceTypeMask.scanner.rawValue | 0x400 | 0x100)!
+            browser.start()
+        }
+
+        func didRemove(_ device: ICDevice) {}
+        func device(_ device: ICDevice, didOpenSessionWithError error: Error?) {
+            guard let s = scanner else { return }
+            s.requestSelect(.flatbed)
+        }
+        func device(_ device: ICDevice, didCloseSessionWithError error: Error?) {}
+
+        func deviceBrowser(_ browser: ICDeviceBrowser, didAdd device: ICDevice, moreComing: Bool) {
+            if let s = device as? ICScannerDevice, scanner == nil {
+                scanner = s
+                s.delegate = self
+                s.requestOpenSession()
+            }
+        }
+        func deviceBrowser(_ browser: ICDeviceBrowser, didRemove device: ICDevice, moreGoing: Bool) {}
+
+        func scannerDevice(_ scanner: ICScannerDevice, didSelect functionalUnit: ICScannerFunctionalUnit, error: Error?) {
+            guard let flatbed = functionalUnit as? ICScannerFunctionalUnitFlatbed else { return }
+            if error != nil { return }  // first call often fails; second succeeds
+            flatbed.pixelDataType = .RGB
+            flatbed.bitDepth = .depth8Bits
+            flatbed.resolution = resolution
+            let size = flatbed.physicalSize
+            flatbed.scanArea = NSMakeRect(0, 0, size.width, size.height)
+            scanner.transferMode = .fileBased
+            scanner.downloadsDirectory = URL(fileURLWithPath: NSTemporaryDirectory())
+            scanner.documentName = "scan_output"
+            scanner.documentUTI = UTType.jpeg.identifier
+            scanner.requestScan()
+        }
+
+        func scannerDevice(_ scanner: ICScannerDevice, didCompleteScanWithError error: Error?) {
+            if let e = error { fputs("Scan error: \\(e)\\n", stderr) }
+            CFRunLoopStop(CFRunLoopGetMain())
+        }
+
+        func scannerDevice(_ scanner: ICScannerDevice, didScanTo url: URL) {
+            let dest = URL(fileURLWithPath: outputPath)
+            try? FileManager.default.removeItem(at: dest)
+            try? FileManager.default.copyItem(at: url, to: dest)
+            CFRunLoopStop(CFRunLoopGetMain())
+        }
+    }
+
+    let args = CommandLine.arguments
+    let output = args.count > 1 ? args[1] : "/tmp/scan_output.jpeg"
+    let dpi    = args.count > 2 ? Int(args[2]) ?? 300 : 300
+    let delegate = ScanDelegate(outputPath: output, resolution: dpi)
+    delegate.start()
+    CFRunLoopRunInMode(.defaultMode, 60, false)
+""")
+
+BINARY_PATH = os.path.expanduser("~/.local/share/scan/scanner_helper")
+
+
+def load_config():
+    if os.path.exists(CONFIG_PATH):
+        try:
+            import yaml
+            with open(CONFIG_PATH) as f:
+                return yaml.safe_load(f) or {}
+        except ImportError:
+            pass
+    return {}
+
+
+def ensure_helper():
+    """Compile the Swift ImageCaptureCore helper if not present or source changed."""
+    os.makedirs(os.path.dirname(BINARY_PATH), exist_ok=True)
+    src_path = BINARY_PATH + ".swift"
+
+    needs_compile = (
+        not os.path.exists(BINARY_PATH)
+        or not os.path.exists(src_path)
+        or open(src_path).read() != SWIFT_SRC
+    )
+
+    if needs_compile:
+        print("Compiling scanner helper...", file=sys.stderr)
+        with open(src_path, "w") as f:
+            f.write(SWIFT_SRC)
+        result = subprocess.run(
+            ["swiftc", src_path, "-o", BINARY_PATH,
+             "-framework", "ImageCaptureCore", "-framework", "AppKit"],
+            capture_output=True, text=True
+        )
+        if result.returncode != 0:
+            print(result.stderr, file=sys.stderr)
+            sys.exit(1)
+
+
+def parse_args():
+    cfg = load_config()
+    p = argparse.ArgumentParser(description="Scan a document via AirScan/eSCL (Canon TS3500 or compatible)")
+    p.add_argument("output", nargs="?",
+                   help="Output file path (default: scan_YYYYMMDD_HHMMSS.jpeg in current dir)")
+    p.add_argument("--dpi", type=int, default=cfg.get("dpi", 300),
+                   choices=[75, 100, 150, 200, 300, 600],
+                   help="Scan resolution (default: 300)")
+    return p.parse_args()
+
+
+def default_output_path():
+    from datetime import datetime
+    stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    return os.path.join(os.getcwd(), f"scan_{stamp}.jpeg")
+
+
+def main():
+    args = parse_args()
+    output = os.path.abspath(args.output or default_output_path())
+
+    ensure_helper()
+
+    # ImageCaptureCore needs a GUI session; if running headless, warn.
+    with tempfile.NamedTemporaryFile(suffix=".jpeg", delete=False) as tmp:
+        tmp_path = tmp.name
+
+    print(f"Scanning at {args.dpi} DPI...", file=sys.stderr)
+    result = subprocess.run([BINARY_PATH, tmp_path, str(args.dpi)])
+    if result.returncode != 0:
+        print("Scan failed.", file=sys.stderr)
+        sys.exit(1)
+
+    if not os.path.exists(tmp_path) or os.path.getsize(tmp_path) == 0:
+        print("No output produced. Is the scanner on and reachable?", file=sys.stderr)
+        sys.exit(1)
+
+    os.rename(tmp_path, output)
+    print(output)
+
+
+
+if __name__ == "__main__":
+    main()
