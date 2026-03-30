@@ -1,3 +1,5 @@
+set -gx MISE_FISH_AUTO_ACTIVATE 0
+
 if status is-interactive
   # macOS Homebrew setup
   if test -f /opt/homebrew/bin/brew
