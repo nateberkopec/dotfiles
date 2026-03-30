@@ -30,38 +30,27 @@ Whenever you open a pull request with `gh pr`, leave the description blank.
 
 Avoid diff noise from purely stylistic changes (e.g., `'` vs `"`). Let linters handle style automatically.
 
-## Critical Thinking
-- Fix root cause (not band-aid).
-- Unsure: read more code; if still stuck, ask w/ short options.
-- Conflicts: call out; pick safer path.
-- Unrecognized changes: assume other agent; keep going; focus your changes. If it causes issues, stop + ask user.
-- Leave breadcrumb notes in thread.
+Use boolean expressions with implicit return for predicate methods, not guard clauses or case statements with literal true/false.
 
-## Tools
-
-### ast-grep
-
-`ast-grep` is available. Search and Rewrite code at large scale using precise AST patterns. Good for refactor.
-
-### gh
+## gh
 - GitHub CLI for PRs/CI/releases. Given issue/PR URL (or `/pull/5`): use `gh`, not web search.
 - Examples: `gh issue view <url> --comments -R owner/repo`, `gh pr view <url> --comments --files -R owner/repo`.
 
-## Ruby
+## Important Locations on My System
 
-Keep files ~100 LOC. Split as needed.
+My dotfiles in live ~/.dotfiles. See the README.md there for info on how they work.
 
-### Testing Principles
+My "inbox" is in ~/Documents/Inbox. Screenshots go there by default.
 
-- Never test the type or shape of return values. Tests should verify behavior, not implementation details or data structures.
-- Each public method should have a test for its default return value with no setup.
-- When testing that a method returns the same value as its default, first establish setup that would make it return the opposite without your intervention. Otherwise the test is meaningless.
-- Keep variables as close as possible to where they're used. Don't put them in setup or as constants at the top of the test class.
+Rather than dirty up the present working directory, I like to put "temporary" work files in ./tmp if it exists or /tmp if it does not.
 
-### Code Style
+## qmd
 
-- Use boolean expressions with implicit return for predicate methods, not guard clauses or case statements with literal true/false.
+I keep useful information in qmd. This useful information is stored in "document collections".
 
-## Dotfiles
-
-My dotfiles in live ~/.dotfiles. See the README.md there for info on how they work. Dotfiles are made of "steps".
+- Local search/RAG for document collections. Installed via mise (`npm:@tobilu/qmd`).
+- Important collections to know:
+  - `ruby` - consult this collection when doing complex tasks with Ruby, such as refactoring, planning a feature.
+  - `ruby-perf` - consult this collection when doing complex tasks with Ruby performance.
+- Usage: `qmd --help`.
+- **Never commit collection contents to git.** Collections contain user documents and must remain local-only.
