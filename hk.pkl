@@ -1,0 +1,20 @@
+amends "package://github.com/jdx/hk/releases/download/v1.39.0/hk@1.39.0#/Config.pkl"
+
+hooks {
+  ["pre-commit"] {
+    steps {
+      ["standard"] {
+        check = "mise run lint:standard"
+      }
+      ["flog"] {
+        check = "mise run lint:flog"
+      }
+      ["flay"] {
+        check = "mise run lint:flay"
+      }
+      ["test"] {
+        check = "mise run test"
+      }
+    }
+  }
+}

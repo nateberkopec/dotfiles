@@ -4,7 +4,7 @@
   "features": {
     "ghcr.io/meaningful-ooo/devcontainer-features/fish:1": {}
   },
-  "postCreateCommand": "bin/bootstrap && bundle install && bin/dotf run",
+  "postCreateCommand": "bin/bootstrap && mise install && mise run setup && mise run dev",
   "customizations": {
     "vscode": {
       "settings": {
