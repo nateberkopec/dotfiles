@@ -4,6 +4,7 @@ require "json"
 
 class ConfigSyntaxTest < Minitest::Test
   FILES_DIR = File.expand_path("../files", __dir__)
+  ROOT_DIR = File.expand_path("..", __dir__)
 
   def self.define_format_tests(glob, format)
     Dir.glob("#{FILES_DIR}/**/#{glob}", File::FNM_DOTMATCH).each do |path|
@@ -15,6 +16,10 @@ class ConfigSyntaxTest < Minitest::Test
   define_format_tests("*.toml", "toml")
   define_format_tests("*.{json}", "json")
   define_format_tests("*.{yaml,yml}", "yaml")
+
+  def test_repo_mise_toml_is_valid_toml
+    validate_toml(File.join(ROOT_DIR, ".mise.toml"))
+  end
 
   private
 

@@ -11,6 +11,43 @@ abbr -a dfu './bin/dotf update'
 """
 
 [tools]
+ruby = "latest"
+hk = "latest"
 fd = "latest"
 go = "latest"
 rg = "latest"
+
+[tasks.setup]
+description = "Install gem dependencies and Git hooks"
+run = """
+bundle install
+hk install
+"""
+
+[tasks."lint:standard"]
+description = "Run standardrb"
+run = "bundle exec standardrb"
+
+[tasks."lint:flog"]
+description = "Run flog complexity checks"
+run = "bundle exec rake flog"
+
+[tasks."lint:flay"]
+description = "Run flay duplication checks"
+run = "bundle exec rake flay"
+
+[tasks.lint]
+description = "Run all lint checks"
+depends = ["lint:standard", "lint:flog", "lint:flay"]
+
+[tasks.test]
+description = "Run the test suite"
+run = "bundle exec rake test"
+
+[tasks.dev]
+description = "Run dotfiles setup on the current machine"
+run = "./bin/dotf run"
+
+[tasks.build]
+description = "Build the Ubuntu 22.04 test container"
+run = "docker build --platform linux/amd64 -f tools/ubuntu-22.04/Dockerfile -t dotfiles-ubuntu-22.04 ."
