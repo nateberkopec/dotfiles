@@ -35,7 +35,13 @@ set -x AGENT_CMD "pi"
 
 # Activate mise early so cargo/gem/npm tools are available
 if command -v mise >/dev/null 2>&1
-  mise activate fish | source
+  mise activate fish --no-hook-env | source
+  mise hook-env -s fish | source
+
+  function __mise_refresh_on_cd --on-variable PWD
+    mise hook-env -s fish | source
+  end
+
   set -gx PATH ~/.cargo/bin $PATH
 end
 
