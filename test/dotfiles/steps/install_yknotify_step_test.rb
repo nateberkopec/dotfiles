@@ -23,8 +23,33 @@ class InstallYknotifyStepTest < StepTestCase
 
   def test_should_not_run_when_fully_installed
     stub_yknotify_on_path
-    @fake_system.write_file(launchagent_path, "")
+    stub_launchagent_loaded
+    install_current_files
     refute_should_run
+  end
+
+  def test_should_run_when_script_is_stale
+    stub_yknotify_on_path
+    install_current_files
+    @fake_system.write_file(script_path, "#!/bin/bash\n")
+
+    assert_should_run
+  end
+
+  def test_should_run_when_launchagent_is_stale
+    stub_yknotify_on_path
+    install_current_files
+    @fake_system.write_file(launchagent_path, "<plist/>\n")
+
+    assert_should_run
+  end
+
+  def test_should_run_when_launchagent_is_unloaded
+    stub_yknotify_on_path
+    stub_launchagent_unloaded
+    install_current_files
+
+    assert_should_run
   end
 
   def test_run_installs_script_to_xdg_data_dir
@@ -45,16 +70,19 @@ class InstallYknotifyStepTest < StepTestCase
   def test_run_loads_launchagent
     step.run
 
-    assert_executed("launchctl unload #{launchagent_path} 2>/dev/null || true")
-    assert_executed("launchctl load #{launchagent_path}")
+    assert_executed("launchctl bootout gui/#{Process.uid} #{launchagent_path} 2>/dev/null || true")
+    assert_executed("launchctl enable gui/#{Process.uid}/com.user.yknotify")
+    assert_executed("launchctl bootstrap gui/#{Process.uid} #{launchagent_path}")
+    assert_executed("launchctl kickstart -k gui/#{Process.uid}/com.user.yknotify")
   end
 
-  def test_script_contains_correct_paths
-    stub_which_yknotify
+  def test_script_resolves_yknotify_at_runtime
     step.run
 
     content = @fake_system.read_file(script_path)
-    assert_includes content, "#{@home}/.local/share/mise/installs/go/latest/bin/yknotify"
+    assert_includes content, "MISE_BIN=\"/opt/homebrew/opt/mise/bin/mise\""
+    assert_includes content, 'YKNTFY_BIN="$($MISE_BIN which yknotify 2>/dev/null)"'
+    assert_includes content, "#{@home}/.local/bin:/opt/homebrew/bin"
     assert_includes content, "/opt/homebrew/bin/terminal-notifier"
   end
 
@@ -68,7 +96,8 @@ class InstallYknotifyStepTest < StepTestCase
   def test_complete_when_all_installed
     stub_yknotify_on_path
     stub_terminal_notifier_on_path
-    @fake_system.write_file(launchagent_path, "")
+    stub_launchagent_loaded
+    install_current_files
 
     assert_complete
   end
@@ -76,7 +105,8 @@ class InstallYknotifyStepTest < StepTestCase
   def test_incomplete_when_yknotify_missing
     stub_yknotify_missing
     stub_terminal_notifier_on_path
-    @fake_system.write_file(launchagent_path, "")
+    stub_launchagent_loaded
+    install_current_files
 
     assert_incomplete
   end
@@ -84,7 +114,17 @@ class InstallYknotifyStepTest < StepTestCase
   def test_incomplete_when_terminal_notifier_missing
     stub_yknotify_on_path
     stub_terminal_notifier_missing
-    @fake_system.write_file(launchagent_path, "")
+    stub_launchagent_loaded
+    install_current_files
+
+    assert_incomplete
+  end
+
+  def test_incomplete_when_script_missing
+    stub_yknotify_on_path
+    stub_terminal_notifier_on_path
+    stub_launchagent_loaded
+    @fake_system.write_file(launchagent_path, step.send(:plist_content))
 
     assert_incomplete
   end
@@ -92,6 +132,16 @@ class InstallYknotifyStepTest < StepTestCase
   def test_incomplete_when_launchagent_missing
     stub_yknotify_on_path
     stub_terminal_notifier_on_path
+    @fake_system.write_file(script_path, step.send(:script_content))
+
+    assert_incomplete
+  end
+
+  def test_incomplete_when_launchagent_unloaded
+    stub_yknotify_on_path
+    stub_terminal_notifier_on_path
+    stub_launchagent_unloaded
+    install_current_files
 
     assert_incomplete
   end
@@ -104,7 +154,6 @@ class InstallYknotifyStepTest < StepTestCase
 
   def stub_yknotify_missing
     @fake_system.stub_command("command -v yknotify >/dev/null 2>&1", "", 1)
-    @fake_system.stub_command("which yknotify 2>/dev/null", "", 1)
   end
 
   def stub_terminal_notifier_on_path
@@ -115,8 +164,17 @@ class InstallYknotifyStepTest < StepTestCase
     @fake_system.stub_command("command -v terminal-notifier >/dev/null 2>&1", "", 1)
   end
 
-  def stub_which_yknotify
-    @fake_system.stub_command("which yknotify 2>/dev/null", "#{@home}/.local/share/mise/installs/go/latest/bin/yknotify", 0)
+  def stub_launchagent_loaded
+    @fake_system.stub_command("launchctl print gui/#{Process.uid}/com.user.yknotify >/dev/null 2>&1", "", 0)
+  end
+
+  def stub_launchagent_unloaded
+    @fake_system.stub_command("launchctl print gui/#{Process.uid}/com.user.yknotify >/dev/null 2>&1", "", 1)
+  end
+
+  def install_current_files
+    @fake_system.write_file(script_path, step.send(:script_content))
+    @fake_system.write_file(launchagent_path, step.send(:plist_content))
   end
 
   def script_dir
