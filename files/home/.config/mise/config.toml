@@ -16,7 +16,7 @@ fnox = "latest"
 fzf = "latest"
 zoxide = "latest"
 claude = "latest"
-"npm:@tobilu/qmd" = latest
+"npm:@tobilu/qmd" = "latest"
 
 [settings]
 env_shell_expand = false
