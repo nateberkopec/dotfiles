@@ -17,8 +17,6 @@
   "git.confirmSync": false,
   "git.openRepositoryInParentFolders": "always",
 
-  "github.copilot.chat.agent.thinkingTool": true,
-  "github.copilot.chat.codesearch.enabled": true,
   "github.copilot.enable": {
     "*": true,
     "comment": false,
@@ -99,11 +97,9 @@
   "vscode-yaml-sort.customSortKeywords_2": ["name"]
   ,
   "dev.containers.defaultExtensions": [
-    "anthropic.claude-code",
     "castwide.solargraph",
     "dbaeumer.vscode-eslint",
     "esbenp.prettier-vscode",
-    "github.copilot-chat",
     "ms-vscode.wordcount",
     "redhat.vscode-yaml",
     "rvest.vs-code-prettier-eslint",

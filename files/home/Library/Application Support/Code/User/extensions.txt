@@ -1,15 +1,10 @@
 4ops.terraform
-anthropic.claude-code
 castwide.solargraph
 dbaeumer.vscode-eslint
 esbenp.prettier-vscode
-github.copilot-chat
-github.vscode-pull-request-github
 ms-vscode-remote.remote-containers
 ms-vscode-remote.remote-ssh
 ms-vscode-remote.remote-ssh-edit
-ms-vscode-remote.remote-wsl
-ms-vscode-remote.vscode-remote-extensionpack
 ms-vscode.remote-explorer
 ms-vscode.remote-server
 ms-vscode.wordcount
