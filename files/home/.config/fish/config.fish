@@ -1,7 +1,13 @@
 if status is-interactive
   # macOS Homebrew setup
-  if test -f /opt/homebrew/bin/brew
-    eval (/opt/homebrew/bin/brew shellenv)
+  if test -d /opt/homebrew
+    set -gx HOMEBREW_PREFIX /opt/homebrew
+    set -gx HOMEBREW_CELLAR /opt/homebrew/Cellar
+    set -gx HOMEBREW_REPOSITORY /opt/homebrew
+    fish_add_path -g -m /opt/homebrew/bin /opt/homebrew/sbin
+    if test -d /opt/homebrew/share/info
+      contains /opt/homebrew/share/info $INFOPATH; or set -gx INFOPATH /opt/homebrew/share/info $INFOPATH
+    end
   end
 end
 fish_add_path ~/go/bin
