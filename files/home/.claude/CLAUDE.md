@@ -26,6 +26,8 @@ Destructive ops forbidden unless explicit (`reset --hard`, `clean`, `restore`, `
 
 Whenever you open a pull request with `gh pr`, leave the description blank.
 
+For commits which only change markdown or docs, with no code changes, add `[ci skip]` to the commit message only when CI is not required for merge.
+
 ## Code Changes
 
 Avoid diff noise from purely stylistic changes (e.g., `'` vs `"`). Let linters handle style automatically.
