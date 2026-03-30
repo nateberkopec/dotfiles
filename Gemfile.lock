@@ -2,6 +2,7 @@ GEM
   remote: https://rubygems.org/
   specs:
     ast (2.4.3)
+    citrus (3.0.2)
     csv (3.3.5)
     erubi (1.13.1)
     flay (2.14.1)
@@ -60,6 +61,9 @@ GEM
     standard-performance (1.9.0)
       lint_roller (~> 1.1)
       rubocop-performance (~> 1.26.0)
+    toml-rb (4.1.0)
+      citrus (~> 3.0, > 3.0)
+      racc (~> 1.7)
     unicode-display_width (3.2.0)
       unicode-emoji (~> 4.1)
     unicode-emoji (4.2.0)
@@ -75,6 +79,7 @@ DEPENDENCIES
   minitest
   rake
   standard
+  toml-rb
 
 BUNDLED WITH
    2.7.0
