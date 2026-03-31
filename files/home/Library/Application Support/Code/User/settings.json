@@ -17,12 +17,9 @@
   "git.confirmSync": false,
   "git.openRepositoryInParentFolders": "always",
 
-  "github.copilot.enable": {
-    "*": true,
-    "comment": false,
-    "git-commit": false
-  },
-  "github.copilot.nextEditSuggestions.enabled": true,
+  "chat.agent.enabled": false,
+  "chat.commandCenter.enabled": false,
+  "workbench.secondarySideBar.defaultVisibility": "hidden",
 
   "cSpell.enabledFileTypes": {
     "*": false
