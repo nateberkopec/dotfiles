@@ -77,6 +77,9 @@ mise_tools:
   - cargo:starship
   - gem:try-cli
   - node@lts
+  - python@latest
+  - pipx@latest
+  - uv@latest
   - npm:@openai/codex
   - npm:@anthropic-ai/claude-code
   - npm:@mariozechner/pi-coding-agent
