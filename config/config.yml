@@ -9,8 +9,13 @@ standard_folders:
 - Documents/Code.nosync/upstream
 packages:
   1password: { brew: null, debian: 1password }
+  automake: { brew: automake, debian: null }
+  bash: { brew: bash, debian: null }
   bat: { brew: bat, debian: bat }
+  bison: { brew: bison, debian: null }
+  cmake: { brew: cmake, debian: null }
   coreutils: { brew: coreutils, debian: coreutils }
+  curl: { brew: curl, debian: null }
   docker: { brew: null, debian: docker.io }
   droid: { brew: null, debian: droid }
   duti: { brew: duti, debian: null }
@@ -20,18 +25,31 @@ packages:
   fontconfig: { brew: fontconfig, debian: fontconfig }
   gemini-cli: { brew: gemini-cli, debian: null }
   gh: { brew: gh, debian: null }
+  git: { brew: git, debian: null }
+  git-lfs: { brew: git-lfs, debian: null }
   gnupg: { brew: gnupg, debian: gnupg }
   google-chrome: { brew: null, debian: google-chrome-stable }
   gum: { brew: gum, debian: gum }
+  jemalloc: { brew: jemalloc, debian: null }
+  jpeg: { brew: jpeg, debian: null }
   jq: { brew: jq, debian: jq }
+  lazygit: { brew: lazygit, debian: null }
+  libffi: { brew: libffi, debian: null }
+  libheif: { brew: libheif, debian: null }
+  libmagic: { brew: libmagic, debian: null }
+  libpq: { brew: libpq, debian: null }
+  librsvg: { brew: librsvg, debian: null }
   libyaml: { brew: libyaml, debian: libyaml-dev }
   llm: { brew: llm, debian: null }
   mise: { brew: mise, debian: mise }
   pinentry-mac: { brew: pinentry-mac, debian: pinentry-tty }
+  pkgconf: { brew: pkgconf, debian: null }
   ripgrep: { brew: ripgrep, debian: ripgrep }
+  shellcheck: { brew: shellcheck, debian: null }
   snapd: { brew: null, debian: snapd }
   thefuck: { brew: thefuck, debian: thefuck }
   terminal-notifier: { brew: terminal-notifier, debian: null }
+  tmux: { brew: tmux, debian: null }
   trash: { brew: trash, debian: trash-cli }
   ykman: { brew: ykman, debian: yubikey-manager }
 debian_sources:
