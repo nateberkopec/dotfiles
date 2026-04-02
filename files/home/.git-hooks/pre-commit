@@ -5,56 +5,66 @@ if test -z "$root"
   exit 0
 end
 
-cd "$root"
-
-if not test -f "bin/dotf"
-  exit 0
-end
-
-if not test -f "Brewfile"
-  exit 0
-end
-
-if not test -f "lib/dotfiles.rb"
-  exit 0
-end
+builtin cd "$root"
 
 if test "$SKIP_PRECOMMIT_LINT" = "1"
   exit 0
 end
 
-function announce
-  set -l message $argv[1]
+function panel
+  set -l kind $argv[1]
+  set -l message $argv[2]
+
   if type -q gum
-    gum style --border rounded --border-foreground 33 --padding "0 1" "$message"
+    switch $kind
+      case info
+        gum style --border rounded --border-foreground 33 --padding "0 1" "$message"
+      case warn
+        gum style --border rounded --border-foreground 214 --padding "0 1" "$message"
+      case fail
+        gum style --border double --border-foreground 196 --padding "0 1" "$message"
+    end
   else
     echo "$message"
   end
+end
+
+function info
+  panel info $argv[1]
+end
+
+function warn
+  panel warn $argv[1]
 end
 
 function fail
-  set -l message $argv[1]
-  if type -q gum
-    gum style --border double --border-foreground 196 --padding "0 1" "$message"
-  else
-    echo "$message"
-  end
+  panel fail $argv[1]
 end
 
-function run_or_fail
-  set -l label $argv[1]
-  set -e argv[1]
-
-  announce "🔍 $label"
-  command $argv
-  if test $status -ne 0
-    fail "❌ $label failed"
-    exit 1
-  end
+function hk_install_recommended
+  test -f hk.pkl; or return 1
+  not command git config --local --get core.hooksPath >/dev/null 2>/dev/null
 end
 
-run_or_fail "standardrb" bundle exec standardrb
-run_or_fail "flog" bundle exec rake flog
-run_or_fail "flay" bundle exec rake flay
+if hk_install_recommended
+  warn "💡 hk.pkl found. Run 'hk install --mise' in this repo for parallel project-local hooks."
+end
 
-announce "✅ Linters passed"
+if not type -q mise
+  warn "⚠️ mise is not installed, skipping global pre-commit lint hook."
+  exit 0
+end
+
+if not command mise tasks info lint >/dev/null 2>/dev/null
+  warn "⚠️ No mise lint task defined for this repo; skipping pre-commit lint."
+  exit 0
+end
+
+info "🔍 Running mise run lint"
+command mise run lint
+if test $status -ne 0
+  fail "❌ mise run lint failed"
+  exit 1
+end
+
+info "✅ mise run lint passed"
