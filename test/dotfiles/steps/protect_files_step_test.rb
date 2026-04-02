@@ -50,6 +50,21 @@ class ProtectFilesStepTest < StepTestCase
     assert_complete
   end
 
+  def test_complete_clears_run_errors_when_files_are_now_protected
+    @hook_files.each { |file| @fake_system.stub_file_content(file, "hook content") }
+    @fake_system.stub_command("sudo chflags schg '#{@hook_files.first}'", "", 1)
+
+    step.run
+
+    refute_empty step.errors
+
+    @hook_files.each { |file| stub_immutable(file, "schg") }
+    stub_credentials_file(stat: "600", ls: "-rw------- uchg")
+
+    assert step.complete?
+    assert_empty step.errors
+  end
+
   def test_incomplete_when_hook_file_is_not_immutable
     file = @hook_files.first
     @fake_system.stub_file_content(file, "hook content")
