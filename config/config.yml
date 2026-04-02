@@ -118,8 +118,6 @@ brew:
   - ghostty
   - github
   - jordanbaird-ice
-  - keycastr
-  - obsidian
   - orbstack
   - raycast
   - slack
@@ -129,7 +127,6 @@ brew:
   - visual-studio-code
   - whatsapp
   - zoom
-  - steipete/tap/trimmy
 applications:
 - name: 1Password
   path: "/Applications/1Password.app"
@@ -183,8 +180,7 @@ spotlight_settings:
   check_interval_seconds: 60
   disabled_volumes:
   - "~/Documents/Code.nosync"
-login_items:
-- "/Applications/Trimmy.app"
+login_items: []
 config_directory_items:
 - fish/config.fish
 - fish/functions/
