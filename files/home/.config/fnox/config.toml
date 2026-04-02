@@ -1,0 +1,11 @@
+[providers.1password]
+type = "1password"
+account = "my.1password.com"
+
+[providers.speedshop]
+type = "1password"
+account = "thespeedshop.1password.com"
+vault = "Employee"
+
+[secrets]
+GEM_HOST_API_KEY = { provider = "speedshop", value = "RubyGems.org API key/RubyGems API Key" }
