@@ -12,6 +12,7 @@ abbr -a dfr './bin/dotf run'
 [tools]
 ruby = "latest"
 hk = "latest"
+pkl = "latest"
 fd = "latest"
 go = "latest"
 rg = "latest"

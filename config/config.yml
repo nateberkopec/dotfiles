@@ -90,6 +90,7 @@ mise_tools:
   - fzf@latest
   - gh@latest
   - zoxide@latest
+  - pkl@latest
   - cargo:broot
   - cargo:difftastic
   - cargo:starship

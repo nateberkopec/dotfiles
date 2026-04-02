@@ -15,6 +15,7 @@ watchexec = "latest"
 fnox = "latest"
 fzf = "latest"
 zoxide = "latest"
+pkl = "latest"
 claude = "latest"
 "npm:@tobilu/qmd" = "latest"
 
