@@ -11,6 +11,7 @@ Most dotfiles repos just copy files to your home folder. This one does more. It 
 - Installs apps and fonts
 - Sets Fish as your default shell
 - Syncs config files to your home folder
+- Adds `dotf` to your PATH via `~/.local/bin`
 - Sets macOS defaults (Dock, trackpad, screenshots, and more)
 
 ## Installation
@@ -63,6 +64,7 @@ This one-shot command builds the Ubuntu 22.04 GUI image, starts a fresh ephemera
 | Command | What it does |
 |---------|--------------|
 | `dotf run` | Set up your Mac. Safe to run many times. |
+| `dotf upgrade` | Refresh and upgrade mise tools and Homebrew packages. |
 | `dotf help` | Show help |
 
 ## How It Works
@@ -89,6 +91,8 @@ docs/          Docs for contributors
 test/          Test suite
 Brewfile       Homebrew packages to install
 ```
+
+After the first `./bin/dotf run`, `dotf` is also available on your PATH via `~/.local/bin/dotf`.
 
 ## Contributing
 

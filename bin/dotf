@@ -38,6 +38,22 @@ debug() {
     fi
 }
 
+announce() {
+    if command -v gum &> /dev/null; then
+        gum style --bold --foreground 212 "$1"
+    else
+        echo "==> $1"
+    fi
+}
+
+warn() {
+    if command -v gum &> /dev/null; then
+        gum style --foreground 214 "$1"
+    else
+        echo "$1"
+    fi
+}
+
 ensure_homebrew_env() {
     if command -v brew &> /dev/null; then
         eval "$(brew shellenv bash)"
@@ -71,6 +87,55 @@ cmd_run() {
     debug "Run complete"
 }
 
+cmd_upgrade() {
+    init_logging
+    debug "Starting dotf upgrade command"
+    ensure_homebrew_env
+    ensure_mise_env
+
+    local ran_any=false
+
+    if command -v mise &> /dev/null; then
+        ran_any=true
+        announce "Refreshing mise metadata"
+        mise cache clear --yes
+        mise plugins update
+
+        announce "Checking for mise updates"
+        mise outdated --bump
+
+        announce "Upgrading mise tools"
+        mise up --yes
+        mise install --yes
+
+        announce "Pruning mise installs"
+        mise prune --yes
+        mise cache prune --yes
+    else
+        warn "mise not found on PATH; skipping mise upgrade"
+    fi
+
+    if command -v brew &> /dev/null; then
+        ran_any=true
+        announce "Updating Homebrew"
+        brew update
+        brew upgrade
+
+        announce "Cleaning Homebrew"
+        brew autoremove
+        brew cleanup
+    else
+        warn "brew not found on PATH; skipping Homebrew upgrade"
+    fi
+
+    if [ "$ran_any" = false ]; then
+        echo "Error: Neither mise nor brew was found on PATH"
+        return 1
+    fi
+
+    debug "Upgrade complete"
+}
+
 cmd_help() {
     cat <<EOF
 dotf - Dotfiles management tool
@@ -79,6 +144,7 @@ Usage: dotf <command> [options]
 
 Commands:
   run       Set up development environment from scratch
+  upgrade   Refresh and upgrade mise tools and Homebrew packages
   help      Show this help message
 
 Logging:
@@ -87,6 +153,7 @@ Logging:
 
 Examples:
   dotf run                              # Initial setup
+  dotf upgrade                          # Upgrade mise tools and Homebrew packages
   DEBUG=true dotf run                   # Run with debug output to console
 EOF
 }
@@ -100,6 +167,9 @@ main() {
     case "$1" in
         run)
             cmd_run
+            ;;
+        upgrade)
+            cmd_upgrade
             ;;
         help|--help|-h)
             cmd_help
