@@ -8,6 +8,7 @@ class Dotfiles
       end
 
       def complete?
+        super
         protected_files.all? { |file| !@system.file_exist?(file) || file_protected?(file) }
       end
 

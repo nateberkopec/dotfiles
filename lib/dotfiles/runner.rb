@@ -19,7 +19,7 @@ class Dotfiles
 
     def execute_all_steps
       @step_instances = instantiate_steps(build_step_params)
-      run_steps_serially(check_should_run_parallel)
+      run_steps_serially
       check_completion
     end
 
@@ -43,45 +43,31 @@ class Dotfiles
       Dotfiles.debug "Total run time: #{elapsed}ms"
     end
 
-    def check_should_run_parallel
-      mutex, steps_to_run = Mutex.new, []
-      spawn_should_run_threads(mutex, steps_to_run).each(&:join)
-      puts ""
-      steps_to_run
-    end
-
-    def spawn_should_run_threads(mutex, steps_to_run)
-      @step_instances.each_with_index.map do |step, index|
-        Thread.new { check_single_step_should_run(step, index, mutex, steps_to_run) }
-      end
-    end
-
-    def check_single_step_should_run(step, index, mutex, steps_to_run)
-      unless step.allowed_on_platform?
-        mutex.synchronize { printf "." }
-        return
-      end
-
-      should_run = Dotfiles.debug_benchmark("Should run step: #{@step_classes[index].display_name}") { step.should_run? }
-      mutex.synchronize do
-        printf "."
-        steps_to_run << index if should_run
-      end
-    end
-
-    def run_steps_serially(steps_to_run_indices)
+    def run_steps_serially
       completed_steps = {}
       @step_instances.each_with_index do |step, index|
-        execute_single_step(step, index, steps_to_run_indices, completed_steps)
+        execute_single_step(step, index, completed_steps)
       end
       puts ""
     end
 
-    def execute_single_step(step, index, steps_to_run_indices, completed_steps)
+    def execute_single_step(step, index, completed_steps)
       step_class = @step_classes[index]
       wait_for_dependencies(step_class, completed_steps)
-      steps_to_run_indices.include?(index) ? run_step(step, step_class) : skip_step(step_class)
+
+      if should_run_step?(step, step_class)
+        run_step(step, step_class)
+      else
+        skip_step(step_class)
+      end
+
       completed_steps[step_class] = true
+    end
+
+    def should_run_step?(step, step_class)
+      return false unless step.allowed_on_platform?
+
+      Dotfiles.debug_benchmark("Should run step: #{step_class.display_name}") { step.should_run? }
     end
 
     def run_step(step, step_class)
