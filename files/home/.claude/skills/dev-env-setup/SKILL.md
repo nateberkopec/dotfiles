@@ -19,6 +19,22 @@ The script is located at: `~/.claude/skills/dev-env-setup/scripts/check-dev-env.
 
 Run it first, then use its output to determine which steps below to execute.
 
+## Git Cleanliness
+
+**Critical rule:** Dev env files must never dirty `git status` in repos you don't own. None of these setup files should appear as untracked or modified. The compliance checker enforces this.
+
+Strategy by file type:
+
+| File | Own repo | Others' repo |
+|------|----------|--------------|
+| mise config | `mise.toml` (committed) | `mise.local.toml` (gitignored by mise convention) |
+| hk config | `hk.pkl` (committed) | `hk.pkl` + add to `.git/info/exclude` |
+| Other files | Commit normally | Add to `.git/info/exclude` |
+
+`.git/info/exclude` is a local-only gitignore that is never committed or shared. It is the right place to hide project-specific dev env files that don't have a `.local.` variant.
+
+To determine repo ownership: check `git shortlog -sn --no-merges | head -5`. If the user is the top committer by a wide margin, treat it as their repo. When in doubt, ask.
+
 ## Environment Components
 
 ### 1. mise Configuration
@@ -26,7 +42,7 @@ Run it first, then use its output to determine which steps below to execute.
 All dev tools must be managed via mise. Choose the config file based on repo ownership:
 
 - **Your repo** (you are the primary author): use `mise.toml`, commit it.
-- **Someone else's repo** (most commits are not yours) and `mise.toml` does not already exist: use `mise.local.toml` (gitignored).
+- **Someone else's repo** (most commits are not yours) and `mise.toml` does not already exist: use `mise.local.toml` (gitignored by mise convention).
 
 If `mise.toml` already exists in someone else's repo, work within it rather than creating `mise.local.toml`.
 
@@ -79,6 +95,7 @@ Key rules:
 - **Split hooks for parallelism.** hk runs steps in parallel, so separate lint and test into distinct steps rather than combining them into one script.
 - **Pre-commit must include lint and test.** These are the minimum gates before every commit.
 - **Steps should invoke mise tasks.** Use `mise run <task>` as the check command.
+- **Others' repos:** hk has no `.local.` config variant, so add `hk.pkl` to `.git/info/exclude` to keep it out of `git status`.
 
 Template `hk.pkl`:
 
@@ -124,7 +141,8 @@ hk install
 
 1. **Audit**: Run the compliance checker to see current state.
 2. **Inspect**: Read the project's existing tooling (`package.json`, `Gemfile`, `Makefile`, `Cargo.toml`, etc.) to understand what commands exist.
-3. **mise config**: Create or update `mise.toml` / `mise.local.toml` with tools and tasks.
-4. **hk config**: Create or update `hk.pkl` with pre-commit hooks.
-5. **Install**: Run `hk install` to activate the hooks.
-6. **Verify**: Run the compliance checker again to confirm everything passes.
+3. **Determine ownership**: Check `git shortlog -sn --no-merges | head -5` to decide own vs. others' repo.
+4. **mise config**: Create or update `mise.toml` (own) / `mise.local.toml` (others') with tools and tasks.
+5. **hk config**: Create or update `hk.pkl` with pre-commit hooks. For others' repos, add `hk.pkl` to `.git/info/exclude`.
+6. **Install**: Run `hk install` to activate the hooks.
+7. **Verify**: Run the compliance checker again to confirm everything passes, including git cleanliness.

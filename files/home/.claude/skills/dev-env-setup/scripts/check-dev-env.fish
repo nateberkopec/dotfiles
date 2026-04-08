@@ -86,7 +86,7 @@ if test -n "$mise_file"
 
     # Also try `mise tasks` in the directory if mise is available
     if command -q mise
-        set mise_task_output (cd "$target_dir"; and mise tasks 2>/dev/null)
+        set mise_task_output (builtin cd "$target_dir"; and mise tasks 2>/dev/null)
         for line in $mise_task_output
             set task_name (string split -m1 " " -- "$line")[1]
             if test -n "$task_name"
@@ -184,7 +184,7 @@ end
 # --- Check 5: hk hooks are installed ---
 if test -d "$target_dir/.git"
     # hk installs itself as the hooks path or puts scripts in .git/hooks
-    set hooks_path (cd "$target_dir"; and git config core.hooksPath 2>/dev/null)
+    set hooks_path (git -C "$target_dir" config core.hooksPath 2>/dev/null)
 
     if test -n "$hooks_path"
         check_pass "hk hooks installed (core.hooksPath = $hooks_path)"
@@ -200,6 +200,31 @@ if test -d "$target_dir/.git"
     end
 else
     check_warn "hk hooks installed" "Not a git repository - cannot check hook installation."
+end
+
+# --- Check 6: git cleanliness (dev env files not dirtying git status) ---
+if test -d "$target_dir/.git"
+    # Dev env files that should never appear as untracked/modified
+    set dev_env_files mise.local.toml .mise.local.toml hk.pkl hk.toml hk.local.pkl
+
+    # Get untracked and modified files from git status
+    set dirty_files (git -C "$target_dir" status --porcelain 2>/dev/null | string replace -r '^.. ' '')
+
+    set dirty_dev_files
+    for df in $dirty_files
+        for ef in $dev_env_files
+            if test "$df" = "$ef"
+                set -a dirty_dev_files "$df"
+            end
+        end
+    end
+
+    if test (count $dirty_dev_files) -eq 0
+        check_pass "git clean (no dev env files in git status)"
+    else
+        set dirty_list (string join ", " $dirty_dev_files)
+        check_fail "git clean ($dirty_list visible in git status)" "Add these to .git/info/exclude: $dirty_list"
+    end
 end
 
 # --- Summary ---
