@@ -84,6 +84,8 @@ class InstallYknotifyStepTest < StepTestCase
     assert_includes content, 'YKNTFY_BIN="$($MISE_BIN which yknotify 2>/dev/null)"'
     assert_includes content, "#{@home}/.local/bin:/opt/homebrew/bin"
     assert_includes content, "/opt/homebrew/bin/terminal-notifier"
+    assert_includes content, 'mkfifo "$TEMP_FIFO"'
+    assert_includes content, 'kill "$YKNTFY_PID" 2>/dev/null || true'
   end
 
   def test_plist_references_xdg_script_path
