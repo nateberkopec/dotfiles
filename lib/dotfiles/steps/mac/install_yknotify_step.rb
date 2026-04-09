@@ -118,7 +118,30 @@ class Dotfiles::Step::InstallYknotifyStep < Dotfiles::Step
       YKNTFY_ARGS=(-predicate "$YKNTFY_PREDICATE")
 
       LAST_NTFY=0
-      while IFS= read -r line; do
+      # Read one yknotify event per process so stale FIDO2 state does not loop forever.
+      while true; do
+          TEMP_FIFO="$(mktemp "${TMPDIR:-/tmp}/yknotify.XXXXXX")"
+          rm -f "$TEMP_FIFO"
+          mkfifo "$TEMP_FIFO"
+
+          "$YKNTFY_BIN" "${YKNTFY_ARGS[@]}" > "$TEMP_FIFO" &
+          YKNTFY_PID=$!
+
+          line=""
+          if IFS= read -r line < "$TEMP_FIFO"; then
+              kill "$YKNTFY_PID" 2>/dev/null || true
+              wait "$YKNTFY_PID" 2>/dev/null || true
+          else
+              wait "$YKNTFY_PID" 2>/dev/null || true
+          fi
+
+          rm -f "$TEMP_FIFO"
+
+          if [[ -z "$line" ]]; then
+              sleep 1
+              continue
+          fi
+
           NOW="$(date +%s)"
           if [[ "$NOW" -le "$((LAST_NTFY + 2))" ]]; then
               continue
@@ -131,7 +154,7 @@ class Dotfiles::Step::InstallYknotifyStep < Dotfiles::Step
           else
               osascript -e "display notification \\"$message\\" with title \\"yknotify\\""
           fi
-      done < <("$YKNTFY_BIN" "${YKNTFY_ARGS[@]}")
+      done
     BASH
   end
 
