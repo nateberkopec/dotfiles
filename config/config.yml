@@ -9,6 +9,7 @@ standard_folders:
 - Documents/Code.nosync/upstream
 packages:
   1password: { brew: null, debian: 1password }
+  asdf: { brew: asdf, debian: null }
   automake: { brew: automake, debian: automake }
   bash: { brew: bash, debian: bash }
   bat: { brew: bat, debian: bat }
