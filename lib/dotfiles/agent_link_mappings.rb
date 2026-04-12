@@ -1,4 +1,5 @@
 require "pathname"
+require "agent_link_path_state"
 
 class Dotfiles::AgentLinkMappings
   include Dotfiles::AgentLinkPathState

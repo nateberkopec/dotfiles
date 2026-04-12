@@ -45,13 +45,13 @@ class SyncAgentLinksStepTest < StepTestCase
     assert_complete
   end
 
-  def test_run_backs_up_conflicting_targets_and_writes_manifest
+  def test_run_replaces_conflicting_targets
     @fake_system.stub_file_content(home_path(".codex/AGENTS.md"), "old instructions")
 
     step.run
 
-    assert backup_copy_for?(home_path(".codex/AGENTS.md"))
-    assert backup_manifest_written?
+    assert_command_run(:rm_rf, home_path(".codex/AGENTS.md"))
+    assert_command_run(:create_symlink, "../.agents/AGENTS.md", home_path(".codex/AGENTS.md"))
   end
 
   def test_run_unprotects_conflicting_targets_on_macos
@@ -85,17 +85,5 @@ class SyncAgentLinksStepTest < StepTestCase
 
   def stub_home_symlink(relative, target)
     @fake_system.stub_symlink(home_path(relative), target)
-  end
-
-  def backup_copy_for?(path)
-    @fake_system.operations.any? do |operation, source, destination|
-      operation == :cp && source == path && destination.include?("/.agents/backup/")
-    end
-  end
-
-  def backup_manifest_written?
-    @fake_system.operations.any? do |operation, path, _content|
-      operation == :write_file && path.include?("/.agents/backup/") && path.end_with?("manifest.json")
-    end
   end
 end
