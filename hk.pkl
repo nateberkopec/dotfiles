@@ -12,6 +12,9 @@ hooks {
       ["flay"] {
         check = "mise run lint:flay"
       }
+      ["skills"] {
+        check = "mise run lint:skills"
+      }
       ["test"] {
         check = "mise run test"
       }

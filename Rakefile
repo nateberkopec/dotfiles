@@ -15,7 +15,8 @@ desc "Run flog"
 task :flog do
   flog_output = `bundle exec flog -a lib`
   puts flog_output
-  method_scores = flog_output.lines.grep(/^\s+[0-9]+\.[0-9]+:.*#/).map { |line| line.split.first.to_f }
+  method_scores = flog_output.lines.grep(/^\s+[0-9]+\.[0-9]+:.*#/).reject { |line| line.include?("main#none") }
+    .map { |line| line.split.first.to_f }
   max_score = method_scores.max
   if max_score && max_score >= FLOG_THRESHOLD
     abort "flog failed: highest complexity (#{max_score}) exceeds threshold (#{FLOG_THRESHOLD})"

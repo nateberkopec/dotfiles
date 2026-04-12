@@ -102,12 +102,20 @@ mise_tools:
   - uv@latest
   - npm:@openai/codex
   - npm:@anthropic-ai/claude-code
+  - npm:@iannuttall/dotagents
   - npm:@mariozechner/pi-coding-agent
   - npm:@tobilu/qmd
   - go:github.com/mikefarah/yq/v4@latest
   - tool: go:github.com/noperator/yknotify@latest
     platforms:
     - macos
+dotagents_clients:
+  - claude
+  - codex
+  - factory
+  - cursor
+  - opencode
+  - gemini
 qmd_collections:
   - ruby
 brew:
