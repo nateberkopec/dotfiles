@@ -118,6 +118,7 @@ automatically-unhide-macos-hidden-apps = false
     alt-equal = 'resize smart +50'
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#workspace
+    # Workspace 0 is admin/misc. Workspaces 1+ are client contexts.
     alt-1 = 'workspace 1'
     alt-2 = 'workspace 2'
     alt-3 = 'workspace 3'
@@ -128,6 +129,8 @@ automatically-unhide-macos-hidden-apps = false
     alt-8 = 'workspace 8'
     alt-9 = 'workspace 9'
     alt-0 = 'workspace 0'
+    alt-leftSquareBracket = 'workspace --wrap-around prev'
+    alt-rightSquareBracket = 'workspace --wrap-around next'
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#move-node-to-workspace
     alt-shift-1 = 'move-node-to-workspace 1'
@@ -140,6 +143,8 @@ automatically-unhide-macos-hidden-apps = false
     alt-shift-8 = 'move-node-to-workspace 8'
     alt-shift-9 = 'move-node-to-workspace 9'
     alt-shift-0 = 'move-node-to-workspace 0'
+    alt-shift-leftSquareBracket = 'move-node-to-workspace --wrap-around prev'
+    alt-shift-rightSquareBracket = 'move-node-to-workspace --wrap-around next'
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#workspace-back-and-forth
     alt-tab = 'workspace-back-and-forth'
@@ -148,6 +153,17 @@ automatically-unhide-macos-hidden-apps = false
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#mode
     alt-shift-semicolon = 'mode service'
+
+    alt-enter = '''exec-and-forget osascript -e '
+    tell application "Ghostty"
+        if it is running then
+            activate
+            tell application "System Events" to keystroke "n" using {command down}
+        else
+            activate
+        end if
+    end tell'
+    '''
 
     alt-shift-cmd-ctrl-t = '''exec-and-forget osascript -e '
     tell application "Ghostty"
