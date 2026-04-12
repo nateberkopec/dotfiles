@@ -113,9 +113,6 @@ dotagents_clients:
   - claude
   - codex
   - factory
-  - cursor
-  - opencode
-  - gemini
 qmd_collections:
   - ruby
 brew:
