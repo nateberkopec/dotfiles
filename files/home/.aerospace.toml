@@ -154,16 +154,7 @@ automatically-unhide-macos-hidden-apps = false
     # See: https://nikitabobko.github.io/AeroSpace/commands#mode
     alt-shift-semicolon = 'mode service'
 
-    alt-enter = '''exec-and-forget osascript -e '
-    tell application "Ghostty"
-        if it is running then
-            activate
-            tell application "System Events" to keystroke "n" using {command down}
-        else
-            activate
-        end if
-    end tell'
-    '''
+    # alt-enter reserved for pi
 
     alt-shift-cmd-ctrl-t = '''exec-and-forget osascript -e '
     tell application "Ghostty"
