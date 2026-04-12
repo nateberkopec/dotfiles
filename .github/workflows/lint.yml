@@ -51,3 +51,6 @@ jobs:
           fi
         fi
         echo "flay passed (duplication score: ${FLAY_SCORE:-0}, threshold: $FLAY_THRESHOLD)"
+
+    - name: Lint agent skills
+      run: ruby tools/lint_agent_skills.rb
