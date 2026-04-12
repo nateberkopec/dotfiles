@@ -1,9 +1,6 @@
 require "pathname"
-require "agent_link_path_state"
 
 class Dotfiles::AgentLinkMappings
-  include Dotfiles::AgentLinkPathState
-
   DEFAULT_CLIENTS = %w[claude factory codex cursor opencode gemini].freeze
 
   def initialize(home:, system:, clients:)
@@ -133,5 +130,17 @@ class Dotfiles::AgentLinkMappings
     return File.expand_path(target) if Pathname.new(target).absolute?
 
     File.expand_path(target, File.dirname(path))
+  end
+
+  def path_exists?(path)
+    !path_kind(path).nil?
+  end
+
+  def path_kind(path)
+    return :symlink if @system.symlink?(path)
+    return :dir if @system.dir_exist?(path)
+    return :file if @system.file_exist?(path)
+
+    nil
   end
 end
