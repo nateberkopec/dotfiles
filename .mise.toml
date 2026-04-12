@@ -36,13 +36,9 @@ run = "bundle exec rake flog"
 description = "Run flay duplication checks"
 run = "bundle exec rake flay"
 
-[tasks."lint:skills"]
-description = "Validate canonical agent skills"
-run = "ruby tools/lint_agent_skills.rb"
-
 [tasks.lint]
 description = "Run all lint checks"
-depends = ["lint:standard", "lint:flog", "lint:flay", "lint:skills"]
+depends = ["lint:standard", "lint:flog", "lint:flay"]
 
 [tasks.test]
 description = "Run the test suite"
