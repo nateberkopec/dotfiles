@@ -27,6 +27,18 @@ class SyncHomeDirectoryStepTest < StepTestCase
     assert_command_run(:create_symlink, "../.claude/skills", home_path(".codex/skills"))
   end
 
+  def test_run_replaces_existing_agents_skills_directory_with_symlink
+    stub_source_symlink(".agents/skills", "../.dotfiles/files/home/.claude/skills")
+    @fake_system.mkdir_p(home_path(".agents/skills/argument-validator"))
+    step.run
+    assert_command_run(:rm_rf, home_path(".agents/skills"))
+    assert_command_run(
+      :create_symlink,
+      "../.dotfiles/files/home/.claude/skills",
+      home_path(".agents/skills")
+    )
+  end
+
   def test_run_skips_symlink_already_correct
     stub_codex_skills_symlink
     stub_matching_home_symlink
@@ -77,6 +89,13 @@ class SyncHomeDirectoryStepTest < StepTestCase
 
   def test_should_not_run_when_only_ignored_file_differs
     stub_source_file(".config/fish/fish_variables", "repo content")
+
+    refute_should_run
+    assert_complete
+  end
+
+  def test_should_not_run_when_only_pi_auth_differs
+    stub_source_file(".pi/agent/auth.json", "repo auth content")
 
     refute_should_run
     assert_complete
