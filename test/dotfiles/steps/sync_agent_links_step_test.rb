@@ -1,4 +1,3 @@
-require "rbconfig"
 require "shellwords"
 require "test_helper"
 
@@ -15,10 +14,18 @@ class SyncAgentLinksStepTest < StepTestCase
     assert_should_run
   end
 
-  def test_run_executes_dotagents_driver
+  def test_run_executes_dotagents_via_script
     step.run
 
     assert_executed!(expected_command, quiet: false)
+  end
+
+  def test_run_uses_bsd_script_on_macos
+    @fake_system.stub_macos
+
+    step.run
+
+    assert_executed!(expected_command(macos: true), quiet: false)
   end
 
   def test_complete_when_agents_root_exists
@@ -42,14 +49,29 @@ class SyncAgentLinksStepTest < StepTestCase
 
   private
 
-  def expected_command
-    [
-      Shellwords.shellescape(RbConfig.ruby),
-      Shellwords.shellescape(File.join(@dotfiles_dir, "tools", "drive_dotagents.rb")),
-      "--home", Shellwords.shellescape(@home),
-      "--clients", Shellwords.shellescape("claude,codex"),
-      "--dotagents-command",
-      Shellwords.shellescape("mise --cd #{Shellwords.shellescape(@dotfiles_dir)} exec npm:@iannuttall/dotagents -- dotagents")
-    ].join(" ")
+  def expected_command(macos: false)
+    "printf '%b' #{Shellwords.shellescape(dotagents_input)} | #{script_command(macos: macos)}"
+  end
+
+  def script_command(macos: false)
+    command = "HOME=#{Shellwords.shellescape(@home)} mise --cd #{Shellwords.shellescape(@dotfiles_dir)} exec npm:@iannuttall/dotagents -- dotagents"
+
+    if macos
+      "script -q /dev/null sh -lc #{Shellwords.shellescape(command)}"
+    else
+      "script -qefc #{Shellwords.shellescape(command)} /dev/null"
+    end
+  end
+
+  def dotagents_input
+    ["\\r", "a", client_selection_input, "\\r\\r\\r", "\\e[B\\e[B\\e[B\\r"].join
+  end
+
+  def client_selection_input
+    %w[claude factory codex cursor opencode gemini github ampcode].map.with_index do |client, index|
+      selection = %w[claude codex].include?(client) ? " " : nil
+      down = (index == 7) ? nil : "\\e[B"
+      [selection, down].join
+    end.join
   end
 end

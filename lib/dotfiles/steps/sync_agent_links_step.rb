@@ -1,8 +1,8 @@
-require "rbconfig"
 require "shellwords"
 
 class Dotfiles::Step::SyncAgentLinksStep < Dotfiles::Step
   DEFAULT_CLIENTS = %w[claude factory codex cursor opencode gemini].freeze
+  MENU_CLIENTS = %w[claude factory codex cursor opencode gemini github ampcode].freeze
 
   def self.display_name
     "Agent Links"
@@ -40,17 +40,27 @@ class Dotfiles::Step::SyncAgentLinksStep < Dotfiles::Step
   end
 
   def sync_command
-    [
-      Shellwords.shellescape(RbConfig.ruby),
-      Shellwords.shellescape(driver_path),
-      "--home", Shellwords.shellescape(@home),
-      "--clients", Shellwords.shellescape(configured_clients.join(",")),
-      "--dotagents-command", Shellwords.shellescape(dotagents_command)
-    ].join(" ")
+    "printf '%b' #{Shellwords.shellescape(dotagents_input)} | #{script_command("HOME=#{Shellwords.shellescape(@home)} #{dotagents_command}")}"
   end
 
-  def driver_path
-    File.join(@dotfiles_dir, "tools", "drive_dotagents.rb")
+  def script_command(command)
+    if @system.macos?
+      "script -q /dev/null sh -lc #{Shellwords.shellescape(command)}"
+    else
+      "script -qefc #{Shellwords.shellescape(command)} /dev/null"
+    end
+  end
+
+  def dotagents_input
+    ["\\r", "a", client_selection_input, "\\r\\r\\r", "\\e[B\\e[B\\e[B\\r"].join
+  end
+
+  def client_selection_input
+    MENU_CLIENTS.map.with_index do |client, index|
+      selection = configured_clients.include?(client) ? " " : nil
+      down = (index == MENU_CLIENTS.length - 1) ? nil : "\\e[B"
+      [selection, down].join
+    end.join
   end
 
   def dotagents_command
