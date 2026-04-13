@@ -5,6 +5,11 @@ class Dotfiles::Step::InstallApplicationsStep < Dotfiles::Step
     [Dotfiles::Step::InstallHomebrewStep]
   end
 
+  def initialize(**kwargs)
+    super
+    @skipped_apps = []
+  end
+
   def run
     debug "Installing applications..."
     @config.applications.each do |app|
@@ -14,7 +19,7 @@ class Dotfiles::Step::InstallApplicationsStep < Dotfiles::Step
 
   def complete?
     super
-    missing_apps = @config.applications.reject { |app| app_installed?(app) }
+    missing_apps = @config.applications.reject { |app| app_installed?(app) || skipped_app?(app) }
     missing_apps.each { |app| add_error("#{app["name"]} not installed at #{expected_install_locations(app).join(" or ")}") }
     missing_apps.empty?
   rescue => e
@@ -45,10 +50,32 @@ class Dotfiles::Step::InstallApplicationsStep < Dotfiles::Step
   def install_app_cask(app)
     debug "Installing #{app["name"]}..."
     appdir_flag = user_has_admin_rights? ? "" : "--appdir=~/Applications"
-    brew_quiet("install --cask #{appdir_flag} #{app["brew_cask"]}")
+    output, status = @system.execute("HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 brew install --cask #{appdir_flag} #{app["brew_cask"]} 2>&1")
+    return if status == 0
+
+    debug "Failed to install #{app["name"]}: #{output}" if @debug
+    skip_app_without_admin(app, output) if non_admin_cask_install?
   end
 
   def install_cli_tap(app)
     brew_quiet("install #{app["cli_tap"]}")
+  end
+
+  def skipped_app?(app)
+    @skipped_apps.include?(app["name"])
+  end
+
+  def non_admin_cask_install?
+    !user_has_admin_rights?
+  end
+
+  def skip_app_without_admin(app, output)
+    return if skipped_app?(app)
+
+    @skipped_apps << app["name"]
+    add_warning(
+      title: "⚠️  Application Installation Skipped",
+      message: "No admin rights detected. Could not install #{app["name"]}.\n#{output.to_s.lines.first.to_s.strip}"
+    )
   end
 end
