@@ -14,8 +14,8 @@ class Dotfiles::Step::InstallApplicationsStep < Dotfiles::Step
 
   def complete?
     super
-    missing_apps = @config.applications.reject { |app| @system.dir_exist?(app["path"]) }
-    missing_apps.each { |app| add_error("#{app["name"]} not installed at #{app["path"]}") }
+    missing_apps = @config.applications.reject { |app| app_installed?(app) }
+    missing_apps.each { |app| add_error("#{app["name"]} not installed at #{expected_install_locations(app).join(" or ")}") }
     missing_apps.empty?
   rescue => e
     add_error("Failed to check application installation status: #{e.message}")
@@ -25,9 +25,21 @@ class Dotfiles::Step::InstallApplicationsStep < Dotfiles::Step
   private
 
   def install_application(app)
-    return debug("#{app["name"]} is already installed, skipping...") if @system.dir_exist?(app["path"])
+    return debug("#{app["name"]} is already installed, skipping...") if app_installed?(app)
     install_app_cask(app)
     install_cli_tap(app) if app["cli_tap"]
+  end
+
+  def app_installed?(app)
+    expected_install_locations(app).any? { |path| @system.dir_exist?(path) }
+  end
+
+  def expected_install_locations(app)
+    path = app["path"]
+    return [path] if user_has_admin_rights?
+    return [path] unless path.start_with?("/Applications/")
+
+    [path, File.join(@home, "Applications", File.basename(path))]
   end
 
   def install_app_cask(app)
