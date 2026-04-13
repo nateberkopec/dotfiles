@@ -36,7 +36,7 @@ class Dotfiles::Step::ProtectFilesStep < Dotfiles::Step
 
   def agent_hook_files
     [
-      File.join(@home, ".claude", "hooks", "deny-rm-rf.jq"),
+      File.join(@home, ".agents", "hooks", "deny-rm-rf.jq"),
       File.join(@home, ".config", "opencode", "plugin", "deny-rm-rf.js"),
       File.join(@home, ".pi", "agent", "extensions", "find_timeout.ts")
     ]

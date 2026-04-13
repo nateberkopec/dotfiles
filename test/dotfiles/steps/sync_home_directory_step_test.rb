@@ -27,12 +27,28 @@ class SyncHomeDirectoryStepTest < StepTestCase
     assert_command_run(:create_symlink, "../.agents/skills", home_path(".codex/skills"))
   end
 
+  def test_run_syncs_claude_agents_symlink
+    stub_source_symlink(".claude/CLAUDE.md", "../.agents/AGENTS.md")
+
+    step.run
+
+    assert_command_run(:create_symlink, "../.agents/AGENTS.md", home_path(".claude/CLAUDE.md"))
+  end
+
   def test_run_syncs_claude_skills_symlink
     stub_source_symlink(".claude/skills", "../.agents/skills")
 
     step.run
 
     assert_command_run(:create_symlink, "../.agents/skills", home_path(".claude/skills"))
+  end
+
+  def test_run_syncs_pi_agents_symlink
+    stub_source_symlink(".pi/agent/AGENTS.md", "../../.agents/AGENTS.md")
+
+    step.run
+
+    assert_command_run(:create_symlink, "../../.agents/AGENTS.md", home_path(".pi/agent/AGENTS.md"))
   end
 
   def test_run_skips_symlink_already_correct
