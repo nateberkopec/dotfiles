@@ -42,9 +42,9 @@
         wt = "!f() { git worktree add .worktrees/$1 $1; }; f"
         wtn = "!f() { git worktree add -b $1 .worktrees/$1; }; f"
 [core]
-        excludesfile = /Users/nateberkopec/.gitignore
+        excludesfile = ~/.gitignore
 	editor = code -w
-	hooksPath = /Users/nateberkopec/.git-hooks
+	hooksPath = ~/.git-hooks
 [pull]
         rebase = false
 [init]
