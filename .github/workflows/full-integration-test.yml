@@ -137,7 +137,7 @@ jobs:
           MISE_CI_TOOLS="${MISE_CI_TOOLS}" \
           BREW_CI_PACKAGES="${BREW_CI_PACKAGES}" \
           BREW_CI_CASKS="${BREW_CI_CASKS}" \
-          bash "$HOME/dotfiles/tools/ci/run_dotfiles_integration.sh" "$HOME/dotfiles"
+          bash "${home_dir}/dotfiles/tools/ci/run_dotfiles_integration.sh" "${home_dir}/dotfiles"
 
     - name: Upload logs
       if: always()
