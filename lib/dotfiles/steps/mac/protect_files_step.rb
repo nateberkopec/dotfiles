@@ -9,7 +9,7 @@ class Dotfiles::Step::ProtectFilesStep < Dotfiles::Step
   end
 
   def self.depends_on
-    [Dotfiles::Step::SyncHomeDirectoryStep]
+    [Dotfiles::Step::SyncAgentLinksStep]
   end
 
   private
