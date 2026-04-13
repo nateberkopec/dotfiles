@@ -17,7 +17,7 @@ class SyncAgentLinksStepTest < StepTestCase
   def test_run_executes_dotagents_via_script
     step.run
 
-    assert_executed!(expected_command, quiet: false)
+    assert_executed!(expected_command)
   end
 
   def test_run_uses_bsd_script_on_macos
@@ -25,7 +25,7 @@ class SyncAgentLinksStepTest < StepTestCase
 
     step.run
 
-    assert_executed!(expected_command(macos: true), quiet: false)
+    assert_executed!(expected_command(macos: true))
   end
 
   def test_complete_when_agents_root_exists

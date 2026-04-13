@@ -17,7 +17,10 @@ class Dotfiles::Step::SyncAgentLinksStep < Dotfiles::Step
   end
 
   def run
-    @system.execute!(sync_command, quiet: false)
+    # dotagents is a full-screen TUI. We drive it non-interactively via `script`
+    # so it still gets a pseudo-TTY, but we keep stdout/stderr captured here to
+    # avoid replaying raw control sequences into dotf's output.
+    @system.execute!(sync_command, quiet: true)
   end
 
   def complete?
