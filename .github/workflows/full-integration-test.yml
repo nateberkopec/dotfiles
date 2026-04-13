@@ -101,14 +101,6 @@ jobs:
         home_dir="/Users/${username}"
         repo_dir="${home_dir}/dotfiles"
 
-        if ! command -v brew >/dev/null 2>&1; then
-          eval "$(/opt/homebrew/bin/brew shellenv)"
-        fi
-
-        HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 brew list fish >/dev/null 2>&1 || HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 brew install fish
-        HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 brew list duti >/dev/null 2>&1 || HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 brew install duti
-        HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 brew list mise >/dev/null 2>&1 || HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 brew install mise
-
         if ! id -u "${username}" >/dev/null 2>&1; then
           next_uid="$(dscl . -list /Users UniqueID | awk '{print $2}' | sort -n | tail -1)"
           next_uid="$((next_uid + 1))"
@@ -168,7 +160,7 @@ jobs:
 
         sudo -H -u "${username}" env \
           HOME="${home_dir}" \
-          PATH="${runner_path}:${home_dir}/.local/bin" \
+          PATH="${home_dir}/.homebrew/bin:${runner_path}:${home_dir}/.local/bin" \
           DEBUG="${DEBUG}" \
           CI="${CI}" \
           NONINTERACTIVE="${NONINTERACTIVE}" \
@@ -192,10 +184,10 @@ jobs:
         home_dir="/Users/${username}"
         runner_path="$PATH"
 
-        sudo -H -u "${username}" env HOME="${home_dir}" PATH="${runner_path}:${home_dir}/.local/bin" bash <<'BASH'
+        sudo -H -u "${username}" env HOME="${home_dir}" PATH="${home_dir}/.homebrew/bin:${runner_path}:${home_dir}/.local/bin" bash <<'BASH'
         set -euo pipefail
         cd "$HOME/dotfiles"
-        fish_bin="/opt/homebrew/bin/fish"
+        fish_bin="$HOME/.homebrew/bin/fish"
         if ! command -v "${fish_bin}" >/dev/null 2>&1; then
           fish_bin="$(command -v fish)"
         fi

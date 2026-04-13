@@ -80,10 +80,10 @@ class InstallYknotifyStepTest < StepTestCase
     step.run
 
     content = @fake_system.read_file(script_path)
-    assert_includes content, "MISE_BIN=\"/opt/homebrew/opt/mise/bin/mise\""
+    assert_includes content, 'MISE_BIN="mise"'
     assert_includes content, 'YKNTFY_BIN="$($MISE_BIN which yknotify 2>/dev/null)"'
-    assert_includes content, "#{@home}/.local/bin:/opt/homebrew/bin"
-    assert_includes content, "/opt/homebrew/bin/terminal-notifier"
+    assert_includes content, "#{@home}/.local/bin:#{@home}/.homebrew/bin:/opt/homebrew/bin"
+    assert_includes content, 'TERM_NTFY_BIN="terminal-notifier"'
     assert_includes content, 'mkfifo "$TEMP_FIFO"'
     assert_includes content, 'kill "$YKNTFY_PID" 2>/dev/null || true'
   end
