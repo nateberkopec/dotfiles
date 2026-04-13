@@ -93,15 +93,21 @@ jobs:
         ruby-version: 'ruby'
         bundler-cache: false
 
-    - name: Run immutable file sync smoke test as a non-admin macOS user
-      timeout-minutes: 10
+    - name: Prepare non-admin macOS runner user
       run: |
         set -euo pipefail
 
         username="dotfiles-ci"
         home_dir="/Users/${username}"
-        user_password="ci-password-123"
-        ruby_bin="$(command -v ruby)"
+        repo_dir="${home_dir}/dotfiles"
+
+        if ! command -v brew >/dev/null 2>&1; then
+          eval "$(/opt/homebrew/bin/brew shellenv)"
+        fi
+
+        HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 brew list fish >/dev/null 2>&1 || HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 brew install fish
+        HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 brew list duti >/dev/null 2>&1 || HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 brew install duti
+        HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 brew list mise >/dev/null 2>&1 || HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 brew install mise
 
         if ! id -u "${username}" >/dev/null 2>&1; then
           next_uid="$(dscl . -list /Users UniqueID | awk '{print $2}' | sort -n | tail -1)"
@@ -112,45 +118,98 @@ jobs:
           sudo dscl . -create "/Users/${username}" UniqueID "${next_uid}"
           sudo dscl . -create "/Users/${username}" PrimaryGroupID 20
           sudo dscl . -create "/Users/${username}" NFSHomeDirectory "${home_dir}"
-          sudo dscl . -passwd "/Users/${username}" "${user_password}"
           sudo createhomedir -c -u "${username}" >/dev/null
         fi
 
-        sudo -H -u "${username}" env -u CI HOME="${home_dir}" REPO_DIR="${GITHUB_WORKSPACE}" RUBY_BIN="${ruby_bin}" bash <<'BASH'
+        sudo mkdir -p "${repo_dir}"
+        sudo rsync -a --delete --exclude .git "${GITHUB_WORKSPACE}/" "${repo_dir}/"
+        sudo chown -R "${username}:staff" "${home_dir}"
+        sudo -H -u "${username}" bash -lc '
+          if id -Gn | tr " " "\n" | grep -qx admin; then
+            echo "User unexpectedly has admin rights"
+            exit 1
+          fi
+        '
+
+    - name: Seed immutable gem credentials for non-admin user
+      run: |
         set -euo pipefail
 
-        if id -Gn | grep -qw admin; then
-          echo "User unexpectedly has admin rights"
-          exit 1
-        fi
+        username="dotfiles-ci"
+        home_dir="/Users/${username}"
 
-        fixture_dir="$HOME/tmp/non-admin-dotfiles"
-        mkdir -p "$fixture_dir/config" "$fixture_dir/files/home/.gem" "$HOME/.gem"
-        cp "$REPO_DIR/config/config.yml" "$fixture_dir/config/config.yml"
-        cp "$REPO_DIR/files/home/.gem/credentials" "$fixture_dir/files/home/.gem/credentials"
-        cp "$fixture_dir/files/home/.gem/credentials" "$HOME/.gem/credentials"
-        printf '\n# stale copy for CI smoke test\n' >> "$HOME/.gem/credentials"
+        sudo -H -u "${username}" bash <<'BASH'
+        set -euo pipefail
+        mkdir -p "$HOME/.gem"
+        cp "$HOME/dotfiles/files/home/.gem/credentials" "$HOME/.gem/credentials"
+        printf '\n# stale copy for integration test\n' >> "$HOME/.gem/credentials"
         chflags uchg "$HOME/.gem/credentials"
         ls -lO "$HOME/.gem/credentials"
-
-        "$RUBY_BIN" - "$REPO_DIR" "$fixture_dir" "$HOME" <<'RUBY'
-        repo_dir, dotfiles_dir, home = ARGV
-        require File.join(repo_dir, "lib", "dotfiles")
-
-        step = Dotfiles::Step::SyncHomeDirectoryStep.new(
-          debug: true,
-          dotfiles_repo: "https://github.com/nateberkopec/dotfiles.git",
-          dotfiles_dir: dotfiles_dir,
-          home: home
-        )
-
-        step.run
-        abort(step.errors.join("\n")) unless step.complete?
-
-        expected = File.read(File.join(dotfiles_dir, "files", "home", ".gem", "credentials"))
-        actual = File.read(File.join(home, ".gem", "credentials"))
-        abort(".gem/credentials did not sync") unless actual == expected
-
-        puts "Synced immutable credential file without admin rights"
-        RUBY
         BASH
+
+    - name: Run dotfiles as non-admin macOS user
+      id: non_admin_run
+      timeout-minutes: 20
+      env:
+        DEBUG: true
+        CI: true
+        NONINTERACTIVE: true
+        GITHUB_TOKEN: ${{ github.token }}
+        MISE_CI_TOOLS: "fzf@latest"
+        BREW_CI_PACKAGES: "fish,duti,mise"
+        BREW_CI_CASKS: ""
+      run: |
+        set -euo pipefail
+
+        username="dotfiles-ci"
+        home_dir="/Users/${username}"
+        repo_dir="${home_dir}/dotfiles"
+
+        sudo -H -u "${username}" env \
+          HOME="${home_dir}" \
+          PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:${home_dir}/.local/bin" \
+          DEBUG="${DEBUG}" \
+          CI="${CI}" \
+          NONINTERACTIVE="${NONINTERACTIVE}" \
+          GITHUB_TOKEN="${GITHUB_TOKEN}" \
+          MISE_CI_TOOLS="${MISE_CI_TOOLS}" \
+          BREW_CI_PACKAGES="${BREW_CI_PACKAGES}" \
+          BREW_CI_CASKS="${BREW_CI_CASKS}" \
+          bash <<'BASH'
+        set -euo pipefail
+        cd "$HOME/dotfiles"
+        chmod +x bin/dotf
+        ./bin/dotf run 2>&1 | tee output.log
+        BASH
+
+    - name: Start fish shell and check for errors as non-admin user
+      if: steps.non_admin_run.outcome == 'success'
+      run: |
+        set -euo pipefail
+
+        username="dotfiles-ci"
+        home_dir="/Users/${username}"
+
+        sudo -H -u "${username}" env HOME="${home_dir}" PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:${home_dir}/.local/bin" bash <<'BASH'
+        set -euo pipefail
+        cd "$HOME/dotfiles"
+        fish_bin="/opt/homebrew/bin/fish"
+        if ! command -v "${fish_bin}" >/dev/null 2>&1; then
+          fish_bin="$(command -v fish)"
+        fi
+        if [ -z "${fish_bin}" ]; then
+          echo "❌ Fish shell not found"
+          exit 1
+        fi
+        "${fish_bin}" -c 'echo "Fish shell initialized successfully"' 2>&1 | tee fish-init.log
+        BASH
+
+    - name: Upload logs
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: logs-macos-14-non-admin
+        path: |
+          /Users/dotfiles-ci/dotfiles/output.log
+          /Users/dotfiles-ci/dotfiles/fish-init.log
+        retention-days: 7
