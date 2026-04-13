@@ -86,11 +86,21 @@ class Dotfiles::Step::InstallYknotifyStep < Dotfiles::Step
   end
 
   def mise_bin_path
-    "/opt/homebrew/opt/mise/bin/mise"
+    [
+      File.join(@home, ".homebrew", "bin", "mise"),
+      "/opt/homebrew/bin/mise",
+      "/usr/local/bin/mise",
+      "/opt/homebrew/opt/mise/bin/mise",
+      "/usr/local/opt/mise/bin/mise"
+    ].find { |path| @system.file_exist?(path) } || "mise"
   end
 
   def terminal_notifier_path
-    "/opt/homebrew/bin/terminal-notifier"
+    [
+      File.join(@home, ".homebrew", "bin", "terminal-notifier"),
+      "/opt/homebrew/bin/terminal-notifier",
+      "/usr/local/bin/terminal-notifier"
+    ].find { |path| @system.file_exist?(path) } || "terminal-notifier"
   end
 
   def script_content
@@ -98,7 +108,7 @@ class Dotfiles::Step::InstallYknotifyStep < Dotfiles::Step
       #!/bin/bash
 
       # List of sounds: https://apple.stackexchange.com/a/479714
-      export PATH="#{@home}/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+      export PATH="#{@home}/.local/bin:#{@home}/.homebrew/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 
       MISE_BIN="#{mise_bin_path}"
       YKNTFY_BIN="$($MISE_BIN which yknotify 2>/dev/null)"

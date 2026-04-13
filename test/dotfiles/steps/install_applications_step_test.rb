@@ -30,6 +30,24 @@ class InstallApplicationsStepTest < StepTestCase
     refute_executed(install_command_for(existing_app))
   end
 
+  def test_complete_when_non_admin_app_is_installed_in_user_applications
+    app = apps.last
+    @fake_system.filesystem[apps.first["path"]] = :directory
+    @fake_system.filesystem[user_app_path(app)] = :directory
+
+    assert_complete
+  end
+
+  def test_run_skips_install_when_non_admin_app_exists_in_user_applications
+    app = apps.last
+    @fake_system.filesystem[apps.first["path"]] = :directory
+    @fake_system.filesystem[user_app_path(app)] = :directory
+
+    step.run
+
+    refute_executed(install_command_for(app))
+  end
+
   private
 
   def apps
@@ -42,5 +60,9 @@ class InstallApplicationsStepTest < StepTestCase
   def install_command_for(app)
     flag = "--appdir=~/Applications"
     "HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 brew install --cask #{flag} #{app["brew_cask"]} 2>&1"
+  end
+
+  def user_app_path(app)
+    File.join(@home, "Applications", File.basename(app["path"]))
   end
 end
