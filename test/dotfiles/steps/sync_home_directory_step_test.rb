@@ -154,46 +154,28 @@ class SyncHomeDirectoryStepTest < StepTestCase
   def test_run_removes_user_immutable_flag_before_retrying_copy
     dest = home_path(".gem/credentials")
     stub_source_file(".gem/credentials", "stub")
-
-    copy_attempts = 0
-    fake_system = @fake_system
-    fake_system.define_singleton_method(:cp) do |src, dest_path|
-      @operations << [:cp, src, dest_path]
-      copy_attempts += 1
-      raise Errno::EPERM, dest_path if copy_attempts == 1
-
-      @filesystem[File.expand_path(dest_path)] = @filesystem[File.expand_path(src)]
-    end
+    copy_attempts = stub_copy_fails_once_then_succeeds
 
     step.run
 
     assert_executed("chflags nouchg '#{dest}'", quiet: false)
     refute_executed("sudo chflags nouchg,noschg '#{dest}'", quiet: false)
     assert_equal "stub", @fake_system.filesystem[dest]
-    assert_equal 2, copy_attempts
+    assert_equal 2, copy_attempts.call
   end
 
   def test_run_falls_back_to_sudo_when_user_flag_clear_fails
     dest = home_path(".gem/credentials")
     stub_source_file(".gem/credentials", "stub")
     @fake_system.stub_command("chflags nouchg '#{dest}'", "", 1)
-
-    copy_attempts = 0
-    fake_system = @fake_system
-    fake_system.define_singleton_method(:cp) do |src, dest_path|
-      @operations << [:cp, src, dest_path]
-      copy_attempts += 1
-      raise Errno::EPERM, dest_path if copy_attempts == 1
-
-      @filesystem[File.expand_path(dest_path)] = @filesystem[File.expand_path(src)]
-    end
+    copy_attempts = stub_copy_fails_once_then_succeeds
 
     step.run
 
     assert_executed("chflags nouchg '#{dest}'", quiet: false)
     assert_executed("sudo chflags nouchg,noschg '#{dest}'", quiet: false)
     assert_equal "stub", @fake_system.filesystem[dest]
-    assert_equal 2, copy_attempts
+    assert_equal 2, copy_attempts.call
   end
 
   private
@@ -216,6 +198,18 @@ class SyncHomeDirectoryStepTest < StepTestCase
     path = source_path(relative)
     @fake_system.mkdir_p(File.dirname(path))
     @fake_system.stub_symlink(path, target)
+  end
+
+  def stub_copy_fails_once_then_succeeds
+    attempts = 0
+    @fake_system.define_singleton_method(:cp) do |src, dest_path|
+      @operations << [:cp, src, dest_path]
+      attempts += 1
+      raise Errno::EPERM, dest_path if attempts == 1
+
+      @filesystem[File.expand_path(dest_path)] = @filesystem[File.expand_path(src)]
+    end
+    -> { attempts }
   end
 
   def stub_codex_skills_symlink
