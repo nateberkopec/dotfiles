@@ -12,11 +12,11 @@ class SyncHomeDirectoryStepTest < StepTestCase
   end
 
   def test_run_syncs_symlinks
-    stub_source_symlink(".codex/skills", "../.claude/skills")
+    stub_source_symlink(".codex/skills", "../.agents/skills")
 
     step.run
 
-    assert_command_run(:create_symlink, "../.claude/skills", home_path(".codex/skills"))
+    assert_command_run(:create_symlink, "../.agents/skills", home_path(".codex/skills"))
   end
 
   def test_run_replaces_existing_file_with_symlink
@@ -24,19 +24,15 @@ class SyncHomeDirectoryStepTest < StepTestCase
     @fake_system.stub_file_content(home_path(".codex/skills"), "old content")
     step.run
     assert_command_run(:rm_rf, home_path(".codex/skills"))
-    assert_command_run(:create_symlink, "../.claude/skills", home_path(".codex/skills"))
+    assert_command_run(:create_symlink, "../.agents/skills", home_path(".codex/skills"))
   end
 
-  def test_run_replaces_existing_agents_skills_directory_with_symlink
-    stub_source_symlink(".agents/skills", "../.dotfiles/files/home/.claude/skills")
-    @fake_system.mkdir_p(home_path(".agents/skills/argument-validator"))
+  def test_run_syncs_claude_skills_symlink
+    stub_source_symlink(".claude/skills", "../.agents/skills")
+
     step.run
-    assert_command_run(:rm_rf, home_path(".agents/skills"))
-    assert_command_run(
-      :create_symlink,
-      "../.dotfiles/files/home/.claude/skills",
-      home_path(".agents/skills")
-    )
+
+    assert_command_run(:create_symlink, "../.agents/skills", home_path(".claude/skills"))
   end
 
   def test_run_skips_symlink_already_correct
@@ -44,45 +40,45 @@ class SyncHomeDirectoryStepTest < StepTestCase
     stub_matching_home_symlink
     step.run
     refute_command_run(:rm_rf, home_path(".codex/skills"))
-    refute_command_run(:create_symlink, "../.claude/skills", home_path(".codex/skills"))
+    refute_command_run(:create_symlink, "../.agents/skills", home_path(".codex/skills"))
   end
 
   def test_complete_when_symlinks_in_sync
-    stub_source_symlink(".codex/skills", "../.claude/skills")
-    @fake_system.stub_symlink(home_path(".codex/skills"), "../.claude/skills")
+    stub_source_symlink(".codex/skills", "../.agents/skills")
+    @fake_system.stub_symlink(home_path(".codex/skills"), "../.agents/skills")
 
     assert_complete
   end
 
   def test_incomplete_when_symlink_missing
-    stub_source_symlink(".codex/skills", "../.claude/skills")
+    stub_source_symlink(".codex/skills", "../.agents/skills")
 
     assert_incomplete
   end
 
   def test_incomplete_when_symlink_target_differs
-    stub_source_symlink(".codex/skills", "../.claude/skills")
+    stub_source_symlink(".codex/skills", "../.agents/skills")
     @fake_system.stub_symlink(home_path(".codex/skills"), "wrong/target")
 
     assert_incomplete
   end
 
   def test_incomplete_when_symlink_is_regular_file
-    stub_source_symlink(".codex/skills", "../.claude/skills")
+    stub_source_symlink(".codex/skills", "../.agents/skills")
     @fake_system.stub_file_content(home_path(".codex/skills"), "regular file content")
 
     assert_incomplete
   end
 
   def test_should_run_when_symlink_out_of_sync
-    stub_source_symlink(".codex/skills", "../.claude/skills")
+    stub_source_symlink(".codex/skills", "../.agents/skills")
 
     assert_should_run
   end
 
   def test_should_not_run_when_symlink_in_sync
-    stub_source_symlink(".codex/skills", "../.claude/skills")
-    @fake_system.stub_symlink(home_path(".codex/skills"), "../.claude/skills")
+    stub_source_symlink(".codex/skills", "../.agents/skills")
+    @fake_system.stub_symlink(home_path(".codex/skills"), "../.agents/skills")
 
     refute_should_run
   end
@@ -195,10 +191,10 @@ class SyncHomeDirectoryStepTest < StepTestCase
   end
 
   def stub_codex_skills_symlink
-    stub_source_symlink(".codex/skills", "../.claude/skills")
+    stub_source_symlink(".codex/skills", "../.agents/skills")
   end
 
   def stub_matching_home_symlink
-    @fake_system.stub_symlink(home_path(".codex/skills"), "../.claude/skills")
+    @fake_system.stub_symlink(home_path(".codex/skills"), "../.agents/skills")
   end
 end

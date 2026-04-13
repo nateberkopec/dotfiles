@@ -4,7 +4,7 @@ require "find"
 require "yaml"
 
 class AgentSkillLint
-  SKILLS_ROOT = File.expand_path("../files/home/.claude/skills", __dir__)
+  SKILLS_ROOT = File.expand_path("../files/home/.agents/skills", __dir__)
 
   def run
     errors = lowercase_skill_paths + invalid_skill_paths
