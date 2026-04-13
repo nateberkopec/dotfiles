@@ -79,3 +79,78 @@ jobs:
           output.log
           fish-init.log
         retention-days: 7
+
+  macos-non-admin-user:
+    runs-on: macos-14
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: 'ruby'
+        bundler-cache: false
+
+    - name: Run immutable file sync smoke test as a non-admin macOS user
+      timeout-minutes: 10
+      run: |
+        set -euo pipefail
+
+        username="dotfiles-ci"
+        home_dir="/Users/${username}"
+        user_password="ci-password-123"
+        ruby_bin="$(command -v ruby)"
+
+        if ! id -u "${username}" >/dev/null 2>&1; then
+          next_uid="$(dscl . -list /Users UniqueID | awk '{print $2}' | sort -n | tail -1)"
+          next_uid="$((next_uid + 1))"
+          sudo dscl . -create "/Users/${username}"
+          sudo dscl . -create "/Users/${username}" UserShell /bin/bash
+          sudo dscl . -create "/Users/${username}" RealName "Dotfiles CI"
+          sudo dscl . -create "/Users/${username}" UniqueID "${next_uid}"
+          sudo dscl . -create "/Users/${username}" PrimaryGroupID 20
+          sudo dscl . -create "/Users/${username}" NFSHomeDirectory "${home_dir}"
+          sudo dscl . -passwd "/Users/${username}" "${user_password}"
+          sudo createhomedir -c -u "${username}" >/dev/null
+        fi
+
+        sudo -H -u "${username}" env -u CI HOME="${home_dir}" REPO_DIR="${GITHUB_WORKSPACE}" RUBY_BIN="${ruby_bin}" bash <<'BASH'
+        set -euo pipefail
+
+        if id -Gn | grep -qw admin; then
+          echo "User unexpectedly has admin rights"
+          exit 1
+        fi
+
+        fixture_dir="$HOME/tmp/non-admin-dotfiles"
+        mkdir -p "$fixture_dir/config" "$fixture_dir/files/home/.gem" "$HOME/.gem"
+        cp "$REPO_DIR/config/config.yml" "$fixture_dir/config/config.yml"
+        cp "$REPO_DIR/files/home/.gem/credentials" "$fixture_dir/files/home/.gem/credentials"
+        cp "$fixture_dir/files/home/.gem/credentials" "$HOME/.gem/credentials"
+        printf '\n# stale copy for CI smoke test\n' >> "$HOME/.gem/credentials"
+        chflags uchg "$HOME/.gem/credentials"
+        ls -lO "$HOME/.gem/credentials"
+
+        "$RUBY_BIN" - "$REPO_DIR" "$fixture_dir" "$HOME" <<'RUBY'
+        repo_dir, dotfiles_dir, home = ARGV
+        require File.join(repo_dir, "lib", "dotfiles")
+
+        step = Dotfiles::Step::SyncHomeDirectoryStep.new(
+          debug: true,
+          dotfiles_repo: "https://github.com/nateberkopec/dotfiles.git",
+          dotfiles_dir: dotfiles_dir,
+          home: home
+        )
+
+        step.run
+        abort(step.errors.join("\n")) unless step.complete?
+
+        expected = File.read(File.join(dotfiles_dir, "files", "home", ".gem", "credentials"))
+        actual = File.read(File.join(home, ".gem", "credentials"))
+        abort(".gem/credentials did not sync") unless actual == expected
+
+        puts "Synced immutable credential file without admin rights"
+        RUBY
+        BASH

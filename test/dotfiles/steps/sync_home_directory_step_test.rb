@@ -167,6 +167,30 @@ class SyncHomeDirectoryStepTest < StepTestCase
 
     step.run
 
+    assert_executed("chflags nouchg '#{dest}'", quiet: false)
+    refute_executed("sudo chflags nouchg,noschg '#{dest}'", quiet: false)
+    assert_equal "stub", @fake_system.filesystem[dest]
+    assert_equal 2, copy_attempts
+  end
+
+  def test_run_falls_back_to_sudo_when_user_flag_clear_fails
+    dest = home_path(".gem/credentials")
+    stub_source_file(".gem/credentials", "stub")
+    @fake_system.stub_command("chflags nouchg '#{dest}'", "", 1)
+
+    copy_attempts = 0
+    fake_system = @fake_system
+    fake_system.define_singleton_method(:cp) do |src, dest_path|
+      @operations << [:cp, src, dest_path]
+      copy_attempts += 1
+      raise Errno::EPERM, dest_path if copy_attempts == 1
+
+      @filesystem[File.expand_path(dest_path)] = @filesystem[File.expand_path(src)]
+    end
+
+    step.run
+
+    assert_executed("chflags nouchg '#{dest}'", quiet: false)
     assert_executed("sudo chflags nouchg,noschg '#{dest}'", quiet: false)
     assert_equal "stub", @fake_system.filesystem[dest]
     assert_equal 2, copy_attempts
