@@ -1,3 +1,4 @@
+require "json"
 require "shellwords"
 
 class Dotfiles::Step::CheckMiseUpdatesStep < Dotfiles::Step
@@ -23,14 +24,34 @@ class Dotfiles::Step::CheckMiseUpdatesStep < Dotfiles::Step
   def check_outdated_tools
     execute("#{mise_command} cache clear")
     execute("#{mise_command} plugins update")
-    output, = execute("#{mise_command} outdated --bump --no-header")
-    tools = output.lines.map(&:strip).reject(&:empty?)
+    output, status = execute("#{mise_command} outdated --json 2>/dev/null")
+    return unless status == 0
+
+    tools = actionable_outdated_tools(output)
     return if tools.empty?
 
     add_notice(
       title: "🛠️ Mise Updates Available",
       message: "#{tools.count} tool(s) have updates available.\n\nRun 'mise-check-updates' to refresh and review updates."
     )
+  end
+
+  def actionable_outdated_tools(output)
+    JSON.parse(output).values.select { |tool| actionable_tool?(tool) }
+  rescue JSON::ParserError
+    []
+  end
+
+  def actionable_tool?(tool)
+    requested = tool["requested"].to_s
+    current = tool["current"].to_s
+    latest = tool["latest"].to_s
+
+    semantic_version?(requested) && semantic_version?(current) && semantic_version?(latest) && current != latest
+  end
+
+  def semantic_version?(value)
+    value.match?(/^v?\d+(?:\.\d+)*(?:[-+][0-9A-Za-z.-]+)?$/)
   end
 
   def mise_available?
