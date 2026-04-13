@@ -1,8 +1,9 @@
-require "pathname"
+require "rbconfig"
 require "shellwords"
-require "agent_link_mappings"
 
 class Dotfiles::Step::SyncAgentLinksStep < Dotfiles::Step
+  DEFAULT_CLIENTS = %w[claude factory codex cursor opencode gemini].freeze
+
   def self.display_name
     "Agent Links"
   end
@@ -12,78 +13,51 @@ class Dotfiles::Step::SyncAgentLinksStep < Dotfiles::Step
   end
 
   def should_run?
-    mappings.any? { |mapping| !mapping_in_sync?(mapping) }
+    configured_clients.any? && agents_root_exists? && mise_available?
   end
 
   def run
-    mappings.each do |mapping|
-      next unless ensure_source_ready(mapping)
-      next if mapping_in_sync?(mapping)
-
-      replace_target(mapping)
-    end
+    @system.execute!(sync_command, quiet: false)
   end
 
   def complete?
     super
-    complete_errors.each { |error| add_error(error) }
+    return true if configured_clients.empty?
+
+    add_error("Missing ~/.agents; sync home directory first") unless agents_root_exists?
+    add_error("mise not available; cannot run dotagents") unless mise_available?
     @errors.empty?
   end
 
   private
 
-  def complete_errors
-    mappings.filter_map { |mapping| agent_link_mappings.mapping_error(mapping) }
+  def agents_root_exists?
+    @system.dir_exist?(File.join(@home, ".agents"))
   end
 
-  def ensure_source_ready(mapping)
-    return true if agent_link_mappings.source_ready?(mapping)
-    return false if mapping[:kind] == :file
-
-    @system.mkdir_p(mapping[:source])
-    true
+  def mise_available?
+    command_exists?("mise")
   end
 
-  def replace_target(mapping)
-    remove_target(mapping[:target]) if path_exists?(mapping[:target])
-    @system.mkdir_p(File.dirname(mapping[:target]))
-    @system.create_symlink(relative_link(mapping[:source], mapping[:target]), mapping[:target])
+  def sync_command
+    [
+      Shellwords.shellescape(RbConfig.ruby),
+      Shellwords.shellescape(driver_path),
+      "--home", Shellwords.shellescape(@home),
+      "--clients", Shellwords.shellescape(configured_clients.join(",")),
+      "--dotagents-command", Shellwords.shellescape(dotagents_command)
+    ].join(" ")
   end
 
-  def remove_target(path)
-    unprotect(path)
-    @system.rm_rf(path)
+  def driver_path
+    File.join(@dotfiles_dir, "tools", "drive_dotagents.rb")
   end
 
-  def unprotect(path)
-    return unless @system.macos?
-
-    execute("sudo chflags -R nouchg,noschg #{Shellwords.shellescape(path)}", quiet: false)
-  end
-
-  def relative_link(source, target)
-    Pathname.new(source).relative_path_from(Pathname.new(File.dirname(target))).to_s
-  rescue ArgumentError
-    source
-  end
-
-  def path_exists?(path)
-    @system.symlink?(path) || @system.dir_exist?(path) || @system.file_exist?(path)
-  end
-
-  def mappings
-    agent_link_mappings.mappings
-  end
-
-  def mapping_in_sync?(mapping)
-    agent_link_mappings.mapping_in_sync?(mapping)
-  end
-
-  def agent_link_mappings
-    @agent_link_mappings ||= Dotfiles::AgentLinkMappings.new(home: @home, system: @system, clients: configured_clients)
+  def dotagents_command
+    "mise --cd #{Shellwords.shellescape(@dotfiles_dir)} exec npm:@iannuttall/dotagents -- dotagents"
   end
 
   def configured_clients
-    Array(@config.fetch("dotagents_clients", Dotfiles::AgentLinkMappings::DEFAULT_CLIENTS)).map(&:to_s)
+    Array(@config.fetch("dotagents_clients", DEFAULT_CLIENTS)).map(&:to_s)
   end
 end
