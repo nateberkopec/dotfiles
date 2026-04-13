@@ -1,8 +1,34 @@
-require "shellwords"
+require "pathname"
 
 class Dotfiles::Step::SyncAgentLinksStep < Dotfiles::Step
   DEFAULT_CLIENTS = %w[claude factory codex cursor opencode gemini].freeze
-  MENU_CLIENTS = %w[claude factory codex cursor opencode gemini github ampcode].freeze
+  AGENT_FILE_TARGETS = {
+    "factory" => %w[.factory AGENTS.md],
+    "codex" => %w[.codex AGENTS.md],
+    "opencode" => %w[.config opencode AGENTS.md],
+    "ampcode" => %w[.config amp AGENTS.md]
+  }.freeze
+  COMMAND_TARGETS = {
+    "claude" => %w[.claude commands],
+    "factory" => %w[.factory commands],
+    "codex" => %w[.codex prompts],
+    "opencode" => %w[.config opencode commands],
+    "cursor" => %w[.cursor commands],
+    "gemini" => %w[.gemini commands]
+  }.freeze
+  HOOK_TARGETS = {
+    "claude" => %w[.claude hooks],
+    "factory" => %w[.factory hooks]
+  }.freeze
+  SKILL_TARGETS = {
+    "claude" => %w[.claude skills],
+    "factory" => %w[.factory skills],
+    "codex" => %w[.codex skills],
+    "opencode" => %w[.config opencode skills],
+    "cursor" => %w[.cursor skills],
+    "gemini" => %w[.gemini skills],
+    "github" => %w[.copilot skills]
+  }.freeze
 
   def self.display_name
     "Agent Links"
@@ -13,14 +39,11 @@ class Dotfiles::Step::SyncAgentLinksStep < Dotfiles::Step
   end
 
   def should_run?
-    configured_clients.any? && agents_root_exists? && mise_available?
+    configured_clients.any? && agents_root_exists? && !complete?
   end
 
   def run
-    # dotagents is a full-screen TUI. We drive it non-interactively via `script`
-    # so it still gets a pseudo-TTY, but we keep stdout/stderr captured here to
-    # avoid replaying raw control sequences into dotf's output.
-    @system.execute!(sync_command, quiet: true)
+    link_mappings.each { |mapping| sync_mapping(mapping) }
   end
 
   def complete?
@@ -28,46 +51,128 @@ class Dotfiles::Step::SyncAgentLinksStep < Dotfiles::Step
     return true if configured_clients.empty?
 
     add_error("Missing ~/.agents; sync home directory first") unless agents_root_exists?
-    add_error("mise not available; cannot run dotagents") unless mise_available?
+    return false unless @errors.empty?
+
+    out_of_sync_mappings.each do |mapping|
+      add_error("Agent link not in sync: #{collapse_path_to_home(mapping[:target])}")
+    end
     @errors.empty?
   end
 
   private
 
   def agents_root_exists?
-    @system.dir_exist?(File.join(@home, ".agents"))
+    @system.dir_exist?(agents_root)
   end
 
-  def mise_available?
-    command_exists?("mise")
+  def agents_root
+    File.join(@home, ".agents")
   end
 
-  def sync_command
-    "printf '%b' #{Shellwords.shellescape(dotagents_input)} | #{script_command("HOME=#{Shellwords.shellescape(@home)} #{dotagents_command}")}"
+  def out_of_sync_mappings
+    link_mappings.reject { |mapping| link_in_sync?(mapping) }
   end
 
-  def script_command(command)
-    if @system.macos?
-      "script -q /dev/null sh -lc #{Shellwords.shellescape(command)}"
-    else
-      "script -qefc #{Shellwords.shellescape(command)} /dev/null"
+  def link_mappings
+    [
+      *instruction_file_mappings,
+      *agent_file_mappings,
+      *command_mappings,
+      *hook_mappings,
+      *skill_mappings
+    ]
+  end
+
+  def instruction_file_mappings
+    mappings = []
+    claude_source = first_existing_file_source("CLAUDE.md", "AGENTS.md")
+    gemini_source = first_existing_file_source("GEMINI.md", "AGENTS.md")
+
+    mappings << mapping(claude_source, File.join(@home, ".claude", "CLAUDE.md")) if configured_for?("claude") && claude_source
+    mappings << mapping(gemini_source, File.join(@home, ".gemini", "GEMINI.md")) if configured_for?("gemini") && gemini_source
+    mappings
+  end
+
+  def agent_file_mappings
+    source = file_source("AGENTS.md")
+    source ? mappings_for(source, AGENT_FILE_TARGETS) : []
+  end
+
+  def command_mappings
+    source = dir_source("commands")
+    source ? mappings_for(source, COMMAND_TARGETS) : []
+  end
+
+  def hook_mappings
+    source = dir_source("hooks")
+    source ? mappings_for(source, HOOK_TARGETS) : []
+  end
+
+  def skill_mappings
+    source = dir_source("skills")
+    source ? mappings_for(source, SKILL_TARGETS) : []
+  end
+
+  def file_source(name)
+    path = File.join(agents_root, name)
+    @system.file_exist?(path) ? path : nil
+  end
+
+  def dir_source(name)
+    path = File.join(agents_root, name)
+    @system.dir_exist?(path) ? path : nil
+  end
+
+  def first_existing_file_source(*names)
+    names.map { |name| file_source(name) }.find(&:itself)
+  end
+
+  def mapping(source, target)
+    {source: source, target: target}
+  end
+
+  def mappings_for(source, target_map)
+    target_map.filter_map do |client, path_parts|
+      mapping(source, File.join(@home, *path_parts)) if configured_for?(client)
     end
   end
 
-  def dotagents_input
-    ["\\r", "a", client_selection_input, "\\r\\r\\r", "\\e[B\\e[B\\e[B\\r"].join
+  def configured_for?(client)
+    configured_clients.include?(client)
   end
 
-  def client_selection_input
-    MENU_CLIENTS.map.with_index do |client, index|
-      selection = configured_clients.include?(client) ? " " : nil
-      down = (index == MENU_CLIENTS.length - 1) ? nil : "\\e[B"
-      [selection, down].join
-    end.join
+  def link_in_sync?(mapping)
+    target = mapping[:target]
+    return false unless @system.symlink?(target)
+
+    resolved_link_target(target) == File.expand_path(mapping[:source])
   end
 
-  def dotagents_command
-    "mise --cd #{Shellwords.shellescape(@dotfiles_dir)} exec npm:@iannuttall/dotagents -- dotagents"
+  def resolved_link_target(target)
+    File.expand_path(@system.readlink(target), File.dirname(target))
+  end
+
+  def sync_mapping(mapping)
+    target = mapping[:target]
+    return if link_in_sync?(mapping)
+
+    @system.mkdir_p(File.dirname(target))
+    @system.rm_rf(target) if target_exists?(target)
+    @system.create_symlink(relative_link_target(mapping[:source], target), target)
+  end
+
+  def target_exists?(target)
+    @system.file_exist?(target) || @system.dir_exist?(target) || @system.symlink?(target)
+  end
+
+  def relative_link_target(source, target)
+    source_path = Pathname.new(File.expand_path(source))
+    target_dir = Pathname.new(File.expand_path(File.dirname(target)))
+    relative = source_path.relative_path_from(target_dir).to_s
+    resolved_relative = File.expand_path(relative, File.dirname(target))
+    (resolved_relative == File.expand_path(source)) ? relative : File.expand_path(source)
+  rescue ArgumentError
+    File.expand_path(source)
   end
 
   def configured_clients

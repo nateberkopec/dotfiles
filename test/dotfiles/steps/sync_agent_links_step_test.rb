@@ -1,4 +1,3 @@
-require "shellwords"
 require "test_helper"
 
 class SyncAgentLinksStepTest < StepTestCase
@@ -10,26 +9,52 @@ class SyncAgentLinksStepTest < StepTestCase
     @fake_system.mkdir_p(File.join(@home, ".agents"))
   end
 
-  def test_should_run_when_agents_root_and_mise_are_available
+  def test_should_run_when_agent_links_are_out_of_sync
+    stub_agents_file("AGENTS.md", "instructions")
+    stub_agents_dir("skills")
+
     assert_should_run
   end
 
-  def test_run_executes_dotagents_via_script
-    step.run
+  def test_should_not_run_when_agent_links_are_in_sync
+    stub_synced_agent_links
 
-    assert_executed!(expected_command)
+    refute_should_run
   end
 
-  def test_run_uses_bsd_script_on_macos
-    @fake_system.stub_macos
+  def test_run_syncs_existing_agent_sources_to_clients
+    stub_agents_file("AGENTS.md", "instructions")
+    stub_agents_dir("skills")
 
     step.run
 
-    assert_executed!(expected_command(macos: true))
+    assert_command_run(:create_symlink, "../.agents/AGENTS.md", home_path(".claude/CLAUDE.md"))
+    assert_command_run(:create_symlink, "../.agents/AGENTS.md", home_path(".codex/AGENTS.md"))
+    assert_command_run(:create_symlink, "../.agents/skills", home_path(".claude/skills"))
+    assert_command_run(:create_symlink, "../.agents/skills", home_path(".codex/skills"))
   end
 
-  def test_complete_when_agents_root_exists
+  def test_run_prefers_claude_override_when_present
+    stub_agents_file("AGENTS.md", "instructions")
+    stub_agents_file("CLAUDE.md", "claude instructions")
+
+    step.run
+
+    assert_command_run(:create_symlink, "../.agents/CLAUDE.md", home_path(".claude/CLAUDE.md"))
+  end
+
+  def test_complete_when_links_are_in_sync
+    stub_synced_agent_links
+
     assert_complete
+  end
+
+  def test_incomplete_when_link_missing
+    stub_agents_file("AGENTS.md", "instructions")
+
+    assert_incomplete
+    assert_includes step.errors, "Agent link not in sync: ~/.claude/CLAUDE.md"
+    assert_includes step.errors, "Agent link not in sync: ~/.codex/AGENTS.md"
   end
 
   def test_incomplete_without_agents_root
@@ -49,29 +74,36 @@ class SyncAgentLinksStepTest < StepTestCase
 
   private
 
-  def expected_command(macos: false)
-    "printf '%b' #{Shellwords.shellescape(dotagents_input)} | #{script_command(macos: macos)}"
+  def agents_path(relative)
+    File.join(@home, ".agents", relative)
   end
 
-  def script_command(macos: false)
-    command = "HOME=#{Shellwords.shellescape(@home)} mise --cd #{Shellwords.shellescape(@dotfiles_dir)} exec npm:@iannuttall/dotagents -- dotagents"
-
-    if macos
-      "script -q /dev/null sh -lc #{Shellwords.shellescape(command)}"
-    else
-      "script -qefc #{Shellwords.shellescape(command)} /dev/null"
-    end
+  def home_path(relative)
+    File.join(@home, relative)
   end
 
-  def dotagents_input
-    ["\\r", "a", client_selection_input, "\\r\\r\\r", "\\e[B\\e[B\\e[B\\r"].join
+  def stub_agents_file(relative, content)
+    path = agents_path(relative)
+    @fake_system.mkdir_p(File.dirname(path))
+    @fake_system.stub_file_content(path, content)
   end
 
-  def client_selection_input
-    %w[claude factory codex cursor opencode gemini github ampcode].map.with_index do |client, index|
-      selection = %w[claude codex].include?(client) ? " " : nil
-      down = (index == 7) ? nil : "\\e[B"
-      [selection, down].join
-    end.join
+  def stub_agents_dir(relative)
+    @fake_system.mkdir_p(agents_path(relative))
+  end
+
+  def stub_home_symlink(relative, target)
+    path = home_path(relative)
+    @fake_system.mkdir_p(File.dirname(path))
+    @fake_system.stub_symlink(path, target)
+  end
+
+  def stub_synced_agent_links
+    stub_agents_file("AGENTS.md", "instructions")
+    stub_agents_dir("skills")
+    stub_home_symlink(".claude/CLAUDE.md", "../.agents/AGENTS.md")
+    stub_home_symlink(".codex/AGENTS.md", "../.agents/AGENTS.md")
+    stub_home_symlink(".claude/skills", "../.agents/skills")
+    stub_home_symlink(".codex/skills", "../.agents/skills")
   end
 end

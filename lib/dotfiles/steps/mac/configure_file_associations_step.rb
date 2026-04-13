@@ -12,8 +12,9 @@ class Dotfiles::Step::ConfigureFileAssociationsStep < Dotfiles::Step
   def should_run?
     return false unless allowed_on_platform?
     return false if file_associations.empty?
+    return false unless file_associations.keys.any? { |bundle_id| bundle_id_installed?(bundle_id) }
 
-    file_associations.keys.any? { |bundle_id| !bundle_id_installed?(bundle_id) } || !complete?
+    !complete?
   end
 
   def run
