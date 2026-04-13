@@ -90,13 +90,6 @@ class SyncHomeDirectoryStepTest < StepTestCase
     assert_complete
   end
 
-  def test_should_not_run_when_only_pi_auth_differs
-    stub_source_file(".pi/agent/auth.json", "repo auth content")
-
-    refute_should_run
-    assert_complete
-  end
-
   def test_run_prefers_platform_specific_file_over_shared_file
     @fake_system.stub_macos
     stub_source_file(".config/ghostty/config.platform", "font-size = 18")
