@@ -164,10 +164,11 @@ jobs:
         username="dotfiles-ci"
         home_dir="/Users/${username}"
         repo_dir="${home_dir}/dotfiles"
+        runner_path="$PATH"
 
         sudo -H -u "${username}" env \
           HOME="${home_dir}" \
-          PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:${home_dir}/.local/bin" \
+          PATH="${runner_path}:${home_dir}/.local/bin" \
           DEBUG="${DEBUG}" \
           CI="${CI}" \
           NONINTERACTIVE="${NONINTERACTIVE}" \
@@ -189,8 +190,9 @@ jobs:
 
         username="dotfiles-ci"
         home_dir="/Users/${username}"
+        runner_path="$PATH"
 
-        sudo -H -u "${username}" env HOME="${home_dir}" PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:${home_dir}/.local/bin" bash <<'BASH'
+        sudo -H -u "${username}" env HOME="${home_dir}" PATH="${runner_path}:${home_dir}/.local/bin" bash <<'BASH'
         set -euo pipefail
         cd "$HOME/dotfiles"
         fish_bin="/opt/homebrew/bin/fish"
