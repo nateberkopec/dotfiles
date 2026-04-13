@@ -165,7 +165,8 @@ class Dotfiles::Step::SyncHomeDirectoryStep < Dotfiles::Step
 
   def ignored_relative_paths
     [
-      ".config/fish/fish_variables"
+      ".config/fish/fish_variables",
+      ".pi/agent/auth.json"
     ]
   end
 
