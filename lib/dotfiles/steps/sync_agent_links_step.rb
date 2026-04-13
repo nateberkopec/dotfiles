@@ -84,13 +84,18 @@ class Dotfiles::Step::SyncAgentLinksStep < Dotfiles::Step
   end
 
   def instruction_file_mappings
-    mappings = []
-    claude_source = first_existing_file_source("CLAUDE.md", "AGENTS.md")
-    gemini_source = first_existing_file_source("GEMINI.md", "AGENTS.md")
-
-    mappings << mapping(claude_source, File.join(@home, ".claude", "CLAUDE.md")) if configured_for?("claude") && claude_source
-    mappings << mapping(gemini_source, File.join(@home, ".gemini", "GEMINI.md")) if configured_for?("gemini") && gemini_source
-    mappings
+    {
+      "claude" => {
+        source: first_existing_file_source("CLAUDE.md", "AGENTS.md"),
+        target: File.join(@home, ".claude", "CLAUDE.md")
+      },
+      "gemini" => {
+        source: first_existing_file_source("GEMINI.md", "AGENTS.md"),
+        target: File.join(@home, ".gemini", "GEMINI.md")
+      }
+    }.filter_map do |client, entry|
+      mapping(entry[:source], entry[:target], kind: :file) if configured_for?(client) && entry[:source]
+    end
   end
 
   def agent_file_mappings
@@ -127,13 +132,13 @@ class Dotfiles::Step::SyncAgentLinksStep < Dotfiles::Step
     names.map { |name| file_source(name) }.find(&:itself)
   end
 
-  def mapping(source, target)
-    {source: source, target: target}
+  def mapping(source, target, kind: :dir)
+    {source: source, target: target, kind: kind}
   end
 
   def mappings_for(source, target_map)
     target_map.filter_map do |client, path_parts|
-      mapping(source, File.join(@home, *path_parts)) if configured_for?(client)
+      mapping(source, File.join(@home, *path_parts), kind: :dir) if configured_for?(client)
     end
   end
 
@@ -143,9 +148,12 @@ class Dotfiles::Step::SyncAgentLinksStep < Dotfiles::Step
 
   def link_in_sync?(mapping)
     target = mapping[:target]
-    return false unless @system.symlink?(target)
 
-    resolved_link_target(target) == File.expand_path(mapping[:source])
+    if @system.symlink?(target)
+      return resolved_link_target(target) == File.expand_path(mapping[:source])
+    end
+
+    mapping[:kind] == :dir && @system.dir_exist?(target)
   end
 
   def resolved_link_target(target)
@@ -155,6 +163,7 @@ class Dotfiles::Step::SyncAgentLinksStep < Dotfiles::Step
   def sync_mapping(mapping)
     target = mapping[:target]
     return if link_in_sync?(mapping)
+    return if mapping[:kind] == :dir && @system.dir_exist?(target)
 
     @system.mkdir_p(File.dirname(target))
     @system.rm_rf(target) if target_exists?(target)
