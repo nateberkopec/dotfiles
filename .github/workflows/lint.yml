@@ -10,8 +10,8 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     env:
-      FLOG_THRESHOLD: 50
-      FLAY_THRESHOLD: 100
+      FLOG_THRESHOLD: 25
+      FLAY_THRESHOLD: 10
 
     steps:
     - name: Checkout repository
