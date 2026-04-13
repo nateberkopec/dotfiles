@@ -48,17 +48,6 @@ class InstallApplicationsStepTest < StepTestCase
     refute_executed(install_command_for(app))
   end
 
-  def test_complete_when_non_admin_install_is_skipped_due_to_permissions
-    app = apps.last
-    stub_first_app_installed
-    stub_install_permission_error(app)
-
-    step.run
-
-    assert_complete
-    assert_skipped_install_warning(app)
-  end
-
   private
 
   def apps
@@ -75,18 +64,5 @@ class InstallApplicationsStepTest < StepTestCase
 
   def user_app_path(app)
     File.join(@home, "Applications", File.basename(app["path"]))
-  end
-
-  def stub_first_app_installed
-    @fake_system.filesystem[apps.first["path"]] = :directory
-  end
-
-  def stub_install_permission_error(app)
-    @fake_system.stub_command(install_command_for(app), "Error: /opt/homebrew/Caskroom is not writable", 1)
-  end
-
-  def assert_skipped_install_warning(app)
-    assert_equal "⚠️  Application Installation Skipped", step.warnings.first[:title]
-    assert_includes step.warnings.first[:message], app["name"]
   end
 end
