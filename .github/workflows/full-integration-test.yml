@@ -83,6 +83,7 @@ jobs:
           sudo createhomedir -c -u "${username}" >/dev/null
         fi
 
+        sudo rm -rf "${home_dir}/.homebrew" "${home_dir}/Library/Caches/Homebrew"
         sudo mkdir -p "${repo_dir}"
         sudo rsync -a --delete --exclude .git "${GITHUB_WORKSPACE}/" "${repo_dir}/"
         sudo chown -R "${username}:staff" "${home_dir}"
