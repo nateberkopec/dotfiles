@@ -50,8 +50,7 @@ class Dotfiles::Step::ConfigureFileAssociationsStep < Dotfiles::Step
   end
 
   def bundle_id_installed?(bundle_id)
-    output, status = execute("mdfind \"kMDItemCFBundleIdentifier == '#{bundle_id}'\"")
-    return false unless status == 0
-    output.lines.any? { |line| line.strip.end_with?(".app") }
+    _, status = execute("osascript -e 'path to application id \"#{bundle_id}\"' 2>/dev/null")
+    status == 0
   end
 end
