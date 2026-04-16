@@ -8,3 +8,4 @@ Brewfile
 logs/
 .rubocop_cache/
 files/home/.pi/agent/auth.json
+tmp/
