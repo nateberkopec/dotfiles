@@ -3,20 +3,74 @@ name: Integration Test
 on:
   push:
     branches: [ main ]
-    paths-ignore:
-      - 'docs/**'
-      - 'README.md'
-      - 'AGENTS.md'
   pull_request:
     branches: [ main ]
-    paths-ignore:
-      - 'docs/**'
-      - 'README.md'
-      - 'AGENTS.md'
   workflow_dispatch:
 
 jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      docs_only: ${{ steps.docs_only.outputs.docs_only }}
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v6.0.2
+      with:
+        fetch-depth: 0
+
+    - name: Detect docs-only changes
+      id: docs_only
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        case "${{ github.event_name }}" in
+          pull_request)
+            base_sha="${{ github.event.pull_request.base.sha }}"
+            head_sha="${{ github.event.pull_request.head.sha }}"
+            ;;
+          push)
+            base_sha="${{ github.event.before }}"
+            head_sha="${{ github.sha }}"
+            ;;
+          *)
+            echo "docs_only=false" >> "$GITHUB_OUTPUT"
+            exit 0
+            ;;
+        esac
+
+        if [ "$base_sha" = "0000000000000000000000000000000000000000" ]; then
+          echo "docs_only=false" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+
+        mapfile -t files < <(git diff --name-only "$base_sha" "$head_sha")
+
+        if [ "${#files[@]}" -eq 0 ]; then
+          echo "docs_only=false" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+
+        docs_only=true
+
+        for file in "${files[@]}"; do
+          case "$file" in
+            docs/*|README.md|AGENTS.md)
+              ;;
+            *)
+              docs_only=false
+              break
+              ;;
+          esac
+        done
+
+        echo "docs_only=$docs_only" >> "$GITHUB_OUTPUT"
+        printf 'docs_only=%s\n' "$docs_only"
+        printf 'changed files:\n%s\n' "$(printf '%s\n' "${files[@]}")"
+
   integration-test:
+    needs: detect-changes
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -26,16 +80,23 @@ jobs:
           - ubuntu-22.04
 
     steps:
+    - name: Skip integration tests for docs-only changes
+      if: needs.detect-changes.outputs.docs_only == 'true'
+      run: echo "Docs-only change; skipping integration test."
+
     - name: Checkout repository
+      if: needs.detect-changes.outputs.docs_only != 'true'
       uses: actions/checkout@v6.0.2
 
     - name: Set up Ruby
+      if: needs.detect-changes.outputs.docs_only != 'true'
       uses: ruby/setup-ruby@v1.301.0
       with:
         ruby-version: 'ruby'
         bundler-cache: false
 
     - name: Run dotfiles integration script
+      if: needs.detect-changes.outputs.docs_only != 'true'
       id: run
       timeout-minutes: 20
       env:
@@ -49,7 +110,7 @@ jobs:
       run: bash tools/ci/run_dotfiles_integration.sh "${GITHUB_WORKSPACE}"
 
     - name: Upload logs
-      if: always()
+      if: always() && needs.detect-changes.outputs.docs_only != 'true'
       uses: actions/upload-artifact@v4
       with:
         name: logs-${{ matrix.os }}
@@ -59,6 +120,8 @@ jobs:
         retention-days: 7
 
   macos-non-admin-user:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.docs_only != 'true'
     runs-on: macos-14
 
     steps:
