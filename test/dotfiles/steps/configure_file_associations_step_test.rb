@@ -14,9 +14,9 @@ class ConfigureFileAssociationsStepTest < StepTestCase
     stub_bundle_installed("com.microsoft.VSCode", "/Applications/Visual Studio Code.app")
   end
 
-  def test_should_run_when_bundle_missing
+  def test_should_not_run_when_bundle_missing
     stub_bundle_missing("com.microsoft.VSCode")
-    assert_should_run
+    refute_should_run
   end
 
   def test_should_not_run_when_handler_matches
@@ -92,10 +92,10 @@ class ConfigureFileAssociationsStepTest < StepTestCase
   private
 
   def stub_bundle_installed(bundle_id, path)
-    @fake_system.stub_command("mdfind \"kMDItemCFBundleIdentifier == '#{bundle_id}'\"", path, 0)
+    @fake_system.stub_command("osascript -e 'path to application id \"#{bundle_id}\"' 2>/dev/null", path, 0)
   end
 
   def stub_bundle_missing(bundle_id)
-    @fake_system.stub_command("mdfind \"kMDItemCFBundleIdentifier == '#{bundle_id}'\"", "", 0)
+    @fake_system.stub_command("osascript -e 'path to application id \"#{bundle_id}\"' 2>/dev/null", "", 1)
   end
 end

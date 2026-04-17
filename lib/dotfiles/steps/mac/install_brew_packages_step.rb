@@ -1,6 +1,13 @@
 class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
   macos_only
 
+  BREW_RETRYABLE_ERRORS = [
+    "already locked",
+    "has already locked",
+    "Could not obtain lock",
+    "Another active Homebrew update process is already in progress"
+  ].freeze
+
   def self.depends_on
     [Dotfiles::Step::InstallHomebrewStep, Dotfiles::Step::UpdateHomebrewStep]
   end
@@ -18,6 +25,7 @@ class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
 
   def run
     debug "Installing command-line tools via Homebrew..."
+    ensure_fish_installed
     output, exit_status = install_packages
     check_skipped_packages
     log_installation_results(output, exit_status)
@@ -52,6 +60,49 @@ class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
   def install_packages
     cask_opts = user_has_admin_rights? ? "" : "--appdir=~/Applications"
     @system.execute("HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 HOMEBREW_CASK_OPTS=\"#{cask_opts}\" brew bundle install --file=#{@brewfile_path} 2>&1")
+  end
+
+  def ensure_fish_installed
+    return unless preinstall_fish?
+
+    debug "Installing fish separately before brew bundle for a deterministic shell setup..."
+    output, status = install_formula_with_retries("fish")
+    return if status == 0
+
+    debug "brew install fish exited with status #{status}"
+    debug "Output:\n#{output}" if @debug
+  end
+
+  def preinstall_fish?
+    !user_has_admin_rights? && @config.packages["brew"]["packages"].include?("fish") && !brew_formula_installed?("fish")
+  end
+
+  def install_formula_with_retries(name, retries: 3)
+    output = ""
+    status = nil
+
+    retries.times do |attempt|
+      output, status = brew_install_formula(name)
+      return [output, 0] if status == 0 || brew_formula_installed?(name)
+      break unless retryable_brew_error?(output)
+
+      sleep(3 * (attempt + 1))
+    end
+
+    [output, status]
+  end
+
+  def brew_install_formula(name)
+    @system.execute("HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 brew install #{name} 2>&1")
+  end
+
+  def brew_formula_installed?(name)
+    _, status = brew_quiet("list --formula #{name}")
+    status == 0
+  end
+
+  def retryable_brew_error?(output)
+    BREW_RETRYABLE_ERRORS.any? { |message| output.include?(message) }
   end
 
   def check_skipped_packages
