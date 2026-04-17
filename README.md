@@ -14,6 +14,14 @@ Most dotfiles repos just copy files to your home folder. This one does more. It 
 - Adds `dotf` to your PATH via `~/.local/bin`
 - Sets macOS defaults (Dock, trackpad, screenshots, and more)
 
+## Commands
+
+| Command | What it does |
+|---------|--------------|
+| `dotf run` | Set up your Mac. Safe to run many times. |
+| `dotf upgrade` | Refresh and upgrade mise tools and Homebrew packages. |
+| `dotf help` | Show help |
+
 ## Installation
 
 Clone this repo:
@@ -33,6 +41,30 @@ For verbose output:
 
 ```bash
 DEBUG=true ./bin/dotf run
+```
+
+## How It Works
+
+The setup runs in **Steps**. Each Step is a Ruby class that does one thing: install Homebrew, set up Fish, sync config files, etc.
+
+Steps can depend on other steps.
+
+### Available Steps
+
+See [lib/dotfiles/steps/](lib/dotfiles/steps/) for all steps.
+
+### Adding Your Own Steps
+
+See [docs/implementing-steps.md](docs/implementing-steps.md) to learn how.
+
+## Project Layout
+
+```
+bin/           CLI tool
+lib/dotfiles/  Core code and steps
+files/         Config files to sync to home folder
+docs/          Docs for contributors
+test/          Test suite
 ```
 
 ## Ubuntu 22.04
@@ -58,45 +90,3 @@ This one-shot command builds the Ubuntu 22.04 GUI image, starts a fresh ephemera
 - Runs as `linux/amd64` by default for package compatibility (including 1Password and Google Chrome)
 - VNC/noVNC auth is disabled (intended for local testing only)
 - `./bin/dotf run` runs automatically at container start; output is streamed to stdout and written to `/tmp/dotf-run.stdout.log` (also tailed in an auto-opened GUI terminal)
-
-## Commands
-
-| Command | What it does |
-|---------|--------------|
-| `dotf run` | Set up your Mac. Safe to run many times. |
-| `dotf upgrade` | Refresh and upgrade mise tools and Homebrew packages. |
-| `dotf help` | Show help |
-
-## How It Works
-
-The setup runs in **Steps**. Each Step is a Ruby class that does one thing: install Homebrew, set up Fish, sync config files, etc.
-
-Steps can depend on other steps. The system runs them in the right order.
-
-### Available Steps
-
-See [lib/dotfiles/steps/](lib/dotfiles/steps/) for all steps.
-
-### Adding Your Own Steps
-
-See [docs/implementing-steps.md](docs/implementing-steps.md) to learn how.
-
-## Project Layout
-
-```
-bin/           CLI tool
-lib/dotfiles/  Core code and steps
-files/         Config files to sync to home folder
-docs/          Docs for contributors
-test/          Test suite
-Brewfile       Homebrew packages to install
-```
-
-After the first `./bin/dotf run`, `dotf` is also available on your PATH via `~/.local/bin/dotf`.
-
-## Contributing
-
-1. Fork this repo
-2. Create a branch for your change
-3. Run the tests: `rake test`
-4. Open a pull request
