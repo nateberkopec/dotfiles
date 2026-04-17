@@ -111,7 +111,7 @@ jobs:
 
     - name: Upload logs
       if: always() && needs.detect-changes.outputs.docs_only != 'true'
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7.0.1
       with:
         name: logs-${{ matrix.os }}
         path: |
@@ -213,7 +213,7 @@ jobs:
 
     - name: Upload logs
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7.0.1
       with:
         name: logs-macos-14-non-admin
         path: |
