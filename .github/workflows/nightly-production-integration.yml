@@ -1,0 +1,113 @@
+name: Production Integration
+
+on:
+  push:
+    branches: [ main ]
+  schedule:
+    - cron: '17 15 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: production-integration
+  cancel-in-progress: false
+
+jobs:
+  macos-non-admin-user:
+    if: github.ref == 'refs/heads/main'
+    runs-on: macos-14
+    timeout-minutes: 90
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v6.0.2
+
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1.301.0
+      with:
+        ruby-version: 'ruby'
+        bundler-cache: false
+
+    - name: Prepare non-admin macOS runner user
+      run: |
+        set -euo pipefail
+
+        username="dotfiles-ci"
+        home_dir="/Users/${username}"
+        repo_dir="${home_dir}/dotfiles"
+
+        if ! id -u "${username}" >/dev/null 2>&1; then
+          next_uid="$(dscl . -list /Users UniqueID | awk '{print $2}' | sort -n | tail -1)"
+          next_uid="$((next_uid + 1))"
+          sudo dscl . -create "/Users/${username}"
+          sudo dscl . -create "/Users/${username}" UserShell /bin/bash
+          sudo dscl . -create "/Users/${username}" RealName "Dotfiles CI"
+          sudo dscl . -create "/Users/${username}" UniqueID "${next_uid}"
+          sudo dscl . -create "/Users/${username}" PrimaryGroupID 20
+          sudo dscl . -create "/Users/${username}" NFSHomeDirectory "${home_dir}"
+          sudo createhomedir -c -u "${username}" >/dev/null
+        fi
+
+        sudo rm -rf "${home_dir}/.homebrew" "${home_dir}/Library/Caches/Homebrew"
+        sudo mkdir -p "${repo_dir}"
+        sudo rsync -a --delete --exclude .git "${GITHUB_WORKSPACE}/" "${repo_dir}/"
+        sudo chown -R "${username}:staff" "${home_dir}"
+        sudo -H -u "${username}" bash -lc '
+          if id -Gn | tr " " "\n" | grep -qx admin; then
+            echo "User unexpectedly has admin rights"
+            exit 1
+          fi
+        '
+
+    - name: Seed immutable gem credentials for non-admin user
+      run: |
+        set -euo pipefail
+
+        username="dotfiles-ci"
+        home_dir="/Users/${username}"
+
+        sudo -H -u "${username}" bash <<'BASH'
+        set -euo pipefail
+        mkdir -p "$HOME/.gem"
+        cp "$HOME/dotfiles/files/home/.gem/credentials" "$HOME/.gem/credentials"
+        printf '\n# stale copy for integration test\n' >> "$HOME/.gem/credentials"
+        chflags uchg "$HOME/.gem/credentials"
+        ls -lO "$HOME/.gem/credentials"
+        BASH
+
+    - name: Run dotfiles integration script as non-admin macOS user
+      id: non_admin_run
+      timeout-minutes: 75
+      env:
+        DEBUG: true
+        CI: true
+        NONINTERACTIVE: true
+        GITHUB_TOKEN: ${{ github.token }}
+        MISE_CI_TOOLS: "fzf@latest"
+        BREW_CI_CASKS: ""
+      run: |
+        set -euo pipefail
+
+        username="dotfiles-ci"
+        home_dir="/Users/${username}"
+        runner_path="$PATH"
+
+        sudo -H -u "${username}" env \
+          HOME="${home_dir}" \
+          PATH="${home_dir}/.homebrew/bin:${runner_path}:${home_dir}/.local/bin" \
+          DEBUG="${DEBUG}" \
+          CI="${CI}" \
+          NONINTERACTIVE="${NONINTERACTIVE}" \
+          GITHUB_TOKEN="${GITHUB_TOKEN}" \
+          MISE_CI_TOOLS="${MISE_CI_TOOLS}" \
+          BREW_CI_CASKS="${BREW_CI_CASKS}" \
+          bash "${home_dir}/dotfiles/tools/ci/run_dotfiles_integration.sh" "${home_dir}/dotfiles"
+
+    - name: Upload logs
+      if: always()
+      uses: actions/upload-artifact@v7.0.1
+      with:
+        name: logs-macos-14-non-admin-nightly
+        path: |
+          /Users/dotfiles-ci/dotfiles/output.log
+          /Users/dotfiles-ci/dotfiles/fish-init.log
+        retention-days: 7
