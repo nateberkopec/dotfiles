@@ -22,16 +22,25 @@ jobs:
           const maxAgeMs = maxAgeHours * 60 * 60 * 1000
 
           async function latestRun(workflowId, allowedEvents) {
-            const { data } = await github.rest.actions.listWorkflowRuns({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              workflow_id: workflowId,
-              branch: 'main',
-              status: 'completed',
-              per_page: 10,
-            })
+            try {
+              const { data } = await github.rest.actions.listWorkflowRuns({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                workflow_id: workflowId,
+                branch: 'main',
+                status: 'completed',
+                per_page: 10,
+              })
 
-            return data.workflow_runs.find((run) => allowedEvents.includes(run.event))
+              return data.workflow_runs.find((run) => allowedEvents.includes(run.event))
+            } catch (error) {
+              if (error.status === 404) {
+                core.info(`Workflow ${workflowId} is not available on main yet; skipping.`)
+                return null
+              }
+
+              throw error
+            }
           }
 
           const productionRun = await latestRun('nightly-production-integration.yml', ['push', 'schedule', 'workflow_dispatch'])
