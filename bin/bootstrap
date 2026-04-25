@@ -45,6 +45,14 @@ brew_quiet() {
     fi
 }
 
+stdout_quiet_unless_debug() {
+    if [ "${DEBUG:-false}" = "true" ]; then
+        "$@"
+    else
+        "$@" >/dev/null
+    fi
+}
+
 private_homebrew_prefix() {
     printf '%s\n' "$HOME/.homebrew"
 }
@@ -174,7 +182,11 @@ bootstrap_mise() {
     # Trust mise config in current directory (needed for non-interactive environments)
     if [ -f ".mise.toml" ]; then
         debug "Trusting mise config..."
-        mise trust --yes 2>/dev/null || true
+        if [ "${DEBUG:-false}" = "true" ]; then
+            mise trust --yes || true
+        else
+            mise trust --yes 2>/dev/null || true
+        fi
     fi
 
     eval "$(mise activate bash)"
@@ -184,8 +196,8 @@ bootstrap_gum() {
     if ! command -v gum &> /dev/null; then
         if command -v mise &> /dev/null; then
             debug "Installing gum via mise..."
-            mise use --global gum@latest >/dev/null
-            mise install gum@latest >/dev/null
+            stdout_quiet_unless_debug mise use --global gum@latest
+            stdout_quiet_unless_debug mise install gum@latest
         else
             debug "Installing gum..."
             if is_macos; then
@@ -231,8 +243,8 @@ bootstrap_ruby() {
     latest_version=${latest_version:-$(mise latest ruby)}
 
     debug "Installing Ruby $latest_version via mise..."
-    mise use --global ruby@latest >/dev/null
-    mise install ruby@latest >/dev/null
+    stdout_quiet_unless_debug mise use --global ruby@latest
+    stdout_quiet_unless_debug mise install ruby@latest
 
     debug "Ruby bootstrap complete. Modern Ruby should now be available."
 }

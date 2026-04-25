@@ -37,7 +37,7 @@ cd ~/.dotfiles
 ./bin/dotf run
 ```
 
-For verbose output:
+For verbose output that also streams subprocess output:
 
 ```bash
 DEBUG=true ./bin/dotf run
