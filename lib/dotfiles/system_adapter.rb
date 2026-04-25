@@ -90,6 +90,7 @@ class Dotfiles
     end
 
     def execute(command, quiet: true)
+      quiet = false if ENV["DEBUG"] == "true"
       quiet ? execute_quiet(command) : execute_verbose(command)
     rescue Errno::ENOENT => e
       [e.message, 127]

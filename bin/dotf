@@ -161,7 +161,7 @@ Commands:
 
 Logging:
   Logs are always written to logs/ directory with timestamped filenames.
-  Set DEBUG=true to also output logs to the console.
+  Set DEBUG=true to also output logs and subprocess output to the console.
 
 Examples:
   dotf run                              # Initial setup
