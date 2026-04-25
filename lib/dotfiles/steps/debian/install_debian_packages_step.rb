@@ -38,7 +38,7 @@ class Dotfiles::Step::InstallDebianPackagesStep < Dotfiles::Step
 
   def debian_sources
     sources = @config.fetch("debian_sources", [])
-    return sources unless running_in_container?
+    return sources unless skip_unsupported_third_party_debian?
 
     sources.reject { |source| CONTAINER_UNSUPPORTED_SOURCES.include?(source["name"].to_s) }
   end
@@ -79,7 +79,7 @@ class Dotfiles::Step::InstallDebianPackagesStep < Dotfiles::Step
   def configured_packages
     @configured_packages ||= begin
       packages = @config.packages.fetch("debian", {}).fetch("packages", []).uniq - non_apt_packages
-      running_in_container? ? (packages - CONTAINER_UNSUPPORTED_PACKAGES) : packages
+      skip_unsupported_third_party_debian? ? (packages - CONTAINER_UNSUPPORTED_PACKAGES) : packages
     end
   end
 
@@ -245,6 +245,10 @@ class Dotfiles::Step::InstallDebianPackagesStep < Dotfiles::Step
 
   def running_in_container?
     @system.respond_to?(:running_container?) && @system.running_container?
+  end
+
+  def skip_unsupported_third_party_debian?
+    running_in_container? || ENV["GITHUB_ACTIONS"] == "true"
   end
 
   def record_update_failure(output, status)
