@@ -20,49 +20,54 @@ jobs:
         script: |
           const maxAgeHours = 36
           const maxAgeMs = maxAgeHours * 60 * 60 * 1000
-          const workflowId = 'nightly-production-integration.yml'
 
-          const { data } = await github.rest.actions.listWorkflowRuns({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            workflow_id: workflowId,
-            branch: 'main',
-            status: 'completed',
-            per_page: 10,
-          })
+          async function latestRun(workflowId, allowedEvents) {
+            const { data } = await github.rest.actions.listWorkflowRuns({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: workflowId,
+              branch: 'main',
+              status: 'completed',
+              per_page: 10,
+            })
 
-          const runs = data.workflow_runs.filter((run) =>
-            ['push', 'schedule', 'workflow_dispatch'].includes(run.event)
-          )
+            return data.workflow_runs.find((run) => allowedEvents.includes(run.event))
+          }
 
-          if (runs.length === 0) {
-            core.setFailed('No completed production integration runs found on main.')
+          const productionRun = await latestRun('nightly-production-integration.yml', ['push', 'schedule', 'workflow_dispatch'])
+          const fallbackRun = await latestRun('full-integration-test.yml', ['push'])
+          const run = productionRun || fallbackRun
+          const source = productionRun ? 'production integration' : 'full integration fallback'
+
+          if (!run) {
+            core.setFailed('No completed production integration or fallback full integration runs found on main.')
             return
           }
 
-          const run = runs[0]
           const finishedAt = new Date(run.updated_at)
           const ageMs = Date.now() - finishedAt.getTime()
           const ageHours = (ageMs / (60 * 60 * 1000)).toFixed(1)
 
           await core.summary
             .addHeading('Production integration status')
+            .addRaw(`Source: ${source}\n\n`)
             .addRaw(`Latest run: ${run.html_url}\n\n`)
             .addRaw(`Conclusion: ${run.conclusion}\n\n`)
             .addRaw(`Finished at: ${run.updated_at}\n\n`)
             .addRaw(`Age: ${ageHours} hours\n`)
             .write()
 
+          core.info(`Source: ${source}`)
           core.info(`Latest production run: ${run.html_url}`)
           core.info(`Conclusion: ${run.conclusion}`)
           core.info(`Finished at: ${run.updated_at}`)
           core.info(`Age: ${ageHours} hours`)
 
           if (run.conclusion !== 'success') {
-            core.setFailed(`Latest production integration run on main concluded with ${run.conclusion}: ${run.html_url}`)
+            core.setFailed(`Latest ${source} run on main concluded with ${run.conclusion}: ${run.html_url}`)
             return
           }
 
           if (ageMs > maxAgeMs) {
-            core.setFailed(`Latest production integration run on main is stale (${ageHours} hours old; max ${maxAgeHours}): ${run.html_url}`)
+            core.setFailed(`Latest ${source} run on main is stale (${ageHours} hours old; max ${maxAgeHours}): ${run.html_url}`)
           }
