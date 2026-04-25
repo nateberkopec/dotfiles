@@ -10,7 +10,7 @@ class Dotfiles::Step::InstallMiseToolsStep < Dotfiles::Step
   end
 
   def run
-    return unless configured_tools?
+    return unless managed_mise_config?
     return unless mise_available?
 
     @install_errors = {}
@@ -21,7 +21,7 @@ class Dotfiles::Step::InstallMiseToolsStep < Dotfiles::Step
 
   def complete?
     super
-    return true unless configured_tools?
+    return true unless managed_mise_config?
 
     unless mise_available?
       add_error("mise not available; cannot install mise tools")
@@ -30,22 +30,19 @@ class Dotfiles::Step::InstallMiseToolsStep < Dotfiles::Step
 
     install_errors.values.each { |message| add_error(message) }
     if ran? && install_errors.empty? && install_needed?
-      add_error("mise reported success but tools are still missing; check `mise install --dry-run` and MISE_* env vars for the global config path")
+      add_error("mise reported success but tools are still missing; check `mise --cd ~ install --dry-run` and MISE_* env vars")
     end
     @errors.empty?
   end
 
   private
 
-  def configured_tools
-    @configured_tools ||= configured_tool_entries.filter_map do |entry|
-      spec = entry.fetch(:spec)
-      spec if platform_allowed?(entry[:platforms])
-    end
+  def managed_mise_config?
+    ci_tools.any? || @system.file_exist?(global_mise_config_path)
   end
 
-  def configured_tools?
-    configured_tools.any?
+  def ci_tools
+    @ci_tools ||= ENV.fetch("MISE_CI_TOOLS", "").split(",").map(&:strip).reject(&:empty?)
   end
 
   def ordered_tools(tools)
@@ -56,45 +53,6 @@ class Dotfiles::Step::InstallMiseToolsStep < Dotfiles::Step
     return 2 if spec.start_with?("npm:")
     return 1 if spec.start_with?("cargo:")
     0
-  end
-
-  def configured_tool_entries
-    raw = if ENV["MISE_CI_TOOLS"]
-      ENV["MISE_CI_TOOLS"].split(",").map(&:strip)
-    else
-      @config.fetch("mise_tools", [])
-    end
-    Array(raw).filter_map { |entry| normalize_tool_entry(entry) }
-  end
-
-  def normalize_tool_entry(entry)
-    case entry
-    when String
-      {spec: entry}
-    when Hash
-      spec = entry["tool"] || entry["spec"]
-      return nil unless spec
-      platforms = entry["platforms"]
-      {spec: spec.to_s, platforms: Array(platforms).map(&:to_s)}
-    end
-  end
-
-  def platform_allowed?(platforms)
-    return true if platforms.nil? || platforms.empty?
-    platforms.any? { |platform| platform_match?(platform) }
-  end
-
-  def platform_match?(platform)
-    case platform
-    when "macos", "darwin", "mac"
-      @system.macos?
-    when "linux"
-      @system.linux?
-    when "debian"
-      @system.debian?
-    else
-      false
-    end
   end
 
   def install_tools
@@ -132,7 +90,7 @@ class Dotfiles::Step::InstallMiseToolsStep < Dotfiles::Step
   end
 
   def install_needed?
-    return false unless configured_tools?
+    return false unless managed_mise_config?
     return true unless mise_available?
 
     output, status = execute(install_command(dry_run: true))
@@ -146,16 +104,19 @@ class Dotfiles::Step::InstallMiseToolsStep < Dotfiles::Step
     @install_outputs = nil
   end
 
+  def global_mise_config_path
+    File.join(@home, ".config", "mise", "config.toml")
+  end
+
   def mise_command
     "mise --cd #{Shellwords.shellescape(@home)}"
   end
 
   def install_command(dry_run: false)
-    specs = ordered_tools(configured_tools)
     command = "#{mise_command} install --yes"
     command = "#{command} --dry-run" if dry_run
-    return command if specs.empty?
+    return command if ci_tools.empty?
 
-    "#{command} #{specs.join(" ")}"
+    "#{command} #{ordered_tools(ci_tools).join(" ")}"
   end
 end
