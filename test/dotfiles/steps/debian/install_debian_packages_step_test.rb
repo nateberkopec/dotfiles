@@ -87,6 +87,25 @@ class InstallDebianPackagesStepTest < StepTestCase
   def test_skips_amd64_only_packages_and_sources_in_container
     @fake_system.stub_debian
     @fake_system.stub_running_container
+    write_unsupported_third_party_config
+
+    refute_should_run
+    assert_complete
+    assert_empty step.warnings
+  end
+
+  def test_skips_unsupported_third_party_packages_and_sources_on_github_actions
+    with_env("GITHUB_ACTIONS" => "true") do
+      @fake_system.stub_debian
+      write_unsupported_third_party_config
+
+      refute_should_run
+      assert_complete
+      assert_empty step.warnings
+    end
+  end
+
+  def write_unsupported_third_party_config
     write_config(
       "config",
       "packages" => {
@@ -98,10 +117,6 @@ class InstallDebianPackagesStepTest < StepTestCase
         {"name" => "google-chrome", "line" => "deb https://example.invalid stable main"}
       ]
     )
-
-    refute_should_run
-    assert_complete
-    assert_empty step.warnings
   end
 
   private
