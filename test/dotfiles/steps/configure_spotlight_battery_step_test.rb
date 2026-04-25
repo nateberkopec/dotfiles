@@ -11,24 +11,31 @@ class ConfigureSpotlightBatteryStepTest < StepTestCase
     assert_should_run
   end
 
-  def test_run_installs_script_and_launchdaemon
-    write_spotlight_config
-    stub_fish_path
-
-    step.run
+  def test_run_installs_spotlight_files
+    run_step_with_fish
 
     assert_command_run(:mkdir_p, script_dir)
     assert_command_run(:chmod, 0o755, script_path)
     assert @fake_system.file_exist?(script_path)
     assert @fake_system.file_exist?(launchdaemon_source_path)
+  end
+
+  def test_run_installs_and_loads_launchdaemon
+    run_step_with_fish
 
     assert_executed("sudo install -m 644 #{launchdaemon_source_path} #{launchdaemon_path}", quiet: false)
     assert_executed("sudo launchctl bootout system #{launchdaemon_path} 2>/dev/null || true", quiet: false)
     assert_executed("sudo launchctl bootstrap system #{launchdaemon_path}", quiet: false)
+  end
+
+  def test_run_writes_launchdaemon_with_fish_and_home_paths
+    run_step_with_fish
 
     plist = @fake_system.read_file(launchdaemon_source_path)
     assert_includes plist, fish_path
     assert_includes plist, script_path
+    assert_includes plist, "<key>HOME</key>"
+    assert_includes plist, "<string>#{@home}</string>"
     assert_includes plist, "<string>/</string>"
     assert_includes plist, "<string>/System/Volumes/Data</string>"
   end
@@ -57,6 +64,12 @@ class ConfigureSpotlightBatteryStepTest < StepTestCase
 
   private
 
+  def run_step_with_fish
+    write_spotlight_config
+    stub_fish_path
+    step.run
+  end
+
   def write_spotlight_config(overrides = {})
     settings = {
       "battery_disable" => true,
@@ -75,7 +88,7 @@ class ConfigureSpotlightBatteryStepTest < StepTestCase
   end
 
   def fish_path
-    "/opt/homebrew/bin/fish"
+    File.join(@home, ".local", "bin", "fish")
   end
 
   def script_dir

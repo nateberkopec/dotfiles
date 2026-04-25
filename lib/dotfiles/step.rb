@@ -219,6 +219,7 @@ class Dotfiles
       return @fish_path = output.strip if status == 0 && !output.strip.empty?
 
       candidates = [
+        File.join(@home, ".local", "bin", "fish"),
         "/opt/homebrew/bin/fish",
         "/usr/local/bin/fish",
         "/usr/bin/fish",

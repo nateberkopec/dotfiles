@@ -10,9 +10,9 @@ class ConfigTest < Minitest::Test
     config = Dotfiles::Config.new(@fixtures_dir)
     packages = config.packages
 
-    assert_equal ["fish", "git"], packages["brew"]["packages"]
+    assert_equal ["git"], packages["brew"]["packages"]
     assert_equal ["firefox", "dropbox"], packages["brew"]["casks"]
-    assert_equal ["fish", "git"], packages["debian"]["packages"]
+    assert_equal ["git"], packages["debian"]["packages"]
   end
 
   def test_loads_debian_sources_from_yaml
@@ -75,23 +75,23 @@ class ConfigTest < Minitest::Test
   end
 
   def test_brew_ci_packages_overrides_config
-    with_env("BREW_CI_PACKAGES" => "bat, ripgrep") do
-      config = Dotfiles::Config.new(@fixtures_dir)
-      assert_equal ["bat", "ripgrep"], config.brew_packages
-    end
+    assert_brew_override("BREW_CI_PACKAGES", "bat, ripgrep", :brew_packages, ["bat", "ripgrep"])
   end
 
   def test_brew_ci_casks_overrides_config
-    with_env("BREW_CI_CASKS" => "ghostty, cursor") do
-      config = Dotfiles::Config.new(@fixtures_dir)
-      assert_equal ["ghostty", "cursor"], config.brew_casks
-    end
+    assert_brew_override("BREW_CI_CASKS", "ghostty, cursor", :brew_casks, ["ghostty", "cursor"])
   end
 
   def test_brew_ci_casks_empty_string_returns_empty_array
-    with_env("BREW_CI_CASKS" => "") do
+    assert_brew_override("BREW_CI_CASKS", "", :brew_casks, [])
+  end
+
+  private
+
+  def assert_brew_override(env_key, env_value, config_method, expected)
+    with_env(env_key => env_value) do
       config = Dotfiles::Config.new(@fixtures_dir)
-      assert_equal [], config.brew_casks
+      assert_equal expected, config.public_send(config_method)
     end
   end
 end

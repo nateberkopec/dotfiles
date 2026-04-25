@@ -1,0 +1,370 @@
+#!/usr/bin/env bash
+set -eu
+
+# MISE_TOOL_STUB:
+# version = "4.6.0"
+# 
+# [platforms.macos-arm64]
+# url = "https://github.com/fish-shell/fish-shell/releases/download/4.6.0/fish-4.6.0.app.zip"
+# bin = "Contents/Resources/base/usr/local/bin/fish"
+# checksum = "blake3:54d7e070c0137ef727b01af642e69dc860ea8551a762ac8215368b33de9f0ef6"
+# size = 18371640 # 17.52 MiB
+# 
+# [platforms.linux-arm64]
+# url = "https://github.com/fish-shell/fish-shell/releases/download/4.6.0/fish-4.6.0-linux-aarch64.tar.xz"
+# checksum = "blake3:12bfc519e813e67dc2c9adda54a2b2fcfc6168326e933d67ead50633b3edfbf5"
+# size = 2851780 # 2.72 MiB
+# 
+# [platforms.linux-x64]
+# url = "https://github.com/fish-shell/fish-shell/releases/download/4.6.0/fish-4.6.0-linux-x86_64.tar.xz"
+# checksum = "blake3:53f970f39b44c0cc8f866b162feb0c3086fb073d4824276144612aeb4716f51f"
+# size = 3147392 # 3.00 MiB
+# :MISE_TOOL_STUB
+
+__mise_tool_stub_bootstrap() {
+    # Check if mise is on PATH first
+    if command -v mise &>/dev/null; then
+        MISE_BIN="$(command -v mise)"
+        return
+    fi
+
+    # Fall back to ~/.local/bin/mise
+    MISE_BIN="$HOME/.local/bin/mise"
+    if [ -f "$MISE_BIN" ]; then
+        return
+    fi
+
+    # Install mise to ~/.local/bin
+    install() {
+        local initial_working_dir="$PWD"
+        #!/bin/sh
+        set -eu
+
+        #region logging setup
+        if [ "${MISE_DEBUG-}" = "true" ] || [ "${MISE_DEBUG-}" = "1" ]; then
+          debug() {
+            echo "$@" >&2
+          }
+        else
+          debug() {
+            :
+          }
+        fi
+
+        if [ "${MISE_QUIET-}" = "1" ] || [ "${MISE_QUIET-}" = "true" ]; then
+          info() {
+            :
+          }
+        else
+          info() {
+            echo "$@" >&2
+          }
+        fi
+
+        error() {
+          echo "$@" >&2
+          exit 1
+        }
+        #endregion
+
+        #region environment setup
+        get_os() {
+          os="$(uname -s)"
+          if [ "$os" = Darwin ]; then
+            echo "macos"
+          elif [ "$os" = Linux ]; then
+            echo "linux"
+          else
+            error "unsupported OS: $os"
+          fi
+        }
+
+        get_arch() {
+          musl=""
+          if type ldd >/dev/null 2>/dev/null; then
+            if [ "${MISE_INSTALL_MUSL-}" = "1" ] || [ "${MISE_INSTALL_MUSL-}" = "true" ]; then
+              musl="-musl"
+            elif [ "$(uname -o)" = "Android" ]; then
+              # Android (Termux) always uses musl
+              musl="-musl"
+            else
+              libc=$(ldd /bin/ls | grep 'musl' | head -1 | cut -d ' ' -f1)
+              if [ -n "$libc" ]; then
+                musl="-musl"
+              fi
+            fi
+          fi
+          arch="$(uname -m)"
+          if [ "$arch" = x86_64 ]; then
+            echo "x64$musl"
+          elif [ "$arch" = aarch64 ] || [ "$arch" = arm64 ]; then
+            echo "arm64$musl"
+          elif [ "$arch" = armv7l ]; then
+            echo "armv7$musl"
+          else
+            error "unsupported architecture: $arch"
+          fi
+        }
+
+        get_ext() {
+          if [ -n "${MISE_INSTALL_EXT:-}" ]; then
+            echo "$MISE_INSTALL_EXT"
+          elif [ -n "${MISE_VERSION:-}" ] && echo "$MISE_VERSION" | grep -q '^v2024'; then
+            # 2024 versions don't have zstd tarballs
+            echo "tar.gz"
+          elif tar_supports_zstd; then
+            echo "tar.zst"
+          else
+            echo "tar.gz"
+          fi
+        }
+
+        tar_supports_zstd() {
+          if ! command -v zstd >/dev/null 2>&1; then
+            false
+          # tar is bsdtar
+          elif tar --version | grep -q 'bsdtar'; then
+            true
+          # tar version is >= 1.31
+          elif tar --version | grep -q '1\.\(3[1-9]\|[4-9][0-9]\)'; then
+            true
+          else
+            false
+          fi
+        }
+
+        shasum_bin() {
+          if command -v shasum >/dev/null 2>&1; then
+            echo "shasum"
+          elif command -v sha256sum >/dev/null 2>&1; then
+            echo "sha256sum"
+          else
+            error "mise install requires shasum or sha256sum but neither is installed. Aborting."
+          fi
+        }
+
+        get_checksum() {
+          version=$1
+          os=$2
+          arch=$3
+          ext=$4
+          url="https://github.com/jdx/mise/releases/download/v${version}/SHASUMS256.txt"
+          current_version="v2026.4.22"
+          current_version="${current_version#v}"
+
+          # For current version use static checksum otherwise
+          # use checksum from releases
+          if [ "$version" = "$current_version" ]; then
+            checksum_linux_x86_64="98349a651bec38ab46040886cbf6cab6a97b70983a26793156b4223397fd8d1b  ./mise-v2026.4.22-linux-x64.tar.gz"
+            checksum_linux_x86_64_musl="a80e2e1d459f4dc9e66f2fd3dd038933ac112f8709e8e1116b22945548303c8b  ./mise-v2026.4.22-linux-x64-musl.tar.gz"
+            checksum_linux_arm64="5630b0f082f94d140f5ebd7ff483194b74ccf9670126fc015260fefd9ea09564  ./mise-v2026.4.22-linux-arm64.tar.gz"
+            checksum_linux_arm64_musl="62362e63f73c92af02712fb62775af77264f9d16614ccbac5a470567b212f0f7  ./mise-v2026.4.22-linux-arm64-musl.tar.gz"
+            checksum_linux_armv7="986d4a51b4ffb45b067e38043b1025b41bffee1a8572dac8c609c043a5aeacc0  ./mise-v2026.4.22-linux-armv7.tar.gz"
+            checksum_linux_armv7_musl="16e5cf7d60e8a9e9ecad2f40547dff1b8b48cadabbeefe970b0019429be99e45  ./mise-v2026.4.22-linux-armv7-musl.tar.gz"
+            checksum_macos_x86_64="63887b6deabe69924e163659623fb09269372674bf2b76d98716c3754852dc6b  ./mise-v2026.4.22-macos-x64.tar.gz"
+            checksum_macos_arm64="f3c00057a7ac975be04df24f95e1c987bda52588af1abdce1271121256fc82c8  ./mise-v2026.4.22-macos-arm64.tar.gz"
+            checksum_linux_x86_64_zstd="348cb34b099786dbc31876acb71363d326f80d37c91ca266265cbddc9bf67189  ./mise-v2026.4.22-linux-x64.tar.zst"
+            checksum_linux_x86_64_musl_zstd="419572e4b49db31f7729dd53dc7d13f273998b846d810361bab4bd4b20c656a3  ./mise-v2026.4.22-linux-x64-musl.tar.zst"
+            checksum_linux_arm64_zstd="d9858bd8f355d5f6e8f71a99b3e76bddc90758c980518c3da9522e48fa3dedab  ./mise-v2026.4.22-linux-arm64.tar.zst"
+            checksum_linux_arm64_musl_zstd="a5bd2050d05cfc1155dbf4591f6ebb66d544ac7e0ed3a6aa716a8ff3a74d7ba4  ./mise-v2026.4.22-linux-arm64-musl.tar.zst"
+            checksum_linux_armv7_zstd="d7c5c2f36bd638141377bb07ab68bc479b9f87669e7b36029ee1c84810e85881  ./mise-v2026.4.22-linux-armv7.tar.zst"
+            checksum_linux_armv7_musl_zstd="afa232dfdc4c62d0a19e09cf6f37a3ab95c646199784c13255a2b626d15cece8  ./mise-v2026.4.22-linux-armv7-musl.tar.zst"
+            checksum_macos_x86_64_zstd="b30b43e698fd84936c4bd82ed9e14ee524d2c82b4a3b9beb549a7319a8285171  ./mise-v2026.4.22-macos-x64.tar.zst"
+            checksum_macos_arm64_zstd="b64533b9b9a694935212456fc285f29402beaea68d8e9db091d58a26ea255b57  ./mise-v2026.4.22-macos-arm64.tar.zst"
+
+            # TODO: refactor this, it's a bit messy
+            if [ "$ext" = "tar.zst" ]; then
+              if [ "$os" = "linux" ]; then
+                if [ "$arch" = "x64" ]; then
+                  echo "$checksum_linux_x86_64_zstd"
+                elif [ "$arch" = "x64-musl" ]; then
+                  echo "$checksum_linux_x86_64_musl_zstd"
+                elif [ "$arch" = "arm64" ]; then
+                  echo "$checksum_linux_arm64_zstd"
+                elif [ "$arch" = "arm64-musl" ]; then
+                  echo "$checksum_linux_arm64_musl_zstd"
+                elif [ "$arch" = "armv7" ]; then
+                  echo "$checksum_linux_armv7_zstd"
+                elif [ "$arch" = "armv7-musl" ]; then
+                  echo "$checksum_linux_armv7_musl_zstd"
+                else
+                  warn "no checksum for $os-$arch"
+                fi
+              elif [ "$os" = "macos" ]; then
+                if [ "$arch" = "x64" ]; then
+                  echo "$checksum_macos_x86_64_zstd"
+                elif [ "$arch" = "arm64" ]; then
+                  echo "$checksum_macos_arm64_zstd"
+                else
+                  warn "no checksum for $os-$arch"
+                fi
+              else
+                warn "no checksum for $os-$arch"
+              fi
+            else
+              if [ "$os" = "linux" ]; then
+                if [ "$arch" = "x64" ]; then
+                  echo "$checksum_linux_x86_64"
+                elif [ "$arch" = "x64-musl" ]; then
+                  echo "$checksum_linux_x86_64_musl"
+                elif [ "$arch" = "arm64" ]; then
+                  echo "$checksum_linux_arm64"
+                elif [ "$arch" = "arm64-musl" ]; then
+                  echo "$checksum_linux_arm64_musl"
+                elif [ "$arch" = "armv7" ]; then
+                  echo "$checksum_linux_armv7"
+                elif [ "$arch" = "armv7-musl" ]; then
+                  echo "$checksum_linux_armv7_musl"
+                else
+                  warn "no checksum for $os-$arch"
+                fi
+              elif [ "$os" = "macos" ]; then
+                if [ "$arch" = "x64" ]; then
+                  echo "$checksum_macos_x86_64"
+                elif [ "$arch" = "arm64" ]; then
+                  echo "$checksum_macos_arm64"
+                else
+                  warn "no checksum for $os-$arch"
+                fi
+              else
+                warn "no checksum for $os-$arch"
+              fi
+            fi
+          else
+            if command -v curl >/dev/null 2>&1; then
+              debug ">" curl -fsSL "$url"
+              checksums="$(curl --compressed -fsSL "$url")"
+            else
+              if command -v wget >/dev/null 2>&1; then
+                debug ">" wget -qO - "$url"
+                checksums="$(wget -qO - "$url")"
+              else
+                error "mise standalone install specific version requires curl or wget but neither is installed. Aborting."
+              fi
+            fi
+            # TODO: verify with minisign or gpg if available
+
+            checksum="$(echo "$checksums" | grep "$os-$arch.$ext")"
+            if ! echo "$checksum" | grep -Eq "^([0-9a-f]{32}|[0-9a-f]{64})"; then
+              warn "no checksum for mise $version and $os-$arch"
+            else
+              echo "$checksum"
+            fi
+          fi
+        }
+
+        #endregion
+
+        download_file() {
+          url="$1"
+          download_dir="$2"
+          filename="$(basename "$url")"
+          file="$download_dir/$filename"
+
+          info "mise: installing mise..."
+
+          if command -v curl >/dev/null 2>&1; then
+            debug ">" curl -#fLo "$file" "$url"
+            curl -#fLo "$file" "$url"
+          else
+            if command -v wget >/dev/null 2>&1; then
+              debug ">" wget -qO "$file" "$url"
+              stderr=$(mktemp)
+              wget -O "$file" "$url" >"$stderr" 2>&1 || error "wget failed: $(cat "$stderr")"
+              rm "$stderr"
+            else
+              error "mise standalone install requires curl or wget but neither is installed. Aborting."
+            fi
+          fi
+
+          echo "$file"
+        }
+
+        install_mise() {
+          version="${MISE_VERSION:-v2026.4.22}"
+          version="${version#v}"
+          current_version="v2026.4.22"
+          current_version="${current_version#v}"
+          os="${MISE_INSTALL_OS:-$(get_os)}"
+          arch="${MISE_INSTALL_ARCH:-$(get_arch)}"
+          ext="${MISE_INSTALL_EXT:-$(get_ext)}"
+          install_path="${MISE_INSTALL_PATH:-$HOME/.local/bin/mise}"
+          install_dir="$(dirname "$install_path")"
+          install_from_github="${MISE_INSTALL_FROM_GITHUB:-}"
+          if [ "$version" != "$current_version" ] || [ "$install_from_github" = "1" ] || [ "$install_from_github" = "true" ]; then
+            tarball_url="https://github.com/jdx/mise/releases/download/v${version}/mise-v${version}-${os}-${arch}.${ext}"
+          elif [ -n "${MISE_TARBALL_URL-}" ]; then
+            tarball_url="$MISE_TARBALL_URL"
+          else
+            tarball_url="https://mise.jdx.dev/v${version}/mise-v${version}-${os}-${arch}.${ext}"
+          fi
+
+          download_dir="$(mktemp -d)"
+          cache_file=$(download_file "$tarball_url" "$download_dir")
+          debug "mise-setup: tarball=$cache_file"
+
+          debug "validating checksum"
+          cd "$(dirname "$cache_file")" && get_checksum "$version" "$os" "$arch" "$ext" | "$(shasum_bin)" -c >/dev/null
+
+          # extract tarball
+          if [ -d "$install_path" ]; then
+            error "MISE_INSTALL_PATH '$install_path' is a directory. Please set it to a file path, e.g. '$install_path/mise'."
+          fi
+          mkdir -p "$install_dir"
+          rm -f "$install_path"
+          extract_dir="$(mktemp -d)"
+          cd "$extract_dir"
+          if [ "$ext" = "tar.zst" ] && ! tar_supports_zstd; then
+            zstd -d -c "$cache_file" | tar -xf -
+          else
+            tar -xf "$cache_file"
+          fi
+          mv mise/bin/mise "$install_path"
+
+          # cleanup
+          cd / # Move out of $extract_dir before removing it
+          rm -rf "$download_dir"
+          rm -rf "$extract_dir"
+
+          info "mise: installed successfully to $install_path"
+        }
+
+        after_finish_help() {
+          case "${SHELL:-}" in
+          */zsh)
+            info "mise: run the following to activate mise in your shell:"
+            info "echo \"eval \\\"\\\$($install_path activate zsh)\\\"\" >> \"${ZDOTDIR-$HOME}/.zshrc\""
+            info ""
+            info "mise: run \`mise doctor\` to verify this is set up correctly"
+            ;;
+          */bash)
+            info "mise: run the following to activate mise in your shell:"
+            info "echo \"eval \\\"\\\$($install_path activate bash)\\\"\" >> ~/.bashrc"
+            info ""
+            info "mise: run \`mise doctor\` to verify this is set up correctly"
+            ;;
+          */fish)
+            info "mise: run the following to activate mise in your shell:"
+            info "echo \"$install_path activate fish | source\" >> ~/.config/fish/config.fish"
+            info ""
+            info "mise: run \`mise doctor\` to verify this is set up correctly"
+            ;;
+          *)
+            info "mise: run \`$install_path --help\` to get started"
+            ;;
+          esac
+        }
+
+        install_mise
+        if [ "${MISE_INSTALL_HELP-}" != 0 ]; then
+          after_finish_help
+        fi
+
+        cd -- "$initial_working_dir"
+    }
+    local MISE_INSTALL_HELP=0
+    install
+}
+__mise_tool_stub_bootstrap
+
+exec "$MISE_BIN" tool-stub "$0" "$@"

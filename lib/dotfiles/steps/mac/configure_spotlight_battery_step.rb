@@ -7,7 +7,7 @@ class Dotfiles::Step::ConfigureSpotlightBatteryStep < Dotfiles::Step
   macos_only
 
   def self.depends_on
-    [Dotfiles::Step::InstallBrewPackagesStep]
+    [Dotfiles::Step::SyncHomeDirectoryStep]
   end
 
   def should_run?
@@ -88,6 +88,11 @@ class Dotfiles::Step::ConfigureSpotlightBatteryStep < Dotfiles::Step
           <array>
       #{plist_program_arguments}
           </array>
+          <key>EnvironmentVariables</key>
+          <dict>
+              <key>HOME</key>
+              <string>#{@home}</string>
+          </dict>
           <key>RunAtLoad</key>
           <true/>
           <key>StartInterval</key>

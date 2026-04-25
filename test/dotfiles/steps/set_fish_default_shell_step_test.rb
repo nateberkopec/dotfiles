@@ -31,13 +31,18 @@ class SetFishDefaultShellStepTest < Minitest::Test
     with_env("NONINTERACTIVE" => "true") { assert @step.complete? }
   end
 
+  def test_depends_on_home_directory_sync
+    assert_equal [Dotfiles::Step::SyncHomeDirectoryStep], Dotfiles::Step::SetFishDefaultShellStep.depends_on
+  end
+
   def test_rechecks_fish_path_after_initial_miss
+    local_fish = File.join(@home, ".local", "bin", "fish")
     @fake_system.stub_command("command -v fish 2>/dev/null", "", exit_status: 1)
-    @fake_system.stub_command("dscl . -read ~/ UserShell", "UserShell: /usr/bin/fish")
+    @fake_system.stub_command("dscl . -read ~/ UserShell", "UserShell: #{local_fish}")
 
     refute @step.complete?
 
-    @fake_system.stub_file_content("/usr/bin/fish", "")
+    @fake_system.stub_file_content(local_fish, "")
     assert @step.complete?
   end
 

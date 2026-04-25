@@ -105,7 +105,7 @@ jobs:
         NONINTERACTIVE: true
         GITHUB_TOKEN: ${{ github.token }}
         MISE_CI_TOOLS: "fzf@latest"
-        BREW_CI_PACKAGES: "fish,duti,mise"
+        BREW_CI_PACKAGES: "duti,mise"
         BREW_CI_CASKS: ""
       run: bash tools/ci/run_dotfiles_integration.sh "${GITHUB_WORKSPACE}"
 
@@ -190,7 +190,7 @@ jobs:
         NONINTERACTIVE: true
         GITHUB_TOKEN: ${{ github.token }}
         MISE_CI_TOOLS: "fzf@latest"
-        BREW_CI_PACKAGES: "fish,duti,mise"
+        BREW_CI_PACKAGES: "duti,mise"
         BREW_CI_CASKS: ""
       run: |
         set -euo pipefail
