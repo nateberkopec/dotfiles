@@ -64,7 +64,16 @@ The script reports:
 - Heading/list density for longer content
 - Lead-paragraph length
 
-Treat the script as a guardrail, not a substitute for human judgment.
+Supplemental scripts are available when a narrower check is useful:
+
+```bash
+ruby scripts/flesch_kincaid.rb <file> [branch]
+ruby scripts/vocabulary_profiler.rb <file> [branch]
+```
+
+Use `flesch_kincaid.rb` for a simple grade-only check. Use `vocabulary_profiler.rb` to estimate how much copy uses common top-1000 English words; it is backed by `scripts/top1000.txt`.
+
+Treat these scripts as guardrails, not substitutes for human judgment.
 
 ## Output expectations
 
