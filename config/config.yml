@@ -85,29 +85,6 @@ debian_non_apt_packages:
   - droid
   - ghostty
 debian_snap_packages: []
-mise_tools:
-  - go@latest
-  - rust@latest
-  - fzf@latest
-  - gh@latest
-  - zoxide@latest
-  - pkl@latest
-  - cargo:broot
-  - cargo:difftastic
-  - cargo:starship
-  - gem:try-cli
-  - node@lts
-  - python@latest
-  - pipx@latest
-  - uv@latest
-  - npm:@openai/codex
-  - npm:@anthropic-ai/claude-code
-  - npm:@mariozechner/pi-coding-agent
-  - npm:@tobilu/qmd
-  - go:github.com/mikefarah/yq/v4@latest
-  - tool: go:github.com/noperator/yknotify@latest
-    platforms:
-    - macos
 qmd_collections:
   - ruby
 brew:

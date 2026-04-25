@@ -1,3 +1,4 @@
+# Managed by dotfiles. This file is the source of truth for machine-wide mise tools.
 [tools]
 ruby = "latest"
 node = "lts"
