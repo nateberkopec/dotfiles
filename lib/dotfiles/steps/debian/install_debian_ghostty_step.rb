@@ -1,6 +1,12 @@
 class Dotfiles::Step::InstallDebianGhosttyStep < Dotfiles::Step
   include Dotfiles::Step::DebianNonAptHelper
 
+  CURL_RETRY_ARGS = "--retry 5 --retry-delay 2 --retry-max-time 120 --retry-all-errors".freeze
+  GITHUB_API_HEADERS = [
+    '-H "Accept: application/vnd.github+json"',
+    '-H "X-GitHub-Api-Version: 2022-11-28"'
+  ].freeze
+
   ARCH_MAP = {
     "x86_64" => "x86_64",
     "amd64" => "x86_64",
@@ -72,7 +78,7 @@ class Dotfiles::Step::InstallDebianGhosttyStep < Dotfiles::Step
 
   def download_appimage(download_url)
     appimage_tmp = temp_path("ghostty-appimage")
-    output, status = execute("curl -fsSL #{download_url} -o #{appimage_tmp}")
+    output, status = execute(curl_download_command(download_url, appimage_tmp))
     return appimage_tmp if status == 0
 
     add_error("Ghostty download failed (status #{status}): #{output}")
@@ -99,13 +105,34 @@ class Dotfiles::Step::InstallDebianGhosttyStep < Dotfiles::Step
 
   def ghostty_download_url(arch)
     metadata_path = temp_path("ghostty-release")
-    _output, status = execute("curl -fsSL #{RELEASE_API_URL} -o #{metadata_path}")
+    _output, status = execute(github_release_metadata_command(metadata_path))
     return "" unless status == 0
 
     ruby = "ruby -rjson -e 'data=JSON.parse(File.read(ARGV[0])); arch=ARGV[1]; asset=data.fetch(\"assets\", []).find { |a| a[\"name\"] =~ /-#{arch}\\.AppImage$/ }; puts(asset ? asset[\"browser_download_url\"] : \"\")' #{metadata_path} #{arch}"
     url, _url_status = execute(ruby, quiet: true)
     @system.rm_rf(metadata_path)
     url.to_s.strip
+  end
+
+  def github_release_metadata_command(output_path)
+    curl_download_command(RELEASE_API_URL, output_path, headers: github_api_headers)
+  end
+
+  def curl_download_command(url, output_path, headers: [])
+    ["curl -fsSL", CURL_RETRY_ARGS, *headers, url, "-o", output_path].join(" ")
+  end
+
+  def github_api_headers
+    GITHUB_API_HEADERS + github_authorization_header
+  end
+
+  def github_authorization_header
+    token_env = github_token_env
+    token_env ? [%(-H "Authorization: Bearer ${#{token_env}}")] : []
+  end
+
+  def github_token_env
+    %w[GITHUB_TOKEN GH_TOKEN].find { |name| !ENV[name].to_s.empty? }
   end
 
   def ghostty_wrapper_script
