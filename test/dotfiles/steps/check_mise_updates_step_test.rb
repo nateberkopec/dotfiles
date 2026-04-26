@@ -76,7 +76,6 @@ class CheckMiseUpdatesStepTest < Minitest::Test
   end
 
   def stub_mise_update_check(output)
-    @fake_system.stub_command("mise --cd /tmp/home cache clear", "")
     @fake_system.stub_command("mise --cd /tmp/home plugins update", "")
     @fake_system.stub_command("mise --cd /tmp/home outdated --json 2>/dev/null", output)
   end
