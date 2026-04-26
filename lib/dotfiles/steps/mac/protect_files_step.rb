@@ -17,21 +17,21 @@ class Dotfiles::Step::ProtectFilesStep < Dotfiles::Step
   private
 
   def protected_files
-    agent_hook_files + [gem_credentials_file]
+    agent_hook_files + user_credentials_files
   end
 
   def immutable_flag(file)
-    return "uchg" if gem_credentials_file?(file)
+    return "uchg" if user_credentials_file?(file)
 
     "schg"
   end
 
   def protect_with_sudo?(file)
-    !gem_credentials_file?(file)
+    !user_credentials_file?(file)
   end
 
   def protected_file_mode(file)
-    return 0o600 if gem_credentials_file?(file)
+    return 0o600 if user_credentials_file?(file)
 
     nil
   end
@@ -44,11 +44,19 @@ class Dotfiles::Step::ProtectFilesStep < Dotfiles::Step
     ]
   end
 
+  def user_credentials_files
+    [gem_credentials_file, aws_credentials_file]
+  end
+
   def gem_credentials_file
     File.join(@home, ".gem", "credentials")
   end
 
-  def gem_credentials_file?(file)
-    file == gem_credentials_file
+  def aws_credentials_file
+    File.join(@home, ".aws", "credentials")
+  end
+
+  def user_credentials_file?(file)
+    user_credentials_files.include?(file)
   end
 end
