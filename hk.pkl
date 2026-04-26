@@ -9,6 +9,9 @@ hooks {
       ["complexity"] {
         check = "mise run lint:complexity"
       }
+      ["large-files"] {
+        check = "mise run lint:large-files"
+      }
       ["flog"] {
         check = "mise run lint:flog"
       }

@@ -32,6 +32,10 @@ run = "bundle exec standardrb"
 description = "Run Ruby complexity checks"
 run = "bundle exec rubocop --config .rubocop-custom.yml --only Metrics/PerceivedComplexity"
 
+[tasks."lint:large-files"]
+description = "Check staged files for large files"
+run = "ruby tools/check_large_files.rb"
+
 [tasks."lint:flog"]
 description = "Run flog complexity checks"
 run = "bundle exec rake flog"
@@ -46,7 +50,7 @@ run = "ruby tools/lint_agent_skills.rb"
 
 [tasks.lint]
 description = "Run all lint checks"
-depends = ["lint:standard", "lint:complexity", "lint:flog", "lint:flay", "lint:skills"]
+depends = ["lint:standard", "lint:complexity", "lint:large-files", "lint:flog", "lint:flay", "lint:skills"]
 
 [tasks.test]
 description = "Run the test suite"

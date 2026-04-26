@@ -82,11 +82,15 @@ run = "bundle exec rake test"
 
 [tasks.lint]
 description = "Run all lint checks"
-depends = ["lint:standard", "lint:complexity", "lint:flog"]
+depends = ["lint:standard", "lint:large-files", "lint:complexity", "lint:flog"]
 
 [tasks."lint:standard"]
 description = "Run standardrb"
 run = "bundle exec standardrb"
+
+[tasks."lint:large-files"]
+description = "Check staged files for large files"
+run = "ruby tools/check_large_files.rb"
 
 [tasks."lint:complexity"]
 description = "Run Ruby complexity checks"
@@ -103,7 +107,19 @@ run = "cargo build --release"
 
 Discover what the project actually uses for testing, linting, building, and serving before writing these. Read `package.json`, `Gemfile`, `Cargo.toml`, `Makefile`, etc. to find existing commands.
 
-### 3. Ruby Complexity
+### 3. Large File Check
+
+Pre-commit must include a large-file check so oversized artifacts do not accidentally enter the repository. Add a dedicated mise task named `lint:large-files` that checks staged files:
+
+```toml
+[tasks."lint:large-files"]
+description = "Check staged files for large files"
+run = "ruby tools/check_large_files.rb"
+```
+
+Use a small project script in the appropriate stack. For Ruby projects, `tools/check_large_files.rb` should inspect `git diff --cached --name-only --diff-filter=ACMR` and fail when any staged blob exceeds the project limit. Default to 1 MiB unless the project needs a different documented threshold. Allow an environment override such as `LARGE_FILE_LIMIT_BYTES` when the threshold must be adjusted intentionally.
+
+### 4. Ruby Complexity
 
 For Ruby projects, pre-commit must include a complexity check. If the project supports RuboCop, enabling `RuboCop::Cop::Metrics::PerceivedComplexity` completes this check.
 
@@ -119,7 +135,7 @@ Configuration belongs in the project's existing `.rubocop.yml` / `.rubocop-custo
 
 If the project does not support RuboCop, add a small custom linter that checks Ruby perceived complexity and wire it to the same `lint:complexity` mise task. For the first commit, the custom linter only needs to run on changed Ruby files.
 
-### 4. hk Git Hooks
+### 5. hk Git Hooks
 
 Git hooks are managed with [hk](https://hk.jdx.dev/). Configure them in `hk.pkl` at the project root.
 
@@ -140,6 +156,9 @@ hooks {
       ["lint"] {
         check = "mise run lint:standard"
       }
+      ["large-files"] {
+        check = "mise run lint:large-files"
+      }
       ["complexity"] {
         check = "mise run lint:complexity"
       }
@@ -159,7 +178,7 @@ mise run -- hk install
 
 Or if there's a `setup` mise task, add `hk install` to it.
 
-### 5. Setup Task
+### 6. Setup Task
 
 Add a `setup` mise task that bootstraps the project for a new developer:
 
@@ -178,7 +197,8 @@ hk install
 2. **Inspect**: Read the project's existing tooling (`package.json`, `Gemfile`, `Makefile`, `Cargo.toml`, etc.) to understand what commands exist.
 3. **Determine ownership**: Check `git shortlog -sn --no-merges | head -5` to decide own vs. others' repo.
 4. **mise config**: Create or update `mise.toml` (own) / `mise.local.toml` (others') with tools and tasks.
-5. **Ruby checks**: For Ruby projects, add a dedicated `lint:complexity` task and pre-commit hook step.
-6. **hk config**: Create or update `hk.pkl` with pre-commit hooks. For others' repos, add `hk.pkl` to `.git/info/exclude`.
-7. **Install**: Run `hk install` to activate the hooks.
-8. **Verify**: Run the compliance checker again to confirm everything passes, including git cleanliness.
+5. **Large files**: Add a dedicated `lint:large-files` task and pre-commit hook step.
+6. **Ruby checks**: For Ruby projects, add a dedicated `lint:complexity` task and pre-commit hook step.
+7. **hk config**: Create or update `hk.pkl` with pre-commit hooks. For others' repos, add `hk.pkl` to `.git/info/exclude`.
+8. **Install**: Run `hk install` to activate the hooks.
+9. **Verify**: Run the compliance checker again to confirm everything passes, including git cleanliness.

@@ -69,6 +69,7 @@ end
 # Use `mise tasks` if mise is available, otherwise parse the toml
 set has_test 0
 set has_lint 0
+set has_large_files 0
 set has_complexity 0
 set has_serve_or_dev 0
 set has_build 0
@@ -102,9 +103,13 @@ if test -n "$mise_file"
                 set has_test 1
             case lint 'lint:*'
                 set has_lint 1
-                if test "$t" = "lint:complexity"
+                if test "$t" = "lint:large-files"
+                    set has_large_files 1
+                else if test "$t" = "lint:complexity"
                     set has_complexity 1
                 end
+            case large-files
+                set has_large_files 1
             case complexity
                 set has_complexity 1
             case serve dev
@@ -140,6 +145,12 @@ else
     check_warn "mise task: build" "Add a [tasks.build] section if this project produces build artifacts."
 end
 
+if test $has_large_files -eq 1
+    check_pass "mise task: lint:large-files"
+else
+    check_fail "mise task: lint:large-files" "Add a [tasks.\"lint:large-files\"] section that checks staged files for oversized blobs."
+end
+
 set ruby_project_files (find "$target_dir" -maxdepth 1 -type f \( -name Gemfile -o -name "*.gemspec" -o -name .ruby-version -o -name Rakefile \) 2>/dev/null)
 set is_ruby_project 0
 if test (count $ruby_project_files) -gt 0
@@ -171,6 +182,7 @@ end
 
 # --- Check 4: pre-commit hooks include lint and test ---
 set has_precommit_lint 0
+set has_precommit_large_files 0
 set has_precommit_complexity 0
 set has_precommit_test 0
 
@@ -180,6 +192,11 @@ if test -n "$hk_file"; and test -f "$hk_file"
     # Check for lint-related steps in pre-commit
     if string match -rq '(lint|standard|eslint|rubocop|clippy|ruff|biome)' -- "$hk_contents"
         set has_precommit_lint 1
+    end
+
+    # Check for large file step in pre-commit
+    if string match -rq 'mise run lint:large-files' -- "$hk_contents"
+        set has_precommit_large_files 1
     end
 
     # Check for complexity step in pre-commit
@@ -198,6 +215,12 @@ if test -n "$hk_file"
         check_pass "pre-commit: lint step"
     else
         check_fail "pre-commit: lint step" "Add a lint step to pre-commit in hk config. Use: check = \"mise run lint\""
+    end
+
+    if test $has_precommit_large_files -eq 1
+        check_pass "pre-commit: large-files step"
+    else
+        check_fail "pre-commit: large-files step" "Add a pre-commit step to hk config. Use: check = \"mise run lint:large-files\""
     end
 
     if test $is_ruby_project -eq 1
