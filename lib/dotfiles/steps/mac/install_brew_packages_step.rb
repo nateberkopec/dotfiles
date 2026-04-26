@@ -21,17 +21,16 @@ class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
     output, exit_status = install_packages
     check_skipped_packages
     log_installation_results(output, exit_status)
+    reset_package_status
   end
 
   def complete?
     super
-    return true if ran?
     unless @system.file_exist?(@brewfile_path)
       add_error("Brewfile does not exist at #{@brewfile_path}")
       return false
     end
-    raise "packages_already_installed? must be called before complete?" if @packages_installed_status.nil?
-    add_error("Some Homebrew packages are not installed") unless @packages_installed_status
+    add_missing_packages_error unless packages_already_installed?
     @packages_installed_status
   end
 
@@ -43,10 +42,23 @@ class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
   def packages_already_installed?
     return @packages_installed_status unless @packages_installed_status.nil?
 
-    _, status = brew_quiet("bundle check --file=#{@brewfile_path} --no-upgrade")
+    output, status = brew_quiet("bundle check --file=#{@brewfile_path} --no-upgrade")
     @packages_installed_status = status == 0
+    @packages_installed_error = output unless @packages_installed_status
     debug "All packages already installed" if @packages_installed_status
     @packages_installed_status
+  end
+
+  def reset_package_status
+    @packages_installed_status = nil
+    @packages_installed_error = nil
+  end
+
+  def add_missing_packages_error
+    message = "Some Homebrew packages are not installed"
+    details = @packages_installed_error.to_s.strip
+    message = "#{message}: #{details}" unless details.empty?
+    add_error(message)
   end
 
   def install_packages
