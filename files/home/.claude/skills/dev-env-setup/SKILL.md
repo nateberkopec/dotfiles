@@ -7,6 +7,18 @@ description: Set up or audit Nate's standard dev environment in a project direct
 
 This skill sets up or audits the standard development environment for a project. Run the compliance checker first to see what's missing, then follow the workflow to bring the project into compliance.
 
+## Standard Dev Environment Approach
+
+When the user asks to "set up my standard dev environment" or "change to my standard dev approach", apply these conventions:
+
+- **All tools are configured via mise.** If Nate owns the repo and it is mostly his, commit the `mise.toml` file and work there. If it is someone else's repo and `mise.toml` does not exist, put the mise config in `mise.local.toml`. Install all development tools through mise.
+- **Project commands have mise task frontends.** Use the standard task set when applicable:
+  - `test`
+  - `serve` or `dev`, using [pitchfork](https://pitchfork.jdx.dev/) when multiple processes are needed
+  - `lint`
+  - `build`, for artifacts
+- **Git hooks are managed with `hk`.** `hk` runs hook steps in parallel, so split checks like lint and test into separate steps instead of combining them in one shell task. Linting and testing should run before every commit.
+
 ## Compliance Checker
 
 Run the checker script against the target directory:
