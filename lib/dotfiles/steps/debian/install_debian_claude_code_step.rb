@@ -1,4 +1,6 @@
 class Dotfiles::Step::InstallDebianClaudeCodeStep < Dotfiles::Step
+  DESCRIPTION = "Installs Claude Code on Debian/Ubuntu when configured as a non-APT package.".freeze
+
   include Dotfiles::Step::DebianNonAptStep
 
   CLAUDE_CODE_INSTALL_URL = "https://claude.ai/install.sh".freeze

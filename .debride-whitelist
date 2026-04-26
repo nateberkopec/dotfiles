@@ -9,4 +9,5 @@ inherited
 install_direct_download
 log_file
 packages=
+print_steps
 running_codespaces?

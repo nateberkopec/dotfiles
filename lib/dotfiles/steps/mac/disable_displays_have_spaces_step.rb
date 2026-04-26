@@ -1,4 +1,6 @@
 class Dotfiles::Step::DisableDisplaysHaveSpacesStep < Dotfiles::Step
+  DESCRIPTION = "Configures macOS Spaces to span across multiple displays.".freeze
+
   macos_only
   include Dotfiles::Step::Defaultable
 

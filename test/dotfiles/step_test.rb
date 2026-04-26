@@ -1,4 +1,5 @@
 require "test_helper"
+require "stringio"
 
 class StepTest < Minitest::Test
   class TestStepA < Dotfiles::Step
@@ -59,6 +60,18 @@ class StepTest < Minitest::Test
     end
   end
 
+  class DescribedTestStep < Dotfiles::Step
+    DESCRIPTION = "Does a test thing.".freeze
+
+    def run
+    end
+
+    def complete?
+      super
+      true
+    end
+  end
+
   def test_display_name_strips_module_namespace
     # Nested test classes include the test class name, so we check that it strips properly
     assert_includes TestStepA.display_name, "Test Step A"
@@ -90,13 +103,32 @@ class StepTest < Minitest::Test
     assert_collection(:notices, :add_notice, title: "Test Notice", message: "This is a notice")
   end
 
-  def test_step_does_not_expose_update
-    step = create_step(TestStepA)
+  def test_description_comes_from_class_constant
+    assert_equal "Does a test thing.", DescribedTestStep.description
+  end
 
-    refute_respond_to step, :update
+  def test_print_steps_includes_class_name_and_description
+    output = StringIO.new
+
+    Dotfiles::Step.print_steps(output)
+
+    assert_includes output.string, "StepTest::DescribedTestStep"
+    assert_includes output.string, "Does a test thing."
+  end
+
+  def test_production_steps_define_descriptions
+    missing = production_steps.reject do |step|
+      step.const_defined?(:DESCRIPTION, false) && !step.description.empty?
+    end
+
+    assert_empty missing.map(&:name)
   end
 
   private
+
+  def production_steps
+    Dotfiles::Step.all_steps.select { |step| step.name&.start_with?("Dotfiles::Step::") }
+  end
 
   def assert_collection(collection_method, add_method, title:, message:)
     step = create_step(TestStepA)

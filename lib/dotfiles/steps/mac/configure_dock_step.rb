@@ -1,4 +1,6 @@
 class Dotfiles::Step::ConfigureDockStep < Dotfiles::Step
+  DESCRIPTION = "Configures the macOS Dock with the preferred apps and Inbox stack.".freeze
+
   macos_only
   include Dotfiles::Step::Defaultable
 

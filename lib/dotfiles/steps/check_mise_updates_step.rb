@@ -2,6 +2,8 @@ require "json"
 require "shellwords"
 
 class Dotfiles::Step::CheckMiseUpdatesStep < Dotfiles::Step
+  DESCRIPTION = "Checks mise plugins and tools for available updates and reports them.".freeze
+
   def self.depends_on
     [Dotfiles::Step::InstallMiseToolsStep]
   end

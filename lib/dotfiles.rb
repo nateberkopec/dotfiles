@@ -16,8 +16,7 @@ class Dotfiles
   end
 
   def self.debug(message)
-    timestamp = Time.now.strftime("%H:%M:%S.%3N")
-    formatted = "[#{timestamp}] #{message}"
+    formatted = format_debug_message(message)
 
     # Always write to log file if set
     if @log_file
@@ -27,6 +26,14 @@ class Dotfiles
     # Also output to STDOUT if DEBUG=true
     puts formatted if ENV["DEBUG"] == "true"
   end
+
+  def self.format_debug_message(message)
+    timestamp = Time.now.strftime("%H:%M:%S.%3N")
+    lines = message.to_s.lines(chomp: true)
+    lines = [""] if lines.empty?
+    lines.map { |line| "[#{timestamp}] #{line}" }.join("\n")
+  end
+  private_class_method :format_debug_message
 
   def self.debug_benchmark(label, &block)
     start = Time.now

@@ -1,4 +1,6 @@
 class Dotfiles::Step::InstallDebianDroidStep < Dotfiles::Step
+  DESCRIPTION = "Installs Factory Droid on Debian/Ubuntu when configured as a non-APT package.".freeze
+
   include Dotfiles::Step::DebianNonAptStep
 
   DROID_INSTALL_URL = "https://app.factory.ai/cli".freeze

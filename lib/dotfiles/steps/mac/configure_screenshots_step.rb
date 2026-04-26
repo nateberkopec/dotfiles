@@ -1,4 +1,6 @@
 class Dotfiles::Step::ConfigureScreenshotsStep < Dotfiles::Step
+  DESCRIPTION = "Configures macOS screenshot location and behavior.".freeze
+
   include Dotfiles::Step::DefaultsConfigurable
 
   defaults_config_key "screenshot_settings"

@@ -1,4 +1,6 @@
 class Dotfiles::Step::SyncHomeDirectoryStep < Dotfiles::Step
+  DESCRIPTION = "Syncs tracked home-directory files and symlinks into your home folder.".freeze
+
   prepend Dotfiles::Step::Sudoable
 
   def self.display_name

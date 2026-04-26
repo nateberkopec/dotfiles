@@ -37,8 +37,24 @@ class Dotfiles
       name.gsub(/^Dotfiles::Step::/, "").gsub(/Step$/, "").gsub(/([A-Z]+)([A-Z][a-z])/, '\1 \2').gsub(/([a-z\d])([A-Z])/, '\1 \2')
     end
 
+    def self.description
+      return const_get(:DESCRIPTION, false) if const_defined?(:DESCRIPTION, false)
+
+      "No description provided."
+    end
+
     def self.all_steps
       topological_sort(@@steps)
+    end
+
+    def self.print_steps(io = $stdout)
+      rows = all_steps.map { |step| [step.name, step.description] }
+      name_width = rows.map { |row| row.first.length }.max || 0
+
+      io.puts "Steps"
+      io.puts "====="
+      io.puts
+      rows.each { |name, description| io.puts "#{name.ljust(name_width)}  #{description}" }
     end
 
     def self.topological_sort(steps)

@@ -1,6 +1,8 @@
 require "shellwords"
 
 class Dotfiles::Step::InstallFishShellStep < Dotfiles::Step
+  DESCRIPTION = "Installs Fish shell and links bundled helper commands.".freeze
+
   FISH_TOOL = "github:fish-shell/fish-shell".freeze
   FISH_VERSION = "latest".freeze
 

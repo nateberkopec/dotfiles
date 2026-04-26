@@ -6,13 +6,9 @@ Most dotfiles repos just copy files to your home folder. This one does more. It 
 
 ## What It Does
 
-- Bootstraps Homebrew, then installs packages from Brewfile
-- Sets up SSH keys
-- Installs apps and fonts
-- Sets Fish as your default shell
-- Syncs config files to your home folder
+- Bootstraps a minimal environment with Homebrew, Git, and this repository
 - Adds `dotf` to your PATH via `~/.local/bin`
-- Sets macOS defaults (Dock, trackpad, screenshots, and more)
+- Runs all defined Steps (see `dotf steps`)
 
 ## Commands
 
@@ -20,6 +16,7 @@ Most dotfiles repos just copy files to your home folder. This one does more. It 
 |---------|--------------|
 | `dotf run` | Set up your Mac. Safe to run many times. |
 | `dotf upgrade` | Refresh and upgrade mise tools and Homebrew packages. |
+| `dotf steps` | List every setup step with its class name and description. |
 | `dotf help` | Show help |
 
 ## Installation
@@ -51,7 +48,7 @@ Steps can depend on other steps.
 
 ### Available Steps
 
-See [lib/dotfiles/steps/](lib/dotfiles/steps/) for all steps.
+Run `dotf steps` for the current step list, class names, and descriptions. See [lib/dotfiles/steps/](lib/dotfiles/steps/) for the implementations.
 
 ### Adding Your Own Steps
 

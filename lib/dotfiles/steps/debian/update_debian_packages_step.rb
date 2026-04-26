@@ -1,4 +1,6 @@
 class Dotfiles::Step::UpdateDebianPackagesStep < Dotfiles::Step
+  DESCRIPTION = "Checks for available Debian/Ubuntu APT package updates.".freeze
+
   debian_only
 
   def self.display_name
