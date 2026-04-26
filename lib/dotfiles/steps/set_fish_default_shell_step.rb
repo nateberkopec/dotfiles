@@ -25,7 +25,7 @@ class Dotfiles::Step::SetFishDefaultShellStep < Dotfiles::Step
 
   def add_fish_to_shells
     debug "Adding Fish to allowed shells..."
-    _, status = execute("bash -lc 'echo #{fish_path} >> /etc/shells'", sudo: true)
+    _, status = execute(shell_script('printf "%s\n" "$1" >> /etc/shells', fish_path), sudo: true)
     add_error("Failed to add Fish to /etc/shells") unless status == 0
   end
 
@@ -33,16 +33,16 @@ class Dotfiles::Step::SetFishDefaultShellStep < Dotfiles::Step
     debug "Changing default shell to Fish..."
     user = unix_username
     if user.empty?
-      execute("chsh -s #{fish_path}")
+      execute(command("chsh", "-s", fish_path))
     else
-      execute("chsh -s #{fish_path} #{user}")
+      execute(command("chsh", "-s", fish_path, user))
       fallback_to_usermod(user) if @system.linux? && !fish_is_default?
     end
   end
 
   def fallback_to_usermod(user)
     debug "chsh did not change shell; trying usermod fallback..."
-    _, status = execute("usermod --shell #{fish_path} #{user}", sudo: true)
+    _, status = execute(command("usermod", "--shell", fish_path, user), sudo: true)
     add_error("Failed to set Fish shell with usermod") unless status == 0
   end
 
@@ -57,7 +57,7 @@ class Dotfiles::Step::SetFishDefaultShellStep < Dotfiles::Step
 
   def current_shell
     if @system.macos?
-      execute("dscl . -read ~/ UserShell", quiet: true).first
+      execute(command("dscl", ".", "-read", @home, "UserShell"), quiet: true).first
     else
       shell = shell_from_getent(unix_uid)
       return shell unless shell.empty?
@@ -69,21 +69,21 @@ class Dotfiles::Step::SetFishDefaultShellStep < Dotfiles::Step
 
   def shell_from_getent(key)
     return "" if key.to_s.strip.empty?
-    output, status = execute("getent passwd #{key}", quiet: true)
+    output, status = execute(command("getent", "passwd", key), quiet: true)
     return "" unless status == 0 && !output.to_s.strip.empty?
     output.to_s.split(":").last.to_s
   end
 
   def unix_username
-    command_output("id -un")
+    command_output("id", "-un")
   end
 
   def unix_uid
-    command_output("id -u")
+    command_output("id", "-u")
   end
 
-  def command_output(command)
-    output, status = execute(command, quiet: true)
+  def command_output(command_name, *args)
+    output, status = execute(command(command_name, *args), quiet: true)
     return "" unless status == 0
     output.strip
   end

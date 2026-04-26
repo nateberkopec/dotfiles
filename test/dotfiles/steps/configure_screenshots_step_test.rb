@@ -11,7 +11,7 @@ class ConfigureScreenshotsStepTest < StepTestCase
   def test_run_sets_location_and_restarts_ui_server
     step.run
 
-    assert_executed("defaults write com.apple.screencapture location -string ~/Documents/Inbox")
+    assert_executed("defaults write com.apple.screencapture location -string #{@home}/Documents/Inbox")
     assert_executed("killall SystemUIServer")
   end
 

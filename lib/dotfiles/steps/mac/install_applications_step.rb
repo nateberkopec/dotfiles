@@ -46,11 +46,12 @@ class Dotfiles::Step::InstallApplicationsStep < Dotfiles::Step
 
   def install_app_cask(app)
     debug "Installing #{app["name"]}..."
-    appdir_flag = user_has_admin_rights? ? "" : "--appdir=~/Applications"
-    brew_quiet("install --cask #{appdir_flag} #{app["brew_cask"]}")
+    args = ["install", "--cask"]
+    args << "--appdir=~/Applications" unless user_has_admin_rights?
+    brew_quiet(*args, app["brew_cask"])
   end
 
   def install_cli_tap(app)
-    brew_quiet("install #{app["cli_tap"]}")
+    brew_quiet("install", app["cli_tap"])
   end
 end

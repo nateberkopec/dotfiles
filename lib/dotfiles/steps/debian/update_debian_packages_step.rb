@@ -28,13 +28,13 @@ class Dotfiles::Step::UpdateDebianPackagesStep < Dotfiles::Step
   private
 
   def update_apt
-    output, status = execute("#{sudo_prefix}DEBIAN_FRONTEND=noninteractive apt-get update -y")
+    output, status = execute(sudo_env_command({"DEBIAN_FRONTEND" => "noninteractive"}, "apt-get", "update", "-y"))
     return if status == 0
     add_warning(title: "⚠️  APT Update Failed", message: output)
   end
 
   def check_upgradable_packages
-    output, status = execute("apt list --upgradable 2>/dev/null", quiet: true)
+    output, status = execute(command("apt", "list", "--upgradable"), quiet: true)
     return unless status == 0
 
     packages = output.lines.map(&:strip).reject do |line|

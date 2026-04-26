@@ -13,6 +13,6 @@ class Dotfiles::Step::ConfigureScreenshotsStep < Dotfiles::Step
   private
 
   def after_defaults_write
-    execute("killall SystemUIServer")
+    execute(command("killall", "SystemUIServer"))
   end
 end

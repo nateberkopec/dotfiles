@@ -121,7 +121,7 @@ class Dotfiles::Step::InstallDebianPackagesStep < Dotfiles::Step
     return false if @system.file_exist?(keyring_path)
 
     tmp = temp_path("apt-key")
-    output, status = execute("curl -fsSL #{key_url} -o #{tmp}")
+    output, status = execute(command("curl", "-fsSL", key_url, "-o", tmp))
     unless status == 0
       add_warning(title: "⚠️  Debian Source Key Download Failed", message: "Failed to download key from #{key_url}\n#{output}")
       @system.rm_rf(tmp)
@@ -134,7 +134,7 @@ class Dotfiles::Step::InstallDebianPackagesStep < Dotfiles::Step
       return false
     end
 
-    output, status = execute("#{sudo_prefix}gpg --dearmor -o #{keyring_path} #{tmp}")
+    output, status = execute(sudo_command("gpg", "--dearmor", "-o", keyring_path, tmp))
     @system.rm_rf(tmp)
     add_warning(title: "⚠️  Debian Source Key Install Failed", message: "Failed to install keyring at #{keyring_path}\n#{output}") unless status == 0
     status == 0
@@ -152,7 +152,7 @@ class Dotfiles::Step::InstallDebianPackagesStep < Dotfiles::Step
 
     tmp = temp_path("apt-source")
     @system.write_file(tmp, expected + "\n")
-    output, status = execute("#{sudo_prefix}install -m 644 #{tmp} #{list_path}")
+    output, status = execute(sudo_command("install", "-m", "644", tmp, list_path))
     @system.rm_rf(tmp)
     add_warning(title: "⚠️  Debian Source Install Failed", message: "Failed to install #{list_path}\n#{output}") unless status == 0
     status == 0
@@ -217,7 +217,7 @@ class Dotfiles::Step::InstallDebianPackagesStep < Dotfiles::Step
     packages = missing_packages & available_packages
     return if packages.empty?
 
-    output, status = run_apt("apt-get install -y #{packages.join(" ")}")
+    output, status = run_apt("apt-get", "install", "-y", *packages)
     return if status == 0
 
     @install_failed_status = status
@@ -241,7 +241,7 @@ class Dotfiles::Step::InstallDebianPackagesStep < Dotfiles::Step
   def docker_installed?
     return true if command_exists?("docker")
     %w[docker-ce docker-ce-cli containerd.io].any? do |name|
-      command_succeeds?("dpkg -s #{name} >/dev/null 2>&1")
+      command_succeeds?(command("dpkg", "-s", name))
     end
   end
 

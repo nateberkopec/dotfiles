@@ -19,7 +19,7 @@ class Dotfiles
         if sudo
           temp_path = File.join("/tmp", "dotfiles-plist-#{SecureRandom.hex(6)}.plist")
           @system.write_file(temp_path, plist_content)
-          execute("install -m 644 #{Shellwords.escape(temp_path)} #{Shellwords.escape(plist_path)}", sudo: true)
+          execute(command("install", "-m", "644", temp_path, plist_path), sudo: true)
           @system.rm_rf(temp_path)
         else
           @system.write_file(plist_path, plist_content)
@@ -30,18 +30,17 @@ class Dotfiles
         debug "Loading LaunchAgent..."
         domain = "gui/#{Process.uid}"
         service = "#{domain}/#{File.basename(plist_path, ".plist")}"
-        escaped_path = Shellwords.escape(plist_path)
 
-        execute("launchctl bootout #{Shellwords.escape(domain)} #{escaped_path} 2>/dev/null || true")
-        execute("launchctl enable #{Shellwords.escape(service)}")
-        execute("launchctl bootstrap #{Shellwords.escape(domain)} #{escaped_path}")
-        execute("launchctl kickstart -k #{Shellwords.escape(service)}")
+        execute(command("launchctl", "bootout", domain, plist_path))
+        execute(command("launchctl", "enable", service))
+        execute(command("launchctl", "bootstrap", domain, plist_path))
+        execute(command("launchctl", "kickstart", "-k", service))
       end
 
       def load_launchdaemon(plist_path)
         debug "Loading LaunchDaemon..."
-        execute("launchctl bootout system #{Shellwords.escape(plist_path)} 2>/dev/null || true", sudo: true)
-        execute("launchctl bootstrap system #{Shellwords.escape(plist_path)}", sudo: true)
+        execute(command("launchctl", "bootout", "system", plist_path), sudo: true)
+        execute(command("launchctl", "bootstrap", "system", plist_path), sudo: true)
       end
 
       def script_installed?(script_path)

@@ -37,6 +37,6 @@ class Dotfiles::Step::InstallGeminiNanobananaExtensionStep < Dotfiles::Step
     flags = ["--consent"]
     flags << "--skip-settings" if ENV["CI"] || ENV["NONINTERACTIVE"]
 
-    execute("gemini extensions install https://github.com/gemini-cli-extensions/nanobanana #{flags.join(" ")}")
+    execute(command("gemini", "extensions", "install", "https://github.com/gemini-cli-extensions/nanobanana", *flags))
   end
 end
