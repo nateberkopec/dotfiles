@@ -82,11 +82,15 @@ run = "bundle exec rake test"
 
 [tasks.lint]
 description = "Run all lint checks"
-depends = ["lint:standard", "lint:flog"]
+depends = ["lint:standard", "lint:complexity", "lint:flog"]
 
 [tasks."lint:standard"]
 description = "Run standardrb"
 run = "bundle exec standardrb"
+
+[tasks."lint:complexity"]
+description = "Run Ruby complexity checks"
+run = "bundle exec rubocop --only Metrics/PerceivedComplexity"
 
 [tasks.dev]
 description = "Start development server"
@@ -99,7 +103,23 @@ run = "cargo build --release"
 
 Discover what the project actually uses for testing, linting, building, and serving before writing these. Read `package.json`, `Gemfile`, `Cargo.toml`, `Makefile`, etc. to find existing commands.
 
-### 3. hk Git Hooks
+### 3. Ruby Complexity
+
+For Ruby projects, pre-commit must include a complexity check. If the project supports RuboCop, enabling `RuboCop::Cop::Metrics::PerceivedComplexity` completes this check.
+
+Add a dedicated mise task named `lint:complexity`:
+
+```toml
+[tasks."lint:complexity"]
+description = "Run Ruby complexity checks"
+run = "bundle exec rubocop --only Metrics/PerceivedComplexity"
+```
+
+Configuration belongs in the project's existing `.rubocop.yml` / `.rubocop-custom.yml` or a new `.rubocop.yml` if the project does not have one. Start with the lowest practical `Max` that passes the existing code, then ratchet down in separate refactors.
+
+If the project does not support RuboCop, add a small custom linter that checks Ruby perceived complexity and wire it to the same `lint:complexity` mise task. For the first commit, the custom linter only needs to run on changed Ruby files.
+
+### 4. hk Git Hooks
 
 Git hooks are managed with [hk](https://hk.jdx.dev/). Configure them in `hk.pkl` at the project root.
 
@@ -118,7 +138,10 @@ hooks {
   ["pre-commit"] {
     steps {
       ["lint"] {
-        check = "mise run lint"
+        check = "mise run lint:standard"
+      }
+      ["complexity"] {
+        check = "mise run lint:complexity"
       }
       ["test"] {
         check = "mise run test"
@@ -136,7 +159,7 @@ mise run -- hk install
 
 Or if there's a `setup` mise task, add `hk install` to it.
 
-### 4. Setup Task
+### 5. Setup Task
 
 Add a `setup` mise task that bootstraps the project for a new developer:
 
@@ -155,6 +178,7 @@ hk install
 2. **Inspect**: Read the project's existing tooling (`package.json`, `Gemfile`, `Makefile`, `Cargo.toml`, etc.) to understand what commands exist.
 3. **Determine ownership**: Check `git shortlog -sn --no-merges | head -5` to decide own vs. others' repo.
 4. **mise config**: Create or update `mise.toml` (own) / `mise.local.toml` (others') with tools and tasks.
-5. **hk config**: Create or update `hk.pkl` with pre-commit hooks. For others' repos, add `hk.pkl` to `.git/info/exclude`.
-6. **Install**: Run `hk install` to activate the hooks.
-7. **Verify**: Run the compliance checker again to confirm everything passes, including git cleanliness.
+5. **Ruby checks**: For Ruby projects, add a dedicated `lint:complexity` task and pre-commit hook step.
+6. **hk config**: Create or update `hk.pkl` with pre-commit hooks. For others' repos, add `hk.pkl` to `.git/info/exclude`.
+7. **Install**: Run `hk install` to activate the hooks.
+8. **Verify**: Run the compliance checker again to confirm everything passes, including git cleanliness.

@@ -6,6 +6,9 @@ hooks {
       ["standard"] {
         check = "mise run lint:standard"
       }
+      ["complexity"] {
+        check = "mise run lint:complexity"
+      }
       ["flog"] {
         check = "mise run lint:flog"
       }

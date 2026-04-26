@@ -1,3 +1,6 @@
+AllCops:
+  NewCops: disable
+
 require:
   - ./lib/rubocop/ban_file_system_classes.rb
   - ./lib/rubocop/ban_ci_or_noninteractive_method.rb
@@ -25,3 +28,7 @@ Dotfiles/StepPublicMethods:
   Enabled: true
   Include:
     - 'lib/dotfiles/steps/**/*.rb'
+
+Metrics/PerceivedComplexity:
+  Enabled: true
+  Max: 12

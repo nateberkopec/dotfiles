@@ -28,6 +28,10 @@ hk install
 description = "Run standardrb"
 run = "bundle exec standardrb"
 
+[tasks."lint:complexity"]
+description = "Run Ruby complexity checks"
+run = "bundle exec rubocop --config .rubocop-custom.yml --only Metrics/PerceivedComplexity"
+
 [tasks."lint:flog"]
 description = "Run flog complexity checks"
 run = "bundle exec rake flog"
@@ -42,7 +46,7 @@ run = "ruby tools/lint_agent_skills.rb"
 
 [tasks.lint]
 description = "Run all lint checks"
-depends = ["lint:standard", "lint:flog", "lint:flay", "lint:skills"]
+depends = ["lint:standard", "lint:complexity", "lint:flog", "lint:flay", "lint:skills"]
 
 [tasks.test]
 description = "Run the test suite"
