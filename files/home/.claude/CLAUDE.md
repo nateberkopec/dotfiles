@@ -16,7 +16,7 @@ I use AeroSpace for macOS window management. For window management tasks, prefer
 
 ## New Deps
 
-Do a quick health check (recent releases/commits, adoption).
+When adding new deps, do a quick health check (recent releases/commits, adoption). Andon cord if very old or very little adoption (<5 gh stars, etc).
 
 ## Git, Github
 
@@ -28,19 +28,19 @@ Safe by default: `git status/diff/log`. Push only when user asks.
 
 Destructive ops forbidden unless explicit (`reset --hard`, `clean`, `restore`, `rm`, …).
 
-Whenever you open a pull request with `gh pr`, leave the description blank.
+Whenever you open a pull request with `gh pr`, leave the description blank _unless_ you are closing an issue, in which case you should write "Fixes #<ISSUE_NUMBER>".
 
-For commits which only change markdown or docs, with no code changes, add `[ci skip]` to the commit message only when CI is not required for merge.
+For commits which only change markdown or docs, with no code changes, add `[ci skip]` to the commit message.
+
+GitHub CLI for PRs/CI/releases. Given issue/PR URL (or `/pull/5`): use `gh`, not web search.
+
+Examples: `gh issue view <url> --comments -R owner/repo`, `gh pr view <url> --comments --files -R owner/repo`.
 
 ## Code Changes
 
-Avoid diff noise from purely stylistic changes (e.g., `'` vs `"`). Let linters handle style automatically.
+Avoid diff noise from purely stylistic changes (e.g., `'` vs `"`, misc blank lines). Let linters handle style automatically.
 
 Use boolean expressions with implicit return for predicate methods, not guard clauses or case statements with literal true/false.
-
-## gh
-- GitHub CLI for PRs/CI/releases. Given issue/PR URL (or `/pull/5`): use `gh`, not web search.
-- Examples: `gh issue view <url> --comments -R owner/repo`, `gh pr view <url> --comments --files -R owner/repo`.
 
 ## Important Locations on My System
 
