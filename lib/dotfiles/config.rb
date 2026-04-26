@@ -54,7 +54,6 @@ class Dotfiles
     end
 
     def brew_packages
-      return ENV["BREW_CI_PACKAGES"].split(",").map(&:strip) if ENV["BREW_CI_PACKAGES"]
       package_matrix.brew_packages
     end
 

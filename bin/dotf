@@ -105,45 +105,38 @@ cmd_upgrade() {
     ensure_homebrew_env
     ensure_mise_env
 
-    local ran_any=false
-
-    if command -v mise &> /dev/null; then
-        ran_any=true
-        announce "Refreshing mise metadata"
-        mise cache clear --yes
-        mise plugins update
-
-        announce "Checking for mise updates"
-        mise outdated --bump
-
-        announce "Upgrading mise tools"
-        mise up --yes
-        mise install --yes
-
-        announce "Pruning mise installs"
-        mise prune --yes
-        mise cache prune --yes
-    else
-        warn "mise not found on PATH; skipping mise upgrade"
-    fi
-
-    if command -v brew &> /dev/null; then
-        ran_any=true
-        announce "Updating Homebrew"
-        brew update
-        brew upgrade
-
-        announce "Cleaning Homebrew"
-        brew autoremove
-        brew cleanup
-    else
-        warn "brew not found on PATH; skipping Homebrew upgrade"
-    fi
-
-    if [ "$ran_any" = false ]; then
-        echo "Error: Neither mise nor brew was found on PATH"
+    if ! command -v mise &> /dev/null; then
+        echo "Error: mise not found on PATH"
         return 1
     fi
+
+    if ! command -v brew &> /dev/null; then
+        echo "Error: brew not found on PATH"
+        return 1
+    fi
+
+    announce "Refreshing mise metadata"
+    mise cache clear --yes
+    mise plugins update
+
+    announce "Checking for mise updates"
+    mise outdated --bump
+
+    announce "Upgrading mise tools"
+    mise up --yes
+    mise install --yes
+
+    announce "Pruning mise installs"
+    mise prune --yes
+    mise cache prune --yes
+
+    announce "Updating Homebrew"
+    brew update
+    brew upgrade
+
+    announce "Cleaning Homebrew"
+    brew autoremove
+    brew cleanup
 
     debug "Upgrade complete"
 }

@@ -16,9 +16,9 @@ class InstallBrewPackagesStepTest < StepTestCase
     @fake_system.stub_command("HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 brew list --formula 2>&1", "fish\nduti\nmise", exit_status: 0)
     @fake_system.stub_command("HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 brew list --cask 2>&1", "", exit_status: 0)
 
-    with_env("BREW_CI_PACKAGES" => "fish,duti,mise", "BREW_CI_CASKS" => "") do
-      step.run
-    end
+    write_config(:brew, {"brew" => {"packages" => ["fish", "duti", "mise"], "casks" => []}})
+
+    step.run
 
     assert_executed("HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 brew install fish 2>&1")
     assert_executed(bundle_install_command)
@@ -31,9 +31,9 @@ class InstallBrewPackagesStepTest < StepTestCase
     @fake_system.stub_command("HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 brew list --formula 2>&1", "fish\nduti\nmise", exit_status: 0)
     @fake_system.stub_command("HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 brew list --cask 2>&1", "", exit_status: 0)
 
-    with_env("BREW_CI_PACKAGES" => "fish,duti,mise", "BREW_CI_CASKS" => "") do
-      step.run
-    end
+    write_config(:brew, {"brew" => {"packages" => ["fish", "duti", "mise"], "casks" => []}})
+
+    step.run
 
     refute_executed("HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 brew install fish 2>&1")
     assert_executed(bundle_install_command(admin: true))
