@@ -1,13 +1,10 @@
 [env]
 _.path = ["./bin"]
 _.file = ".env"
+BUNDLE_PATH = ".bundle"
 
-# Fish shell activation - runs when entering this directory
-[hooks.enter]
-shell = "fish"
-script = """
-abbr -a dfr './bin/dotf run'
-"""
+[shell_alias]
+dfr = "./bin/dotf run"
 
 [tools]
 ruby = "latest"
@@ -18,39 +15,47 @@ go = "latest"
 rg = "latest"
 "github:aldanial/cloc" = "latest"
 
-[tasks.setup]
-description = "Install gem dependencies and Git hooks"
-run = """
-bundle install
-hk install
-"""
+[deps.bundler]
+auto = true
+
+[deps.hk]
+sources = ["hk.pkl"]
+outputs = [".git/hooks/pre-commit"]
+run = "hk install"
 
 [tasks."lint:standard"]
 description = "Run standardrb"
+sources = ["**/*.rb", ".standard.yml"]
 run = "bundle exec standardrb"
 
 [tasks."lint:complexity"]
 description = "Run Ruby complexity checks"
+sources = ["**/*.rb", ".rubocop-custom.yml"]
 run = "bundle exec rubocop --config .rubocop-custom.yml --only Metrics/PerceivedComplexity"
 
 [tasks."lint:large-files"]
 description = "Check staged files for large files"
+sources = [".git/index", "files/home/.claude/skills/dev-env-setup/scripts/check_large_files.rb"]
 run = "ruby files/home/.claude/skills/dev-env-setup/scripts/check_large_files.rb"
 
 [tasks."lint:dead-code"]
 description = "Check for dead Ruby methods"
+sources = ["**/*.rb", ".debride-whitelist", "files/home/.claude/skills/dev-env-setup/scripts/check_dead_code.rb"]
 run = "ruby files/home/.claude/skills/dev-env-setup/scripts/check_dead_code.rb"
 
 [tasks."lint:flog"]
 description = "Run flog complexity checks"
+sources = ["**/*.rb", "Rakefile"]
 run = "bundle exec rake flog"
 
 [tasks."lint:flay"]
 description = "Run flay duplication checks"
+sources = ["**/*.rb", "Rakefile"]
 run = "bundle exec rake flay"
 
 [tasks."lint:skills"]
 description = "Validate Claude skills"
+sources = ["files/home/.claude/skills/**", "tools/lint_agent_skills.rb"]
 run = "ruby tools/lint_agent_skills.rb"
 
 [tasks.lint]
@@ -59,6 +64,7 @@ depends = ["lint:standard", "lint:complexity", "lint:large-files", "lint:dead-co
 
 [tasks.test]
 description = "Run the test suite"
+sources = ["**/*.rb", "test/**/*", "lib/**/*"]
 run = "bundle exec rake test"
 
 [tasks.dev]

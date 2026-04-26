@@ -5,6 +5,7 @@ function check_mise_tasks
     check_large_file_tooling
     detect_ruby_project
     check_ruby_mise_tasks
+    check_mise_modern_features
 end
 
 function collect_mise_task_flags
@@ -77,4 +78,61 @@ function report_standard_mise_tasks
     report_flag has_lint "mise task: lint" check_fail "Add a [tasks.lint] section to run linters."
     report_serve_task
     report_build_task
+end
+
+function check_mise_modern_features
+    if test -z "$mise_file"
+        return
+    end
+
+    check_mise_lockfile
+    check_shell_alias_preference
+
+    if test $is_ruby_project -eq 1
+        check_mise_task_sources
+        check_ruby_dependency_prep
+    end
+end
+
+function check_mise_lockfile
+    if test -f "$target_dir/mise.lock"
+        check_pass "mise lockfile"
+    else
+        check_warn "mise lockfile" "Run 'mise lock' after changing shared mise config and commit mise.lock to avoid GitHub API lookups and pin checksums."
+    end
+end
+
+function check_shell_alias_preference
+    if mise_file_has_section hooks.enter
+        check_warn "mise shell aliases" "Prefer [shell_alias] for project aliases; reserve [hooks.enter] for shell code that cannot be expressed as aliases."
+    else
+        check_pass "mise shell aliases"
+    end
+end
+
+function check_mise_task_sources
+    set checked_tasks
+    for task_name in (mise_task_names | sort -u)
+        switch "$task_name"
+            case test 'lint:*'
+                set -a checked_tasks "$task_name"
+                if mise_task_has_key "$task_name" sources
+                    check_pass "mise task sources: $task_name"
+                else
+                    check_warn "mise task sources: $task_name" "Add sources = [...] so mise can skip unchanged lint/test tasks during pre-commit."
+                end
+        end
+    end
+
+    if test (count $checked_tasks) -eq 0
+        check_warn "mise task sources" "Add sources = [...] to Ruby lint/test tasks so pre-commit can skip unchanged checks."
+    end
+end
+
+function check_ruby_dependency_prep
+    if mise_file_has_section deps.bundler; or mise_file_has_section prepare.bundler
+        check_pass "mise deps: bundler"
+    else
+        check_warn "mise deps: bundler" "Prefer [deps.bundler] with auto = true over manual setup tasks that run bundle install."
+    end
 end

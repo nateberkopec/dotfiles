@@ -106,11 +106,23 @@ When the project already has equivalent scripts (e.g., `npm run test`, `bundle e
 
 Keep mise task definitions short. Any task `run` block longer than 10 lines must move into a separate project script in an appropriate location, such as `bin/`, `scripts/`, or a stack-specific scripts directory. The mise task should call that script. The checker fails long task run blocks so shell logic does not accumulate in TOML.
 
+For lint and test tasks, add `sources` so mise can skip unchanged checks during pre-commit. This matters most in mixed Ruby repos where docs, config, or frontend-only commits should not rerun every Ruby lint task. Common Ruby mappings:
+
+| Task | Good `sources` |
+|------|----------------|
+| `test` | `["**/*.rb", "test/**/*", "lib/**/*"]` |
+| `lint:standard` / `lint:rubocop` | `["**/*.rb", ".standard.yml"]` or `["**/*.rb", ".rubocop.yml"]` |
+| `lint:complexity` | `["**/*.rb", ".rubocop-custom.yml"]` |
+| `lint:dead-code` | `["**/*.rb", ".debride-whitelist"]` |
+| `lint:flog` / `lint:flay` | `["**/*.rb", "Rakefile"]` |
+| `lint:large-files` | `[".git/index", "tools/check_large_files.rb"]` so staging changes rerun the check |
+
 Example mise tasks section:
 
 ```toml
 [tasks.test]
 description = "Run the test suite"
+sources = ["**/*.rb", "test/**/*", "lib/**/*"]
 run = "bundle exec rake test"
 
 [tasks.lint]
@@ -119,26 +131,32 @@ depends = ["lint:standard", "lint:large-files", "lint:complexity", "lint:dead-co
 
 [tasks."lint:standard"]
 description = "Run standardrb"
+sources = ["**/*.rb", ".standard.yml"]
 run = "bundle exec standardrb"
 
 [tasks."lint:large-files"]
 description = "Check staged files for large files"
+sources = [".git/index", "tools/check_large_files.rb"]
 run = "ruby tools/check_large_files.rb"
 
 [tasks."lint:complexity"]
 description = "Run Ruby complexity checks"
+sources = ["**/*.rb", ".rubocop.yml"]
 run = "bundle exec rubocop --only Metrics/PerceivedComplexity"
 
 [tasks."lint:dead-code"]
 description = "Check for dead Ruby methods"
+sources = ["**/*.rb", ".debride-whitelist", "tools/check_dead_code.rb"]
 run = "ruby tools/check_dead_code.rb"
 
 [tasks."lint:flog"]
 description = "Run flog complexity checks"
+sources = ["**/*.rb", "Rakefile"]
 run = "bundle exec rake flog"
 
 [tasks."lint:flay"]
 description = "Run flay duplication checks"
+sources = ["**/*.rb", "Rakefile"]
 run = "bundle exec rake flay"
 
 [tasks.serve]
@@ -160,7 +178,36 @@ run = "bin/lint-custom"
 
 Discover what the project actually uses for testing, linting, building, and serving before writing these. Read `package.json`, `Gemfile`, `Cargo.toml`, `Makefile`, etc. to find existing commands.
 
-### 4. Serve URL Logging
+### 4. Mise Lockfile, Shell Aliases, and Dependency Preparation
+
+Use these mise features when setting up or auditing Ruby projects:
+
+- **Commit `mise.lock`.** Run `mise lock` after changing `mise.toml` or `.mise.toml`, commit `mise.lock`, and use `mise install --locked` in CI if CI installs mise tools. The lockfile pins checksums and avoids GitHub API lookups/rate limits for `latest` and GitHub-backed tools.
+- **Prefer `[shell_alias]` to `hooks.enter` for project aliases.** Shell aliases work across bash, zsh, and fish and deactivate automatically when leaving the directory:
+
+  ```toml
+  [shell_alias]
+  dfr = "./bin/dotf run"
+  ```
+
+  Reserve `hooks.enter` for setup that truly needs shell code.
+- **Prefer mise dependency providers to manual setup tasks.** Current mise exposes this as `[deps]` / `mise deps` (older docs and articles may call the feature `[prepare]`). For Ruby repos, use the built-in Bundler provider so `bundle install` runs only when `Gemfile` or `Gemfile.lock` changes:
+
+  ```toml
+  [deps.bundler]
+  auto = true
+  ```
+
+  Keep `hk install` as a one-shot command, or model it as a custom deps provider:
+
+  ```toml
+  [deps.hk]
+  sources = ["hk.pkl"]
+  outputs = [".git/hooks/pre-commit"]
+  run = "hk install"
+  ```
+
+### 5. Serve URL Logging
 
 If the project has a server, prefer a `serve` mise task. The `serve` task must log the server URL within the last 10 lines of output, for example `http://localhost:4000` or `https://localhost:4000`. This makes it easy for agents and humans to discover the running app URL.
 
@@ -175,7 +222,7 @@ wait
 
 The checker runs `mise run serve` briefly and fails if the last 10 output lines do not include an HTTP or HTTPS URL.
 
-### 5. Test Runtime
+### 6. Test Runtime
 
 The checker runs `mise run test`, measures elapsed time, and warns when it takes longer than 10 seconds. Tests should still run before commit through the normal hk `test` step.
 
@@ -185,7 +232,7 @@ Acceptable remediations for a slow test task are:
 - add or use a `test:fast` task that still covers 100% of the app's unit-level coverage;
 - keep the warning if neither approach can get the task under 10 seconds.
 
-### 6. Large File Check
+### 7. Large File Check
 
 Pre-commit must include a large-file LOC check so files do not casually grow past the standard size limit. Add `cloc` as a mise-managed tool:
 
@@ -204,7 +251,7 @@ run = "ruby tools/check_large_files.rb"
 
 Use the shared skill tool by symlinking it into the project as `tools/check_large_files.rb`; do not copy it. For Ruby projects, the tool inspects staged changes and uses `cloc` to compare the staged version to `HEAD`. It fails when the changes cause any code file to go from fewer than 100 lines of code to more than 100 lines of code. The failure tells the user: "Don't do this unless absolutely appropriate for the domain. Consider decomposing into multiple files. To override this check, use LARGE_FILES_APPROPRIATE=true." `LARGE_FILES_APPROPRIATE=true` skips the hook.
 
-### 7. Ruby Complexity
+### 8. Ruby Complexity
 
 For Ruby projects, pre-commit must include a complexity check. If the project supports RuboCop, enabling `RuboCop::Cop::Metrics::PerceivedComplexity` completes this check.
 
@@ -220,7 +267,7 @@ Configuration belongs in the project's existing `.rubocop.yml` / `.rubocop-custo
 
 If the project does not support RuboCop, add a small custom linter that checks Ruby perceived complexity and wire it to the same `lint:complexity` mise task. For the first commit, the custom linter only needs to run on changed Ruby files.
 
-### 8. Ruby Dead Code Detection
+### 9. Ruby Dead Code Detection
 
 For Ruby projects, pre-commit must include dead-code detection. Use [debride](https://github.com/seattlerb/debride) and wire it to a dedicated mise task named `lint:dead-code`:
 
@@ -232,7 +279,7 @@ run = "ruby tools/check_dead_code.rb"
 
 Add `debride` to the project's Ruby dependencies. Because `debride` exits 0 when it reports potentially unused methods, symlink the shared skill wrapper as `tools/check_dead_code.rb`. The wrapper runs `bundle exec debride --json`, parses the `missing` result, and exits 1 when new dead code is reported. Keep intentional false positives in `.debride-whitelist`, with comments explaining broad entries. Start by scanning application directories such as `lib` and `app`; include tests only if the project has a whitelist strategy for test methods.
 
-### 9. Ruby flog/flay
+### 10. Ruby flog/flay
 
 For Ruby projects, pre-commit must include `flog` and `flay` checks using the same pattern as this dotfiles repo.
 
@@ -281,7 +328,7 @@ run = "bundle exec rake flay"
 
 Add separate hk pre-commit steps for `lint:flog` and `lint:flay` so hk can run them in parallel with the rest of the pre-commit checks.
 
-### 10. hk Git Hooks
+### 11. hk Git Hooks
 
 Git hooks are managed with [hk](https://hk.jdx.dev/). Configure them in `hk.pkl` at the project root.
 
@@ -331,20 +378,23 @@ After creating `hk.pkl`, ensure hk is in the mise `[tools]` section and run:
 mise run -- hk install
 ```
 
-Or if there's a `setup` mise task, add `hk install` to it.
+Or configure a custom `[deps.hk]` provider as shown above and run `mise deps hk`.
 
-### 11. Setup Task
+### 12. Dependency Preparation
 
-Add a `setup` mise task that bootstraps the project for a new developer:
+For Ruby projects, prefer mise dependency providers over a hand-rolled `setup` task:
 
 ```toml
-[tasks.setup]
-description = "Install dependencies and git hooks"
-run = """
-<package install command, e.g. bundle install, npm install>
-hk install
-"""
+[deps.bundler]
+auto = true
+
+[deps.hk]
+sources = ["hk.pkl"]
+outputs = [".git/hooks/pre-commit"]
+run = "hk install"
 ```
+
+Run `mise deps` to install stale dependencies. Bundler runs automatically before `mise run` when `auto = true`; the custom hk provider remains explicit unless you also set `auto = true`.
 
 ## Full Workflow
 
@@ -352,12 +402,13 @@ hk install
 2. **Inspect**: Read the project's existing tooling (`package.json`, `Gemfile`, `Makefile`, `Cargo.toml`, etc.) to understand what commands exist.
 3. **Determine ownership**: Check `git shortlog -sn --no-merges | head -5` to decide own vs. others' repo.
 4. **mise config**: Create or update `mise.toml` (own) / `mise.local.toml` (others') with tools and tasks. Move any task `run` block longer than 10 lines into a separate script.
-5. **Environment**: Configure mise to load `.env`, ensure `.env` is ignored, and add `.env.example` as a subset of `.env`.
-6. **Serve URL**: For projects with a server, ensure `mise run serve` logs the server URL within the last 10 lines of output.
-7. **Test runtime**: Let the checker time `mise run test` and warn when it exceeds 10 seconds.
-8. **Large files**: Symlink the shared skill tool, then add a dedicated `lint:large-files` task and pre-commit hook step.
-9. **Ruby checks**: For Ruby projects, symlink shared skill tools where available, then add dedicated `lint:complexity`, `lint:dead-code`, `lint:flog`, and `lint:flay` tasks and pre-commit hook steps.
-10. **hk config**: Create or update `hk.pkl` with pre-commit hooks. For others' repos, add `hk.pkl` to `.git/info/exclude`.
-11. **Install**: Run `hk install` to activate the hooks.
-12. **Verify**: Run the compliance checker again to confirm everything passes, including git cleanliness.
+5. **mise features**: Add task `sources`, prefer `[shell_alias]` to `hooks.enter`, configure `[deps.bundler]` for Ruby projects, and run `mise lock` when committing a shared mise config.
+6. **Environment**: Configure mise to load `.env`, ensure `.env` is ignored, and add `.env.example` as a subset of `.env`.
+7. **Serve URL**: For projects with a server, ensure `mise run serve` logs the server URL within the last 10 lines of output.
+8. **Test runtime**: Let the checker time `mise run test` and warn when it exceeds 10 seconds.
+9. **Large files**: Symlink the shared skill tool, then add a dedicated `lint:large-files` task and pre-commit hook step.
+10. **Ruby checks**: For Ruby projects, symlink shared skill tools where available, then add dedicated `lint:complexity`, `lint:dead-code`, `lint:flog`, and `lint:flay` tasks and pre-commit hook steps.
+11. **hk config**: Create or update `hk.pkl` with pre-commit hooks. For others' repos, add `hk.pkl` to `.git/info/exclude`.
+12. **Install**: Run `mise deps`, then `mise deps hk` or `hk install` to activate the hooks.
+13. **Verify**: Run the compliance checker again to confirm everything passes, including git cleanliness.
 

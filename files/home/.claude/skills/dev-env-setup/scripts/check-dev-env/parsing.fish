@@ -44,6 +44,36 @@ function mise_task_names
     printf "%s\n" $task_names
 end
 
+function mise_file_has_section
+    set section_name (string escape --style=regex -- $argv[1])
+    string match -rq "^\\s*\\[$section_name\\]" -- (cat "$mise_file")
+end
+
+function mise_task_has_key
+    set target_task $argv[1]
+    set key_name (string escape --style=regex -- $argv[2])
+    set in_task 0
+
+    while read -l line
+        set task_header (string match -r "^\\s*\\[tasks[.\\[]['\"]?([A-Za-z0-9_:.-]+)" -- "$line")
+        if test (count $task_header) -gt 1
+            if test "$task_header[2]" = "$target_task"
+                set in_task 1
+            else
+                set in_task 0
+            end
+        else if string match -rq "^\\s*\\[" -- "$line"
+            set in_task 0
+        end
+
+        if test $in_task -eq 1; and string match -rq "^\\s*$key_name\\s*=" -- "$line"
+            return 0
+        end
+    end < "$mise_file"
+
+    return 1
+end
+
 function long_mise_task_run_blocks
     set file $argv[1]
     set current_task ""
