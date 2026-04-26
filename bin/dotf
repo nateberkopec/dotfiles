@@ -16,10 +16,29 @@ SCRIPT_DIR="$(cd -P "$(dirname "$SOURCE_PATH")" && pwd)"
 DOTFILES_DIR="$(dirname "$SCRIPT_DIR")"
 export DOTFILES_DIR
 LOGS_DIR="$DOTFILES_DIR/logs"
+LOG_RETENTION=30
+
+rotate_logs() {
+    local retention="${1:-$LOG_RETENTION}"
+    local logs=()
+    local log_file
+
+    [ -d "$LOGS_DIR" ] || return 0
+
+    while IFS= read -r log_file; do
+        [ -n "$log_file" ] && logs+=("$log_file")
+    done < <(find "$LOGS_DIR" -maxdepth 1 -type f -name 'dotf_*.log' | sort -r)
+
+    local index
+    for ((index = retention; index < ${#logs[@]}; index++)); do
+        rm -f -- "${logs[$index]}"
+    done
+}
 
 # Initialize logging - create logs directory and set up log file
 init_logging() {
     mkdir -p "$LOGS_DIR"
+    rotate_logs $((LOG_RETENTION - 1))
     # Generate timestamp for log filename
     if command -v gdate &> /dev/null; then
         LOG_TIMESTAMP=$(gdate '+%Y-%m-%d_%H-%M-%S')
@@ -28,6 +47,7 @@ init_logging() {
     fi
     LOG_FILE="$LOGS_DIR/dotf_${LOG_TIMESTAMP}.log"
     export LOG_FILE
+    : > "$LOG_FILE"
 }
 
 debug() {
@@ -163,6 +183,7 @@ Commands:
 
 Logging:
   Logs are always written to logs/ directory with timestamped filenames.
+  The latest 30 dotf logs are kept automatically.
   Set DEBUG=true to also output logs and subprocess output to the console.
 
 Examples:
@@ -173,6 +194,8 @@ EOF
 }
 
 main() {
+    rotate_logs
+
     if [ $# -eq 0 ]; then
         cmd_help
         exit 1
@@ -200,4 +223,6 @@ main() {
     esac
 }
 
-main "$@"
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+    main "$@"
+fi
