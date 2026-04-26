@@ -3,7 +3,10 @@ class Dotfiles
     module Protectable
       def run
         protected_files.each do |file|
-          protect_file(file) if @system.file_exist?(file)
+          next unless @system.file_exist?(file)
+          next if file_protected?(file)
+
+          protect_file(file)
         end
       end
 

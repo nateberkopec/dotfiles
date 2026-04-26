@@ -38,6 +38,16 @@ class ProtectFilesStepTest < StepTestCase
     check_credentials_files_protection(:refute)
   end
 
+  def test_run_skips_already_protected_files
+    file = @credentials_files.first
+    stub_credentials_file(file, stat: "600", ls: "-rw------- uchg")
+
+    step.run
+
+    refute_command_run(:chmod, 0o600, file)
+    refute_executed("chflags uchg '#{file}'", quiet: false)
+  end
+
   def test_complete_when_all_files_are_protected
     @hook_files.each do |file|
       @fake_system.stub_file_content(file, "hook content")
