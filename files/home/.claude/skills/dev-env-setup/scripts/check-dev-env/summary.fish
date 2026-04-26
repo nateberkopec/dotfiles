@@ -16,13 +16,7 @@ function print_summary
 end
 
 function print_success_summary
-    set summary "All clear! $argv[1] checks passed ($argv[2] warnings)."
-    if command -q gum
-        gum style --bold --foreground 2 --border rounded --padding "0 2" "$summary"
-    else
-        echo "$summary"
-    end
-    echo ""
+    print_summary_box 2 "All clear! $argv[1] checks passed ($argv[2] warnings)."
 end
 
 function print_failure_summary
@@ -31,12 +25,7 @@ function print_failure_summary
     set num_warnings $argv[3]
     set summary "$num_failures issues found out of $total_checks checks."
 
-    if command -q gum
-        gum style --bold --foreground 1 --border rounded --padding "0 2" "$summary"
-    else
-        echo "$summary"
-    end
-    echo ""
+    print_summary_box 1 "$summary"
 
     print_failure_details
     if test $num_warnings -gt 0
@@ -45,29 +34,39 @@ function print_failure_summary
     echo ""
 end
 
-function print_failure_details
-    if command -q gum
-        gum style --bold "Next actions:"
-    else
-        echo "Next actions:"
-    end
+function print_summary_box
+    set color $argv[1]
+    set summary $argv[2]
 
-    for failure in $failures
-        set parts (string split "|" -- "$failure")
-        echo "  - $parts[1]: $parts[2]"
+    if command -q gum
+        gum style --bold --foreground $color --border rounded --padding "0 2" "$summary"
+    else
+        echo "$summary"
     end
+    echo ""
+end
+
+function print_failure_details
+    print_detail_list "Next actions:" $failures
 end
 
 function print_warning_details
     echo ""
+    print_detail_list "Warnings (may not apply):" $warnings
+end
+
+function print_detail_list
+    set heading $argv[1]
+    set entries $argv[2..-1]
+
     if command -q gum
-        gum style --bold "Warnings (may not apply):"
+        gum style --bold "$heading"
     else
-        echo "Warnings (may not apply):"
+        echo "$heading"
     end
 
-    for warning in $warnings
-        set parts (string split "|" -- "$warning")
+    for entry in $entries
+        set parts (string split "|" -- "$entry")
         echo "  - $parts[1]: $parts[2]"
     end
 end

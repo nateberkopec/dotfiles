@@ -6,32 +6,15 @@
 set script_dir (dirname (realpath (status --current-filename)))
 set lib_dir "$script_dir/check-dev-env"
 
-for file in \
-    context.fish \
-    output.fish \
-    parsing.fish \
-    tooling.fish \
-    mise-config.fish \
-    env.fish \
-    mise-tasks.fish \
-    mise-task-checks.fish \
-    ruby.fish \
-    hk.fish \
-    hk-reporting.fish \
-    git.fish \
-    summary.fish
-    source "$lib_dir/$file"
+for file in context output parsing tooling mise-config env mise-tasks mise-task-checks ruby hk hk-reporting git summary
+    source "$lib_dir/$file.fish"
 end
 
 init_check_context $argv
 print_header
 
-check_mise_config
-check_env_files
-check_mise_tasks
-check_hk_config
-check_hk_precommit
-check_hk_installed
-check_git_cleanliness
+for check in check_mise_config check_env_files check_mise_tasks check_hk_config check_hk_precommit check_hk_installed check_git_cleanliness
+    $check
+end
 
 print_summary

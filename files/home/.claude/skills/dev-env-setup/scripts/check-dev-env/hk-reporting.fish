@@ -8,18 +8,6 @@ function set_hk_flag
     end
 end
 
-function report_hk_step
-    set variable_name $argv[1]
-    set label $argv[2]
-    set message $argv[3]
-
-    if test $$variable_name -eq 1
-        check_pass "$label"
-    else
-        check_fail "$label" "$message"
-    end
-end
-
 function check_hk_installed
     if not test -d "$target_dir/.git"
         check_warn "hk hooks installed" "Not a git repository - cannot check hook installation."

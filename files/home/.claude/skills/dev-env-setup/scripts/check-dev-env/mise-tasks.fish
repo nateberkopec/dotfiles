@@ -8,17 +8,9 @@ function check_mise_tasks
 end
 
 function collect_mise_task_flags
-    set -g has_cloc_tool 0
-    set -g has_test 0
-    set -g has_lint 0
-    set -g has_large_files 0
-    set -g has_complexity 0
-    set -g has_dead_code 0
-    set -g has_flog 0
-    set -g has_flay 0
-    set -g has_serve_or_dev 0
-    set -g has_serve_task 0
-    set -g has_build 0
+    for flag in cloc_tool test lint large_files complexity dead_code flog flay serve_or_dev serve_task build
+        set -g has_$flag 0
+    end
 
     if test -z "$mise_file"
         return
@@ -77,19 +69,12 @@ function mark_lint_task
 end
 
 function report_standard_mise_tasks
+    report_flag has_test "mise task: test" check_fail "Add a [tasks.test] section to run the test suite."
     if test $has_test -eq 1
-        check_pass "mise task: test"
         check_test_runtime
-    else
-        check_fail "mise task: test" "Add a [tasks.test] section to run the test suite."
     end
 
-    if test $has_lint -eq 1
-        check_pass "mise task: lint"
-    else
-        check_fail "mise task: lint" "Add a [tasks.lint] section to run linters."
-    end
-
+    report_flag has_lint "mise task: lint" check_fail "Add a [tasks.lint] section to run linters."
     report_serve_task
     report_build_task
 end

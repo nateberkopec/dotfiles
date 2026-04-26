@@ -20,27 +20,23 @@ function check_hk_precommit
         return
     end
 
-    report_hk_step has_precommit_lint "pre-commit: lint step" "Add a lint step to pre-commit in hk config. Use: check = \"mise run lint\""
-    report_hk_step has_precommit_large_files "pre-commit: large-files step" "Add a pre-commit step to hk config. Use: check = \"mise run lint:large-files\""
+    report_flag has_precommit_lint "pre-commit: lint step" check_fail "Add a lint step to pre-commit in hk config. Use: check = \"mise run lint\""
+    report_flag has_precommit_large_files "pre-commit: large-files step" check_fail "Add a pre-commit step to hk config. Use: check = \"mise run lint:large-files\""
 
     if test $is_ruby_project -eq 1
-        report_hk_step has_precommit_complexity "pre-commit: complexity step" "Add a pre-commit step to hk config. Use: check = \"mise run lint:complexity\""
-        report_hk_step has_precommit_dead_code "pre-commit: dead-code step" "Add a pre-commit step to hk config. Use: check = \"mise run lint:dead-code\""
-        report_hk_step has_precommit_flog "pre-commit: flog step" "Add a pre-commit step to hk config. Use: check = \"mise run lint:flog\""
-        report_hk_step has_precommit_flay "pre-commit: flay step" "Add a pre-commit step to hk config. Use: check = \"mise run lint:flay\""
+        report_flag has_precommit_complexity "pre-commit: complexity step" check_fail "Add a pre-commit step to hk config. Use: check = \"mise run lint:complexity\""
+        report_flag has_precommit_dead_code "pre-commit: dead-code step" check_fail "Add a pre-commit step to hk config. Use: check = \"mise run lint:dead-code\""
+        report_flag has_precommit_flog "pre-commit: flog step" check_fail "Add a pre-commit step to hk config. Use: check = \"mise run lint:flog\""
+        report_flag has_precommit_flay "pre-commit: flay step" check_fail "Add a pre-commit step to hk config. Use: check = \"mise run lint:flay\""
     end
 
-    report_hk_step has_precommit_test "pre-commit: test step" "Add a test step to pre-commit in hk config. Use: check = \"mise run test\""
+    report_flag has_precommit_test "pre-commit: test step" check_fail "Add a test step to pre-commit in hk config. Use: check = \"mise run test\""
 end
 
 function collect_hk_flags
-    set -g has_precommit_lint 0
-    set -g has_precommit_large_files 0
-    set -g has_precommit_complexity 0
-    set -g has_precommit_dead_code 0
-    set -g has_precommit_flog 0
-    set -g has_precommit_flay 0
-    set -g has_precommit_test 0
+    for flag in lint large_files complexity dead_code flog flay test
+        set -g has_precommit_$flag 0
+    end
 
     if test -z "$hk_file"; or not test -f "$hk_file"
         return

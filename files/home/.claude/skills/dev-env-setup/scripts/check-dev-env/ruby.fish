@@ -11,28 +11,16 @@ function check_ruby_mise_tasks
         return
     end
 
-    if test $has_complexity -eq 1
-        check_pass "mise task: lint:complexity"
-    else
-        check_fail "mise task: lint:complexity" "Add a [tasks.\"lint:complexity\"] section. For RuboCop projects, run Metrics/PerceivedComplexity; otherwise run a custom changed-file complexity linter."
+    for spec in \
+        'has_complexity|mise task: lint:complexity|Add a [tasks."lint:complexity"] section. For RuboCop projects, run Metrics/PerceivedComplexity; otherwise run a custom changed-file complexity linter.' \
+        'has_dead_code|mise task: lint:dead-code|Add a [tasks."lint:dead-code"] section that runs debride for Ruby projects.' \
+        'has_flog|mise task: lint:flog|Add a [tasks."lint:flog"] section that runs bundle exec rake flog for Ruby projects.' \
+        'has_flay|mise task: lint:flay|Add a [tasks."lint:flay"] section that runs bundle exec rake flay for Ruby projects.'
+        set parts (string split "|" -- "$spec")
+        report_flag $parts[1] "$parts[2]" check_fail "$parts[3]"
     end
 
     if test $has_dead_code -eq 1
-        check_pass "mise task: lint:dead-code"
         check_shared_tool_reference check_dead_code.rb
-    else
-        check_fail "mise task: lint:dead-code" "Add a [tasks.\"lint:dead-code\"] section that runs debride for Ruby projects."
-    end
-
-    if test $has_flog -eq 1
-        check_pass "mise task: lint:flog"
-    else
-        check_fail "mise task: lint:flog" "Add a [tasks.\"lint:flog\"] section that runs bundle exec rake flog for Ruby projects."
-    end
-
-    if test $has_flay -eq 1
-        check_pass "mise task: lint:flay"
-    else
-        check_fail "mise task: lint:flay" "Add a [tasks.\"lint:flay\"] section that runs bundle exec rake flay for Ruby projects."
     end
 end
