@@ -41,6 +41,8 @@ Strategy by file type:
 |------|----------|--------------|
 | mise config | `mise.toml` (committed) | `mise.local.toml` (gitignored by mise convention) |
 | hk config | `hk.pkl` (committed) | `hk.pkl` + add to `.git/info/exclude` |
+| `.env` | Never committed; add to `.gitignore` | Never committed; add to `.git/info/exclude` if needed |
+| `.env.example` | Committed | Add to `.git/info/exclude` only if it is purely local |
 | Other files | Commit normally | Add to `.git/info/exclude` |
 
 `.git/info/exclude` is a local-only gitignore that is never committed or shared. It is the right place to hide project-specific dev env files that don't have a `.local.` variant.
@@ -60,7 +62,24 @@ If `mise.toml` already exists in someone else's repo, work within it rather than
 
 The config must have a `[tools]` section listing the project's dev dependencies. Inspect the project to determine what tools are needed (language runtimes, linters, formatters, etc.) and add them.
 
-### 2. Standard mise Tasks
+### 2. Environment Variables
+
+Mise must load local environment variables from `.env` using the appropriate mise TOML syntax:
+
+```toml
+[env]
+_.file = ".env"
+```
+
+Rules:
+
+- `.env` contains local secrets and machine-specific values. It must never be committed.
+- Add `.env` to `.gitignore` for repos Nate owns, or `.git/info/exclude` for someone else's repo when needed.
+- `.env.example` must exist and should be committed when this is Nate's repo.
+- `.env.example` documents required keys only. It must be a strict subset of `.env`: every key in `.env.example` must also exist in the local `.env`, but `.env` may contain extra keys.
+- Keep example values empty or obviously fake, e.g. `DATABASE_URL=` or `STRIPE_API_KEY=replace-me`.
+
+### 3. Standard mise Tasks
 
 Define these standard task frontends in the mise config:
 
@@ -111,7 +130,7 @@ run = "cargo build --release"
 
 Discover what the project actually uses for testing, linting, building, and serving before writing these. Read `package.json`, `Gemfile`, `Cargo.toml`, `Makefile`, etc. to find existing commands.
 
-### 3. Large File Check
+### 4. Large File Check
 
 Pre-commit must include a large-file check so oversized artifacts do not accidentally enter the repository. Add a dedicated mise task named `lint:large-files` that checks staged files:
 
@@ -123,7 +142,7 @@ run = "ruby tools/check_large_files.rb"
 
 Use a small project script in the appropriate stack. For Ruby projects, `tools/check_large_files.rb` should inspect `git diff --cached --name-only --diff-filter=ACMR` and fail when any staged blob exceeds the project limit. Default to 1 MiB unless the project needs a different documented threshold. Allow an environment override such as `LARGE_FILE_LIMIT_BYTES` when the threshold must be adjusted intentionally.
 
-### 4. Ruby Complexity
+### 5. Ruby Complexity
 
 For Ruby projects, pre-commit must include a complexity check. If the project supports RuboCop, enabling `RuboCop::Cop::Metrics::PerceivedComplexity` completes this check.
 
@@ -139,7 +158,7 @@ Configuration belongs in the project's existing `.rubocop.yml` / `.rubocop-custo
 
 If the project does not support RuboCop, add a small custom linter that checks Ruby perceived complexity and wire it to the same `lint:complexity` mise task. For the first commit, the custom linter only needs to run on changed Ruby files.
 
-### 5. Ruby Dead Code Detection
+### 6. Ruby Dead Code Detection
 
 For Ruby projects, pre-commit must include dead-code detection. Use [debride](https://github.com/seattlerb/debride) and wire it to a dedicated mise task named `lint:dead-code`:
 
@@ -151,7 +170,7 @@ run = "ruby tools/check_dead_code.rb"
 
 Add `debride` to the project's Ruby dependencies. Because `debride` exits 0 when it reports potentially unused methods, use a small wrapper script that runs `bundle exec debride --json`, parses the `missing` result, and exits 1 when new dead code is reported. Keep intentional false positives in `.debride-whitelist`, with comments explaining broad entries. Start by scanning application directories such as `lib` and `app`; include tests only if the project has a whitelist strategy for test methods.
 
-### 6. hk Git Hooks
+### 7. hk Git Hooks
 
 Git hooks are managed with [hk](https://hk.jdx.dev/). Configure them in `hk.pkl` at the project root.
 
@@ -197,7 +216,7 @@ mise run -- hk install
 
 Or if there's a `setup` mise task, add `hk install` to it.
 
-### 7. Setup Task
+### 8. Setup Task
 
 Add a `setup` mise task that bootstraps the project for a new developer:
 
@@ -216,8 +235,10 @@ hk install
 2. **Inspect**: Read the project's existing tooling (`package.json`, `Gemfile`, `Makefile`, `Cargo.toml`, etc.) to understand what commands exist.
 3. **Determine ownership**: Check `git shortlog -sn --no-merges | head -5` to decide own vs. others' repo.
 4. **mise config**: Create or update `mise.toml` (own) / `mise.local.toml` (others') with tools and tasks.
-5. **Large files**: Add a dedicated `lint:large-files` task and pre-commit hook step.
-6. **Ruby checks**: For Ruby projects, add dedicated `lint:complexity` and `lint:dead-code` tasks and pre-commit hook steps.
-7. **hk config**: Create or update `hk.pkl` with pre-commit hooks. For others' repos, add `hk.pkl` to `.git/info/exclude`.
-8. **Install**: Run `hk install` to activate the hooks.
-9. **Verify**: Run the compliance checker again to confirm everything passes, including git cleanliness.
+5. **Environment**: Configure mise to load `.env`, ensure `.env` is ignored, and add `.env.example` as a subset of `.env`.
+6. **Large files**: Add a dedicated `lint:large-files` task and pre-commit hook step.
+7. **Ruby checks**: For Ruby projects, add dedicated `lint:complexity` and `lint:dead-code` tasks and pre-commit hook steps.
+8. **hk config**: Create or update `hk.pkl` with pre-commit hooks. For others' repos, add `hk.pkl` to `.git/info/exclude`.
+9. **Install**: Run `hk install` to activate the hooks.
+10. **Verify**: Run the compliance checker again to confirm everything passes, including git cleanliness.
+

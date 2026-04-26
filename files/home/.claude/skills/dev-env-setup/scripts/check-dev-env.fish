@@ -41,6 +41,28 @@ function check_warn
     end
 end
 
+function env_file_keys
+    set file $argv[1]
+    if not test -f "$file"
+        return 0
+    end
+
+    for line in (string split \n -- (cat "$file"))
+        set trimmed (string trim -- "$line")
+        if test -z "$trimmed"
+            continue
+        end
+        if string match -q '#*' -- "$trimmed"
+            continue
+        end
+
+        set matches (string match -r '^(?:export[ \t]+)?([A-Za-z_][A-Za-z0-9_]*)[ \t]*=' -- "$trimmed")
+        if test (count $matches) -gt 1
+            echo $matches[2]
+        end
+    end
+end
+
 # Header
 echo ""
 if command -q gum
@@ -65,7 +87,57 @@ else
     check_fail "mise config" "Create mise.toml (your repo) or mise.local.toml (others' repo) with [tools] and [tasks] sections."
 end
 
-# --- Check 2: mise tasks ---
+# --- Check 2: .env loading and examples ---
+set env_file "$target_dir/.env"
+set env_example_file "$target_dir/.env.example"
+
+if test -n "$mise_file"; and string match -rq "_.file\\s*=\\s*['\"]\\.env['\"]" -- (cat "$mise_file")
+    check_pass "mise loads .env"
+else
+    check_fail "mise loads .env" "Add '[env]' with '_.file = \".env\"' to the mise config."
+end
+
+if test -f "$env_example_file"
+    check_pass ".env.example exists"
+else
+    check_fail ".env.example exists" "Add a committed .env.example that documents required environment keys."
+end
+
+if test -d "$target_dir/.git"
+    if git -C "$target_dir" ls-files --error-unmatch .env >/dev/null 2>/dev/null
+        check_fail ".env not tracked" "Remove .env from git; commit .env.example instead."
+    else
+        check_pass ".env not tracked"
+    end
+
+    set env_status (git -C "$target_dir" status --porcelain -- .env 2>/dev/null)
+    if test -z "$env_status"
+        check_pass ".env ignored or absent from git status"
+    else
+        check_fail ".env ignored or absent from git status" "Add .env to .gitignore or .git/info/exclude."
+    end
+end
+
+if test -f "$env_example_file"
+    set example_keys (env_file_keys "$env_example_file" | sort -u)
+    set env_keys (env_file_keys "$env_file" | sort -u)
+    set missing_env_keys
+
+    for key in $example_keys
+        if not contains -- "$key" $env_keys
+            set -a missing_env_keys "$key"
+        end
+    end
+
+    if test (count $missing_env_keys) -eq 0
+        check_pass ".env.example keys are in .env"
+    else
+        set missing_list (string join ", " $missing_env_keys)
+        check_fail ".env.example keys are in .env" "Add missing keys to local .env or remove them from .env.example: $missing_list"
+    end
+end
+
+# --- Check 3: mise tasks ---
 # Use `mise tasks` if mise is available, otherwise parse the toml
 set has_test 0
 set has_lint 0
