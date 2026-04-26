@@ -1,4 +1,6 @@
 class Dotfiles::Step::InstallDebianPackagesStep < Dotfiles::Step
+  DESCRIPTION = "Installs configured APT packages and required Debian package sources.".freeze
+
   include Dotfiles::Step::DebianPackages
 
   CONTAINER_UNSUPPORTED_PACKAGES = %w[1password google-chrome-stable].freeze

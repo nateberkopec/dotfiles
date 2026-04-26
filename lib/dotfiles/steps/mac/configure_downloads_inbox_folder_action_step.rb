@@ -1,6 +1,8 @@
 require "shellwords"
 
 class Dotfiles::Step::ConfigureDownloadsInboxFolderActionStep < Dotfiles::Step
+  DESCRIPTION = "Compiles and records the Folder Action that moves Downloads items into Inbox.".freeze
+
   macos_only
 
   def self.depends_on

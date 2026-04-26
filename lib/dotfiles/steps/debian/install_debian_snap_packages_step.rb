@@ -1,6 +1,8 @@
 require "shellwords"
 
 class Dotfiles::Step::InstallDebianSnapPackagesStep < Dotfiles::Step
+  DESCRIPTION = "Installs configured Snap packages on Debian/Ubuntu.".freeze
+
   debian_only
 
   def self.display_name

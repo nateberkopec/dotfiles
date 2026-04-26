@@ -1,4 +1,6 @@
 class Dotfiles::Step::InstallFontsStep < Dotfiles::Step
+  DESCRIPTION = "Installs configured font files on macOS.".freeze
+
   macos_only
 
   def self.depends_on

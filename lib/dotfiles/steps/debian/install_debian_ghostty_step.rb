@@ -1,4 +1,6 @@
 class Dotfiles::Step::InstallDebianGhosttyStep < Dotfiles::Step
+  DESCRIPTION = "Installs the Ghostty AppImage and launcher on Debian/Ubuntu when configured.".freeze
+
   include Dotfiles::Step::DebianNonAptHelper
 
   CURL_RETRY_ARGS = "--retry 5 --retry-delay 2 --retry-max-time 120 --retry-all-errors".freeze

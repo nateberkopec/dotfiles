@@ -1,6 +1,8 @@
 require "shellwords"
 
 class Dotfiles::Step::ConfigureSpotlightBatteryStep < Dotfiles::Step
+  DESCRIPTION = "Installs a LaunchDaemon that disables Spotlight indexing while on battery power.".freeze
+
   include Dotfiles::Step::LaunchCtl
   prepend Dotfiles::Step::Sudoable
 

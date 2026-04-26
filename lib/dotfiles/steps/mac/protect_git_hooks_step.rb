@@ -1,4 +1,6 @@
 class Dotfiles::Step::ProtectGitHooksStep < Dotfiles::Step
+  DESCRIPTION = "Protects safety hook files with immutable flags.".freeze
+
   prepend Dotfiles::Step::Sudoable
   include Dotfiles::Step::Protectable
 

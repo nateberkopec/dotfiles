@@ -1,4 +1,6 @@
 class Dotfiles::Step::CreateStandardFoldersStep < Dotfiles::Step
+  DESCRIPTION = "Creates standard folders used by this dotfiles setup.".freeze
+
   def run
     debug "Creating standard folders..."
     standard_folders.each do |folder|

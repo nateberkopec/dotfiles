@@ -1,4 +1,6 @@
 class Dotfiles::Step::SetFontSmoothingStep < Dotfiles::Step
+  DESCRIPTION = "Disables macOS font smoothing for preferred text rendering.".freeze
+
   macos_only
   include Dotfiles::Step::Defaultable
 

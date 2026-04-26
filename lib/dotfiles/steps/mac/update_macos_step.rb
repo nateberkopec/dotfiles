@@ -1,6 +1,8 @@
 require "date"
 
 class Dotfiles::Step::UpdateMacOSStep < Dotfiles::Step
+  DESCRIPTION = "Checks for available macOS software updates.".freeze
+
   macos_only
 
   def self.display_name

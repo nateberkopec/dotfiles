@@ -1,4 +1,6 @@
 class Dotfiles::Step::UpdateHomebrewStep < Dotfiles::Step
+  DESCRIPTION = "Updates Homebrew package definitions before package installation runs.".freeze
+
   macos_only
 
   def run
