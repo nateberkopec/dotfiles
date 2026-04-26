@@ -17,7 +17,8 @@ class Dotfiles
         setting_entries.each do |domain, key, value|
           domain_flag = domain_flag_for(domain)
           type_flag = type_flag_for(value)
-          execute(command("defaults", "write", domain_flag, key, type_flag, value))
+          write_value = normalize_defaults_value(value)
+          execute(command("defaults", "write", domain_flag, key, type_flag, write_value))
         end
       end
 
