@@ -1,5 +1,7 @@
 class Dotfiles
   class Runner
+    PROGRESS_MUTEX = Mutex.new
+
     def initialize(log_file = nil)
       Dotfiles.log_file = log_file
       @debug = ENV["DEBUG"] == "true"
@@ -19,7 +21,7 @@ class Dotfiles
 
     def execute_all_steps
       @step_instances = instantiate_steps(build_step_params)
-      run_steps_serially
+      run_steps_in_parallel
       check_completion
     end
 
@@ -43,25 +45,41 @@ class Dotfiles
       Dotfiles.debug "Total run time: #{elapsed}ms"
     end
 
-    def run_steps_serially
-      completed_steps = {}
-      @step_instances.each_with_index do |step, index|
-        execute_single_step(step, index, completed_steps)
-      end
+    def run_steps_in_parallel
+      context = parallel_step_context
+      spawn_step_threads(context).each(&:join)
       puts ""
+      raise context[:error] if context[:error]
     end
 
-    def execute_single_step(step, index, completed_steps)
+    def parallel_step_context
+      {completed_steps: {}, mutex: Mutex.new, condition: ConditionVariable.new, error: nil}
+    end
+
+    def spawn_step_threads(context)
+      @step_instances.each_with_index.map do |step, index|
+        Thread.new { execute_step_when_ready(step, index, context) }
+      end
+    end
+
+    def execute_step_when_ready(step, index, context)
       step_class = @step_classes[index]
-      wait_for_dependencies(step_class, completed_steps)
+      return unless wait_for_dependencies(step_class, context)
+
+      execute_single_step(step, index)
+      mark_step_complete(step_class, context)
+    rescue => e
+      record_step_error(e, context)
+    end
+
+    def execute_single_step(step, index)
+      step_class = @step_classes[index]
 
       if should_run_step?(step, step_class)
         run_step(step, step_class)
       else
         skip_step(step_class)
       end
-
-      completed_steps[step_class] = true
     end
 
     def should_run_step?(step, step_class)
@@ -72,18 +90,53 @@ class Dotfiles
 
     def run_step(step, step_class)
       Dotfiles.debug "Running step: #{step_class.display_name}"
-      printf "X"
+      print_progress "X"
       step.instance_variable_set(:@ran, true)
       Dotfiles.debug_benchmark("Step: #{step_class.display_name}") { step.run }
     end
 
     def skip_step(step_class)
-      printf "."
+      print_progress "."
       Dotfiles.debug_benchmark("Step (skipped): #{step_class.display_name}") {}
     end
 
-    def wait_for_dependencies(step_class, completed_steps)
-      step_class.depends_on.each { |dep| sleep 0.01 until completed_steps.key?(dep) }
+    def print_progress(character)
+      progress_mutex.synchronize { printf character }
+    end
+
+    def progress_mutex
+      PROGRESS_MUTEX
+    end
+
+    def wait_for_dependencies(step_class, context)
+      context[:mutex].synchronize do
+        wait_until_ready(step_class, context)
+        context[:error].nil?
+      end
+    end
+
+    def wait_until_ready(step_class, context)
+      until dependencies_complete?(step_class, context) || context[:error]
+        context[:condition].wait(context[:mutex])
+      end
+    end
+
+    def dependencies_complete?(step_class, context)
+      step_class.depends_on.all? { |dep| context[:completed_steps].key?(dep) }
+    end
+
+    def mark_step_complete(step_class, context)
+      context[:mutex].synchronize do
+        context[:completed_steps][step_class] = true
+        context[:condition].broadcast
+      end
+    end
+
+    def record_step_error(error, context)
+      context[:mutex].synchronize do
+        context[:error] ||= error
+        context[:condition].broadcast
+      end
     end
 
     def check_completion
