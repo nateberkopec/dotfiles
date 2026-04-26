@@ -95,10 +95,21 @@ function check_mise_modern_features
 end
 
 function check_mise_lockfile
-    if test -f "$target_dir/mise.lock"
-        check_pass "mise lockfile"
-    else
-        check_warn "mise lockfile" "Run 'mise lock' after changing shared mise config and commit mise.lock to avoid GitHub API lookups and pin checksums."
+    set config_name (basename "$mise_file")
+
+    switch "$config_name"
+        case mise.local.toml .mise.local.toml
+            if test -f "$target_dir/mise.local.lock"
+                check_pass "mise lockfile (mise.local.lock)"
+            else
+                check_warn "mise lockfile" "Run 'mise lock --local' after changing local mise config to avoid GitHub API lookups and pin checksums in mise.local.lock."
+            end
+        case '*'
+            if test -f "$target_dir/mise.lock"
+                check_pass "mise lockfile (mise.lock)"
+            else
+                check_warn "mise lockfile" "Run 'mise lock' after changing shared mise config and commit mise.lock to avoid GitHub API lookups and pin checksums."
+            end
     end
 end
 
