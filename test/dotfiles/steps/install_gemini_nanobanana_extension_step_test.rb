@@ -29,6 +29,14 @@ class InstallGeminiNanobananaExtensionStepTest < StepTestCase
     assert_executed(install_command)
   end
 
+  def test_run_skips_extension_settings_prompt_in_ci
+    stub_gemini_present
+
+    with_ci { step.run }
+
+    assert_executed(install_command(skip_settings: true))
+  end
+
   def test_run_skips_when_extension_installed
     stub_gemini_present
     stub_extension_installed
@@ -60,8 +68,11 @@ class InstallGeminiNanobananaExtensionStepTest < StepTestCase
 
   private
 
-  def install_command
-    "gemini extensions install https://github.com/gemini-cli-extensions/nanobanana --consent"
+  def install_command(skip_settings: false)
+    flags = ["--consent"]
+    flags << "--skip-settings" if skip_settings
+
+    "gemini extensions install https://github.com/gemini-cli-extensions/nanobanana #{flags.join(" ")}"
   end
 
   def extension_path
