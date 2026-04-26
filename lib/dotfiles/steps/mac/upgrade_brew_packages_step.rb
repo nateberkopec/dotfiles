@@ -20,8 +20,10 @@ class Dotfiles::Step::UpgradeBrewPackagesStep < Dotfiles::Step
   private
 
   def check_outdated_packages
-    output, = @system.execute(command("brew", "outdated", "--quiet"))
+    output, status = brew_quiet("outdated", "--quiet")
     debug("brew outdated --quiet output: #{output.inspect}")
+    return unless status == 0
+
     packages = output.lines.map(&:strip).reject(&:empty?)
     return if packages.empty?
 
