@@ -6,6 +6,10 @@ I use fish. When writing shell scripts intended for the user, use fish. For temp
 
 Use `gum` to make your shell scripts pretty and fun! Run `gum` alone to see available options/commands for bling.
 
+## Window Management
+
+I use AeroSpace for macOS window management. For window management tasks, prefer AeroSpace commands and configuration.
+
 ## CI
 
 - CI red: `gh run list/view`, rerun, fix, push, repeat til green.
