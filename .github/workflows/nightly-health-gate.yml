@@ -32,7 +32,11 @@ jobs:
                 per_page: 10,
               })
 
-              return data.workflow_runs.find((run) => allowedEvents.includes(run.event))
+              return data.workflow_runs.find((run) => {
+                const conclusion = run.conclusion?.toLowerCase()
+
+                return allowedEvents.includes(run.event) && conclusion !== 'cancelled'
+              })
             } catch (error) {
               if (error.status === 404) {
                 core.info(`Workflow ${workflowId} is not available on main yet; skipping.`)
