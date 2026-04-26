@@ -230,7 +230,7 @@ set has_serve_task 0
 set has_build 0
 
 if test -n "$mise_file"
-    if string match -rq '^\s*(cloc|["\']npm:cloc["\'])\s*=' -- (cat "$mise_file")
+    if string match -rq '^\s*["\']github:aldanial/cloc["\']\s*=' -- (cat "$mise_file")
         set has_cloc_tool 1
     end
 
@@ -353,7 +353,7 @@ end
 if test $has_cloc_tool -eq 1
     check_pass "mise tool: cloc"
 else
-    check_fail "mise tool: cloc" "Add cloc to the mise [tools] section for the large file LOC check."
+    check_fail "mise tool: cloc" "Add cloc from GitHub to the mise [tools] section for the large file LOC check: \"github:aldanial/cloc\" = \"latest\""
 end
 
 if test $has_large_files -eq 1

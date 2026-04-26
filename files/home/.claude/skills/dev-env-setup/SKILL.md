@@ -191,7 +191,7 @@ Pre-commit must include a large-file LOC check so files do not casually grow pas
 
 ```toml
 [tools]
-"npm:cloc" = "latest"
+"github:aldanial/cloc" = "latest"
 ```
 
 Add a dedicated mise task named `lint:large-files` that checks staged files:

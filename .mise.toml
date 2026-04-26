@@ -16,7 +16,7 @@ pkl = "latest"
 fd = "latest"
 go = "latest"
 rg = "latest"
-"npm:cloc" = "latest"
+"github:aldanial/cloc" = "latest"
 
 [tasks.setup]
 description = "Install gem dependencies and Git hooks"
