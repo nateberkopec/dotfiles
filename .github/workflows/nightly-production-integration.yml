@@ -1,4 +1,4 @@
-name: Production Integration
+name: Non-Admin Integration Test
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: production-integration
+  group: non-admin-integration-test
   cancel-in-progress: false
 
 jobs:
