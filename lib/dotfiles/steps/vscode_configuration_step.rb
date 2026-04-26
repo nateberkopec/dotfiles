@@ -23,14 +23,6 @@ class Dotfiles::Step::VSCodeConfigurationStep < Dotfiles::Step
     !extensions_installed?
   end
 
-  def update
-    if command_exists?("code")
-      stdout, = execute("code --list-extensions")
-      @system.mkdir_p(File.dirname(extensions_file))
-      @system.write_file(extensions_file, stdout + "\n")
-    end
-  end
-
   private
 
   def extensions_file

@@ -29,11 +29,6 @@ class Dotfiles::Step::SyncHomeDirectoryStep < Dotfiles::Step
     !out_of_sync.empty?
   end
 
-  def update
-    debug "Updating home directory files from system..."
-    sync_all_files(from_system: true)
-  end
-
   private
 
   def source_dirs
@@ -76,32 +71,12 @@ class Dotfiles::Step::SyncHomeDirectoryStep < Dotfiles::Step
     end
   end
 
-  def sync_all_files(from_system: false)
-    if from_system
-      sync_from_home_to_repo
-    else
-      sync_from_repo_to_home
-    end
-  end
-
-  def sync_from_repo_to_home
+  def sync_all_files
     effective_entries.each { |entry| sync_entry(entry) }
   end
 
-  def sync_from_home_to_repo
-    effective_entries.each { |entry| sync_entry_from_home(entry) }
-  end
-
   def sync_entry(entry)
-    apply_entry_operation(entry, file_method: :sync_file, symlink_method: :sync_symlink)
-  end
-
-  def sync_entry_from_home(entry)
-    if entry[:type] == :file
-      sync_file(entry[:dest], entry[:src]) if @system.file_exist?(entry[:dest])
-    elsif @system.symlink?(entry[:dest])
-      sync_symlink(entry[:dest], entry[:src])
-    end
+    handle_entry(entry, file_action: method(:sync_file), symlink_action: method(:sync_symlink))
   end
 
   def sync_file(from, to)
@@ -127,12 +102,13 @@ class Dotfiles::Step::SyncHomeDirectoryStep < Dotfiles::Step
   end
 
   def entry_in_sync?(entry)
-    apply_entry_operation(entry, file_method: :file_in_sync?, symlink_method: :symlink_in_sync?)
+    handle_entry(entry, file_action: method(:file_in_sync?), symlink_action: method(:symlink_in_sync?))
   end
 
-  def apply_entry_operation(entry, file_method:, symlink_method:)
-    method = (entry[:type] == :file) ? file_method : symlink_method
-    send(method, entry[:src], entry[:dest])
+  def handle_entry(entry, file_action:, symlink_action:)
+    source, dest = entry.values_at(:src, :dest)
+    action = (entry[:type] == :file) ? file_action : symlink_action
+    action.call(source, dest)
   end
 
   def symlink_in_sync?(source, dest)

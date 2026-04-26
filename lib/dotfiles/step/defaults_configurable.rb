@@ -33,10 +33,6 @@ class Dotfiles
         defaults_complete?(self.class.defaults_display_name)
       end
 
-      def update
-        update_defaults_config(self.class.defaults_config_key)
-      end
-
       private
 
       def config_key

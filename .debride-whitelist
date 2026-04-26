@@ -4,7 +4,6 @@ applications=
 config=
 copy_if_exists
 execute!
-file_in_sync?
 included
 inherited
 install_direct_download
@@ -12,5 +11,3 @@ log_file
 packages=
 print_steps
 running_codespaces?
-symlink_in_sync?
-update

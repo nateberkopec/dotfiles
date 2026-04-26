@@ -138,13 +138,6 @@ class Dotfiles
       true
     end
 
-    # Optional: steps can implement update logic to sync
-    # configuration from the system back into the dotfiles repo.
-    # Default is a no-op.
-    def update
-      # no-op by default
-    end
-
     private
 
     def debug(message)

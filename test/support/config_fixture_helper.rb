@@ -27,14 +27,6 @@ module ConfigFixtureHelper
     step.config.instance_variable_set(:@config, nil) if step.respond_to?(:config)
   end
 
-  def expect_config_write(_name)
-    write_op = @fake_system.operations.reverse.find do |op|
-      op[0] == :write_file && op[1].end_with?("/config/config.yml")
-    end
-    refute_nil write_op, "Expected update to write config/config.yml"
-    yield YAML.safe_load(write_op[2])
-  end
-
   private
 
   def config_yml_path
