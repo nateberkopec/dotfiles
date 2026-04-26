@@ -178,6 +178,19 @@ class SyncHomeDirectoryStepTest < StepTestCase
     assert_equal 2, copy_attempts.call
   end
 
+  def test_run_clears_immutable_flag_for_paths_with_spaces_and_quotes
+    unusual_home = "/tmp/home dir/owner's; touch injected"
+    dest = File.join(unusual_home, ".gem/credentials")
+    stub_source_file(".gem/credentials", "stub")
+    copy_attempts = stub_copy_fails_once_then_succeeds
+
+    step(home: unusual_home).run
+
+    assert_executed(["chflags", "nouchg", dest], quiet: false)
+    assert_equal "stub", @fake_system.filesystem[dest]
+    assert_equal 2, copy_attempts.call
+  end
+
   private
 
   def source_path(relative, root: "home")

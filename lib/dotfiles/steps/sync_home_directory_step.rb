@@ -168,10 +168,10 @@ class Dotfiles::Step::SyncHomeDirectoryStep < Dotfiles::Step
   end
 
   def remove_immutable_flag(file)
-    _, status = execute("chflags nouchg '#{file}'", quiet: false)
+    _, status = execute(command("chflags", "nouchg", file), quiet: false)
     return if status == 0
 
-    _, status = execute("chflags nouchg,noschg '#{file}'", quiet: false, sudo: true)
+    _, status = execute(command("chflags", "nouchg,noschg", file), quiet: false, sudo: true)
     raise Errno::EPERM, "Failed to remove immutable flag from #{file}" unless status == 0
   end
 

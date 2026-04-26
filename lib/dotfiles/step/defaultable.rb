@@ -17,7 +17,7 @@ class Dotfiles
         setting_entries.each do |domain, key, value|
           domain_flag = domain_flag_for(domain)
           type_flag = type_flag_for(value)
-          execute("defaults write #{domain_flag} #{key} #{type_flag} #{value}")
+          execute(command("defaults", "write", domain_flag, key, type_flag, value))
         end
       end
 
@@ -27,8 +27,9 @@ class Dotfiles
 
       def build_read_command(domain, key, current_host: false)
         domain_flag = domain_flag_for(domain)
-        host_flag = current_host ? "-currentHost " : ""
-        "defaults #{host_flag}read #{domain_flag} #{key}"
+        args = ["defaults"]
+        args << "-currentHost" if current_host
+        command(*args, "read", domain_flag, key)
       end
 
       def type_flag_for(value)

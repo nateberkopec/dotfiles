@@ -8,15 +8,13 @@ class SetFishDefaultShellStepTest < Minitest::Test
   end
 
   def test_complete_when_fish_is_default_shell
-    @fake_system.stub_command("command -v fish 2>/dev/null", "/opt/homebrew/bin/fish\n")
-    @fake_system.stub_command("dscl . -read ~/ UserShell", "UserShell: /opt/homebrew/bin/fish")
+    stub_macos_shell("/opt/homebrew/bin/fish")
 
     assert @step.complete?
   end
 
   def test_incomplete_when_different_shell
-    @fake_system.stub_command("command -v fish 2>/dev/null", "/opt/homebrew/bin/fish\n")
-    @fake_system.stub_command("dscl . -read ~/ UserShell", "UserShell: /bin/zsh")
+    stub_macos_shell("/bin/zsh")
 
     refute @step.complete?
   end
@@ -33,7 +31,7 @@ class SetFishDefaultShellStepTest < Minitest::Test
 
   def test_rechecks_fish_path_after_initial_miss
     @fake_system.stub_command("command -v fish 2>/dev/null", "", exit_status: 1)
-    @fake_system.stub_command("dscl . -read ~/ UserShell", "UserShell: /usr/bin/fish")
+    @fake_system.stub_command(["dscl", ".", "-read", @home, "UserShell"], "UserShell: /usr/bin/fish")
 
     refute @step.complete?
 
@@ -51,18 +49,22 @@ class SetFishDefaultShellStepTest < Minitest::Test
     @fake_system.stub_command("id -un", "runner\n")
     @fake_system.stub_command("id -u", "1000\n")
     @fake_system.stub_command("getent passwd 1000", "runner:x:1000:1000::/home/runner:/bin/bash")
-    @fake_system.stub_command("chsh -s /usr/bin/fish runner", "")
-    @fake_system.stub_command("sudo usermod --shell /usr/bin/fish runner", "")
+    @fake_system.stub_command(["chsh", "-s", "/usr/bin/fish", "runner"], "")
+    @fake_system.stub_command(["sudo", "usermod", "--shell", "/usr/bin/fish", "runner"], "")
 
     @step.run
 
-    assert @fake_system.received_operation?(:execute, "sudo usermod --shell /usr/bin/fish runner", {quiet: false})
+    assert @fake_system.received_operation?(:execute, ["sudo", "usermod", "--shell", "/usr/bin/fish", "runner"], {quiet: false})
   end
 
   private
 
   def stub_shell_mismatch
+    stub_macos_shell("/bin/zsh")
+  end
+
+  def stub_macos_shell(shell)
     @fake_system.stub_command("command -v fish 2>/dev/null", "/opt/homebrew/bin/fish\n")
-    @fake_system.stub_command("dscl . -read ~/ UserShell", "UserShell: /bin/zsh")
+    @fake_system.stub_command(["dscl", ".", "-read", @home, "UserShell"], "UserShell: #{shell}")
   end
 end

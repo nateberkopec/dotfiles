@@ -119,7 +119,7 @@ class Dotfiles
 
     def execute!(command, quiet: true)
       output, status = execute(command, quiet: quiet)
-      raise "Command failed: #{command}\nOutput: #{output}" unless status == 0
+      raise "Command failed: #{Dotfiles::Command.display(command)}\nOutput: #{output}" unless status == 0
       [output, status]
     end
 

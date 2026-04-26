@@ -44,7 +44,7 @@ class Dotfiles::Step::UpdateMacOSStep < Dotfiles::Step
   def read_software_update_plist(key)
     plist_path = "/Library/Preferences/com.apple.SoftwareUpdate.plist"
     return nil unless @system.file_exist?(plist_path)
-    output, status = @system.execute("defaults read #{plist_path} #{key} 2>/dev/null")
+    output, status = @system.execute(command("defaults", "read", plist_path, key))
     (status == 0) ? output : nil
   end
 

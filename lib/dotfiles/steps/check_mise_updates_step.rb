@@ -1,5 +1,4 @@
 require "json"
-require "shellwords"
 
 class Dotfiles::Step::CheckMiseUpdatesStep < Dotfiles::Step
   DESCRIPTION = "Checks mise plugins and tools for available updates and reports them.".freeze
@@ -24,9 +23,9 @@ class Dotfiles::Step::CheckMiseUpdatesStep < Dotfiles::Step
   private
 
   def check_outdated_tools
-    execute("#{mise_command} cache clear")
-    execute("#{mise_command} plugins update")
-    output, status = execute("#{mise_command} outdated --json 2>/dev/null")
+    execute(mise_command("cache", "clear"))
+    execute(mise_command("plugins", "update"))
+    output, status = execute(mise_command("outdated", "--json"))
     return unless status == 0
 
     tools = actionable_outdated_tools(output)
@@ -64,7 +63,7 @@ class Dotfiles::Step::CheckMiseUpdatesStep < Dotfiles::Step
     ENV["MISE_OFFLINE"] == "1"
   end
 
-  def mise_command
-    "mise --cd #{Shellwords.shellescape(@home)}"
+  def mise_command(*args)
+    command("mise", "--cd", @home, *args)
   end
 end

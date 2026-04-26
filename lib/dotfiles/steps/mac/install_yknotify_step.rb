@@ -50,7 +50,7 @@ class Dotfiles::Step::InstallYknotifyStep < Dotfiles::Step
   end
 
   def launchagent_loaded?
-    command_succeeds?("launchctl print gui/#{Process.uid}/#{launchagent_label} >/dev/null 2>&1")
+    command_succeeds?(command("launchctl", "print", "gui/#{Process.uid}/#{launchagent_label}"))
   end
 
   def install_yknotify_script
@@ -60,7 +60,7 @@ class Dotfiles::Step::InstallYknotifyStep < Dotfiles::Step
 
   def install_icon
     debug "Installing YubiKey icon (BSD 2-Clause, Yubico AB)..."
-    execute("curl -sL 'https://raw.githubusercontent.com/Yubico/yubikey-manager-qt/main/ykman-gui/images/windowicon.png' -o '#{icon_path}'")
+    execute(command("curl", "-sL", "https://raw.githubusercontent.com/Yubico/yubikey-manager-qt/main/ykman-gui/images/windowicon.png", "-o", icon_path))
   end
 
   def icon_path

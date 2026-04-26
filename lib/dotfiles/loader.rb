@@ -13,6 +13,7 @@ class Dotfiles
 
     def self.require_core
       require "config"
+      require "command"
       require "system_adapter"
       require "step"
       require "step/defaultable"

@@ -23,7 +23,7 @@ class Dotfiles::Step::ConfigureFileAssociationsStep < Dotfiles::Step
       next unless bundle_id_installed?(bundle_id)
       extensions.each do |ext|
         debug "Setting #{ext} files to open with #{bundle_id}..."
-        execute("duti -s #{bundle_id} #{ext} all")
+        execute(command("duti", "-s", bundle_id, ext, "all"))
       end
     end
   end
@@ -46,13 +46,17 @@ class Dotfiles::Step::ConfigureFileAssociationsStep < Dotfiles::Step
   end
 
   def current_handler(extension)
-    output, status = execute("duti -x #{extension} 2>/dev/null")
+    output, status = execute(command("duti", "-x", extension))
     return nil unless status == 0
     output.lines.map(&:strip).reject(&:empty?).last
   end
 
   def bundle_id_installed?(bundle_id)
-    _, status = execute("osascript -e 'path to application id \"#{bundle_id}\"' 2>/dev/null")
+    _, status = execute(command("osascript", "-e", "path to application id #{applescript_string(bundle_id)}"))
     status == 0
+  end
+
+  def applescript_string(value)
+    %("#{value.to_s.gsub("\\", "\\\\").gsub("\"", "\\\"")}")
   end
 end

@@ -1,5 +1,3 @@
-require "shellwords"
-
 class Dotfiles::Step::ConfigureSpotlightBatteryStep < Dotfiles::Step
   DESCRIPTION = "Installs a LaunchDaemon that disables Spotlight indexing while on battery power.".freeze
 
@@ -119,7 +117,7 @@ class Dotfiles::Step::ConfigureSpotlightBatteryStep < Dotfiles::Step
   def install_spotlight_launchdaemon
     @system.mkdir_p(script_dir)
     @system.write_file(launchdaemon_source_path, plist_content)
-    execute("install -m 644 #{Shellwords.escape(launchdaemon_source_path)} #{Shellwords.escape(launchdaemon_path)}", sudo: true)
+    execute(command("install", "-m", "644", launchdaemon_source_path, launchdaemon_path), sudo: true)
   end
 
   def script_path

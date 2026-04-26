@@ -23,14 +23,14 @@ class Dotfiles
 
       def download_and_install(url, dest, label:, error_prefix:)
         tmp = temp_path(label)
-        output, status = execute("curl -fsSL #{url} -o #{tmp}")
+        output, status = execute(command("curl", "-fsSL", url, "-o", tmp))
         if status != 0
           add_error("#{error_prefix} download failed (status #{status}): #{output}")
           @system.rm_rf(tmp)
           return false
         end
         @system.mkdir_p(File.dirname(dest))
-        output, status = execute("install -m 755 #{tmp} #{dest}")
+        output, status = execute(command("install", "-m", "755", tmp, dest))
         @system.rm_rf(tmp)
         add_error("#{error_prefix} install failed (status #{status}): #{output}") unless status == 0
         status == 0

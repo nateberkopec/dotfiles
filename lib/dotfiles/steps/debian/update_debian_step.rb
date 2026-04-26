@@ -35,7 +35,7 @@ class Dotfiles::Step::UpdateDebianStep < Dotfiles::Step
 
   def release_updates_available
     return [] unless command_exists?("do-release-upgrade")
-    output, status = execute("do-release-upgrade -c", quiet: true)
+    output, status = execute(command("do-release-upgrade", "-c"), quiet: true)
     return [] unless status == 0
     output.scan(/New release '([^']+)'/).flatten
   end
