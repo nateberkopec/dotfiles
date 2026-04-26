@@ -101,7 +101,7 @@ run = "bundle exec rake test"
 
 [tasks.lint]
 description = "Run all lint checks"
-depends = ["lint:standard", "lint:large-files", "lint:complexity", "lint:dead-code", "lint:flog"]
+depends = ["lint:standard", "lint:large-files", "lint:complexity", "lint:dead-code", "lint:flog", "lint:flay"]
 
 [tasks."lint:standard"]
 description = "Run standardrb"
@@ -118,6 +118,14 @@ run = "bundle exec rubocop --only Metrics/PerceivedComplexity"
 [tasks."lint:dead-code"]
 description = "Check for dead Ruby methods"
 run = "ruby tools/check_dead_code.rb"
+
+[tasks."lint:flog"]
+description = "Run flog complexity checks"
+run = "bundle exec rake flog"
+
+[tasks."lint:flay"]
+description = "Run flay duplication checks"
+run = "bundle exec rake flay"
 
 [tasks.dev]
 description = "Start development server"
@@ -170,7 +178,56 @@ run = "ruby tools/check_dead_code.rb"
 
 Add `debride` to the project's Ruby dependencies. Because `debride` exits 0 when it reports potentially unused methods, use a small wrapper script that runs `bundle exec debride --json`, parses the `missing` result, and exits 1 when new dead code is reported. Keep intentional false positives in `.debride-whitelist`, with comments explaining broad entries. Start by scanning application directories such as `lib` and `app`; include tests only if the project has a whitelist strategy for test methods.
 
-### 7. hk Git Hooks
+### 7. Ruby flog/flay
+
+For Ruby projects, pre-commit must include `flog` and `flay` checks using the same pattern as this dotfiles repo.
+
+Add `flog` and `flay` to the project's Ruby dependencies. Define Rake tasks with env-configurable thresholds:
+
+```ruby
+FLOG_THRESHOLD = (ENV["FLOG_THRESHOLD"] || 25).to_i
+FLAY_THRESHOLD = (ENV["FLAY_THRESHOLD"] || 10).to_i
+
+desc "Run flog"
+task :flog do
+  flog_output = `bundle exec flog -a lib`
+  puts flog_output
+  method_scores = flog_output.lines.grep(/^\s+[0-9]+\.[0-9]+:.*#/).reject { |line| line.include?("main#none") }
+    .map { |line| line.split.first.to_f }
+  max_score = method_scores.max
+  if max_score && max_score >= FLOG_THRESHOLD
+    abort "flog failed: highest complexity (#{max_score}) exceeds threshold (#{FLOG_THRESHOLD})"
+  end
+  puts "flog passed (max complexity: #{max_score}, threshold: #{FLOG_THRESHOLD})"
+end
+
+desc "Run flay"
+task :flay do
+  flay_output = `bundle exec flay lib`
+  puts flay_output
+  flay_score = flay_output[/Total score.*?=\s*(\d+)/, 1]&.to_i
+  if flay_score && flay_score >= FLAY_THRESHOLD
+    abort "flay failed: duplication score (#{flay_score}) exceeds threshold (#{FLAY_THRESHOLD})"
+  end
+  puts "flay passed (duplication score: #{flay_score}, threshold: #{FLAY_THRESHOLD})"
+end
+```
+
+Expose those tasks through mise:
+
+```toml
+[tasks."lint:flog"]
+description = "Run flog complexity checks"
+run = "bundle exec rake flog"
+
+[tasks."lint:flay"]
+description = "Run flay duplication checks"
+run = "bundle exec rake flay"
+```
+
+Add separate hk pre-commit steps for `lint:flog` and `lint:flay` so hk can run them in parallel with the rest of the pre-commit checks.
+
+### 8. hk Git Hooks
 
 Git hooks are managed with [hk](https://hk.jdx.dev/). Configure them in `hk.pkl` at the project root.
 
@@ -200,6 +257,12 @@ hooks {
       ["dead-code"] {
         check = "mise run lint:dead-code"
       }
+      ["flog"] {
+        check = "mise run lint:flog"
+      }
+      ["flay"] {
+        check = "mise run lint:flay"
+      }
       ["test"] {
         check = "mise run test"
       }
@@ -216,7 +279,7 @@ mise run -- hk install
 
 Or if there's a `setup` mise task, add `hk install` to it.
 
-### 8. Setup Task
+### 9. Setup Task
 
 Add a `setup` mise task that bootstraps the project for a new developer:
 
@@ -237,7 +300,7 @@ hk install
 4. **mise config**: Create or update `mise.toml` (own) / `mise.local.toml` (others') with tools and tasks.
 5. **Environment**: Configure mise to load `.env`, ensure `.env` is ignored, and add `.env.example` as a subset of `.env`.
 6. **Large files**: Add a dedicated `lint:large-files` task and pre-commit hook step.
-7. **Ruby checks**: For Ruby projects, add dedicated `lint:complexity` and `lint:dead-code` tasks and pre-commit hook steps.
+7. **Ruby checks**: For Ruby projects, add dedicated `lint:complexity`, `lint:dead-code`, `lint:flog`, and `lint:flay` tasks and pre-commit hook steps.
 8. **hk config**: Create or update `hk.pkl` with pre-commit hooks. For others' repos, add `hk.pkl` to `.git/info/exclude`.
 9. **Install**: Run `hk install` to activate the hooks.
 10. **Verify**: Run the compliance checker again to confirm everything passes, including git cleanliness.
