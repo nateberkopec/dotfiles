@@ -11,20 +11,24 @@ class Dotfiles::Step::SyncHomeDirectoryStep < Dotfiles::Step
 
   def run
     debug "Syncing home directory files..."
+    remove_obsolete_files
     sync_all_files
   end
 
   def complete?
     super
     out_of_sync = find_out_of_sync_files
+    obsolete = existing_obsolete_files
     out_of_sync.each { |file| add_error("File not in sync: #{collapse_path_to_home(file[:dest])}") }
-    out_of_sync.empty?
+    obsolete.each { |file| add_error("Obsolete file present: #{collapse_path_to_home(file)}") }
+    out_of_sync.empty? && obsolete.empty?
   end
 
   def should_run?
     out_of_sync = find_out_of_sync_files
+    obsolete = existing_obsolete_files
     debug_out_of_sync(out_of_sync)
-    !out_of_sync.empty?
+    !out_of_sync.empty? || !obsolete.empty?
   end
 
   def update
@@ -41,6 +45,24 @@ class Dotfiles::Step::SyncHomeDirectoryStep < Dotfiles::Step
     dirs << platform_dir if platform_dir && @system.dir_exist?(platform_dir)
     dirs << host_dir if host_dir && @system.dir_exist?(host_dir)
     dirs
+  end
+
+  def obsolete_relative_paths
+    [
+      ".pi/agent/agents/reviewer.md"
+    ]
+  end
+
+  def existing_obsolete_files
+    obsolete_relative_paths.map { |relative| File.join(@home, relative) }.select { |path| path_exists?(path) }
+  end
+
+  def remove_obsolete_files
+    existing_obsolete_files.each { |path| @system.rm_rf(path) }
+  end
+
+  def path_exists?(path)
+    @system.file_exist?(path) || @system.symlink?(path) || @system.dir_exist?(path)
   end
 
   def platform_source_dir
