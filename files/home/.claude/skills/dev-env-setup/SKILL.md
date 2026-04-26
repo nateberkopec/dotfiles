@@ -31,6 +31,18 @@ The script is located at: `~/.claude/skills/dev-env-setup/scripts/check-dev-env.
 
 Run it first, then use its output to determine which steps below to execute.
 
+## Shared Skill Tools
+
+The reusable hook tools live in the skill directory. Prefer symlinking those tools into a project instead of copying them. Symlinks keep future skill updates flowing into every project and avoid stale local copies.
+
+```fish
+mkdir -p tools
+ln -sf ~/.claude/skills/dev-env-setup/scripts/check_large_files.rb tools/check_large_files.rb
+ln -sf ~/.claude/skills/dev-env-setup/scripts/check_dead_code.rb tools/check_dead_code.rb
+```
+
+Then point mise tasks at the project-local symlink, e.g. `ruby tools/check_large_files.rb`. If a repo cannot use symlinks, call the skill script directly from the mise task rather than copying it.
+
 ## Git Cleanliness
 
 **Critical rule:** Dev env files must never dirty `git status` in repos you don't own. None of these setup files should appear as untracked or modified. The compliance checker enforces this.
@@ -101,10 +113,6 @@ Example mise tasks section:
 description = "Run the test suite"
 run = "bundle exec rake test"
 
-[tasks."test:precommit"]
-description = "Run tests and warn if they exceed the pre-commit runtime target"
-run = "ruby tools/check_test_runtime.rb"
-
 [tasks.lint]
 description = "Run all lint checks"
 depends = ["lint:standard", "lint:large-files", "lint:complexity", "lint:dead-code", "lint:flog", "lint:flay"]
@@ -169,23 +177,13 @@ The checker runs `mise run serve` briefly and fails if the last 10 output lines 
 
 ### 5. Test Runtime
 
-Pre-commit should run tests through a timed wrapper that warns when `mise run test` takes longer than 10 seconds, while still failing when the tests fail.
+The checker runs `mise run test`, measures elapsed time, and warns when it takes longer than 10 seconds. Tests should still run before commit through the normal hk `test` step.
 
-Add a dedicated mise task:
-
-```toml
-[tasks."test:precommit"]
-description = "Run tests and warn if they exceed the pre-commit runtime target"
-run = "ruby tools/check_test_runtime.rb"
-```
-
-The wrapper should run `mise run test`, measure elapsed time, and print a warning when the run exceeds 10 seconds. Acceptable remediations are:
+Acceptable remediations for a slow test task are:
 
 - run tests only for changed files;
 - add or use a `test:fast` task that still covers 100% of the app's unit-level coverage;
 - keep the warning if neither approach can get the task under 10 seconds.
-
-The pre-commit test step should call `mise run test:precommit`, not `mise run test` directly.
 
 ### 6. Large File Check
 
@@ -204,7 +202,7 @@ description = "Check staged files for large files"
 run = "ruby tools/check_large_files.rb"
 ```
 
-Use a small project script in the appropriate stack. For Ruby projects, `tools/check_large_files.rb` should inspect staged changes and use `cloc` to compare the staged version to `HEAD`. It must fail when the changes cause any code file to go from fewer than 100 lines of code to more than 100 lines of code. The failure should tell the user: "Don't do this unless absolutely appropriate for the domain. Consider decomposing into multiple files. To override this check, use LARGE_FILES_APPROPRIATE=true." `LARGE_FILES_APPROPRIATE=true` should skip the hook.
+Use the shared skill tool by symlinking it into the project as `tools/check_large_files.rb`; do not copy it. For Ruby projects, the tool inspects staged changes and uses `cloc` to compare the staged version to `HEAD`. It fails when the changes cause any code file to go from fewer than 100 lines of code to more than 100 lines of code. The failure tells the user: "Don't do this unless absolutely appropriate for the domain. Consider decomposing into multiple files. To override this check, use LARGE_FILES_APPROPRIATE=true." `LARGE_FILES_APPROPRIATE=true` skips the hook.
 
 ### 7. Ruby Complexity
 
@@ -232,7 +230,7 @@ description = "Check for dead Ruby methods"
 run = "ruby tools/check_dead_code.rb"
 ```
 
-Add `debride` to the project's Ruby dependencies. Because `debride` exits 0 when it reports potentially unused methods, use a small wrapper script that runs `bundle exec debride --json`, parses the `missing` result, and exits 1 when new dead code is reported. Keep intentional false positives in `.debride-whitelist`, with comments explaining broad entries. Start by scanning application directories such as `lib` and `app`; include tests only if the project has a whitelist strategy for test methods.
+Add `debride` to the project's Ruby dependencies. Because `debride` exits 0 when it reports potentially unused methods, symlink the shared skill wrapper as `tools/check_dead_code.rb`. The wrapper runs `bundle exec debride --json`, parses the `missing` result, and exits 1 when new dead code is reported. Keep intentional false positives in `.debride-whitelist`, with comments explaining broad entries. Start by scanning application directories such as `lib` and `app`; include tests only if the project has a whitelist strategy for test methods.
 
 ### 9. Ruby flog/flay
 
@@ -320,7 +318,7 @@ hooks {
         check = "mise run lint:flay"
       }
       ["test"] {
-        check = "mise run test:precommit"
+        check = "mise run test"
       }
     }
   }
@@ -356,9 +354,9 @@ hk install
 4. **mise config**: Create or update `mise.toml` (own) / `mise.local.toml` (others') with tools and tasks. Move any task `run` block longer than 10 lines into a separate script.
 5. **Environment**: Configure mise to load `.env`, ensure `.env` is ignored, and add `.env.example` as a subset of `.env`.
 6. **Serve URL**: For projects with a server, ensure `mise run serve` logs the server URL within the last 10 lines of output.
-7. **Test runtime**: Add a `test:precommit` task and pre-commit test step that warns when `mise run test` exceeds 10 seconds.
-8. **Large files**: Add a dedicated `lint:large-files` task and pre-commit hook step.
-9. **Ruby checks**: For Ruby projects, add dedicated `lint:complexity`, `lint:dead-code`, `lint:flog`, and `lint:flay` tasks and pre-commit hook steps.
+7. **Test runtime**: Let the checker time `mise run test` and warn when it exceeds 10 seconds.
+8. **Large files**: Symlink the shared skill tool, then add a dedicated `lint:large-files` task and pre-commit hook step.
+9. **Ruby checks**: For Ruby projects, symlink shared skill tools where available, then add dedicated `lint:complexity`, `lint:dead-code`, `lint:flog`, and `lint:flay` tasks and pre-commit hook steps.
 10. **hk config**: Create or update `hk.pkl` with pre-commit hooks. For others' repos, add `hk.pkl` to `.git/info/exclude`.
 11. **Install**: Run `hk install` to activate the hooks.
 12. **Verify**: Run the compliance checker again to confirm everything passes, including git cleanliness.
