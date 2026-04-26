@@ -1,6 +1,4 @@
 class Dotfiles::Step::VSCodeConfigurationStep < Dotfiles::Step
-  prepend Dotfiles::Step::Sudoable
-
   def self.display_name
     "VS Code Configuration"
   end

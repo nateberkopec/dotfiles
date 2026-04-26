@@ -15,6 +15,12 @@ class InstallGeminiNanobananaExtensionStepTest < StepTestCase
     assert_should_run
   end
 
+  def test_should_run_in_ci_with_gemini_and_missing_extension
+    stub_gemini_present
+
+    with_ci { assert_should_run }
+  end
+
   def test_run_installs_extension_when_missing
     stub_gemini_present
 

@@ -1,6 +1,4 @@
 class Dotfiles::Step::InstallGeminiNanobananaExtensionStep < Dotfiles::Step
-  prepend Dotfiles::Step::Sudoable
-
   def self.depends_on
     Dotfiles::Step.system_packages_steps
   end

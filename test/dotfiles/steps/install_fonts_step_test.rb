@@ -3,9 +3,11 @@ require "test_helper"
 class InstallFontsStepTest < StepTestCase
   step_class Dotfiles::Step::InstallFontsStep
 
-  def test_should_not_run_in_ci_or_noninteractive
-    with_env("CI" => "true") { refute_should_run }
-    with_env("NONINTERACTIVE" => "true") { refute_should_run }
+  def test_complete_checks_fonts_in_ci
+    prepare_fonts(["JetBrainsMono-Regular.ttf"])
+    stub_installed_fonts("")
+
+    with_env("CI" => "true") { assert_incomplete }
   end
 
   def test_should_not_run
