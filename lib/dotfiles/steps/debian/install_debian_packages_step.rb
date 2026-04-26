@@ -39,7 +39,7 @@ class Dotfiles::Step::InstallDebianPackagesStep < Dotfiles::Step
   private
 
   def debian_sources
-    sources = @config.fetch("debian_sources", [])
+    sources = @config.debian_sources
     return sources unless skip_unsupported_third_party_debian?
 
     sources.reject { |source| CONTAINER_UNSUPPORTED_SOURCES.include?(source["name"].to_s) }

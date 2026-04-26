@@ -105,7 +105,13 @@ jobs:
         NONINTERACTIVE: true
         GITHUB_TOKEN: ${{ github.token }}
         MISE_CI_TOOLS: "fzf@latest"
+        BREW_CI_PACKAGES: "duti"
         BREW_CI_CASKS: ""
+        BREW_CI_APPLICATIONS: ""
+        DEBIAN_CI_PACKAGES: "trash-cli"
+        DEBIAN_CI_SOURCES: ""
+        DEBIAN_CI_NON_APT_PACKAGES: ""
+        DEBIAN_CI_SNAP_PACKAGES: ""
       run: bash tools/ci/run_dotfiles_integration.sh "${GITHUB_WORKSPACE}"
 
     - name: Upload logs
