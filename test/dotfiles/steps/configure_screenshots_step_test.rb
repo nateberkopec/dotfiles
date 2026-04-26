@@ -30,15 +30,6 @@ class ConfigureScreenshotsStepTest < StepTestCase
     assert_incomplete
   end
 
-  def test_update_persists_current_location_to_config
-    stub_location("~/Documents/Screenshots")
-    step.update
-
-    expect_config_write("screenshots") do |config|
-      assert_equal "~/Documents/Screenshots", config.dig("screenshot_settings", "com.apple.screencapture", "location")
-    end
-  end
-
   private
 
   def screenshot_config

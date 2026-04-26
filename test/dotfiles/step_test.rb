@@ -90,6 +90,12 @@ class StepTest < Minitest::Test
     assert_collection(:notices, :add_notice, title: "Test Notice", message: "This is a notice")
   end
 
+  def test_step_does_not_expose_update
+    step = create_step(TestStepA)
+
+    refute_respond_to step, :update
+  end
+
   private
 
   def assert_collection(collection_method, add_method, title:, message:)

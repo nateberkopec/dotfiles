@@ -2,12 +2,11 @@ module RuboCop
   module Cop
     module Dotfiles
       class StepPublicMethods < Base
-        MSG = "Step classes should only have these public methods: run, complete?, update, should_run?. Make '%<method>s' private or remove it."
+        MSG = "Step classes should only have these public methods: run, complete?, should_run?. Make '%<method>s' private or remove it."
 
         ALLOWED_PUBLIC_METHODS = %i[
           run
           complete?
-          update
           should_run?
           initialize
         ].freeze

@@ -33,24 +33,6 @@ class DisableAnimationsStepTest < StepTestCase
     assert_incomplete
   end
 
-  def test_update_writes_current_defaults_to_config
-    stub_animation_defaults(overrides: test_overrides)
-
-    step.update
-    expect_config_write("animations") do |config|
-      settings = config.fetch("animation_settings")
-      test_overrides.each do |domain, pairs|
-        pairs.each { |key, value| assert_equal value, settings.dig(domain, key) }
-      end
-    end
-  end
-
-  def test_update_only_reads_known_keys
-    stub_animation_defaults
-    step.update
-    assert_defaults_read_count(animation_entries.size)
-  end
-
   private
 
   def animation_config
@@ -67,10 +49,6 @@ class DisableAnimationsStepTest < StepTestCase
 
   def animation_entries
     @animation_entries ||= flatten_defaults_config(animation_defaults)
-  end
-
-  def test_overrides
-    animation_defaults.transform_values { |settings| settings.transform_values { |v| v.is_a?(Integer) ? 1 - v : v * 2 } }
   end
 
   def stub_animation_defaults(overrides: {}, status_overrides: {})

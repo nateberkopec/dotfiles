@@ -34,9 +34,6 @@ class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
     @packages_installed_status
   end
 
-  def update
-  end
-
   private
 
   def packages_already_installed?

@@ -5,11 +5,6 @@ module DefaultsTestHelper
     end
   end
 
-  def assert_defaults_read_count(expected_count)
-    read_commands = @fake_system.operations.select { |op| op[0] == :execute && op[1].start_with?("defaults read") }
-    assert_equal expected_count, read_commands.size
-  end
-
   def stub_defaults(entries, overrides: {}, status_overrides: {})
     entries.each do |domain, key, value|
       domain_flag = (domain == "NSGlobalDomain") ? "-g" : domain
