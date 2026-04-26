@@ -1,6 +1,4 @@
 class Dotfiles::Step::InstallGeminiNanobananaExtensionStep < Dotfiles::Step
-  prepend Dotfiles::Step::Sudoable
-
   def self.depends_on
     Dotfiles::Step.system_packages_steps
   end
@@ -34,6 +32,9 @@ class Dotfiles::Step::InstallGeminiNanobananaExtensionStep < Dotfiles::Step
   end
 
   def install_extension
-    execute("gemini extensions install https://github.com/gemini-cli-extensions/nanobanana --consent")
+    flags = ["--consent"]
+    flags << "--skip-settings" if ENV["CI"] || ENV["NONINTERACTIVE"]
+
+    execute("gemini extensions install https://github.com/gemini-cli-extensions/nanobanana #{flags.join(" ")}")
   end
 end

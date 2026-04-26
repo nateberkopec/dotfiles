@@ -1,8 +1,4 @@
-require "shellwords"
-
 class Dotfiles::Step::InstallFontsStep < Dotfiles::Step
-  prepend Dotfiles::Step::Sudoable
-
   macos_only
 
   def self.depends_on
