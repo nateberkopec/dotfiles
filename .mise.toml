@@ -60,6 +60,10 @@ depends = ["lint:standard", "lint:complexity", "lint:large-files", "lint:dead-co
 description = "Run the test suite"
 run = "bundle exec rake test"
 
+[tasks."test:precommit"]
+description = "Run tests and warn if they exceed the pre-commit runtime target"
+run = "ruby tools/check_test_runtime.rb"
+
 [tasks.dev]
 description = "Run dotfiles setup on the current machine"
 run = "./bin/dotf run"

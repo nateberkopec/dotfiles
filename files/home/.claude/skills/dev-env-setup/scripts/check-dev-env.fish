@@ -178,6 +178,7 @@ end
 # --- Check 3: mise tasks ---
 # Use `mise tasks` if mise is available, otherwise parse the toml
 set has_test 0
+set has_test_precommit 0
 set has_lint 0
 set has_large_files 0
 set has_complexity 0
@@ -214,6 +215,10 @@ if test -n "$mise_file"
         switch "$t"
             case test
                 set has_test 1
+            case 'test:*'
+                if test "$t" = "test:precommit"
+                    set has_test_precommit 1
+                end
             case lint 'lint:*'
                 set has_lint 1
                 if test "$t" = "lint:large-files"
@@ -255,6 +260,12 @@ if test $has_lint -eq 1
     check_pass "mise task: lint"
 else
     check_fail "mise task: lint" "Add a [tasks.lint] section to run linters."
+end
+
+if test $has_test_precommit -eq 1
+    check_pass "mise task: test:precommit"
+else
+    check_fail "mise task: test:precommit" "Add a [tasks.\"test:precommit\"] section that runs tests and warns when they exceed 10 seconds."
 end
 
 if test $has_serve_or_dev -eq 1
@@ -346,6 +357,7 @@ set has_precommit_dead_code 0
 set has_precommit_flog 0
 set has_precommit_flay 0
 set has_precommit_test 0
+set has_precommit_test_runtime 0
 
 if test -n "$hk_file"; and test -f "$hk_file"
     set hk_contents (cat "$hk_file")
@@ -381,6 +393,9 @@ if test -n "$hk_file"; and test -f "$hk_file"
     # Check for test-related steps in pre-commit
     if string match -rq '(test|spec|check)' -- "$hk_contents"
         set has_precommit_test 1
+    end
+    if string match -rq 'mise run test:precommit' -- "$hk_contents"
+        set has_precommit_test_runtime 1
     end
 end
 
@@ -426,7 +441,13 @@ if test -n "$hk_file"
     if test $has_precommit_test -eq 1
         check_pass "pre-commit: test step"
     else
-        check_fail "pre-commit: test step" "Add a test step to pre-commit in hk config. Use: check = \"mise run test\""
+        check_fail "pre-commit: test step" "Add a test step to pre-commit in hk config. Use: check = \"mise run test:precommit\""
+    end
+
+    if test $has_precommit_test_runtime -eq 1
+        check_pass "pre-commit: timed test warning"
+    else
+        check_fail "pre-commit: timed test warning" "Use a timed pre-commit test step. Use: check = \"mise run test:precommit\""
     end
 end
 

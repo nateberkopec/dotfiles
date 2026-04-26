@@ -101,6 +101,10 @@ Example mise tasks section:
 description = "Run the test suite"
 run = "bundle exec rake test"
 
+[tasks."test:precommit"]
+description = "Run tests and warn if they exceed the pre-commit runtime target"
+run = "ruby tools/check_test_runtime.rb"
+
 [tasks.lint]
 description = "Run all lint checks"
 depends = ["lint:standard", "lint:large-files", "lint:complexity", "lint:dead-code", "lint:flog", "lint:flay"]
@@ -148,7 +152,27 @@ run = "bin/lint-custom"
 
 Discover what the project actually uses for testing, linting, building, and serving before writing these. Read `package.json`, `Gemfile`, `Cargo.toml`, `Makefile`, etc. to find existing commands.
 
-### 4. Large File Check
+### 4. Test Runtime
+
+Pre-commit should run tests through a timed wrapper that warns when `mise run test` takes longer than 10 seconds, while still failing when the tests fail.
+
+Add a dedicated mise task:
+
+```toml
+[tasks."test:precommit"]
+description = "Run tests and warn if they exceed the pre-commit runtime target"
+run = "ruby tools/check_test_runtime.rb"
+```
+
+The wrapper should run `mise run test`, measure elapsed time, and print a warning when the run exceeds 10 seconds. Acceptable remediations are:
+
+- run tests only for changed files;
+- add or use a `test:fast` task that still covers 100% of the app's unit-level coverage;
+- keep the warning if neither approach can get the task under 10 seconds.
+
+The pre-commit test step should call `mise run test:precommit`, not `mise run test` directly.
+
+### 5. Large File Check
 
 Pre-commit must include a large-file check so oversized artifacts do not accidentally enter the repository. Add a dedicated mise task named `lint:large-files` that checks staged files:
 
@@ -160,7 +184,7 @@ run = "ruby tools/check_large_files.rb"
 
 Use a small project script in the appropriate stack. For Ruby projects, `tools/check_large_files.rb` should inspect `git diff --cached --name-only --diff-filter=ACMR` and fail when any staged blob exceeds the project limit. Default to 1 MiB unless the project needs a different documented threshold. Allow an environment override such as `LARGE_FILE_LIMIT_BYTES` when the threshold must be adjusted intentionally.
 
-### 5. Ruby Complexity
+### 6. Ruby Complexity
 
 For Ruby projects, pre-commit must include a complexity check. If the project supports RuboCop, enabling `RuboCop::Cop::Metrics::PerceivedComplexity` completes this check.
 
@@ -176,7 +200,7 @@ Configuration belongs in the project's existing `.rubocop.yml` / `.rubocop-custo
 
 If the project does not support RuboCop, add a small custom linter that checks Ruby perceived complexity and wire it to the same `lint:complexity` mise task. For the first commit, the custom linter only needs to run on changed Ruby files.
 
-### 6. Ruby Dead Code Detection
+### 7. Ruby Dead Code Detection
 
 For Ruby projects, pre-commit must include dead-code detection. Use [debride](https://github.com/seattlerb/debride) and wire it to a dedicated mise task named `lint:dead-code`:
 
@@ -188,7 +212,7 @@ run = "ruby tools/check_dead_code.rb"
 
 Add `debride` to the project's Ruby dependencies. Because `debride` exits 0 when it reports potentially unused methods, use a small wrapper script that runs `bundle exec debride --json`, parses the `missing` result, and exits 1 when new dead code is reported. Keep intentional false positives in `.debride-whitelist`, with comments explaining broad entries. Start by scanning application directories such as `lib` and `app`; include tests only if the project has a whitelist strategy for test methods.
 
-### 7. Ruby flog/flay
+### 8. Ruby flog/flay
 
 For Ruby projects, pre-commit must include `flog` and `flay` checks using the same pattern as this dotfiles repo.
 
@@ -237,7 +261,7 @@ run = "bundle exec rake flay"
 
 Add separate hk pre-commit steps for `lint:flog` and `lint:flay` so hk can run them in parallel with the rest of the pre-commit checks.
 
-### 8. hk Git Hooks
+### 9. hk Git Hooks
 
 Git hooks are managed with [hk](https://hk.jdx.dev/). Configure them in `hk.pkl` at the project root.
 
@@ -274,7 +298,7 @@ hooks {
         check = "mise run lint:flay"
       }
       ["test"] {
-        check = "mise run test"
+        check = "mise run test:precommit"
       }
     }
   }
@@ -289,7 +313,7 @@ mise run -- hk install
 
 Or if there's a `setup` mise task, add `hk install` to it.
 
-### 9. Setup Task
+### 10. Setup Task
 
 Add a `setup` mise task that bootstraps the project for a new developer:
 
@@ -309,9 +333,10 @@ hk install
 3. **Determine ownership**: Check `git shortlog -sn --no-merges | head -5` to decide own vs. others' repo.
 4. **mise config**: Create or update `mise.toml` (own) / `mise.local.toml` (others') with tools and tasks. Move any task `run` block longer than 10 lines into a separate script.
 5. **Environment**: Configure mise to load `.env`, ensure `.env` is ignored, and add `.env.example` as a subset of `.env`.
-6. **Large files**: Add a dedicated `lint:large-files` task and pre-commit hook step.
-7. **Ruby checks**: For Ruby projects, add dedicated `lint:complexity`, `lint:dead-code`, `lint:flog`, and `lint:flay` tasks and pre-commit hook steps.
-8. **hk config**: Create or update `hk.pkl` with pre-commit hooks. For others' repos, add `hk.pkl` to `.git/info/exclude`.
-9. **Install**: Run `hk install` to activate the hooks.
-10. **Verify**: Run the compliance checker again to confirm everything passes, including git cleanliness.
+6. **Test runtime**: Add a `test:precommit` task and pre-commit test step that warns when `mise run test` exceeds 10 seconds.
+7. **Large files**: Add a dedicated `lint:large-files` task and pre-commit hook step.
+8. **Ruby checks**: For Ruby projects, add dedicated `lint:complexity`, `lint:dead-code`, `lint:flog`, and `lint:flay` tasks and pre-commit hook steps.
+9. **hk config**: Create or update `hk.pkl` with pre-commit hooks. For others' repos, add `hk.pkl` to `.git/info/exclude`.
+10. **Install**: Run `hk install` to activate the hooks.
+11. **Verify**: Run the compliance checker again to confirm everything passes, including git cleanliness.
 
