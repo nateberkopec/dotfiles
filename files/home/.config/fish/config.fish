@@ -1,22 +1,6 @@
 set -gx MISE_FISH_AUTO_ACTIVATE 0
 
-if status is-interactive
-  # macOS Homebrew setup
-  if test -d /opt/homebrew
-    set -gx HOMEBREW_PREFIX /opt/homebrew
-    set -gx HOMEBREW_CELLAR /opt/homebrew/Cellar
-    set -gx HOMEBREW_REPOSITORY /opt/homebrew
-    fish_add_path -g -m /opt/homebrew/bin /opt/homebrew/sbin
-    if test -d /opt/homebrew/share/info
-      contains /opt/homebrew/share/info $INFOPATH; or set -gx INFOPATH /opt/homebrew/share/info $INFOPATH
-    end
-  end
-end
 fish_add_path ~/go/bin
-# macOS-specific libpq
-if test -d /opt/homebrew/opt/libpq/bin
-  fish_add_path /opt/homebrew/opt/libpq/bin
-end
 fish_add_path ~/bin
 fish_add_path ~/.local/bin
 
@@ -29,7 +13,6 @@ end
 
 set -x LANG en_US.UTF-8
 set -x LC_ALL en_US.UTF-8
-set -x MAKEFLAGS -j(nproc)
 if status is-interactive
   set -x EDITOR "code --wait"
   set -x VISUAL "code --wait"
@@ -76,11 +59,6 @@ if test -f ~/.config/fish/private.fish
   source ~/.config/fish/private.fish
 end
 
-# macOS-specific mosh alias
-if test -f /opt/homebrew/bin/mosh-server
-  alias mosh-mbp "mosh --server='SHELL=/opt/homebrew/bin/fish /opt/homebrew/bin/mosh-server' nateberkopec@MBP-Server.local"
-end
-
 # try-cli wrapper (avoid evaling Cancelled output)
 set -g __try_path "$HOME/src/tries"
 function try
@@ -110,7 +88,3 @@ if command -v starship >/dev/null 2>&1
   starship init fish | source
 end
 
-# OrbStack integration (macOS only)
-if test -f ~/.orbstack/shell/init2.fish
-  source ~/.orbstack/shell/init2.fish 2>/dev/null || :
-end
