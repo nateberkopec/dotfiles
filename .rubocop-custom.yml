@@ -1,5 +1,7 @@
 AllCops:
   NewCops: disable
+  Exclude:
+    - '.bundle/**/*'
 
 require:
   - ./lib/rubocop/ban_file_system_classes.rb
