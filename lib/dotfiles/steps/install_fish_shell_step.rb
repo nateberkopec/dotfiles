@@ -35,7 +35,7 @@ class Dotfiles::Step::InstallFishShellStep < Dotfiles::Step
     output, status = execute(install_command)
     return if status == 0
 
-    install_errors << format_install_error(install_command, status, output)
+    install_errors << format_command_error(install_command, status, output)
   end
 
   def link_fish_binaries
@@ -54,21 +54,32 @@ class Dotfiles::Step::InstallFishShellStep < Dotfiles::Step
   end
 
   def binary_targets
-    fish_binary_globs.to_h do |name, pattern|
-      [name, @system.glob(File.join(fish_install_prefix, pattern)).first]
+    fish_binary_globs.to_h do |name, patterns|
+      [name, binary_target_for(patterns)]
     end
+  end
+
+  def binary_target_for(patterns)
+    Array(patterns).filter_map { |pattern| @system.glob(File.join(fish_install_prefix, pattern)).first }.first
   end
 
   def fish_binary_globs
     if @system.macos?
       {
-        "fish" => "fish-*.app/Contents/Resources/base/usr/local/bin/fish",
-        "fish_indent" => "fish-*.app/Contents/Resources/base/usr/local/bin/fish_indent",
-        "fish_key_reader" => "fish-*.app/Contents/Resources/base/usr/local/bin/fish_key_reader"
+        "fish" => macos_binary_globs("fish"),
+        "fish_indent" => macos_binary_globs("fish_indent"),
+        "fish_key_reader" => macos_binary_globs("fish_key_reader")
       }
     else
       {"fish" => "fish"}
     end
+  end
+
+  def macos_binary_globs(name)
+    [
+      "Contents/Resources/base/usr/local/bin/#{name}",
+      "fish-*.app/Contents/Resources/base/usr/local/bin/#{name}"
+    ]
   end
 
   def install_needed?
@@ -169,12 +180,5 @@ class Dotfiles::Step::InstallFishShellStep < Dotfiles::Step
 
   def install_errors
     @install_errors ||= []
-  end
-
-  def format_install_error(command, status, output)
-    cleaned = output.to_s.strip.gsub(/\s+/, " ")
-    return "#{command} failed (status #{status})" if cleaned.empty?
-
-    "#{command} failed (status #{status}): #{cleaned}"
   end
 end

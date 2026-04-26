@@ -96,7 +96,7 @@ class InstallFishShellStepTest < StepTestCase
   end
 
   def macos_binary(name)
-    File.join(macos_install_prefix, "fish-4.6.0.app", "Contents", "Resources", "base", "usr", "local", "bin", name)
+    File.join(macos_install_prefix, "Contents", "Resources", "base", "usr", "local", "bin", name)
   end
 
   def macos_install_command(dry_run: false)

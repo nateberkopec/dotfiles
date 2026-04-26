@@ -144,6 +144,13 @@ class Dotfiles
       @system.execute(cmd, quiet: quiet)
     end
 
+    def format_command_error(command, status, output)
+      cleaned = output.to_s.strip.gsub(/\s+/, " ")
+      return "#{command} failed (status #{status})" if cleaned.empty?
+
+      "#{command} failed (status #{status}): #{cleaned}"
+    end
+
     def command_succeeds?(command)
       _, status = @system.execute(command)
       status == 0
