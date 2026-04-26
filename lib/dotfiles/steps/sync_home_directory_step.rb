@@ -1,3 +1,5 @@
+require "shellwords"
+
 class Dotfiles::Step::SyncHomeDirectoryStep < Dotfiles::Step
   prepend Dotfiles::Step::Sudoable
 
@@ -152,15 +154,34 @@ class Dotfiles::Step::SyncHomeDirectoryStep < Dotfiles::Step
   end
 
   def all_files_in(dir)
-    glob_entries(dir).select { |p| @system.file_exist?(p) && !@system.dir_exist?(p) && !@system.symlink?(p) }
+    tracked_paths_in(dir).select { |p| @system.file_exist?(p) && !@system.dir_exist?(p) && !@system.symlink?(p) }
   end
 
   def all_symlinks_in(dir)
-    glob_entries(dir).select { |path| @system.symlink?(path) }
+    tracked_paths_in(dir).select { |path| @system.symlink?(path) }
   end
 
-  def glob_entries(dir)
-    @system.glob(File.join(dir, "**", "{*,.*}"), File::FNM_DOTMATCH)
+  def tracked_paths_in(dir)
+    @tracked_paths_by_dir ||= {}
+    @tracked_paths_by_dir[dir] ||= begin
+      output, status = execute(tracked_paths_command(dir))
+      return [] unless status == 0
+
+      output.split("\0").reject(&:empty?).map { |path| File.join(@dotfiles_dir, path) }
+    end
+  end
+
+  def tracked_paths_command(dir)
+    relative_dir = relative_to_dotfiles_dir(dir)
+    "git -C #{Shellwords.shellescape(@dotfiles_dir)} ls-tree -r -z --name-only HEAD -- #{Shellwords.shellescape(relative_dir)}"
+  end
+
+  def relative_to_dotfiles_dir(path)
+    expanded_root = File.expand_path(@dotfiles_dir)
+    expanded_path = File.expand_path(path)
+    return "." if expanded_path == expanded_root
+
+    expanded_path.delete_prefix("#{expanded_root}/")
   end
 
   def ignored_relative_paths

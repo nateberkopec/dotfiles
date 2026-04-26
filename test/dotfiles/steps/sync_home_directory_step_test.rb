@@ -101,6 +101,62 @@ class SyncHomeDirectoryStepTest < StepTestCase
     assert_complete
   end
 
+  def test_run_skips_untracked_files
+    stub_source_file(".config/tracked.conf", "tracked content")
+    stub_source_file(".config/local.conf", "local content", tracked: false)
+
+    step.run
+
+    assert_command_run(:cp, source_path(".config/tracked.conf"), home_path(".config/tracked.conf"))
+    refute_command_run(:cp, source_path(".config/local.conf"), home_path(".config/local.conf"))
+  end
+
+  def test_run_skips_untracked_platform_files
+    @fake_system.stub_macos
+    stub_source_file(".config/ghostty/tracked.platform", "tracked", root: "home.macos")
+    stub_source_file(".config/ghostty/local.platform", "local", root: "home.macos", tracked: false)
+
+    step.run
+
+    assert_command_run(
+      :cp,
+      source_path(".config/ghostty/tracked.platform", root: "home.macos"),
+      home_path(".config/ghostty/tracked.platform")
+    )
+    refute_command_run(
+      :cp,
+      source_path(".config/ghostty/local.platform", root: "home.macos"),
+      home_path(".config/ghostty/local.platform")
+    )
+  end
+
+  def test_run_skips_untracked_host_files
+    @fake_system.stub_hostname("workspaces")
+    stub_source_file(".config/ghostty/tracked.host", "tracked", root: "home.hosts/workspaces")
+    stub_source_file(".config/ghostty/local.host", "local", root: "home.hosts/workspaces", tracked: false)
+
+    step.run
+
+    assert_command_run(
+      :cp,
+      source_path(".config/ghostty/tracked.host", root: "home.hosts/workspaces"),
+      home_path(".config/ghostty/tracked.host")
+    )
+    refute_command_run(
+      :cp,
+      source_path(".config/ghostty/local.host", root: "home.hosts/workspaces"),
+      home_path(".config/ghostty/local.host")
+    )
+  end
+
+  def test_run_uses_committed_paths_as_the_tracking_source
+    stub_source_file(".config/test.conf", "content")
+
+    step.run
+
+    assert_executed(tracked_paths_command("home"))
+  end
+
   def test_run_prefers_platform_specific_file_over_shared_file
     @fake_system.stub_macos
     stub_source_file(".config/ghostty/config.platform", "font-size = 18")
@@ -188,16 +244,32 @@ class SyncHomeDirectoryStepTest < StepTestCase
     File.join(@home, relative)
   end
 
-  def stub_source_file(relative, content, root: "home")
-    path = source_path(relative, root: root)
-    @fake_system.mkdir_p(File.dirname(path))
-    @fake_system.stub_file_content(path, content)
+  def stub_source_file(relative, content, root: "home", tracked: true)
+    stub_source_entry(relative, root: root, tracked: tracked, content: content)
   end
 
-  def stub_source_symlink(relative, target)
-    path = source_path(relative)
+  def stub_source_symlink(relative, target, root: "home", tracked: true)
+    stub_source_entry(relative, root: root, tracked: tracked, target: target)
+  end
+
+  def stub_source_entry(relative, root:, tracked:, content: nil, target: nil)
+    path = source_path(relative, root: root)
     @fake_system.mkdir_p(File.dirname(path))
-    @fake_system.stub_symlink(path, target)
+    target ? @fake_system.stub_symlink(path, target) : @fake_system.stub_file_content(path, content)
+    stub_tracked_source(relative, root: root) if tracked
+  end
+
+  def stub_tracked_source(relative, root: "home")
+    tracked_sources[root] << File.join("files", root, relative)
+    @fake_system.stub_command(tracked_paths_command(root), "#{tracked_sources[root].join("\0")}\0")
+  end
+
+  def tracked_sources
+    @tracked_sources ||= Hash.new { |sources, root| sources[root] = [] }
+  end
+
+  def tracked_paths_command(root)
+    "git -C #{@dotfiles_dir} ls-tree -r -z --name-only HEAD -- files/#{root}"
   end
 
   def stub_copy_fails_once_then_succeeds
