@@ -19,6 +19,7 @@ Most dotfiles repos just copy files to your home folder. This one does more. It 
 | Command | What it does |
 |---------|--------------|
 | `dotf run` | Set up your Mac. Safe to run many times. |
+| `dotf doctor` | Check which setup steps are incomplete without changing your system. |
 | `dotf upgrade` | Refresh and upgrade mise tools and Homebrew packages. |
 | `dotf help` | Show help |
 

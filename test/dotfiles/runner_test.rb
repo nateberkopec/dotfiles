@@ -1,7 +1,7 @@
 require "test_helper"
 
 class RunnerTest < Minitest::Test
-  FakeStep = Struct.new(:allowed, :complete_value, :should_run_value, :warnings, :notices, :errors, :run_calls, :should_run_calls, keyword_init: true) do
+  FakeStep = Struct.new(:allowed, :complete_value, :should_run_value, :warnings, :notices, :errors, :run_calls, :should_run_calls, :complete_calls, keyword_init: true) do
     def initialize(**kwargs)
       super
       self.warnings ||= []
@@ -9,6 +9,7 @@ class RunnerTest < Minitest::Test
       self.errors ||= []
       self.run_calls ||= 0
       self.should_run_calls ||= 0
+      self.complete_calls ||= 0
     end
 
     def allowed_on_platform?
@@ -25,6 +26,7 @@ class RunnerTest < Minitest::Test
     end
 
     def complete?
+      self.complete_calls += 1
       complete_value
     end
 
@@ -64,12 +66,46 @@ class RunnerTest < Minitest::Test
     assert_equal 0, step.should_run_calls
   end
 
+  def test_doctor_completion_check_reports_without_running_steps
+    step_class = build_step_class("Doctor")
+    step = FakeStep.new(allowed: true, complete_value: false, should_run_value: true)
+    formatter = build_formatter_class
+    runner = build_runner([step_class], [step], formatter)
+
+    capture_io { runner.send(:check_completion, context: :doctor) }
+
+    assert_equal 1, step.complete_calls
+    assert_equal 0, step.should_run_calls
+    assert_equal 0, step.run_calls
+    assert_equal :doctor, formatter.last_context
+    assert_equal [["Doctor", "✗", "No"]], formatter.last_results[:table_data]
+  end
+
   private
 
-  def build_runner(step_classes, step_instances)
+  def build_formatter_class
+    Class.new do
+      class << self
+        attr_accessor :last_context, :last_results
+      end
+
+      def initialize(results, context: :run)
+        @results = results
+        @context = context
+      end
+
+      def display
+        self.class.last_context = @context
+        self.class.last_results = @results
+      end
+    end
+  end
+
+  def build_runner(step_classes, step_instances, formatter_class = Dotfiles::OutputFormatter)
     runner = Dotfiles::Runner.allocate
     runner.instance_variable_set(:@step_classes, step_classes)
     runner.instance_variable_set(:@step_instances, step_instances)
+    runner.instance_variable_set(:@formatter_class, formatter_class)
     runner
   end
 

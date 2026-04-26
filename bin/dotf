@@ -99,6 +99,14 @@ cmd_run() {
     debug "Run complete"
 }
 
+cmd_doctor() {
+    ensure_homebrew_env
+    ensure_mise_env
+
+    cd "$DOTFILES_DIR"
+    ruby -r ./lib/dotfiles.rb -e "Dotfiles::Runner.new.doctor"
+}
+
 cmd_upgrade() {
     init_logging
     debug "Starting dotf upgrade command"
@@ -149,15 +157,18 @@ Usage: dotf <command> [options]
 
 Commands:
   run       Set up development environment from scratch
+  doctor    Check dotfiles health without changing the system
   upgrade   Refresh and upgrade mise tools and Homebrew packages
   help      Show this help message
 
 Logging:
-  Logs are always written to logs/ directory with timestamped filenames.
+  run and upgrade write logs to logs/ directory with timestamped filenames.
+  doctor is read-only and does not create a log file.
   Set DEBUG=true to also output logs and subprocess output to the console.
 
 Examples:
   dotf run                              # Initial setup
+  dotf doctor                           # Check which steps are incomplete
   dotf upgrade                          # Upgrade mise tools and Homebrew packages
   DEBUG=true dotf run                   # Run with debug output to console
 EOF
@@ -172,6 +183,9 @@ main() {
     case "$1" in
         run)
             cmd_run
+            ;;
+        doctor)
+            cmd_doctor
             ;;
         upgrade)
             cmd_upgrade

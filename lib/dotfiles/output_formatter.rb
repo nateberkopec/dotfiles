@@ -2,8 +2,9 @@ require "csv"
 
 class Dotfiles
   class OutputFormatter
-    def initialize(results, popen_call: IO.method(:popen), system_call: Kernel.method(:system), exit_call: Kernel.method(:exit))
+    def initialize(results, context: :run, popen_call: IO.method(:popen), system_call: Kernel.method(:system), exit_call: Kernel.method(:exit))
       @results = results
+      @context = context
       @popen_call = popen_call
       @system_call = system_call
       @exit_call = exit_call
@@ -55,12 +56,24 @@ class Dotfiles
 
     def display_failure
       failed = @results[:failed_steps]
-      gum_style("#ff5555", ["❌ Installation Failed!", "", "Incomplete steps:", *failed.map { |s| "• #{s}" }], border: "thick")
+      gum_style("#ff5555", [failure_title, "", "Incomplete steps:", *failed.map { |s| "• #{s}" }], border: "thick")
       @exit_call.call(1)
     end
 
+    def failure_title
+      doctor? ? "🩺 Dotfiles Doctor Found Drift!" : "❌ Installation Failed!"
+    end
+
     def display_success
-      gum_style("#50fa7b", ["🎉 All Steps Complete!", "Setup successful"], width: 50)
+      gum_style("#50fa7b", success_lines, width: 50)
+    end
+
+    def success_lines
+      doctor? ? ["🩺 Dotfiles Doctor Passed!", "System is in sync"] : ["🎉 All Steps Complete!", "Setup successful"]
+    end
+
+    def doctor?
+      @context == :doctor
     end
 
     def gum_style(color, lines, border: "rounded", width: 60)

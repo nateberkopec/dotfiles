@@ -6,16 +6,24 @@ class OutputFormatterTest < Minitest::Test
     calls, csv = formatter_calls_for(results(failed_steps: []))
 
     assert_includes csv, "Step,Status,Ran?"
-    assert calls.any? { |(kind, cmd, mode)| kind == :popen && cmd[0..1] == ["gum", "table"] && mode == "w" }
-    assert calls.any? { |(kind, args)| kind == :system && args.include?("#50fa7b") }
-    refute calls.any? { |(kind, _)| kind == :exit }
+    assert_table_call(calls)
+    assert_system_call_includes(calls, "#50fa7b")
+    refute_exit_call(calls)
   end
 
   def test_display_exits_when_failed_steps_present
     calls, = formatter_calls_for(results(failed_steps: ["SomeStep"]))
 
-    assert calls.any? { |(kind, args)| kind == :system && args.include?("❌ Installation Failed!") }
-    assert calls.any? { |(kind, code)| kind == :exit && code == 1 }
+    assert_system_call_includes(calls, "❌ Installation Failed!")
+    assert_exit_call(calls, 1)
+  end
+
+  def test_display_uses_doctor_status_messages_for_doctor_context
+    success_calls, = formatter_calls_for(results(failed_steps: []), context: :doctor)
+    failure_calls, = formatter_calls_for(results(failed_steps: ["SomeStep"]), context: :doctor)
+
+    assert_system_call_includes(success_calls, "🩺 Dotfiles Doctor Passed!")
+    assert_system_call_includes(failure_calls, "🩺 Dotfiles Doctor Found Drift!")
   end
 
   def test_display_formats_errors_warnings_and_notices
@@ -30,14 +38,45 @@ class OutputFormatterTest < Minitest::Test
       )
     )
 
-    assert calls.any? { |(kind, args)| kind == :system && args.include?("#ff5555") && args.include?("❌ StepA") }
-    assert calls.any? { |(kind, args)| kind == :system && args.include?("#ffaa00") && args.include?("Warn") && args.include?("careful") }
-    assert calls.any? { |(kind, args)| kind == :system && args.include?("#00aaff") && args.include?("Note") && args.include?("heads up") }
+    assert_system_call_includes(calls, "#ff5555", "❌ StepA")
+    assert_system_call_includes(calls, "#ffaa00", "Warn", "careful")
+    assert_system_call_includes(calls, "#00aaff", "Note", "heads up")
   end
 
   private
 
-  def formatter_calls_for(results_hash)
+  def assert_table_call(calls)
+    assert calls.any? { |call| table_call?(call) }
+  end
+
+  def table_call?(call)
+    kind, cmd, mode = call
+    kind == :popen && cmd[0..1] == ["gum", "table"] && mode == "w"
+  end
+
+  def assert_system_call_includes(calls, *expected)
+    assert calls.any? { |call| system_call_includes?(call, expected) }
+  end
+
+  def system_call_includes?(call, expected)
+    kind, args = call
+    kind == :system && expected.all? { |arg| args.include?(arg) }
+  end
+
+  def assert_exit_call(calls, code)
+    assert calls.any? { |call| exit_call?(call, code) }
+  end
+
+  def refute_exit_call(calls)
+    refute calls.any? { |call| call.first == :exit }
+  end
+
+  def exit_call?(call, code)
+    kind, actual_code = call
+    kind == :exit && actual_code == code
+  end
+
+  def formatter_calls_for(results_hash, context: :run)
     calls = []
     csv = +""
 
@@ -58,7 +97,7 @@ class OutputFormatterTest < Minitest::Test
       nil
     end
 
-    Dotfiles::OutputFormatter.new(results_hash, popen_call: popen_call, system_call: system_call, exit_call: exit_call).display
+    Dotfiles::OutputFormatter.new(results_hash, context: context, popen_call: popen_call, system_call: system_call, exit_call: exit_call).display
     [calls, csv]
   end
 

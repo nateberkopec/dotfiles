@@ -3,6 +3,7 @@
 applications=
 config=
 copy_if_exists
+doctor
 execute!
 file_in_sync?
 included

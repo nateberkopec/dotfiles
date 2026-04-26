@@ -1,20 +1,20 @@
 class Dotfiles
   class Runner
-    def initialize(log_file = nil)
+    def initialize(log_file = nil, formatter_class: OutputFormatter)
       Dotfiles.log_file = log_file
       @debug = ENV["DEBUG"] == "true"
       @config = Config.new(Dotfiles.determine_dotfiles_dir)
       @step_classes = Dotfiles::Step.all_steps
       @step_instances = nil
+      @formatter_class = formatter_class
     end
 
     def run
-      start_time = Time.now
-      Dotfiles.debug "Starting macOS development environment setup..."
-      execute_all_steps
-      log_total_time(start_time)
-    rescue => e
-      abort "Error: #{e.message}"
+      perform("Starting macOS development environment setup...") { execute_all_steps }
+    end
+
+    def doctor
+      perform("Starting dotfiles doctor...") { check_all_steps }
     end
 
     def execute_all_steps
@@ -24,6 +24,15 @@ class Dotfiles
     end
 
     private
+
+    def perform(message)
+      start_time = Time.now
+      Dotfiles.debug message
+      yield
+      log_total_time(start_time)
+    rescue => e
+      abort "Error: #{e.message}"
+    end
 
     def build_step_params
       {
@@ -41,6 +50,11 @@ class Dotfiles
     def log_total_time(start_time)
       elapsed = ((Time.now - start_time) * 1000).round(2)
       Dotfiles.debug "Total run time: #{elapsed}ms"
+    end
+
+    def check_all_steps
+      @step_instances = instantiate_steps(build_step_params)
+      check_completion(context: :doctor)
     end
 
     def run_steps_serially
@@ -86,10 +100,10 @@ class Dotfiles
       step_class.depends_on.each { |dep| sleep 0.01 until completed_steps.key?(dep) }
     end
 
-    def check_completion
+    def check_completion(context: :run)
       Dotfiles.debug_benchmark("Completion check") do
         results = collect_step_results
-        OutputFormatter.new(results).display
+        @formatter_class.new(results, context: context).display
       end
     end
 
