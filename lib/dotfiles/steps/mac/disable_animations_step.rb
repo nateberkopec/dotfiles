@@ -9,7 +9,7 @@ class Dotfiles::Step::DisableAnimationsStep < Dotfiles::Step
   private
 
   def after_defaults_write
-    execute("killall Dock")
-    execute("killall Finder")
+    execute(command("killall", "Dock"))
+    execute(command("killall", "Finder"))
   end
 end

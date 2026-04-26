@@ -1,5 +1,3 @@
-require "shellwords"
-
 class Dotfiles::Step::InstallFishShellStep < Dotfiles::Step
   DESCRIPTION = "Installs Fish shell and links bundled helper commands.".freeze
 
@@ -113,21 +111,17 @@ class Dotfiles::Step::InstallFishShellStep < Dotfiles::Step
   end
 
   def install_command(dry_run: false)
-    command = "#{mise_command} install --yes"
-    command = "#{command} --dry-run" if dry_run
-    "#{command} #{escaped_fish_tool_spec}"
+    args = ["install", "--yes"]
+    args << "--dry-run" if dry_run
+    mise_command(*args, fish_tool_spec)
   end
 
   def where_command
-    "#{mise_command} where #{FISH_TOOL.shellescape}@#{FISH_VERSION}"
+    mise_command("where", "#{FISH_TOOL}@#{FISH_VERSION}")
   end
 
-  def mise_command
-    "mise --cd #{Shellwords.shellescape(@home)}"
-  end
-
-  def escaped_fish_tool_spec
-    fish_tool_spec.shellescape
+  def mise_command(*args)
+    command("mise", "--cd", @home, *args)
   end
 
   def fish_tool_spec
@@ -147,7 +141,7 @@ class Dotfiles::Step::InstallFishShellStep < Dotfiles::Step
 
   def linux_asset_arch
     @linux_asset_arch ||= begin
-      arch, status = execute("uname -m", quiet: true)
+      arch, status = execute(command("uname", "-m"), quiet: true)
       normalized_linux_arch(arch.strip) if status == 0
     end
   end
@@ -166,7 +160,7 @@ class Dotfiles::Step::InstallFishShellStep < Dotfiles::Step
   end
 
   def platform_description
-    output, status = execute("uname -sm", quiet: true)
+    output, status = execute(command("uname", "-sm"), quiet: true)
     return output.strip if status == 0 && !output.strip.empty?
 
     RUBY_PLATFORM

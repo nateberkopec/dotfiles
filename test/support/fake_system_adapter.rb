@@ -1,3 +1,5 @@
+require "shellwords"
+
 class FakeSystemAdapter
   attr_reader :operations, :filesystem, :exit_statuses, :hostname
 
@@ -67,7 +69,9 @@ class FakeSystemAdapter
       output_str = output
       status = exit_status
     end
-    @command_outputs[command] = {output: output_str, exit_status: status}
+    stub = {output: output_str, exit_status: status}
+    @command_outputs[command] = stub
+    @command_outputs[command_lookup_key(command)] = stub
   end
 
   def file_exist?(path)
@@ -165,7 +169,7 @@ class FakeSystemAdapter
   def execute(command, quiet: true)
     @operations << [:execute, command, {quiet: quiet}]
 
-    stub = @command_outputs[command]
+    stub = command_stub(command)
     if stub
       @exit_statuses << stub[:exit_status]
       [stub[:output].strip, stub[:exit_status]]
@@ -178,10 +182,10 @@ class FakeSystemAdapter
   def execute!(command, quiet: true)
     @operations << [:execute!, command, {quiet: quiet}]
 
-    stub = @command_outputs[command]
+    stub = command_stub(command)
     if stub
       @exit_statuses << stub[:exit_status]
-      raise "Command failed: #{command}\nOutput: #{stub[:output]}" unless stub[:exit_status] == 0
+      raise "Command failed: #{Dotfiles::Command.display(command)}\nOutput: #{stub[:output]}" unless stub[:exit_status] == 0
       [stub[:output].strip, stub[:exit_status]]
     else
       @exit_statuses << 0
@@ -194,10 +198,76 @@ class FakeSystemAdapter
   end
 
   def received_operation?(operation_name, *args)
-    if args.empty?
-      @operations.any? { |(op, *_)| op == operation_name }
-    else
-      @operations.any? { |(op, *op_args)| op == operation_name && op_args == args }
+    return received_operation_name?(operation_name) if args.empty?
+    return received_execution_operation?(operation_name, *args) if execution_operation?(operation_name)
+
+    received_exact_operation?(operation_name, args)
+  end
+
+  def received_operation_name?(operation_name)
+    @operations.any? { |(op, *_)| op == operation_name }
+  end
+
+  def received_execution_operation?(operation_name, expected_command, expected_options)
+    expected_key = command_lookup_key(expected_command)
+    @operations.any? do |(op, command, options)|
+      op == operation_name && command_lookup_key(command) == expected_key && options == expected_options
     end
+  end
+
+  def received_exact_operation?(operation_name, args)
+    @operations.any? { |(op, *op_args)| op == operation_name && op_args == args }
+  end
+
+  def execution_operation?(operation_name)
+    [:execute, :execute!].include?(operation_name)
+  end
+
+  private
+
+  def command_stub(command)
+    @command_outputs[command] ||
+      @command_outputs[command_lookup_key(command)] ||
+      @command_outputs[legacy_command_exists_key(command)]
+  end
+
+  def command_lookup_key(command)
+    case command
+    when Array
+      normalize_array_command(command)
+    when String
+      normalize_string_command(command)
+    else
+      command
+    end
+  end
+
+  def normalize_array_command(command)
+    return normalize_env_command(command.first, command.drop(1)) if command.first.is_a?(Hash)
+    command.map(&:to_s)
+  end
+
+  def normalize_env_command(env, argv)
+    env.map { |key, value| "#{key}=#{value}" } + argv.map(&:to_s)
+  end
+
+  def normalize_string_command(command)
+    tokens = Shellwords.split(command)
+    tokens = tokens.take_while { |token| token != "||" }
+    tokens.reject { |token| ignored_shell_token?(token) }
+  rescue ArgumentError
+    command
+  end
+
+  def ignored_shell_token?(token)
+    ["2>&1", ">/dev/null", "2>/dev/null"].include?(token)
+  end
+
+  def legacy_command_exists_key(command)
+    return unless command.is_a?(Array)
+    return unless command[0, 2] == ["bash", "-lc"]
+    return unless command[2].start_with?('command -v -- "$1"')
+
+    normalize_string_command("command -v #{command[4]} >/dev/null 2>&1")
   end
 end

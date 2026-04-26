@@ -26,13 +26,29 @@ class Dotfiles
 
       def execute_with_sudo(command)
         display_sudo_warning(command)
-        run_command("sudo #{command}", quiet: false)
+        run_command(Dotfiles::Command.prepend(command, "sudo"), quiet: false)
       end
 
       def display_sudo_warning(command)
         step_name = self.class.name.gsub(/Step$/, "").gsub(/([A-Z])/, ' \1').strip
-        gum_cmd = "gum style --foreground '#ff6b6b' --border double --align center --width 50 --margin '1 0' --padding '1 2' '🔒 Admin Privileges Required' '#{step_name}' '' 'Command: #{command}' '' 'This is required to complete setup'"
-        @system.execute(gum_cmd, quiet: false)
+        @system.execute(
+          Dotfiles::Command.argv(
+            "gum", "style",
+            "--foreground", "#ff6b6b",
+            "--border", "double",
+            "--align", "center",
+            "--width", "50",
+            "--margin", "1 0",
+            "--padding", "1 2",
+            "🔒 Admin Privileges Required",
+            step_name,
+            "",
+            "Command: #{Dotfiles::Command.display(command)}",
+            "",
+            "This is required to complete setup"
+          ),
+          quiet: false
+        )
       end
 
       def ci_or_noninteractive?

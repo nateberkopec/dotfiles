@@ -49,7 +49,7 @@ class Dotfiles
 
       def install
         return if installed?
-        output, status = execute("curl -fsSL #{install_script_url} | #{install_shell}")
+        output, status = execute(shell_script('curl -fsSL "$1" | "$2"', install_script_url, install_shell))
         add_error("#{install_error_label} install failed (status #{status}): #{output}") unless status == 0
       end
 

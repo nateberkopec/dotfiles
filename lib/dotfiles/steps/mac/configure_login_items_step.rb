@@ -44,14 +44,18 @@ class Dotfiles::Step::ConfigureLoginItemsStep < Dotfiles::Step
 
   def current_login_item_paths
     script = 'tell application "System Events" to get the path of every login item'
-    output, status = execute("osascript -e '#{script}'", quiet: true)
+    output, status = execute(command("osascript", "-e", script), quiet: true)
     return [] unless status == 0
     output.split(", ").map(&:strip)
   end
 
   def add_login_item(app_path)
     debug "Adding #{app_path} to login items..."
-    script = "tell application \"System Events\" to make login item at end with properties {path:\"#{app_path}\", hidden:false}"
-    execute("osascript -e '#{script}'", quiet: true)
+    script = "tell application \"System Events\" to make login item at end with properties {path:#{applescript_string(app_path)}, hidden:false}"
+    execute(command("osascript", "-e", script), quiet: true)
+  end
+
+  def applescript_string(value)
+    %("#{value.to_s.gsub("\\", "\\\\").gsub("\"", "\\\"")}")
   end
 end

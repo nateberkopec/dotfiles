@@ -1,5 +1,3 @@
-require "shellwords"
-
 class Dotfiles::Step::InstallDebianGhosttyStep < Dotfiles::Step
   DESCRIPTION = "Installs a launcher wrapper for the mise-managed Ghostty AppImage on Debian/Ubuntu.".freeze
   GHOSTTY_TOOL = "github:pkgforge-dev/ghostty-appimage".freeze
@@ -48,7 +46,7 @@ class Dotfiles::Step::InstallDebianGhosttyStep < Dotfiles::Step
     return @ghostty_appimage_path if defined?(@ghostty_appimage_path)
     return @ghostty_appimage_path = "" unless mise_available?
 
-    install_dir, status = execute("mise --cd #{Shellwords.shellescape(@home)} where #{GHOSTTY_TOOL}")
+    install_dir, status = execute(command("mise", "--cd", @home, "where", GHOSTTY_TOOL))
     return @ghostty_appimage_path = "" unless status == 0
 
     path = File.join(install_dir.strip, "ghostty")
@@ -60,8 +58,8 @@ class Dotfiles::Step::InstallDebianGhosttyStep < Dotfiles::Step
   end
 
   def wrapper_installed?(appimage_path)
-    _, status = execute("head -n 2 #{Shellwords.shellescape(appimage_path)} 2>/dev/null | grep -q #{Shellwords.shellescape(WRAPPER_MARKER)}")
-    status == 0
+    output, status = execute(command("head", "-n", "2", appimage_path))
+    status == 0 && output.include?(WRAPPER_MARKER)
   end
 
   def install_wrapper(appimage_path)

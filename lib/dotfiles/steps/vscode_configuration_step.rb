@@ -49,7 +49,7 @@ class Dotfiles::Step::VSCodeConfigurationStep < Dotfiles::Step
     missing = expected_extensions.reject { |ext| installed_extensions.include?(ext) }
     missing.each do |ext|
       debug "Installing VSCode extension: #{ext}"
-      execute("code --install-extension #{ext}")
+      execute(command("code", "--install-extension", ext))
     end
     @installed_extensions = nil if missing.any?
   end
@@ -60,7 +60,7 @@ class Dotfiles::Step::VSCodeConfigurationStep < Dotfiles::Step
 
   def installed_extensions
     return @installed_extensions if @installed_extensions
-    output, = execute("code --list-extensions")
+    output, = execute(command("code", "--list-extensions"))
     @installed_extensions = output.split("\n")
   end
 end

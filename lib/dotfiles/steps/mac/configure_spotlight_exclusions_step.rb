@@ -1,5 +1,3 @@
-require "shellwords"
-
 class Dotfiles::Step::ConfigureSpotlightExclusionsStep < Dotfiles::Step
   DESCRIPTION = "Disables Spotlight indexing for configured volumes and exclusion paths.".freeze
 
@@ -19,7 +17,7 @@ class Dotfiles::Step::ConfigureSpotlightExclusionsStep < Dotfiles::Step
     disabled_volumes.each do |volume|
       if volume_root?(volume)
         next if indexing_disabled?(volume)
-        execute("mdutil -i off #{shell_escape(volume)}", sudo: true)
+        execute(command("mdutil", "-i", "off", volume), sudo: true)
       else
         ensure_metadata_never_index(volume)
       end
@@ -62,7 +60,7 @@ class Dotfiles::Step::ConfigureSpotlightExclusionsStep < Dotfiles::Step
   end
 
   def indexing_disabled?(volume)
-    output, status = execute("mdutil -s #{shell_escape(volume)}", quiet: true)
+    output, status = execute(command("mdutil", "-s", volume), quiet: true)
     return false unless status == 0
     output.downcase.include?("disabled")
   end
@@ -98,14 +96,10 @@ class Dotfiles::Step::ConfigureSpotlightExclusionsStep < Dotfiles::Step
   end
 
   def mount_point_for(path)
-    output, status = execute("df -P #{shell_escape(path)}", quiet: true)
+    output, status = execute(command("df", "-P", path), quiet: true)
     return nil unless status == 0
     lines = output.split("\n")
     return nil if lines.length < 2
     lines.last.split(/\s+/).last
-  end
-
-  def shell_escape(value)
-    Shellwords.escape(value)
   end
 end

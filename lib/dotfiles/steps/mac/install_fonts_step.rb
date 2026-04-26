@@ -18,7 +18,7 @@ class Dotfiles::Step::InstallFontsStep < Dotfiles::Step
 
   def complete?
     super
-    installed, status = execute("fc-list", quiet: true)
+    installed, status = execute(command("fc-list"), quiet: true)
     unless status == 0
       add_error("Failed to check installed fonts (fc-list command failed)")
       return false

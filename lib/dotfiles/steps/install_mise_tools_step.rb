@@ -1,5 +1,3 @@
-require "shellwords"
-
 class Dotfiles::Step::InstallMiseToolsStep < Dotfiles::Step
   DESCRIPTION = "Installs tools defined in mise configuration for the current platform.".freeze
 
@@ -104,15 +102,14 @@ class Dotfiles::Step::InstallMiseToolsStep < Dotfiles::Step
     File.join(@home, ".config", "mise", "config.toml")
   end
 
-  def mise_command
-    "mise --cd #{Shellwords.shellescape(@home)}"
+  def mise_command(*args)
+    command("mise", "--cd", @home, *args)
   end
 
   def install_command(dry_run: false)
-    command = "#{mise_command} install --yes"
-    command = "#{command} --dry-run" if dry_run
-    return command if ci_tools.empty?
-
-    "#{command} #{ordered_tools(ci_tools).join(" ")}"
+    args = ["install", "--yes"]
+    args << "--dry-run" if dry_run
+    args.concat(ordered_tools(ci_tools)) unless ci_tools.empty?
+    mise_command(*args)
   end
 end

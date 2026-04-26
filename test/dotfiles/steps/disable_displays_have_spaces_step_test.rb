@@ -5,7 +5,8 @@ class DisableDisplaysHaveSpacesStepTest < StepTestCase
 
   def test_run_sets_preference_and_restarts_system_ui
     step.run
-    assert_executed("defaults write com.apple.spaces spans-displays -bool true && killall SystemUIServer")
+    assert_executed("defaults write com.apple.spaces spans-displays -bool true")
+    assert_executed("killall SystemUIServer")
   end
 
   def test_complete_when_defaults_match

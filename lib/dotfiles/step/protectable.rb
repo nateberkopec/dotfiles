@@ -18,7 +18,7 @@ class Dotfiles
         mode = protected_file_mode(file)
         @system.chmod(mode, file) if mode
 
-        _, status = execute("chflags #{immutable_flag(file)} '#{file}'", quiet: false, sudo: protect_with_sudo?(file))
+        _, status = execute(command("chflags", immutable_flag(file), file), quiet: false, sudo: protect_with_sudo?(file))
         add_error("Failed to protect #{file}") unless status == 0
       end
 
@@ -27,14 +27,14 @@ class Dotfiles
       end
 
       def file_immutable?(file)
-        file_metadata("ls -lO '#{file}'")&.include?(immutable_flag(file))
+        file_metadata(command("ls", "-lO", file))&.include?(immutable_flag(file))
       end
 
       def file_mode_matches?(file)
         mode = protected_file_mode(file)
         return true unless mode
 
-        file_metadata("stat -f '%Lp' '#{file}'") == format("%o", mode)
+        file_metadata(command("stat", "-f", "%Lp", file)) == format("%o", mode)
       end
 
       def file_metadata(command)

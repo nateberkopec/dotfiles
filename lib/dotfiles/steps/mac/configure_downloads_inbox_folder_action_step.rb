@@ -1,5 +1,3 @@
-require "shellwords"
-
 class Dotfiles::Step::ConfigureDownloadsInboxFolderActionStep < Dotfiles::Step
   DESCRIPTION = "Compiles and records the Folder Action that moves Downloads items into Inbox.".freeze
 
@@ -45,24 +43,24 @@ class Dotfiles::Step::ConfigureDownloadsInboxFolderActionStep < Dotfiles::Step
 
   def install_compiled_script
     @system.mkdir_p(File.dirname(compiled_script_path))
-    execute("osacompile -o #{Shellwords.escape(compiled_script_path)} #{Shellwords.escape(source_path)}")
+    execute(command("osacompile", "-o", compiled_script_path, source_path))
     @system.write_file(source_digest_path, source_digest)
   end
 
   def enable_folder_actions
-    execute("defaults write com.apple.FolderActionsDispatcher folderActionsEnabled -bool true")
+    execute(command("defaults", "write", "com.apple.FolderActionsDispatcher", "folderActionsEnabled", "-bool", "true"))
   end
 
   def reveal_compiled_script
-    execute("open -R #{Shellwords.escape(compiled_script_path)}", quiet: false)
+    execute(command("open", "-R", compiled_script_path), quiet: false)
   end
 
   def open_folder_action_setup
-    execute("open -a 'Folder Actions Setup' #{Shellwords.escape(downloads_path)}", quiet: false)
+    execute(command("open", "-a", "Folder Actions Setup", downloads_path), quiet: false)
   end
 
   def folder_actions_enabled?
-    output, status = execute("defaults read com.apple.FolderActionsDispatcher folderActionsEnabled")
+    output, status = execute(command("defaults", "read", "com.apple.FolderActionsDispatcher", "folderActionsEnabled"))
     status == 0 && ["1", "true", "YES"].include?(output.strip)
   end
 
@@ -74,7 +72,7 @@ class Dotfiles::Step::ConfigureDownloadsInboxFolderActionStep < Dotfiles::Step
   end
 
   def downloads_scripts_query
-    "osascript -e 'tell application \"Folder Actions Setup\" to get POSIX path of every script of folder action \"Downloads\"'"
+    command("osascript", "-e", "tell application \"Folder Actions Setup\" to get POSIX path of every script of folder action \"Downloads\"")
   end
 
   def source_digest

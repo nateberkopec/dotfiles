@@ -11,7 +11,7 @@ class Dotfiles::Step::ConfigureDockStep < Dotfiles::Step
   def run
     run_defaults_write
     configure_dock_items
-    execute("killall Dock")
+    execute(command("killall", "Dock"))
   end
 
   def complete?
@@ -28,9 +28,9 @@ class Dotfiles::Step::ConfigureDockStep < Dotfiles::Step
   end
 
   def configure_dock_items
-    execute("defaults write com.apple.dock persistent-apps -array")
-    execute("defaults delete com.apple.dock persistent-others 2>/dev/null || true")
-    execute("defaults write com.apple.dock persistent-others -array-add '#{inbox_tile_data}'")
+    execute(command("defaults", "write", "com.apple.dock", "persistent-apps", "-array"))
+    execute(command("defaults", "delete", "com.apple.dock", "persistent-others"))
+    execute(command("defaults", "write", "com.apple.dock", "persistent-others", "-array-add", inbox_tile_data))
   end
 
   def inbox_tile_data
@@ -47,12 +47,12 @@ class Dotfiles::Step::ConfigureDockStep < Dotfiles::Step
   end
 
   def persistent_apps_empty?
-    output, status = execute("defaults read com.apple.dock persistent-apps", quiet: true)
+    output, status = execute(command("defaults", "read", "com.apple.dock", "persistent-apps"), quiet: true)
     status == 0 && output.strip == "(\n)"
   end
 
   def inbox_in_persistent_others?
-    output, status = execute("defaults read com.apple.dock persistent-others", quiet: true)
+    output, status = execute(command("defaults", "read", "com.apple.dock", "persistent-others"), quiet: true)
     status == 0 && output.include?(inbox_path)
   end
 end

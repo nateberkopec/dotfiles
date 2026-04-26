@@ -108,6 +108,22 @@ class SystemAdapterTest < Minitest::Test
     assert_includes stdout, "beta"
   end
 
+  def test_execute_treats_array_arguments_as_literals
+    with_tmpdir do |tmpdir|
+      adapter = Dotfiles::SystemAdapter.new
+      output_path = File.join(tmpdir, "output.txt")
+      sentinel_path = File.join(tmpdir, "sentinel")
+      value = "path with spaces and 'quotes'; touch #{sentinel_path}"
+      command = [RbConfig.ruby, "-e", "File.write(ARGV[0], ARGV[1])", output_path, value]
+
+      _output, status = adapter.execute(command)
+
+      assert_equal 0, status
+      assert_equal value, File.read(output_path)
+      refute File.exist?(sentinel_path)
+    end
+  end
+
   def test_execute_bang_returns_output_for_successful_command
     adapter = Dotfiles::SystemAdapter.new
     command = [RbConfig.ruby, "-e", "print 'done'"]

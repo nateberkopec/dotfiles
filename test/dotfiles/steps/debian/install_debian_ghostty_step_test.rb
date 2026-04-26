@@ -61,11 +61,11 @@ class InstallDebianGhosttyStepTest < StepTestCase
   end
 
   def stub_wrapper_installed
-    @fake_system.stub_command(wrapper_check_command, "", exit_status: 0)
+    @fake_system.stub_command(wrapper_check_command, "# dotfiles ghostty AppImage wrapper", exit_status: 0)
   end
 
   def wrapper_check_command
-    "head -n 2 #{appimage_path} 2>/dev/null | grep -q dotfiles\\ ghostty\\ AppImage\\ wrapper"
+    ["head", "-n", "2", appimage_path]
   end
 
   def install_dir

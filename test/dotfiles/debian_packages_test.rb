@@ -17,8 +17,13 @@ class DebianPackagesTest < Minitest::Test
       @responses.shift || ["", 0]
     end
 
-    def sudo_prefix
-      "sudo "
+    def command(*parts)
+      Dotfiles::Command.argv(*parts)
+    end
+
+    def sudo_env_command(vars, *parts)
+      assignments = vars.to_h.map { |key, value| "#{key}=#{value}" }
+      command("sudo", *assignments, *parts)
     end
 
     def sleep(seconds)
@@ -32,7 +37,7 @@ class DebianPackagesTest < Minitest::Test
       ["", 0]
     ])
 
-    _output, status = harness.send(:run_apt, "apt-get install -y gum")
+    _output, status = harness.send(:run_apt, "apt-get", "install", "-y", "gum")
 
     assert_equal 0, status
     assert_equal 2, harness.commands.length
@@ -45,7 +50,7 @@ class DebianPackagesTest < Minitest::Test
       ["", 0]
     ])
 
-    _output, status = harness.send(:run_apt, "apt-get install -y does-not-exist")
+    _output, status = harness.send(:run_apt, "apt-get", "install", "-y", "does-not-exist")
 
     assert_equal 100, status
     assert_equal 1, harness.commands.length

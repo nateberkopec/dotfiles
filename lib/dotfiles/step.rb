@@ -149,15 +149,41 @@ class Dotfiles
     end
 
     def run_command(cmd, quiet:)
-      debug "Executing: #{cmd}"
+      debug "Executing: #{Dotfiles::Command.display(cmd)}"
       @system.execute(cmd, quiet: quiet)
+    end
+
+    def command(*parts)
+      Dotfiles::Command.argv(*parts)
+    end
+
+    def env_command(vars, *parts)
+      Dotfiles::Command.env(vars, *parts)
+    end
+
+    def sudo_command(*parts)
+      root? ? command(*parts) : command("sudo", *parts)
+    end
+
+    def sudo_env_command(vars, *parts)
+      if root?
+        env_command(vars, *parts)
+      else
+        assignments = vars.to_h.map { |key, value| "#{key}=#{value}" }
+        command("sudo", *assignments, *parts)
+      end
+    end
+
+    def shell_script(script, *args)
+      command("bash", "-lc", script, "dotfiles", *args)
     end
 
     def format_command_error(command, status, output)
       cleaned = output.to_s.strip.gsub(/\s+/, " ")
-      return "#{command} failed (status #{status})" if cleaned.empty?
+      display_command = Dotfiles::Command.display(command)
+      return "#{display_command} failed (status #{status})" if cleaned.empty?
 
-      "#{command} failed (status #{status}): #{cleaned}"
+      "#{display_command} failed (status #{status}): #{cleaned}"
     end
 
     def command_succeeds?(command)
@@ -166,15 +192,15 @@ class Dotfiles
     end
 
     def command_exists?(command)
-      command_succeeds?("command -v #{command} >/dev/null 2>&1")
+      command_succeeds?(shell_script('command -v -- "$1" >/dev/null 2>&1', command))
     end
 
-    def brew_quiet(command)
-      @system.execute("HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 brew #{command} 2>&1")
+    def brew_quiet(*args)
+      @system.execute(env_command({"HOMEBREW_NO_AUTO_UPDATE" => "1", "HOMEBREW_NO_ENV_HINTS" => "1"}, "brew", *args))
     end
 
     def user_has_admin_rights?
-      groups, = @system.execute("groups")
+      groups, = @system.execute(command("groups"))
       groups.include?("admin")
     end
 
@@ -218,20 +244,15 @@ class Dotfiles
       file_hash(file1) == file_hash(file2)
     end
 
-    def sudo_prefix
-      return "" if root?
-      "sudo "
-    end
-
     def root?
-      output, status = @system.execute("id -u")
+      output, status = @system.execute(command("id", "-u"))
       status == 0 && output.strip == "0"
     end
 
     def find_fish_path
       return @fish_path if defined?(@fish_path) && !@fish_path.to_s.empty?
 
-      output, status = @system.execute("command -v fish 2>/dev/null")
+      output, status = @system.execute(shell_script('command -v -- "$1" 2>/dev/null', "fish"))
       return @fish_path = output.strip if status == 0 && !output.strip.empty?
 
       candidates = [

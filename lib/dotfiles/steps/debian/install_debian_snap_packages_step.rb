@@ -1,5 +1,3 @@
-require "shellwords"
-
 class Dotfiles::Step::InstallDebianSnapPackagesStep < Dotfiles::Step
   DESCRIPTION = "Installs configured Snap packages on Debian/Ubuntu.".freeze
 
@@ -74,13 +72,13 @@ class Dotfiles::Step::InstallDebianSnapPackagesStep < Dotfiles::Step
   end
 
   def snap_installed?(name)
-    command_succeeds?("snap list #{Shellwords.shellescape(name)} >/dev/null 2>&1")
+    command_succeeds?(command("snap", "list", name))
   end
 
   def install_snap(pkg)
     args = ["snap", "install", pkg[:name]]
     args << "--classic" if pkg[:classic]
-    output, status = execute("#{sudo_prefix}#{args.join(" ")}")
+    output, status = execute(sudo_command(*args))
     return if status == 0
     add_error("snap install #{pkg[:name]} failed (status #{status}): #{output}")
   end

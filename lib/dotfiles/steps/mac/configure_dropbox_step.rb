@@ -45,7 +45,7 @@ class Dotfiles::Step::ConfigureDropboxStep < Dotfiles::Step
 
   def launch_dropbox_app
     debug "Launching Dropbox application..."
-    @system.execute("open -a Dropbox")
+    @system.execute(command("open", "-a", "Dropbox"))
   end
 
   def add_setup_notice
