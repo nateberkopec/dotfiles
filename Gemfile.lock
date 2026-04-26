@@ -4,6 +4,10 @@ GEM
     ast (2.4.3)
     citrus (3.0.2)
     csv (3.3.5)
+    debride (1.15.2)
+      path_expander (~> 2.0)
+      prism (~> 1.7)
+      sexp_processor (~> 4.17)
     erubi (1.13.1)
     flay (2.14.1)
       erubi (~> 1.10)
@@ -74,6 +78,7 @@ PLATFORMS
 
 DEPENDENCIES
   csv
+  debride
   flay
   flog (>= 4.9.3)
   minitest

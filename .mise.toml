@@ -16,6 +16,7 @@ pkl = "latest"
 fd = "latest"
 go = "latest"
 rg = "latest"
+"github:aldanial/cloc" = "latest"
 
 [tasks.setup]
 description = "Install gem dependencies and Git hooks"
@@ -27,6 +28,18 @@ hk install
 [tasks."lint:standard"]
 description = "Run standardrb"
 run = "bundle exec standardrb"
+
+[tasks."lint:complexity"]
+description = "Run Ruby complexity checks"
+run = "bundle exec rubocop --config .rubocop-custom.yml --only Metrics/PerceivedComplexity"
+
+[tasks."lint:large-files"]
+description = "Check staged files for large files"
+run = "ruby files/home/.claude/skills/dev-env-setup/scripts/check_large_files.rb"
+
+[tasks."lint:dead-code"]
+description = "Check for dead Ruby methods"
+run = "ruby files/home/.claude/skills/dev-env-setup/scripts/check_dead_code.rb"
 
 [tasks."lint:flog"]
 description = "Run flog complexity checks"
@@ -42,7 +55,7 @@ run = "ruby tools/lint_agent_skills.rb"
 
 [tasks.lint]
 description = "Run all lint checks"
-depends = ["lint:standard", "lint:flog", "lint:flay", "lint:skills"]
+depends = ["lint:standard", "lint:complexity", "lint:large-files", "lint:dead-code", "lint:flog", "lint:flay", "lint:skills"]
 
 [tasks.test]
 description = "Run the test suite"
