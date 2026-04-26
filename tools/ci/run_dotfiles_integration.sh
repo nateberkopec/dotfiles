@@ -17,12 +17,13 @@ find_fish_bin() {
 
     if [ "$(uname -s)" = "Darwin" ]; then
         candidates=(
+            "$HOME/.local/bin/fish"
             "$HOME/.homebrew/bin/fish"
             "/opt/homebrew/bin/fish"
             "/usr/local/bin/fish"
         )
     else
-        candidates=("fish")
+        candidates=("$HOME/.local/bin/fish" "fish")
     fi
 
     for candidate in "${candidates[@]}"; do

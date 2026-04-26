@@ -10,9 +10,9 @@ class ConfigTest < Minitest::Test
     config = Dotfiles::Config.new(@fixtures_dir)
     packages = config.packages
 
-    assert_equal ["fish", "git"], packages["brew"]["packages"]
+    assert_equal ["git"], packages["brew"]["packages"]
     assert_equal ["firefox", "dropbox"], packages["brew"]["casks"]
-    assert_equal ["fish", "git"], packages["debian"]["packages"]
+    assert_equal ["git"], packages["debian"]["packages"]
   end
 
   def test_loads_debian_sources_from_yaml
