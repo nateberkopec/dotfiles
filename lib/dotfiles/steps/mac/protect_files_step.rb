@@ -17,7 +17,7 @@ class Dotfiles::Step::ProtectFilesStep < Dotfiles::Step
   private
 
   def protected_files
-    agent_hook_files + user_credentials_files
+    pi_extension_files + user_credentials_files
   end
 
   def immutable_flag(file)
@@ -36,12 +36,8 @@ class Dotfiles::Step::ProtectFilesStep < Dotfiles::Step
     nil
   end
 
-  def agent_hook_files
-    [
-      File.join(@home, ".claude", "hooks", "deny-rm-rf.jq"),
-      File.join(@home, ".config", "opencode", "plugin", "deny-rm-rf.js"),
-      File.join(@home, ".pi", "agent", "extensions", "find_timeout.ts")
-    ]
+  def pi_extension_files
+    [File.join(@home, ".pi", "agent", "extensions", "find_timeout.ts")]
   end
 
   def user_credentials_files

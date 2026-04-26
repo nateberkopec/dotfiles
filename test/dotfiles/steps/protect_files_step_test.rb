@@ -6,16 +6,16 @@ class ProtectFilesStepTest < StepTestCase
   def setup
     super
     @fake_system.stub_macos
-    @hook_files = step.send(:agent_hook_files)
+    @pi_extension_files = step.send(:pi_extension_files)
     @credentials_files = step.send(:user_credentials_files)
   end
 
-  def test_run_protects_hook_files
-    @hook_files.each { |file| @fake_system.stub_file_content(file, "hook content") }
+  def test_run_protects_pi_extension_files
+    @pi_extension_files.each { |file| @fake_system.stub_file_content(file, "extension content") }
 
     step.run
 
-    @hook_files.each do |file|
+    @pi_extension_files.each do |file|
       assert_executed("sudo chflags schg '#{file}'", quiet: false)
       refute_command_run(:chmod, 0o600, file)
     end
@@ -32,7 +32,7 @@ class ProtectFilesStepTest < StepTestCase
   def test_run_skips_missing_files
     step.run
 
-    @hook_files.each do |file|
+    @pi_extension_files.each do |file|
       refute_executed("sudo chflags schg '#{file}'", quiet: false)
     end
     check_credentials_files_protection(:refute)
@@ -49,8 +49,8 @@ class ProtectFilesStepTest < StepTestCase
   end
 
   def test_complete_when_all_files_are_protected
-    @hook_files.each do |file|
-      @fake_system.stub_file_content(file, "hook content")
+    @pi_extension_files.each do |file|
+      @fake_system.stub_file_content(file, "extension content")
       stub_immutable(file, "schg")
     end
     stub_credentials_files(stat: "600", ls: "-rw------- uchg")
@@ -59,23 +59,23 @@ class ProtectFilesStepTest < StepTestCase
   end
 
   def test_complete_clears_run_errors_when_files_are_now_protected
-    @hook_files.each { |file| @fake_system.stub_file_content(file, "hook content") }
-    @fake_system.stub_command("sudo chflags schg '#{@hook_files.first}'", "", 1)
+    @pi_extension_files.each { |file| @fake_system.stub_file_content(file, "extension content") }
+    @fake_system.stub_command("sudo chflags schg '#{@pi_extension_files.first}'", "", 1)
 
     step.run
 
     refute_empty step.errors
 
-    @hook_files.each { |file| stub_immutable(file, "schg") }
+    @pi_extension_files.each { |file| stub_immutable(file, "schg") }
     stub_credentials_files(stat: "600", ls: "-rw------- uchg")
 
     assert step.complete?
     assert_empty step.errors
   end
 
-  def test_incomplete_when_hook_file_is_not_immutable
-    file = @hook_files.first
-    @fake_system.stub_file_content(file, "hook content")
+  def test_incomplete_when_pi_extension_file_is_not_immutable
+    file = @pi_extension_files.first
+    @fake_system.stub_file_content(file, "extension content")
     stub_immutable(file, nil)
 
     assert_incomplete
@@ -92,8 +92,8 @@ class ProtectFilesStepTest < StepTestCase
   end
 
   def test_complete_in_ci
-    @hook_files.each do |file|
-      @fake_system.stub_file_content(file, "hook content")
+    @pi_extension_files.each do |file|
+      @fake_system.stub_file_content(file, "extension content")
     end
     @credentials_files.each { |file| @fake_system.stub_file_content(file, "stub") }
 

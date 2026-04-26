@@ -12,7 +12,7 @@
   "npmCommand": [
     "mise",
     "exec",
-    "node@latest",
+    "node@lts",
     "--",
     "npm"
   ],
@@ -22,13 +22,13 @@
     "path": "/System/Library/Sounds/Glass.aiff"
   },
   "enabledModels": [
-    "anthropic/claude-opus-4-7",
-    "openai-codex/gpt-5.5"
+    "openai-codex/gpt-5.5",
+    "anthropic/claude-opus-4-7"
   ],
   "subagents": {
     "agentOverrides": {
       "reviewer": {
-        "model": "openai/gpt-5.4",
+        "model": "openai/gpt-5.5",
         "thinking": "xhigh"
       }
     }
