@@ -8,8 +8,18 @@ require_relative "support/system_assertions"
 require_relative "support/config_fixture_helper"
 require_relative "support/step_test_case"
 
-ENV.delete("CI")
-ENV.delete("NONINTERACTIVE")
+%w[
+  CI
+  NONINTERACTIVE
+  BREW_CI_APPLICATIONS
+  BREW_CI_CASKS
+  BREW_CI_PACKAGES
+  DEBIAN_CI_NON_APT_PACKAGES
+  DEBIAN_CI_PACKAGES
+  DEBIAN_CI_SNAP_PACKAGES
+  DEBIAN_CI_SOURCES
+  MISE_CI_TOOLS
+].each { |name| ENV.delete(name) }
 # In tests, we use FakeSystemAdapter to control all system interactions.
 # The CI/NONINTERACTIVE env vars cause steps to skip certain operations
 # (like sudo commands) and always return complete?=true, which prevents

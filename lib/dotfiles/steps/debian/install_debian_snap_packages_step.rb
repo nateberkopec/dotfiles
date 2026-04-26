@@ -40,7 +40,7 @@ class Dotfiles::Step::InstallDebianSnapPackagesStep < Dotfiles::Step
   end
 
   def configured_packages
-    @configured_packages ||= @config.fetch("debian_snap_packages", []).map { |entry| normalize_entry(entry) }.reject { |pkg| pkg[:name].empty? }
+    @configured_packages ||= @config.debian_snap_packages.map { |entry| normalize_entry(entry) }.reject { |pkg| pkg[:name].empty? }
   end
 
   def normalize_entry(entry)

@@ -5,6 +5,10 @@ set -euo pipefail
 repo_dir="${1:-$PWD}"
 output_log="$repo_dir/output.log"
 fish_log="$repo_dir/fish-init.log"
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# shellcheck source=tools/ci/package_probe.sh
+source "$script_dir/package_probe.sh"
 
 run_dotfiles() {
     cd "$repo_dir"
@@ -59,5 +63,7 @@ check_fish() {
     echo "✅ Fish shell started without errors"
 }
 
+check_ci_packages "Pre-run" assert_not_installed
 run_dotfiles
+check_ci_packages "Post-run" assert_installed
 check_fish

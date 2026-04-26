@@ -54,23 +54,36 @@ class Dotfiles
     end
 
     def brew_packages
-      package_matrix.brew_packages
+      env_csv("BREW_CI_PACKAGES") || package_matrix.brew_packages
     end
 
     def debian_packages
-      package_matrix.debian_packages
+      env_csv("DEBIAN_CI_PACKAGES") || package_matrix.debian_packages
     end
 
     def debian_sources
-      config.fetch("debian_sources", [])
+      selected = env_csv("DEBIAN_CI_SOURCES")
+      sources = config.fetch("debian_sources", [])
+      return sources unless selected
+
+      sources.select { |source| selected.include?(source["name"].to_s) }
     end
 
     def debian_non_apt_packages
-      config.fetch("debian_non_apt_packages", []).map(&:to_s)
+      packages = env_csv("DEBIAN_CI_NON_APT_PACKAGES") || config.fetch("debian_non_apt_packages", [])
+      packages.map(&:to_s)
+    end
+
+    def debian_snap_packages
+      env_csv("DEBIAN_CI_SNAP_PACKAGES") || config.fetch("debian_snap_packages", [])
     end
 
     def applications
-      config.fetch("applications", [])
+      selected = env_csv("BREW_CI_APPLICATIONS")
+      apps = config.fetch("applications", [])
+      return apps unless selected
+
+      apps.select { |app| selected.include?(app["name"].to_s) || selected.include?(app["brew_cask"].to_s) }
     end
 
     def applications=(apps)
@@ -79,11 +92,16 @@ class Dotfiles
     end
 
     def brew_casks
-      return ENV["BREW_CI_CASKS"].split(",").map(&:strip) if ENV["BREW_CI_CASKS"]
-      config.fetch("brew", {}).fetch("casks", [])
+      env_csv("BREW_CI_CASKS") || config.fetch("brew", {}).fetch("casks", [])
     end
 
     private
+
+    def env_csv(name)
+      return nil unless ENV.key?(name)
+
+      ENV.fetch(name).split(",").map(&:strip).reject(&:empty?)
+    end
 
     def load_config
       config_path = File.join(@config_dir, "config.yml")

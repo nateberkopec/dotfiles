@@ -105,6 +105,21 @@ class InstallDebianPackagesStepTest < StepTestCase
     end
   end
 
+  def test_debian_ci_sources_override_disables_configured_sources
+    with_env("DEBIAN_CI_SOURCES" => "") do
+      @fake_system.stub_debian
+      write_config(
+        "config",
+        "debian_sources" => [
+          {"name" => "example", "line" => "deb https://example.invalid stable main"}
+        ]
+      )
+
+      refute_should_run
+      assert_complete
+    end
+  end
+
   def write_unsupported_third_party_config
     write_config(
       "config",
