@@ -1,6 +1,6 @@
 # Implementing Steps
 
-Steps are the building blocks of the dotfiles setup system. Each step handles a specific part of the configuration process, from installing Homebrew to configuring Fish shell.
+Steps are the building blocks of the dotfiles setup system. Each step handles a specific part of the configuration process, from installing packages to configuring Fish shell.
 
 ## Step Anatomy
 
@@ -50,7 +50,7 @@ Declares dependencies on other steps. The system automatically runs steps in the
 ```ruby
 def self.depends_on
   # Example
-  [Dotfiles::Step::InstallHomebrewStep]
+  [Dotfiles::Step::SyncHomeDirectoryStep]
 end
 ```
 
@@ -126,18 +126,20 @@ The `Step` base class provides many helpers for common operations. See [lib/dotf
 ## Example: Simple Step
 
 ```ruby
-class Dotfiles::Step::InstallHomebrewStep < Dotfiles::Step
-  def should_run?
-    !command_exists?("brew")
-  end
-
+class Dotfiles::Step::CreateProjectsDirectoryStep < Dotfiles::Step
   def run
-    debug "Installing Homebrew..."
-    execute('/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"')
+    debug "Creating projects directory..."
+    @system.mkdir_p(projects_path)
   end
 
   def complete?
-    command_exists?("brew")
+    @system.dir_exist?(projects_path)
+  end
+
+  private
+
+  def projects_path
+    "#{@home}/projects"
   end
 end
 ```

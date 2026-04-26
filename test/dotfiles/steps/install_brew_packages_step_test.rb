@@ -3,11 +3,8 @@ require "test_helper"
 class InstallBrewPackagesStepTest < StepTestCase
   step_class Dotfiles::Step::InstallBrewPackagesStep
 
-  def test_depends_on_homebrew
-    deps = self.class.step_class.depends_on
-
-    assert_includes deps, Dotfiles::Step::InstallHomebrewStep
-    assert_includes deps, Dotfiles::Step::UpdateHomebrewStep
+  def test_depends_on_homebrew_update
+    assert_equal [Dotfiles::Step::UpdateHomebrewStep], self.class.step_class.depends_on
   end
 
   def test_run_preinstalls_fish_for_non_admin_when_missing
