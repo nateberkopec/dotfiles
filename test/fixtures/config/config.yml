@@ -2,7 +2,6 @@
 dotfiles_repo: https://github.com/test/dotfiles.git
 
 packages:
-  fish: { brew: fish, debian: fish }
   git: { brew: git, debian: git }
 brew:
   casks:

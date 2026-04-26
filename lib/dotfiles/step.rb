@@ -144,6 +144,13 @@ class Dotfiles
       @system.execute(cmd, quiet: quiet)
     end
 
+    def format_command_error(command, status, output)
+      cleaned = output.to_s.strip.gsub(/\s+/, " ")
+      return "#{command} failed (status #{status})" if cleaned.empty?
+
+      "#{command} failed (status #{status}): #{cleaned}"
+    end
+
     def command_succeeds?(command)
       _, status = @system.execute(command)
       status == 0
@@ -219,6 +226,7 @@ class Dotfiles
       return @fish_path = output.strip if status == 0 && !output.strip.empty?
 
       candidates = [
+        File.join(@home, ".local", "bin", "fish"),
         "/opt/homebrew/bin/fish",
         "/usr/local/bin/fish",
         "/usr/bin/fish",

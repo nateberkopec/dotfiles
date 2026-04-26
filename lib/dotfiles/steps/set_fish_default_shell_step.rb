@@ -2,7 +2,7 @@ class Dotfiles::Step::SetFishDefaultShellStep < Dotfiles::Step
   prepend Dotfiles::Step::Sudoable
 
   def self.depends_on
-    Dotfiles::Step.system_packages_steps
+    [Dotfiles::Step::InstallFishShellStep]
   end
 
   def run

@@ -22,7 +22,6 @@ packages:
   duti: { brew: duti, debian: null }
   eza: { brew: eza, debian: eza }
   fd: { brew: fd, debian: fd-find }
-  fish: { brew: fish, debian: fish }
   fontconfig: { brew: fontconfig, debian: fontconfig }
   gemini-cli: { brew: gemini-cli, debian: null }
   gh: { brew: gh, debian: null }

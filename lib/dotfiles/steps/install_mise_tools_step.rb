@@ -60,7 +60,7 @@ class Dotfiles::Step::InstallMiseToolsStep < Dotfiles::Step
     store_install_output("install", output)
     return if status == 0
 
-    install_errors["install"] = format_install_error(install_command, status, output)
+    install_errors["install"] = format_command_error(install_command, status, output)
   end
 
   def install_errors
@@ -73,12 +73,6 @@ class Dotfiles::Step::InstallMiseToolsStep < Dotfiles::Step
 
     @install_outputs[spec] = cleaned
     debug "mise output (#{spec}): #{cleaned}"
-  end
-
-  def format_install_error(command, status, output)
-    cleaned = output.to_s.strip.gsub(/\s+/, " ")
-    return "#{command} failed (status #{status})" if cleaned.empty?
-    "#{command} failed (status #{status}): #{cleaned}"
   end
 
   def mise_available?
