@@ -35,11 +35,11 @@ run = "bundle exec rubocop --config .rubocop-custom.yml --only Metrics/Perceived
 
 [tasks."lint:large-files"]
 description = "Check staged files for large files"
-run = "ruby tools/check_large_files.rb"
+run = "ruby files/home/.claude/skills/dev-env-setup/scripts/check_large_files.rb"
 
 [tasks."lint:dead-code"]
 description = "Check for dead Ruby methods"
-run = "ruby tools/check_dead_code.rb"
+run = "ruby files/home/.claude/skills/dev-env-setup/scripts/check_dead_code.rb"
 
 [tasks."lint:flog"]
 description = "Run flog complexity checks"

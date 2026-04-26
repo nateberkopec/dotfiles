@@ -1,1 +1,0 @@
-../files/home/.claude/skills/dev-env-setup/scripts/check_dead_code.rb
