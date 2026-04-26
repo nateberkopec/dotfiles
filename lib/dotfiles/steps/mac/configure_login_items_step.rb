@@ -1,4 +1,6 @@
 class Dotfiles::Step::ConfigureLoginItemsStep < Dotfiles::Step
+  DESCRIPTION = "Adds preferred macOS applications to Login Items.".freeze
+
   prepend Dotfiles::Step::Sudoable
 
   macos_only

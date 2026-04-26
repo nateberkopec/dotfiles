@@ -1,4 +1,6 @@
 class Dotfiles::Step::SetupSSHKeysStep < Dotfiles::Step
+  DESCRIPTION = "Configures SSH to use the 1Password SSH agent.".freeze
+
   prepend Dotfiles::Step::Sudoable
 
   macos_only

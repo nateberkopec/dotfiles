@@ -1,4 +1,6 @@
 class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
+  DESCRIPTION = "Installs command-line tools from the repository Brewfile using Homebrew.".freeze
+
   macos_only
 
   def self.depends_on

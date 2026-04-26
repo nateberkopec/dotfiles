@@ -1,4 +1,6 @@
 class Dotfiles::Step::ProtectFilesStep < Dotfiles::Step
+  DESCRIPTION = "Protects sensitive generated files with immutable flags and strict permissions.".freeze
+
   prepend Dotfiles::Step::Sudoable
   include Dotfiles::Step::Protectable
 

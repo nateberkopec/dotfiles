@@ -1,4 +1,6 @@
 class Dotfiles::Step::SetFishDefaultShellStep < Dotfiles::Step
+  DESCRIPTION = "Adds Fish to allowed shells and sets it as the default shell.".freeze
+
   prepend Dotfiles::Step::Sudoable
 
   def self.depends_on

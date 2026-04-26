@@ -1,4 +1,6 @@
 class Dotfiles::Step::VSCodeConfigurationStep < Dotfiles::Step
+  DESCRIPTION = "Installs configured VS Code extensions when the code CLI is available.".freeze
+
   def self.display_name
     "VS Code Configuration"
   end

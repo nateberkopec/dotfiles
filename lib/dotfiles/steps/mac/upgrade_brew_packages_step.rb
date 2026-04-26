@@ -1,4 +1,6 @@
 class Dotfiles::Step::UpgradeBrewPackagesStep < Dotfiles::Step
+  DESCRIPTION = "Checks for outdated Homebrew packages and reports available upgrades.".freeze
+
   macos_only
 
   def self.depends_on

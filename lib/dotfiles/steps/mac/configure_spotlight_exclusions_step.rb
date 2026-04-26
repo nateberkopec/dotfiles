@@ -1,6 +1,8 @@
 require "shellwords"
 
 class Dotfiles::Step::ConfigureSpotlightExclusionsStep < Dotfiles::Step
+  DESCRIPTION = "Disables Spotlight indexing for configured volumes and exclusion paths.".freeze
+
   prepend Dotfiles::Step::Sudoable
 
   macos_only

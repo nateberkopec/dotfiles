@@ -1,4 +1,6 @@
 class Dotfiles::Step::ConfigureDropboxStep < Dotfiles::Step
+  DESCRIPTION = "Launches Dropbox and reports any manual setup still required.".freeze
+
   prepend Dotfiles::Step::Sudoable
 
   macos_only

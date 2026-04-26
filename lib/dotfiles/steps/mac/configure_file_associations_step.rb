@@ -1,4 +1,6 @@
 class Dotfiles::Step::ConfigureFileAssociationsStep < Dotfiles::Step
+  DESCRIPTION = "Sets preferred macOS file associations using duti.".freeze
+
   macos_only
 
   def self.display_name

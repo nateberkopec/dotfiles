@@ -1,4 +1,6 @@
 class Dotfiles::Step::InstallYknotifyStep < Dotfiles::Step
+  DESCRIPTION = "Installs yknotify notification integration and its LaunchAgent on macOS.".freeze
+
   include Dotfiles::Step::LaunchCtl
 
   macos_only

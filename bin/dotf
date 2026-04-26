@@ -141,6 +141,14 @@ cmd_upgrade() {
     debug "Upgrade complete"
 }
 
+cmd_steps() {
+    ensure_homebrew_env
+    ensure_mise_env
+
+    cd "$DOTFILES_DIR"
+    ruby -r ./lib/dotfiles.rb -e "Dotfiles::Step.print_steps"
+}
+
 cmd_help() {
     cat <<EOF
 dotf - Dotfiles management tool
@@ -150,6 +158,7 @@ Usage: dotf <command> [options]
 Commands:
   run       Set up development environment from scratch
   upgrade   Refresh and upgrade mise tools and Homebrew packages
+  steps     List every setup step with its class name and description
   help      Show this help message
 
 Logging:
@@ -175,6 +184,9 @@ main() {
             ;;
         upgrade)
             cmd_upgrade
+            ;;
+        steps)
+            cmd_steps
             ;;
         help|--help|-h)
             cmd_help

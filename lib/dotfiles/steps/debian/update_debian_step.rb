@@ -1,4 +1,6 @@
 class Dotfiles::Step::UpdateDebianStep < Dotfiles::Step
+  DESCRIPTION = "Checks for available Debian/Ubuntu release upgrades.".freeze
+
   include Dotfiles::Step::Sudoable
 
   debian_only

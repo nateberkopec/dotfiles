@@ -8,6 +8,8 @@ Every step is a Ruby class that inherits from `Dotfiles::Step` and must implemen
 
 ```ruby
 class Dotfiles::Step::YourStep < Dotfiles::Step
+  DESCRIPTION = "Describe what this step does in plain English.".freeze
+
   def run
     # Execute the setup action
   end
@@ -52,6 +54,14 @@ def self.depends_on
   # Example
   [Dotfiles::Step::SyncHomeDirectoryStep]
 end
+```
+
+### `DESCRIPTION`
+
+A plain-English summary printed by `dotf steps` next to the class name. Every production step should define one.
+
+```ruby
+DESCRIPTION = "Creates the projects directory if it does not exist.".freeze
 ```
 
 ### `self.display_name`
@@ -127,6 +137,8 @@ The `Step` base class provides many helpers for common operations. See [lib/dotf
 
 ```ruby
 class Dotfiles::Step::CreateProjectsDirectoryStep < Dotfiles::Step
+  DESCRIPTION = "Creates the projects directory if it does not exist.".freeze
+
   def run
     debug "Creating projects directory..."
     @system.mkdir_p(projects_path)

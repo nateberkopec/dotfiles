@@ -1,4 +1,6 @@
 class Dotfiles::Step::InstallApplicationsStep < Dotfiles::Step
+  DESCRIPTION = "Installs configured macOS applications.".freeze
+
   macos_only
 
   def self.depends_on
