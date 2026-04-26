@@ -14,7 +14,7 @@ concurrency:
 jobs:
   macos-non-admin-user:
     if: github.ref == 'refs/heads/main'
-    runs-on: macos-14
+    runs-on: macos-latest
     timeout-minutes: 90
 
     steps:
@@ -106,7 +106,7 @@ jobs:
       if: always()
       uses: actions/upload-artifact@v7.0.1
       with:
-        name: logs-macos-14-non-admin-nightly
+        name: logs-macos-latest-non-admin-nightly
         path: |
           /Users/dotfiles-ci/dotfiles/output.log
           /Users/dotfiles-ci/dotfiles/fish-init.log
