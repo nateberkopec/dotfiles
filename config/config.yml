@@ -82,7 +82,6 @@ debian_sources:
     key_url: https://mise.jdx.dev/gpg-key.pub
 debian_non_apt_packages:
   - droid
-  - ghostty
 debian_snap_packages: []
 qmd_collections:
   - ruby
