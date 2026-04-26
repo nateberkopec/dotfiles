@@ -46,11 +46,6 @@ find_fish_bin() {
 }
 
 check_fish() {
-    if grep -q -e "Debian packages not installed" -e "Debian Packages Not Found" "$output_log"; then
-        echo "Skipping fish check due to missing Debian packages."
-        return 0
-    fi
-
     echo "Starting fish shell to check for initialization errors..."
 
     local fish_bin
