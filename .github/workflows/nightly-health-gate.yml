@@ -1,4 +1,4 @@
-name: Production Integration Health Gate
+name: Non-Admin Last Run Gate
 
 on:
   pull_request:
@@ -10,11 +10,11 @@ permissions:
   contents: read
 
 jobs:
-  production-integration-health:
+  non-admin-last-run-gate:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Check latest production integration run on main
+    - name: Check latest non-admin integration run on main
       uses: actions/github-script@v8
       with:
         script: |
@@ -47,13 +47,13 @@ jobs:
             }
           }
 
-          const productionRun = await latestRun('nightly-production-integration.yml', ['push', 'schedule', 'workflow_dispatch'])
+          const nonAdminRun = await latestRun('nightly-production-integration.yml', ['push', 'schedule', 'workflow_dispatch'])
           const fallbackRun = await latestRun('full-integration-test.yml', ['push'])
-          const run = productionRun || fallbackRun
-          const source = productionRun ? 'production integration' : 'full integration fallback'
+          const run = nonAdminRun || fallbackRun
+          const source = nonAdminRun ? 'non-admin integration test' : 'integration tests fallback'
 
           if (!run) {
-            core.setFailed('No completed production integration or fallback full integration runs found on main.')
+            core.setFailed('No completed non-admin integration test or fallback integration test runs found on main.')
             return
           }
 
@@ -62,7 +62,7 @@ jobs:
           const ageHours = (ageMs / (60 * 60 * 1000)).toFixed(1)
 
           await core.summary
-            .addHeading('Production integration status')
+            .addHeading('Non-admin integration test status')
             .addRaw(`Source: ${source}\n\n`)
             .addRaw(`Latest run: ${run.html_url}\n\n`)
             .addRaw(`Conclusion: ${run.conclusion}\n\n`)
@@ -71,7 +71,7 @@ jobs:
             .write()
 
           core.info(`Source: ${source}`)
-          core.info(`Latest production run: ${run.html_url}`)
+          core.info(`Latest non-admin integration test run: ${run.html_url}`)
           core.info(`Conclusion: ${run.conclusion}`)
           core.info(`Finished at: ${run.updated_at}`)
           core.info(`Age: ${ageHours} hours`)
