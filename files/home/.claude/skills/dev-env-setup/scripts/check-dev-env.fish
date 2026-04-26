@@ -4,6 +4,7 @@
 # Exits 0 if compliant, 1 if issues found.
 
 set target_dir (realpath (string trim -- (test (count $argv) -gt 0; and echo $argv[1]; or echo .)))
+set script_dir (dirname (realpath (status --current-filename)))
 
 if not test -d "$target_dir"
     echo "Error: $target_dir is not a directory" >&2
@@ -186,6 +187,7 @@ set has_dead_code 0
 set has_flog 0
 set has_flay 0
 set has_serve_or_dev 0
+set has_serve_task 0
 set has_build 0
 
 if test -n "$mise_file"
@@ -244,6 +246,9 @@ if test -n "$mise_file"
                 set has_flay 1
             case serve dev
                 set has_serve_or_dev 1
+                if test "$t" = "serve"
+                    set has_serve_task 1
+                end
             case build
                 set has_build 1
         end
@@ -273,6 +278,21 @@ if test $has_serve_or_dev -eq 1
 else
     # This is a warning, not all projects have servers
     check_warn "mise task: serve/dev" "Add a [tasks.serve] or [tasks.dev] section if this project has a server."
+end
+
+if test $has_serve_task -eq 1
+    if not command -q ruby
+        check_fail "serve task logs URL" "Ruby is required to run the serve URL checker."
+    else
+        set serve_url_output (ruby "$script_dir/check-serve-url.rb" "$target_dir" 2>&1)
+        set serve_url_status $status
+        if test $serve_url_status -eq 0
+            check_pass "serve task logs URL"
+        else
+            set serve_url_message (string join " " $serve_url_output)
+            check_fail "serve task logs URL" "Ensure 'mise run serve' logs a URL like http://localhost:4000 within the last 10 lines of output. $serve_url_message"
+        end
+    end
 end
 
 if test $has_build -eq 1

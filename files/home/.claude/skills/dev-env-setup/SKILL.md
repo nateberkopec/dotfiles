@@ -133,9 +133,9 @@ run = "bundle exec rake flog"
 description = "Run flay duplication checks"
 run = "bundle exec rake flay"
 
-[tasks.dev]
+[tasks.serve]
 description = "Start development server"
-run = "pitchfork start"
+run = "bin/serve"
 
 [tasks.build]
 description = "Build release artifacts"
@@ -152,7 +152,22 @@ run = "bin/lint-custom"
 
 Discover what the project actually uses for testing, linting, building, and serving before writing these. Read `package.json`, `Gemfile`, `Cargo.toml`, `Makefile`, etc. to find existing commands.
 
-### 4. Test Runtime
+### 4. Serve URL Logging
+
+If the project has a server, prefer a `serve` mise task. The `serve` task must log the server URL within the last 10 lines of output, for example `http://localhost:4000` or `https://localhost:4000`. This makes it easy for agents and humans to discover the running app URL.
+
+If server startup needs setup logic, put it in a script such as `bin/serve` and keep the URL log near the end of the script output:
+
+```fish
+#!/usr/bin/env fish
+bundle exec puma -p 4000 &
+echo "http://localhost:4000"
+wait
+```
+
+The checker runs `mise run serve` briefly and fails if the last 10 output lines do not include an HTTP or HTTPS URL.
+
+### 5. Test Runtime
 
 Pre-commit should run tests through a timed wrapper that warns when `mise run test` takes longer than 10 seconds, while still failing when the tests fail.
 
@@ -172,7 +187,7 @@ The wrapper should run `mise run test`, measure elapsed time, and print a warnin
 
 The pre-commit test step should call `mise run test:precommit`, not `mise run test` directly.
 
-### 5. Large File Check
+### 6. Large File Check
 
 Pre-commit must include a large-file check so oversized artifacts do not accidentally enter the repository. Add a dedicated mise task named `lint:large-files` that checks staged files:
 
@@ -184,7 +199,7 @@ run = "ruby tools/check_large_files.rb"
 
 Use a small project script in the appropriate stack. For Ruby projects, `tools/check_large_files.rb` should inspect `git diff --cached --name-only --diff-filter=ACMR` and fail when any staged blob exceeds the project limit. Default to 1 MiB unless the project needs a different documented threshold. Allow an environment override such as `LARGE_FILE_LIMIT_BYTES` when the threshold must be adjusted intentionally.
 
-### 6. Ruby Complexity
+### 7. Ruby Complexity
 
 For Ruby projects, pre-commit must include a complexity check. If the project supports RuboCop, enabling `RuboCop::Cop::Metrics::PerceivedComplexity` completes this check.
 
@@ -200,7 +215,7 @@ Configuration belongs in the project's existing `.rubocop.yml` / `.rubocop-custo
 
 If the project does not support RuboCop, add a small custom linter that checks Ruby perceived complexity and wire it to the same `lint:complexity` mise task. For the first commit, the custom linter only needs to run on changed Ruby files.
 
-### 7. Ruby Dead Code Detection
+### 8. Ruby Dead Code Detection
 
 For Ruby projects, pre-commit must include dead-code detection. Use [debride](https://github.com/seattlerb/debride) and wire it to a dedicated mise task named `lint:dead-code`:
 
@@ -212,7 +227,7 @@ run = "ruby tools/check_dead_code.rb"
 
 Add `debride` to the project's Ruby dependencies. Because `debride` exits 0 when it reports potentially unused methods, use a small wrapper script that runs `bundle exec debride --json`, parses the `missing` result, and exits 1 when new dead code is reported. Keep intentional false positives in `.debride-whitelist`, with comments explaining broad entries. Start by scanning application directories such as `lib` and `app`; include tests only if the project has a whitelist strategy for test methods.
 
-### 8. Ruby flog/flay
+### 9. Ruby flog/flay
 
 For Ruby projects, pre-commit must include `flog` and `flay` checks using the same pattern as this dotfiles repo.
 
@@ -261,7 +276,7 @@ run = "bundle exec rake flay"
 
 Add separate hk pre-commit steps for `lint:flog` and `lint:flay` so hk can run them in parallel with the rest of the pre-commit checks.
 
-### 9. hk Git Hooks
+### 10. hk Git Hooks
 
 Git hooks are managed with [hk](https://hk.jdx.dev/). Configure them in `hk.pkl` at the project root.
 
@@ -313,7 +328,7 @@ mise run -- hk install
 
 Or if there's a `setup` mise task, add `hk install` to it.
 
-### 10. Setup Task
+### 11. Setup Task
 
 Add a `setup` mise task that bootstraps the project for a new developer:
 
@@ -333,10 +348,11 @@ hk install
 3. **Determine ownership**: Check `git shortlog -sn --no-merges | head -5` to decide own vs. others' repo.
 4. **mise config**: Create or update `mise.toml` (own) / `mise.local.toml` (others') with tools and tasks. Move any task `run` block longer than 10 lines into a separate script.
 5. **Environment**: Configure mise to load `.env`, ensure `.env` is ignored, and add `.env.example` as a subset of `.env`.
-6. **Test runtime**: Add a `test:precommit` task and pre-commit test step that warns when `mise run test` exceeds 10 seconds.
-7. **Large files**: Add a dedicated `lint:large-files` task and pre-commit hook step.
-8. **Ruby checks**: For Ruby projects, add dedicated `lint:complexity`, `lint:dead-code`, `lint:flog`, and `lint:flay` tasks and pre-commit hook steps.
-9. **hk config**: Create or update `hk.pkl` with pre-commit hooks. For others' repos, add `hk.pkl` to `.git/info/exclude`.
-10. **Install**: Run `hk install` to activate the hooks.
-11. **Verify**: Run the compliance checker again to confirm everything passes, including git cleanliness.
+6. **Serve URL**: For projects with a server, ensure `mise run serve` logs the server URL within the last 10 lines of output.
+7. **Test runtime**: Add a `test:precommit` task and pre-commit test step that warns when `mise run test` exceeds 10 seconds.
+8. **Large files**: Add a dedicated `lint:large-files` task and pre-commit hook step.
+9. **Ruby checks**: For Ruby projects, add dedicated `lint:complexity`, `lint:dead-code`, `lint:flog`, and `lint:flay` tasks and pre-commit hook steps.
+10. **hk config**: Create or update `hk.pkl` with pre-commit hooks. For others' repos, add `hk.pkl` to `.git/info/exclude`.
+11. **Install**: Run `hk install` to activate the hooks.
+12. **Verify**: Run the compliance checker again to confirm everything passes, including git cleanliness.
 
