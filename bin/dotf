@@ -16,6 +16,12 @@ SCRIPT_DIR="$(cd -P "$(dirname "$SOURCE_PATH")" && pwd)"
 DOTFILES_DIR="$(dirname "$SCRIPT_DIR")"
 export DOTFILES_DIR
 LOGS_DIR="$DOTFILES_DIR/logs"
+DOTF_COMMANDS=(
+    $'run\tSet up development environment from scratch'
+    $'upgrade\tRefresh and upgrade mise tools and Homebrew packages'
+    $'steps\tList every setup step with its class name and description'
+    $'help\tShow this help message'
+)
 
 # Initialize logging - create logs directory and set up log file
 init_logging() {
@@ -149,6 +155,10 @@ cmd_steps() {
     ruby -r ./lib/dotfiles.rb -e "Dotfiles::Step.print_steps"
 }
 
+print_commands() {
+    printf '%s\n' "${DOTF_COMMANDS[@]}"
+}
+
 cmd_help() {
     cat <<EOF
 dotf - Dotfiles management tool
@@ -156,10 +166,11 @@ dotf - Dotfiles management tool
 Usage: dotf <command> [options]
 
 Commands:
-  run       Set up development environment from scratch
-  upgrade   Refresh and upgrade mise tools and Homebrew packages
-  steps     List every setup step with its class name and description
-  help      Show this help message
+EOF
+    print_commands | while IFS=$'\t' read -r command description; do
+        printf '  %-9s %s\n' "$command" "$description"
+    done
+    cat <<EOF
 
 Logging:
   Logs are always written to logs/ directory with timestamped filenames.
@@ -190,6 +201,9 @@ main() {
             ;;
         help|--help|-h)
             cmd_help
+            ;;
+        __commands)
+            print_commands
             ;;
         *)
             echo "Error: Unknown command '$1'"
