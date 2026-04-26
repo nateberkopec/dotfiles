@@ -101,22 +101,6 @@ class SyncHomeDirectoryStepTest < StepTestCase
     assert_complete
   end
 
-  def test_run_removes_obsolete_reviewer_agent_override
-    @fake_system.stub_file_content(home_path(".pi/agent/agents/reviewer.md"), "old reviewer override")
-
-    step.run
-
-    assert_command_run(:rm_rf, home_path(".pi/agent/agents/reviewer.md"))
-    refute @fake_system.file_exist?(home_path(".pi/agent/agents/reviewer.md"))
-  end
-
-  def test_should_run_when_obsolete_reviewer_agent_override_exists
-    @fake_system.stub_file_content(home_path(".pi/agent/agents/reviewer.md"), "old reviewer override")
-
-    assert_should_run
-    assert_incomplete
-  end
-
   def test_run_prefers_platform_specific_file_over_shared_file
     @fake_system.stub_macos
     stub_source_file(".config/ghostty/config.platform", "font-size = 18")
