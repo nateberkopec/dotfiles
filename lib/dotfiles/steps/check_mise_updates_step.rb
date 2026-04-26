@@ -23,7 +23,6 @@ class Dotfiles::Step::CheckMiseUpdatesStep < Dotfiles::Step
   private
 
   def check_outdated_tools
-    execute(mise_command("cache", "clear"))
     execute(mise_command("plugins", "update"))
     output, status = execute(mise_command("outdated", "--json"))
     return unless status == 0
