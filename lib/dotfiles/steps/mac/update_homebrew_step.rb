@@ -1,10 +1,6 @@
 class Dotfiles::Step::UpdateHomebrewStep < Dotfiles::Step
   macos_only
 
-  def self.depends_on
-    [Dotfiles::Step::InstallHomebrewStep]
-  end
-
   def run
     debug "Updating Homebrew package definitions..."
     brew_quiet("update")

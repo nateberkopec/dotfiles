@@ -2,7 +2,7 @@ class Dotfiles::Step::InstallApplicationsStep < Dotfiles::Step
   macos_only
 
   def self.depends_on
-    [Dotfiles::Step::InstallHomebrewStep]
+    [Dotfiles::Step::UpdateHomebrewStep]
   end
 
   def run

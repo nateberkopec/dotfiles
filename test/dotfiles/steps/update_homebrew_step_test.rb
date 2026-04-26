@@ -3,8 +3,8 @@ require "test_helper"
 class UpdateHomebrewStepTest < StepTestCase
   step_class Dotfiles::Step::UpdateHomebrewStep
 
-  def test_depends_on_install_homebrew
-    assert_includes Dotfiles::Step::UpdateHomebrewStep.depends_on, Dotfiles::Step::InstallHomebrewStep
+  def test_has_no_step_dependencies
+    assert_empty Dotfiles::Step::UpdateHomebrewStep.depends_on
   end
 
   def test_runs_brew_update

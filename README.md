@@ -6,7 +6,7 @@ Most dotfiles repos just copy files to your home folder. This one does more. It 
 
 ## What It Does
 
-- Installs Homebrew and packages from Brewfile
+- Bootstraps Homebrew, then installs packages from Brewfile
 - Sets up SSH keys
 - Installs apps and fonts
 - Sets Fish as your default shell
@@ -45,7 +45,7 @@ DEBUG=true ./bin/dotf run
 
 ## How It Works
 
-The setup runs in **Steps**. Each Step is a Ruby class that does one thing: install Homebrew, set up Fish, sync config files, etc.
+The setup runs in **Steps**. Each Step is a Ruby class that does one thing: install packages, set up Fish, sync config files, etc.
 
 Steps can depend on other steps.
 

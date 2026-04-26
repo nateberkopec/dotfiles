@@ -3,6 +3,10 @@ require "test_helper"
 class InstallApplicationsStepTest < StepTestCase
   step_class Dotfiles::Step::InstallApplicationsStep
 
+  def test_depends_on_homebrew_update
+    assert_equal [Dotfiles::Step::UpdateHomebrewStep], self.class.step_class.depends_on
+  end
+
   def setup
     super
     @config = step.config
