@@ -182,7 +182,9 @@ Discover what the project actually uses for testing, linting, building, and serv
 
 Use these mise features when setting up or auditing Ruby projects:
 
-- **Commit `mise.lock`.** Run `mise lock` after changing `mise.toml` or `.mise.toml`, commit `mise.lock`, and use `mise install --locked` in CI if CI installs mise tools. The lockfile pins checksums and avoids GitHub API lookups/rate limits for `latest` and GitHub-backed tools.
+- **Keep a mise lockfile.** The lockfile pins checksums and avoids GitHub API lookups/rate limits for `latest` and GitHub-backed tools. The right command and file depend on which config you are using:
+  - **Shared config** (`mise.toml` / `.mise.toml`): run `mise lock`, commit `mise.lock`, and use `mise install --locked` in CI if CI installs mise tools.
+  - **Local config** (`mise.local.toml` / `.mise.local.toml`): run `mise lock --local`, which writes `mise.local.lock` instead of `mise.lock`. Keep `mise.local.lock` local and gitignored (like the config itself); do not commit it. This is the right approach for third-party or upstream repos where you do not want dev-env files visible in `git status`.
 - **Prefer `[shell_alias]` to `hooks.enter` for project aliases.** Shell aliases work across bash, zsh, and fish and deactivate automatically when leaving the directory:
 
   ```toml
@@ -402,7 +404,7 @@ Run `mise deps` to install stale dependencies. Bundler runs automatically before
 2. **Inspect**: Read the project's existing tooling (`package.json`, `Gemfile`, `Makefile`, `Cargo.toml`, etc.) to understand what commands exist.
 3. **Determine ownership**: Check `git shortlog -sn --no-merges | head -5` to decide own vs. others' repo.
 4. **mise config**: Create or update `mise.toml` (own) / `mise.local.toml` (others') with tools and tasks. Move any task `run` block longer than 10 lines into a separate script.
-5. **mise features**: Add task `sources`, prefer `[shell_alias]` to `hooks.enter`, configure `[deps.bundler]` for Ruby projects, and run `mise lock` when committing a shared mise config.
+5. **mise features**: Add task `sources`, prefer `[shell_alias]` to `hooks.enter`, configure `[deps.bundler]` for Ruby projects, and run `mise lock` (shared config) or `mise lock --local` (local config) after changing the mise config.
 6. **Environment**: Configure mise to load `.env`, ensure `.env` is ignored, and add `.env.example` as a subset of `.env`.
 7. **Serve URL**: For projects with a server, ensure `mise run serve` logs the server URL within the last 10 lines of output.
 8. **Test runtime**: Let the checker time `mise run test` and warn when it exceeds 10 seconds.
