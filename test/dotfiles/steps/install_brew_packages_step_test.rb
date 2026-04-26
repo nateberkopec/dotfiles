@@ -11,8 +11,6 @@ class InstallBrewPackagesStepTest < StepTestCase
     @fake_system.stub_macos
     @fake_system.stub_command("groups", "staff")
     @fake_system.stub_command(bundle_install_command, "", exit_status: 0)
-    @fake_system.stub_command("HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 brew list --formula 2>&1", "duti\nmise", exit_status: 0)
-    @fake_system.stub_command("HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 brew list --cask 2>&1", "", exit_status: 0)
 
     write_config(:brew, {"brew" => {"packages" => ["duti", "mise"], "casks" => []}})
 
@@ -25,8 +23,6 @@ class InstallBrewPackagesStepTest < StepTestCase
     @fake_system.stub_macos
     @fake_system.stub_command("groups", "admin staff")
     @fake_system.stub_command(bundle_install_command(admin: true), "", exit_status: 0)
-    @fake_system.stub_command("HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 brew list --formula 2>&1", "duti\nmise", exit_status: 0)
-    @fake_system.stub_command("HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 brew list --cask 2>&1", "", exit_status: 0)
 
     write_config(:brew, {"brew" => {"packages" => ["duti", "mise"], "casks" => []}})
 
@@ -41,6 +37,19 @@ class InstallBrewPackagesStepTest < StepTestCase
     refute_includes content, 'brew "fish"'
     assert_includes content, 'brew "duti"'
     assert_includes content, 'brew "mise"'
+  end
+
+  def test_run_does_not_check_for_skipped_packages
+    @fake_system.stub_macos
+    @fake_system.stub_command("groups", "staff")
+    @fake_system.stub_command(bundle_install_command, "", exit_status: 0)
+    write_config(:brew, {"brew" => {"packages" => ["duti", "mise"], "casks" => ["ghostty"]}})
+
+    step.run
+
+    refute_executed(brew_list_formula_command)
+    refute_executed(brew_list_cask_command)
+    assert_empty step.warnings
   end
 
   def test_complete_checks_homebrew_state_even_after_step_ran
@@ -62,8 +71,6 @@ class InstallBrewPackagesStepTest < StepTestCase
     assert_should_run
 
     @fake_system.stub_command(bundle_install_command, "", exit_status: 0)
-    @fake_system.stub_command("HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 brew list --formula 2>&1", "duti\nmise", exit_status: 0)
-    @fake_system.stub_command("HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 brew list --cask 2>&1", "", exit_status: 0)
     @fake_system.stub_command(bundle_check_command, "The Brewfile's dependencies are satisfied.", exit_status: 0)
 
     step.run
@@ -84,5 +91,13 @@ class InstallBrewPackagesStepTest < StepTestCase
   def bundle_install_command(admin: false)
     cask_opts = admin ? "" : "--appdir=~/Applications"
     %(HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 HOMEBREW_CASK_OPTS="#{cask_opts}" brew bundle install --file=#{@dotfiles_dir}/Brewfile 2>&1)
+  end
+
+  def brew_list_formula_command
+    "HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 brew list --formula 2>&1"
+  end
+
+  def brew_list_cask_command
+    "HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 brew list --cask 2>&1"
   end
 end

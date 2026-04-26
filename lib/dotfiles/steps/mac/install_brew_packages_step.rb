@@ -21,7 +21,6 @@ class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
   def run
     debug "Installing command-line tools via Homebrew..."
     output, exit_status = install_packages
-    check_skipped_packages
     log_installation_results(output, exit_status)
     reset_package_status
   end
@@ -63,34 +62,6 @@ class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
   def install_packages
     cask_opts = user_has_admin_rights? ? "" : "--appdir=~/Applications"
     @system.execute(env_command({"HOMEBREW_NO_AUTO_UPDATE" => "1", "HOMEBREW_NO_ENV_HINTS" => "1", "HOMEBREW_CASK_OPTS" => cask_opts}, "brew", "bundle", "install", "--file=#{@brewfile_path}"))
-  end
-
-  def check_skipped_packages
-    skipped = find_skipped_packages
-    return if skipped[:packages].empty? && skipped[:casks].empty?
-    add_warning(title: "⚠️  Homebrew Installation Skipped", message: format_skipped_warning(skipped))
-  end
-
-  def find_skipped_packages
-    installed_formulae = brew_quiet("list", "--formula").first.split("\n")
-    installed_casks = brew_quiet("list", "--cask").first.split("\n")
-    {
-      packages: @config.packages["brew"]["packages"].reject { |pkg| installed_formulae.include?(pkg) },
-      casks: @config.packages["brew"]["casks"].reject { |cask| installed_casks.include?(cask.split("/").last) }
-    }
-  end
-
-  def format_skipped_warning(skipped)
-    [
-      "No admin rights detected.",
-      *skipped_items_lines("formulae", skipped[:packages]),
-      *skipped_items_lines("casks", skipped[:casks])
-    ].join("\n")
-  end
-
-  def skipped_items_lines(label, items)
-    return [] if items.empty?
-    ["\nSkipped #{label}:", *items.map { |item| "• #{item}" }]
   end
 
   def log_installation_results(output, exit_status)
