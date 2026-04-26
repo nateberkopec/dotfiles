@@ -1,68 +1,101 @@
 #!/usr/bin/env ruby
 
+require "fileutils"
+require "json"
 require "open3"
+require "tmpdir"
 
 class LargeFileCheck
-  DEFAULT_LIMIT_BYTES = 1_048_576
+  LINE_LIMIT = 100
+  SKIP_VALUE = "true"
 
   def run
-    oversized_files = staged_paths.filter_map { |path| oversized_file(path) }
-    if oversized_files.empty?
-      puts "No staged files exceed #{formatted_size(limit_bytes)}."
+    if large_files_appropriate?
+      puts "Skipping large file LOC check because LARGE_FILES_APPROPRIATE=true."
       return
     end
 
-    warn "Staged files exceed #{formatted_size(limit_bytes)}:"
-    oversized_files.each do |file|
-      warn "  #{file[:path]} (#{formatted_size(file[:size])})"
+    large_files = staged_files.filter_map { |file| large_file(file) }
+    if large_files.empty?
+      puts "No staged files crossed #{LINE_LIMIT} lines of code."
+      return
     end
-    warn "Move large assets to external storage or raise LARGE_FILE_LIMIT_BYTES intentionally."
+
+    warn "Staged changes make these files cross from under #{LINE_LIMIT} to over #{LINE_LIMIT} lines of code:"
+    large_files.each do |file|
+      warn "  #{file[:path]} (#{file[:before]} -> #{file[:after]} LOC)"
+    end
+    warn "Don't do this unless absolutely appropriate for the domain."
+    warn "Consider decomposing into multiple files."
+    warn "To override this check, use LARGE_FILES_APPROPRIATE=true."
     exit 1
   end
 
   private
 
-  def oversized_file(path)
-    size = staged_blob_size(path)
-    return unless size && size > limit_bytes
+  def large_file(file)
+    before = code_lines_at("HEAD", file.fetch(:before_path))
+    after = code_lines_at("", file.fetch(:path))
+    return unless before < LINE_LIMIT && after > LINE_LIMIT
 
-    {path: path, size: size}
+    {path: file.fetch(:path), before: before, after: after}
   end
 
-  def staged_paths
-    output, status = Open3.capture2e("git", "diff", "--cached", "--name-only", "--diff-filter=ACMR", "-z")
+  def staged_files
+    output, status = Open3.capture2e("git", "diff", "--cached", "--name-status", "--diff-filter=ACMR", "-z")
     abort output unless status.success?
 
-    output.split("\0").reject(&:empty?)
+    parse_name_status(output.split("\0").reject(&:empty?))
   end
 
-  def staged_blob_size(path)
-    output, status = Open3.capture2e("git", "cat-file", "-s", ":#{path}")
+  def parse_name_status(tokens)
+    files = []
+    until tokens.empty?
+      status = tokens.shift
+      if status.start_with?("R", "C")
+        before_path = tokens.shift
+        path = tokens.shift
+      else
+        path = tokens.shift
+        before_path = path
+      end
+      files << {path: path, before_path: before_path} if path
+    end
+    files
+  end
+
+  def code_lines_at(revision, path)
+    blob = git_blob(revision, path)
+    return 0 unless blob
+
+    Dir.mktmpdir("large-file-check") do |dir|
+      file_path = File.join(dir, path)
+      FileUtils.mkdir_p(File.dirname(file_path))
+      File.binwrite(file_path, blob)
+      cloc_code_lines(file_path)
+    end
+  end
+
+  def git_blob(revision, path)
+    spec = revision.empty? ? ":#{path}" : "#{revision}:#{path}"
+    output, status = Open3.capture2e("git", "show", spec)
     return unless status.success?
 
-    output.to_i
+    output
   end
 
-  def limit_bytes
-    @limit_bytes ||= begin
-      configured_limit = ENV.fetch("LARGE_FILE_LIMIT_BYTES", DEFAULT_LIMIT_BYTES).to_i
-      configured_limit.positive? ? configured_limit : DEFAULT_LIMIT_BYTES
-    end
+  def cloc_code_lines(path)
+    output, status = Open3.capture2e("cloc", "--json", "--quiet", path)
+    abort output unless status.success?
+
+    cloc_report = JSON.parse(output)
+    cloc_report.fetch("SUM", {}).fetch("code", 0)
+  rescue JSON::ParserError => e
+    abort "Could not parse cloc output for #{path}: #{e.message}"
   end
 
-  def formatted_size(size)
-    units = ["B", "KiB", "MiB", "GiB"]
-    value = size.to_f
-    unit = units.first
-
-    units.each do |candidate_unit|
-      unit = candidate_unit
-      break if value < 1024 || candidate_unit == units.last
-
-      value /= 1024
-    end
-
-    format("%.1f %s", value, unit)
+  def large_files_appropriate?
+    ENV.fetch("LARGE_FILES_APPROPRIATE", "").casecmp?(SKIP_VALUE)
   end
 end
 

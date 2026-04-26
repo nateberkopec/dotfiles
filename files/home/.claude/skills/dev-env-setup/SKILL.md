@@ -60,7 +60,7 @@ All dev tools must be managed via mise. Choose the config file based on repo own
 
 If `mise.toml` already exists in someone else's repo, work within it rather than creating `mise.local.toml`.
 
-The config must have a `[tools]` section listing the project's dev dependencies. Inspect the project to determine what tools are needed (language runtimes, linters, formatters, etc.) and add them.
+The config must have a `[tools]` section listing the project's dev dependencies. Inspect the project to determine what tools are needed (language runtimes, linters, formatters, etc.) and add them. Include `cloc` when adding the large-file LOC check.
 
 ### 2. Environment Variables
 
@@ -189,7 +189,14 @@ The pre-commit test step should call `mise run test:precommit`, not `mise run te
 
 ### 6. Large File Check
 
-Pre-commit must include a large-file check so oversized artifacts do not accidentally enter the repository. Add a dedicated mise task named `lint:large-files` that checks staged files:
+Pre-commit must include a large-file LOC check so files do not casually grow past the standard size limit. Add `cloc` as a mise-managed tool:
+
+```toml
+[tools]
+"npm:cloc" = "latest"
+```
+
+Add a dedicated mise task named `lint:large-files` that checks staged files:
 
 ```toml
 [tasks."lint:large-files"]
@@ -197,7 +204,7 @@ description = "Check staged files for large files"
 run = "ruby tools/check_large_files.rb"
 ```
 
-Use a small project script in the appropriate stack. For Ruby projects, `tools/check_large_files.rb` should inspect `git diff --cached --name-only --diff-filter=ACMR` and fail when any staged blob exceeds the project limit. Default to 1 MiB unless the project needs a different documented threshold. Allow an environment override such as `LARGE_FILE_LIMIT_BYTES` when the threshold must be adjusted intentionally.
+Use a small project script in the appropriate stack. For Ruby projects, `tools/check_large_files.rb` should inspect staged changes and use `cloc` to compare the staged version to `HEAD`. It must fail when the changes cause any code file to go from fewer than 100 lines of code to more than 100 lines of code. The failure should tell the user: "Don't do this unless absolutely appropriate for the domain. Consider decomposing into multiple files. To override this check, use LARGE_FILES_APPROPRIATE=true." `LARGE_FILES_APPROPRIATE=true` should skip the hook.
 
 ### 7. Ruby Complexity
 

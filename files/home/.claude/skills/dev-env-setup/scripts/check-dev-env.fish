@@ -178,6 +178,7 @@ end
 
 # --- Check 3: mise tasks ---
 # Use `mise tasks` if mise is available, otherwise parse the toml
+set has_cloc_tool 0
 set has_test 0
 set has_test_precommit 0
 set has_lint 0
@@ -191,6 +192,10 @@ set has_serve_task 0
 set has_build 0
 
 if test -n "$mise_file"
+    if string match -rq '^\s*(cloc|["\']npm:cloc["\'])\s*=' -- (cat "$mise_file")
+        set has_cloc_tool 1
+    end
+
     # Check for tasks by parsing the toml file for [tasks.*] headers and task.*.run patterns
     set task_names
 
@@ -316,10 +321,16 @@ if test -n "$mise_file"
     end
 end
 
+if test $has_cloc_tool -eq 1
+    check_pass "mise tool: cloc"
+else
+    check_fail "mise tool: cloc" "Add cloc to the mise [tools] section for the large file LOC check."
+end
+
 if test $has_large_files -eq 1
     check_pass "mise task: lint:large-files"
 else
-    check_fail "mise task: lint:large-files" "Add a [tasks.\"lint:large-files\"] section that checks staged files for oversized blobs."
+    check_fail "mise task: lint:large-files" "Add a [tasks.\"lint:large-files\"] section that checks staged files crossing the LOC limit."
 end
 
 set ruby_project_files (find "$target_dir" -maxdepth 1 -type f \( -name Gemfile -o -name "*.gemspec" -o -name .ruby-version -o -name Rakefile \) 2>/dev/null)
