@@ -12,6 +12,7 @@ rust = "latest"
 "npm:@mariozechner/pi-coding-agent" = "latest"
 "go:github.com/mikefarah/yq/v4" = "latest"
 "go:github.com/noperator/yknotify" = "latest"
+"github:pkgforge-dev/ghostty-appimage[bin=ghostty]" = { version = "latest", os = ["linux"] }
 watchexec = "latest"
 fnox = "latest"
 fzf = "latest"

@@ -11,14 +11,6 @@ class Dotfiles
         command_exists?(command) || bin_paths.any? { |path| @system.file_exist?(path) }
       end
 
-      def system_arch
-        @system_arch ||= begin
-          output, status = @system.execute("uname -m")
-          return "" unless status == 0
-          output.strip
-        end
-      end
-
       def install_direct_download(name:, url:, error_prefix:, error_message:)
         return if package_installed?(name)
         unless url
