@@ -71,6 +71,7 @@ set has_test 0
 set has_lint 0
 set has_large_files 0
 set has_complexity 0
+set has_dead_code 0
 set has_serve_or_dev 0
 set has_build 0
 
@@ -107,11 +108,15 @@ if test -n "$mise_file"
                     set has_large_files 1
                 else if test "$t" = "lint:complexity"
                     set has_complexity 1
+                else if test "$t" = "lint:dead-code"
+                    set has_dead_code 1
                 end
             case large-files
                 set has_large_files 1
             case complexity
                 set has_complexity 1
+            case dead-code
+                set has_dead_code 1
             case serve dev
                 set has_serve_or_dev 1
             case build
@@ -163,6 +168,12 @@ if test $is_ruby_project -eq 1
     else
         check_fail "mise task: lint:complexity" "Add a [tasks.\"lint:complexity\"] section. For RuboCop projects, run Metrics/PerceivedComplexity; otherwise run a custom changed-file complexity linter."
     end
+
+    if test $has_dead_code -eq 1
+        check_pass "mise task: lint:dead-code"
+    else
+        check_fail "mise task: lint:dead-code" "Add a [tasks.\"lint:dead-code\"] section that runs debride for Ruby projects."
+    end
 end
 
 # --- Check 3: hk config exists ---
@@ -184,6 +195,7 @@ end
 set has_precommit_lint 0
 set has_precommit_large_files 0
 set has_precommit_complexity 0
+set has_precommit_dead_code 0
 set has_precommit_test 0
 
 if test -n "$hk_file"; and test -f "$hk_file"
@@ -202,6 +214,11 @@ if test -n "$hk_file"; and test -f "$hk_file"
     # Check for complexity step in pre-commit
     if string match -rq 'mise run lint:complexity' -- "$hk_contents"
         set has_precommit_complexity 1
+    end
+
+    # Check for dead code step in pre-commit
+    if string match -rq 'mise run lint:dead-code' -- "$hk_contents"
+        set has_precommit_dead_code 1
     end
 
     # Check for test-related steps in pre-commit
@@ -228,6 +245,12 @@ if test -n "$hk_file"
             check_pass "pre-commit: complexity step"
         else
             check_fail "pre-commit: complexity step" "Add a pre-commit step to hk config. Use: check = \"mise run lint:complexity\""
+        end
+
+        if test $has_precommit_dead_code -eq 1
+            check_pass "pre-commit: dead-code step"
+        else
+            check_fail "pre-commit: dead-code step" "Add a pre-commit step to hk config. Use: check = \"mise run lint:dead-code\""
         end
     end
 

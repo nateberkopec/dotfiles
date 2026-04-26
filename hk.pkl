@@ -12,6 +12,9 @@ hooks {
       ["large-files"] {
         check = "mise run lint:large-files"
       }
+      ["dead-code"] {
+        check = "mise run lint:dead-code"
+      }
       ["flog"] {
         check = "mise run lint:flog"
       }

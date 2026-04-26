@@ -82,7 +82,7 @@ run = "bundle exec rake test"
 
 [tasks.lint]
 description = "Run all lint checks"
-depends = ["lint:standard", "lint:large-files", "lint:complexity", "lint:flog"]
+depends = ["lint:standard", "lint:large-files", "lint:complexity", "lint:dead-code", "lint:flog"]
 
 [tasks."lint:standard"]
 description = "Run standardrb"
@@ -95,6 +95,10 @@ run = "ruby tools/check_large_files.rb"
 [tasks."lint:complexity"]
 description = "Run Ruby complexity checks"
 run = "bundle exec rubocop --only Metrics/PerceivedComplexity"
+
+[tasks."lint:dead-code"]
+description = "Check for dead Ruby methods"
+run = "ruby tools/check_dead_code.rb"
 
 [tasks.dev]
 description = "Start development server"
@@ -135,7 +139,19 @@ Configuration belongs in the project's existing `.rubocop.yml` / `.rubocop-custo
 
 If the project does not support RuboCop, add a small custom linter that checks Ruby perceived complexity and wire it to the same `lint:complexity` mise task. For the first commit, the custom linter only needs to run on changed Ruby files.
 
-### 5. hk Git Hooks
+### 5. Ruby Dead Code Detection
+
+For Ruby projects, pre-commit must include dead-code detection. Use [debride](https://github.com/seattlerb/debride) and wire it to a dedicated mise task named `lint:dead-code`:
+
+```toml
+[tasks."lint:dead-code"]
+description = "Check for dead Ruby methods"
+run = "ruby tools/check_dead_code.rb"
+```
+
+Add `debride` to the project's Ruby dependencies. Because `debride` exits 0 when it reports potentially unused methods, use a small wrapper script that runs `bundle exec debride --json`, parses the `missing` result, and exits 1 when new dead code is reported. Keep intentional false positives in `.debride-whitelist`, with comments explaining broad entries. Start by scanning application directories such as `lib` and `app`; include tests only if the project has a whitelist strategy for test methods.
+
+### 6. hk Git Hooks
 
 Git hooks are managed with [hk](https://hk.jdx.dev/). Configure them in `hk.pkl` at the project root.
 
@@ -162,6 +178,9 @@ hooks {
       ["complexity"] {
         check = "mise run lint:complexity"
       }
+      ["dead-code"] {
+        check = "mise run lint:dead-code"
+      }
       ["test"] {
         check = "mise run test"
       }
@@ -178,7 +197,7 @@ mise run -- hk install
 
 Or if there's a `setup` mise task, add `hk install` to it.
 
-### 6. Setup Task
+### 7. Setup Task
 
 Add a `setup` mise task that bootstraps the project for a new developer:
 
@@ -198,7 +217,7 @@ hk install
 3. **Determine ownership**: Check `git shortlog -sn --no-merges | head -5` to decide own vs. others' repo.
 4. **mise config**: Create or update `mise.toml` (own) / `mise.local.toml` (others') with tools and tasks.
 5. **Large files**: Add a dedicated `lint:large-files` task and pre-commit hook step.
-6. **Ruby checks**: For Ruby projects, add a dedicated `lint:complexity` task and pre-commit hook step.
+6. **Ruby checks**: For Ruby projects, add dedicated `lint:complexity` and `lint:dead-code` tasks and pre-commit hook steps.
 7. **hk config**: Create or update `hk.pkl` with pre-commit hooks. For others' repos, add `hk.pkl` to `.git/info/exclude`.
 8. **Install**: Run `hk install` to activate the hooks.
 9. **Verify**: Run the compliance checker again to confirm everything passes, including git cleanliness.
