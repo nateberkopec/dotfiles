@@ -92,6 +92,8 @@ Define these standard task frontends in the mise config:
 
 When the project already has equivalent scripts (e.g., `npm run test`, `bundle exec rake test`, `cargo test`), wrap them as mise tasks rather than replacing them. The mise task is the universal frontend.
 
+Keep mise task definitions short. Any task `run` block longer than 10 lines must move into a separate project script in an appropriate location, such as `bin/`, `scripts/`, or a stack-specific scripts directory. The mise task should call that script. The checker fails long task run blocks so shell logic does not accumulate in TOML.
+
 Example mise tasks section:
 
 ```toml
@@ -134,6 +136,14 @@ run = "pitchfork start"
 [tasks.build]
 description = "Build release artifacts"
 run = "cargo build --release"
+```
+
+If a task needs more than 10 lines, move it out of TOML:
+
+```toml
+[tasks."lint:custom"]
+description = "Run custom lint checks"
+run = "bin/lint-custom"
 ```
 
 Discover what the project actually uses for testing, linting, building, and serving before writing these. Read `package.json`, `Gemfile`, `Cargo.toml`, `Makefile`, etc. to find existing commands.
@@ -297,7 +307,7 @@ hk install
 1. **Audit**: Run the compliance checker to see current state.
 2. **Inspect**: Read the project's existing tooling (`package.json`, `Gemfile`, `Makefile`, `Cargo.toml`, etc.) to understand what commands exist.
 3. **Determine ownership**: Check `git shortlog -sn --no-merges | head -5` to decide own vs. others' repo.
-4. **mise config**: Create or update `mise.toml` (own) / `mise.local.toml` (others') with tools and tasks.
+4. **mise config**: Create or update `mise.toml` (own) / `mise.local.toml` (others') with tools and tasks. Move any task `run` block longer than 10 lines into a separate script.
 5. **Environment**: Configure mise to load `.env`, ensure `.env` is ignored, and add `.env.example` as a subset of `.env`.
 6. **Large files**: Add a dedicated `lint:large-files` task and pre-commit hook step.
 7. **Ruby checks**: For Ruby projects, add dedicated `lint:complexity`, `lint:dead-code`, `lint:flog`, and `lint:flay` tasks and pre-commit hook steps.
