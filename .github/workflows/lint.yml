@@ -11,7 +11,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       MISE_TASK_RUN_AUTO_INSTALL: '0'
-      BUNDLE_PATH: .bundle
 
     steps:
     - name: Checkout repository

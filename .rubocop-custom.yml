@@ -2,6 +2,7 @@ AllCops:
   NewCops: disable
   Exclude:
     - '.bundle/**/*'
+    - 'vendor/**/*'
     - 'tmp/**/*'
 
 require:
