@@ -83,7 +83,9 @@ jobs:
         NONINTERACTIVE: true
         GITHUB_TOKEN: ${{ github.token }}
         MISE_CI_TOOLS: "fzf@latest"
+        BREW_CI_PACKAGES: "duti"
         BREW_CI_CASKS: ""
+        BREW_CI_APPLICATIONS: ""
       run: |
         set -euo pipefail
 
