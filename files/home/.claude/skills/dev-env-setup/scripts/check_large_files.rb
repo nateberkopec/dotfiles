@@ -8,6 +8,15 @@ require "tmpdir"
 class LargeFileCheck
   LINE_LIMIT = 100
   SKIP_VALUE = "true"
+  CODE_EXTENSIONS = %w[
+    .bash .c .cc .clj .cljs .cpp .cs .css .cxx .dart .eex .erl .ex .exs .fish .fs .fsx
+    .go .gemspec .h .haml .heex .hh .hpp .html .java .jl .js .jsx .kt .kts .less .lua .m
+    .mjs .mm .php .pl .pm .py .pyw .r .rake .rb .rs .ru .sass .scala .scss .sh .slim .sql
+    .svelte .swift .ts .tsx .vue .zsh
+  ].freeze
+  CODE_FILENAMES = %w[
+    BUILD Containerfile Dockerfile Gemfile Guardfile Makefile Podfile Rakefile Vagrantfile WORKSPACE
+  ].freeze
 
   def run
     if large_files_appropriate?
@@ -15,23 +24,30 @@ class LargeFileCheck
       return
     end
 
-    large_files = staged_files.filter_map { |file| large_file(file) }
-    if large_files.empty?
-      puts "No staged files crossed #{LINE_LIMIT} lines of code."
-      return
-    end
+    large_files = large_staged_code_files
+    return pass if large_files.empty?
 
-    warn "Staged changes make these files cross from under #{LINE_LIMIT} to over #{LINE_LIMIT} lines of code:"
-    large_files.each do |file|
-      warn "  #{file[:path]} (#{file[:before]} -> #{file[:after]} LOC)"
-    end
+    fail_with_large_files(large_files)
+  end
+
+  private
+
+  def large_staged_code_files
+    staged_files.select { |file| code_file?(file.fetch(:path)) }.filter_map { |file| large_file(file) }
+  end
+
+  def pass
+    puts "No staged code files crossed #{LINE_LIMIT} lines of code."
+  end
+
+  def fail_with_large_files(large_files)
+    warn "Staged changes make these code files cross from under #{LINE_LIMIT} to over #{LINE_LIMIT} lines of code:"
+    large_files.each { |file| warn "  #{file[:path]} (#{file[:before]} -> #{file[:after]} LOC)" }
     warn "Don't do this unless absolutely appropriate for the domain."
     warn "Consider decomposing into multiple files."
     warn "To override this check, use LARGE_FILES_APPROPRIATE=true."
     exit 1
   end
-
-  private
 
   def large_file(file)
     before = code_lines_at("HEAD", file.fetch(:before_path))
@@ -62,6 +78,10 @@ class LargeFileCheck
       files << {path: path, before_path: before_path} if path
     end
     files
+  end
+
+  def code_file?(path)
+    CODE_EXTENSIONS.include?(File.extname(path).downcase) || CODE_FILENAMES.include?(File.basename(path))
   end
 
   def code_lines_at(revision, path)
