@@ -101,7 +101,9 @@ jobs:
           NONINTERACTIVE="${NONINTERACTIVE}" \
           GITHUB_TOKEN="${GITHUB_TOKEN}" \
           MISE_CI_TOOLS="${MISE_CI_TOOLS}" \
+          BREW_CI_PACKAGES="${BREW_CI_PACKAGES}" \
           BREW_CI_CASKS="${BREW_CI_CASKS}" \
+          BREW_CI_APPLICATIONS="${BREW_CI_APPLICATIONS}" \
           bash "${home_dir}/dotfiles/tools/ci/run_dotfiles_integration.sh" "${home_dir}/dotfiles"
 
     - name: Upload logs
