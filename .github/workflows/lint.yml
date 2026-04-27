@@ -11,6 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       MISE_TASK_RUN_AUTO_INSTALL: '0'
+      BUNDLE_PATH: .bundle
 
     steps:
     - name: Checkout repository
@@ -28,6 +29,9 @@ jobs:
         install: false
         cache: true
         experimental: true
+
+    - name: Install gitleaks
+      run: mise install gitleaks
 
     - name: Run lint
       run: mise run lint
