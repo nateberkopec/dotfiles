@@ -1,0 +1,26 @@
+# Default gitleaks config for the dev-env-setup audit.
+# Used when the target project does not have its own .gitleaks.toml.
+# Extends gitleaks' default rules and allowlists common vendored/build
+# directories that ship with dependencies and are typically gitignored.
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "vendored or generated directories that aren't part of the project's source"
+paths = [
+  '''(^|/)\.bundle/''',
+  '''(^|/)vendor/bundle/''',
+  '''(^|/)vendor/cache/''',
+  '''(^|/)\.gem/''',
+  '''(^|/)node_modules/''',
+  '''(^|/)\.pnpm-store/''',
+  '''(^|/)\.yarn/''',
+  '''(^|/)target/''',
+  '''(^|/)\.cargo/''',
+  '''(^|/)dist/''',
+  '''(^|/)build/''',
+  '''(^|/)\.next/''',
+  '''(^|/)\.nuxt/''',
+  '''(^|/)\.venv/''',
+  '''(^|/)__pycache__/''',
+]

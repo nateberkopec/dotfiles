@@ -20,6 +20,7 @@ zoxide = "latest"
 pkl = "latest"
 claude = "latest"
 "npm:@tobilu/qmd" = "latest"
+gitleaks = "latest"
 
 [settings]
 env_shell_expand = false
