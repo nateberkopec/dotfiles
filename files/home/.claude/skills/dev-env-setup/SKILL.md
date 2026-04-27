@@ -72,9 +72,9 @@ All dev tools must be managed via mise. Choose the config file based on repo own
 
 If `mise.toml` already exists in someone else's repo, work within it rather than creating `mise.local.toml`.
 
-The config must have a `[tools]` section listing the project's dev dependencies. Inspect the project to determine what tools are needed (language runtimes, linters, formatters, etc.) and add them. Include `cloc` when adding the large-file LOC check.
+The config must have a `[tools]` section listing the project's dev dependencies. Inspect the project to determine what tools are needed (language runtimes, linters, formatters, etc.) and add them. Include `cloc` when adding the large-file LOC check. `gitleaks` is expected via the global mise config (`~/.config/mise/config.toml`); add it to the project mise config too if the project pins versions in CI.
 
-### 2. Environment Variables
+### 2. Environment Variables and Secrets
 
 Mise must load local environment variables from `.env` using the appropriate mise TOML syntax:
 
@@ -85,11 +85,16 @@ _.file = ".env"
 
 Rules:
 
-- `.env` contains local secrets and machine-specific values. It must never be committed.
+- `.env` contains local environment values. It must never be committed.
 - Add `.env` to `.gitignore` for repos Nate owns, or `.git/info/exclude` for someone else's repo when needed.
 - `.env.example` must exist and should be committed when this is Nate's repo.
 - `.env.example` documents required keys only. It must be a strict subset of `.env`: every key in `.env.example` must also exist in the local `.env`, but `.env` may contain extra keys.
 - Keep example values empty or obviously fake, e.g. `DATABASE_URL=` or `STRIPE_API_KEY=replace-me`.
+- **Real secrets must not be hardcoded in `.env`.** Any value that is a credential (API token, password, signing key, database URL with embedded password, etc.) must be a reference resolved at runtime, not a plaintext string sitting on disk. The threat model is: an LLM agent or attacker that can read the working tree should not be able to extract a usable secret.
+  - Preferred: store the secret in 1Password and reference it from `fnox.toml`. mise loads the resolved environment via `_.source = "fnox export"`. See the `env-to-fnox` skill for migration steps.
+  - Acceptable: keep `.env` and use `op://Vault/Item/Field` references that mise resolves at load time.
+  - Not acceptable: plaintext credential values in `.env` or any other file in the working tree.
+- The audit runs `gitleaks` against the working tree to enforce this — see the **Secret Scanning** section below.
 
 ### 3. Standard mise Tasks
 
@@ -127,7 +132,7 @@ run = "bundle exec rake test"
 
 [tasks.lint]
 description = "Run all lint checks"
-depends = ["lint:standard", "lint:large-files", "lint:complexity", "lint:dead-code", "lint:flog", "lint:flay"]
+depends = ["lint:standard", "lint:large-files", "lint:secrets", "lint:complexity", "lint:dead-code", "lint:flog", "lint:flay"]
 
 [tasks."lint:standard"]
 description = "Run standardrb"
@@ -253,7 +258,44 @@ run = "ruby tools/check_large_files.rb"
 
 Use the shared skill tool by symlinking it into the project as `tools/check_large_files.rb`; do not copy it. For Ruby projects, the tool inspects staged changes and uses `cloc` to compare the staged version to `HEAD`. It fails when the changes cause any code file to go from fewer than 100 lines of code to more than 100 lines of code. The failure tells the user: "Don't do this unless absolutely appropriate for the domain. Consider decomposing into multiple files. To override this check, use LARGE_FILES_APPROPRIATE=true." `LARGE_FILES_APPROPRIATE=true` skips the hook.
 
-### 8. Ruby Complexity
+### 8. Secret Scanning
+
+Pre-commit must include a secret scan via [gitleaks](https://github.com/gitleaks/gitleaks). The audit also runs gitleaks against the working tree (including gitignored files like `.env`) so the standard catches plaintext credentials before they're committed *and* while they sit on disk where an agent could read them.
+
+Add a dedicated mise task named `lint:secrets`:
+
+```toml
+[tasks."lint:secrets"]
+description = "Scan working tree for hardcoded secrets"
+run = "gitleaks dir --redact=75 --no-banner --no-color --max-target-megabytes 5 ."
+```
+
+`gitleaks` is expected from the global mise config; the audit treats a missing `gitleaks` as a warning, not a failure, but the pre-commit task will error if it's not on PATH.
+
+Use the right command for the right scope:
+
+- `gitleaks dir .` (used here) scans the working tree, including gitignored files. This is the load-bearing scan because real secrets often live in gitignored paths like `.env`.
+- `gitleaks git` scans `git log -p` history. Useful for catching past commits but slower and out of scope for the standard pre-commit step.
+
+Always pass `--redact=75` so secret values do not end up in mise/hk output or CI logs. `--max-target-megabytes 5` skips lockfiles and binary blobs.
+
+**Default config:** when the audit runs without a project-level `.gitleaks.toml`, it uses the bundled `scripts/check-dev-env/gitleaks-default.toml`, which extends gitleaks' defaults and allowlists common vendored or generated directories (`node_modules/`, `.bundle/`, `vendor/bundle/`, `target/`, `dist/`, etc.). Drop a project-local `.gitleaks.toml` if you need different rules.
+
+**Handling false positives:**
+
+- **Per-finding**: append the printed `Fingerprint:` value (one per line) to a `.gitleaksignore` file at the project root. gitleaks reads it automatically.
+- **Per-line**: annotate the offending line with a `gitleaks:allow` comment. Useful for fixtures, examples, and intentional test data.
+- **Per-path**: add the path to `[[allowlists]] paths = [...]` in a project-level `.gitleaks.toml`.
+
+**Adopting on an existing repo with old findings:** generate a baseline rather than fixing everything up front:
+
+```fish
+gitleaks dir --report-path .gitleaks-baseline.json .
+```
+
+The audit picks up `.gitleaks-baseline.json` automatically; only *new* findings will fail the check. The baseline file is safe to commit (it contains fingerprints, not secret values).
+
+### 9. Ruby Complexity
 
 For Ruby projects, pre-commit must include a complexity check. If the project supports RuboCop, enabling `RuboCop::Cop::Metrics::PerceivedComplexity` completes this check.
 
@@ -269,7 +311,7 @@ Configuration belongs in the project's existing `.rubocop.yml` / `.rubocop-custo
 
 If the project does not support RuboCop, add a small custom linter that checks Ruby perceived complexity and wire it to the same `lint:complexity` mise task. For the first commit, the custom linter only needs to run on changed Ruby files.
 
-### 9. Ruby Dead Code Detection
+### 10. Ruby Dead Code Detection
 
 For Ruby projects, pre-commit must include dead-code detection. Use [debride](https://github.com/seattlerb/debride) and wire it to a dedicated mise task named `lint:dead-code`:
 
@@ -281,7 +323,7 @@ run = "ruby tools/check_dead_code.rb"
 
 Add `debride` to the project's Ruby dependencies. Because `debride` exits 0 when it reports potentially unused methods, symlink the shared skill wrapper as `tools/check_dead_code.rb`. The wrapper runs `bundle exec debride --json`, parses the `missing` result, and exits 1 when new dead code is reported. Keep intentional false positives in `.debride-whitelist`, with comments explaining broad entries. Start by scanning application directories such as `lib` and `app`; include tests only if the project has a whitelist strategy for test methods.
 
-### 10. Ruby flog/flay
+### 11. Ruby flog/flay
 
 For Ruby projects, pre-commit must include `flog` and `flay` checks using the same pattern as this dotfiles repo.
 
@@ -330,7 +372,7 @@ run = "bundle exec rake flay"
 
 Add separate hk pre-commit steps for `lint:flog` and `lint:flay` so hk can run them in parallel with the rest of the pre-commit checks.
 
-### 11. hk Git Hooks
+### 12. hk Git Hooks
 
 Git hooks are managed with [hk](https://hk.jdx.dev/). Configure them in `hk.pkl` at the project root.
 
@@ -353,6 +395,9 @@ hooks {
       }
       ["large-files"] {
         check = "mise run lint:large-files"
+      }
+      ["secrets"] {
+        check = "mise run lint:secrets"
       }
       ["complexity"] {
         check = "mise run lint:complexity"
@@ -382,7 +427,7 @@ mise run -- hk install
 
 Or configure a custom `[deps.hk]` provider as shown above and run `mise deps hk`.
 
-### 12. Dependency Preparation
+### 13. Dependency Preparation
 
 For Ruby projects, prefer mise dependency providers over a hand-rolled `setup` task:
 
@@ -409,8 +454,9 @@ Run `mise deps` to install stale dependencies. Bundler runs automatically before
 7. **Serve URL**: For projects with a server, ensure `mise run serve` logs the server URL within the last 10 lines of output.
 8. **Test runtime**: Let the checker time `mise run test` and warn when it exceeds 10 seconds.
 9. **Large files**: Symlink the shared skill tool, then add a dedicated `lint:large-files` task and pre-commit hook step.
-10. **Ruby checks**: For Ruby projects, symlink shared skill tools where available, then add dedicated `lint:complexity`, `lint:dead-code`, `lint:flog`, and `lint:flay` tasks and pre-commit hook steps.
-11. **hk config**: Create or update `hk.pkl` with pre-commit hooks. For others' repos, add `hk.pkl` to `.git/info/exclude`.
-12. **Install**: Run `mise deps`, then `mise deps hk` or `hk install` to activate the hooks.
-13. **Verify**: Run the compliance checker again to confirm everything passes, including git cleanliness.
+10. **Secrets**: Add a `lint:secrets` task running `gitleaks dir`. If the project has existing findings that won't be fixed immediately, generate `.gitleaks-baseline.json`. Migrate any plaintext secrets in `.env` to fnox/1Password (see `env-to-fnox` skill).
+11. **Ruby checks**: For Ruby projects, symlink shared skill tools where available, then add dedicated `lint:complexity`, `lint:dead-code`, `lint:flog`, and `lint:flay` tasks and pre-commit hook steps.
+12. **hk config**: Create or update `hk.pkl` with pre-commit hooks. For others' repos, add `hk.pkl` to `.git/info/exclude`.
+13. **Install**: Run `mise deps`, then `mise deps hk` or `hk install` to activate the hooks.
+14. **Verify**: Run the compliance checker again to confirm everything passes, including git cleanliness.
 
