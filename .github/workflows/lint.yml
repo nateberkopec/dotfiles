@@ -27,6 +27,7 @@ jobs:
       with:
         install: false
         cache: true
+        experimental: true
 
     - name: Run lint
       run: mise run lint
