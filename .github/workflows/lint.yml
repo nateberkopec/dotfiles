@@ -9,9 +9,6 @@ on:
 jobs:
   lint:
     runs-on: ubuntu-latest
-    env:
-      FLOG_THRESHOLD: 25
-      FLAY_THRESHOLD: 10
 
     steps:
     - name: Checkout repository
@@ -23,34 +20,11 @@ jobs:
         ruby-version: 'ruby'
         bundler-cache: true
 
-    - name: Run standardrb
-      run: bundle exec standardrb
+    - name: Install mise
+      uses: jdx/mise-action@v4.0.1
+      with:
+        install: false
+        cache: true
 
-    - name: Run flog
-      run: |
-        FLOG_OUTPUT=$(bundle exec flog -a lib)
-        echo "$FLOG_OUTPUT"
-        MAX_SCORE=$(echo "$FLOG_OUTPUT" | grep -E '^\s+[0-9]+\.[0-9]+:.*#' | grep -v 'main#none' | awk '{print $1}' | sort -nr | head -1)
-        if [ ! -z "$MAX_SCORE" ]; then
-          if (( $(echo "$MAX_SCORE > $FLOG_THRESHOLD" | bc -l) )); then
-            echo "flog failed: highest complexity ($MAX_SCORE) exceeds threshold ($FLOG_THRESHOLD)"
-            exit 1
-          fi
-        fi
-        echo "flog passed (max complexity: $MAX_SCORE, threshold: $FLOG_THRESHOLD)"
-
-    - name: Run flay
-      run: |
-        FLAY_OUTPUT=$(bundle exec flay lib)
-        echo "$FLAY_OUTPUT"
-        FLAY_SCORE=$(echo "$FLAY_OUTPUT" | grep "Total score" | awk '{print $6}')
-        if [ ! -z "$FLAY_SCORE" ]; then
-          if [ "$FLAY_SCORE" -gt "$FLAY_THRESHOLD" ]; then
-            echo "flay failed: duplication score ($FLAY_SCORE) exceeds threshold ($FLAY_THRESHOLD)"
-            exit 1
-          fi
-        fi
-        echo "flay passed (duplication score: ${FLAY_SCORE:-0}, threshold: $FLAY_THRESHOLD)"
-
-    - name: Lint agent skills
-      run: ruby tools/lint_agent_skills.rb
+    - name: Run lint
+      run: mise run lint
