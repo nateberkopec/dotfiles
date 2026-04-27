@@ -14,6 +14,7 @@ fd = "latest"
 go = "latest"
 rg = "latest"
 "github:aldanial/cloc" = "latest"
+gitleaks = "latest"
 
 [deps.bundler]
 auto = true
@@ -38,6 +39,10 @@ description = "Check staged files for large files"
 sources = [".git/index", "files/home/.claude/skills/dev-env-setup/scripts/check_large_files.rb"]
 run = "ruby files/home/.claude/skills/dev-env-setup/scripts/check_large_files.rb"
 
+[tasks."lint:secrets"]
+description = "Scan working tree for hardcoded secrets"
+run = "gitleaks dir --redact=75 --no-banner --no-color --max-target-megabytes 5 --config files/home/.claude/skills/dev-env-setup/scripts/check-dev-env/gitleaks-default.toml ."
+
 [tasks."lint:dead-code"]
 description = "Check for dead Ruby methods"
 sources = ["**/*.rb", ".debride-whitelist", "files/home/.claude/skills/dev-env-setup/scripts/check_dead_code.rb"]
@@ -60,7 +65,7 @@ run = "ruby tools/lint_agent_skills.rb"
 
 [tasks.lint]
 description = "Run all lint checks"
-depends = ["lint:standard", "lint:complexity", "lint:large-files", "lint:dead-code", "lint:flog", "lint:flay", "lint:skills"]
+depends = ["lint:standard", "lint:complexity", "lint:large-files", "lint:secrets", "lint:dead-code", "lint:flog", "lint:flay", "lint:skills"]
 
 [tasks.test]
 description = "Run the test suite"
