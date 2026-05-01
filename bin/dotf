@@ -37,7 +37,7 @@ rotate_logs() {
 
 DOTF_COMMANDS=(
     $'run\tSet up development environment from scratch'
-    $'upgrade\tRefresh and upgrade mise tools and Homebrew packages'
+    $'upgrade\tRefresh and upgrade mise tools, Pi extensions, and Homebrew packages'
     $'steps\tList every setup step with its class name and description'
     $'help\tShow this help message'
 )
@@ -153,6 +153,9 @@ cmd_upgrade() {
     mise up --yes
     mise install --yes
 
+    announce "Updating Pi extensions"
+    pi update --extensions
+
     announce "Pruning mise installs"
     mise prune --yes
     mise cache prune --yes
@@ -200,7 +203,7 @@ Logging:
 
 Examples:
   dotf run                              # Initial setup
-  dotf upgrade                          # Upgrade mise tools and Homebrew packages
+  dotf upgrade                          # Upgrade mise tools, Pi extensions, and Homebrew packages
   DEBUG=true dotf run                   # Run with debug output to console
 EOF
 }
