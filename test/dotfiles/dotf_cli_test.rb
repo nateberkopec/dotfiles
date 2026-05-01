@@ -31,6 +31,36 @@ class DotfCliTest < Minitest::Test
     end
   end
 
+  def test_upgrade_updates_pi_extensions
+    with_dotf_script do |tmpdir, script_path, _logs_dir|
+      bin_dir = File.join(tmpdir, "fake-bin")
+      log_path = File.join(tmpdir, "upgrade-commands.log")
+      FileUtils.mkdir_p(bin_dir)
+      %w[mise brew pi].each { |command| write_command_stub(bin_dir, command) }
+
+      with_env("DOTF_UPGRADE_LOG" => log_path, "PATH" => "#{bin_dir}:/usr/bin:/bin") do
+        assert system("bash", script_path, "upgrade", out: File::NULL)
+      end
+
+      assert_equal [
+        "brew shellenv bash",
+        "mise activate bash",
+        "mise cache clear --yes",
+        "mise plugins update",
+        "mise outdated --bump",
+        "mise up --yes",
+        "mise install --yes",
+        "pi update --extensions",
+        "mise prune --yes",
+        "mise cache prune --yes",
+        "brew update",
+        "brew upgrade",
+        "brew autoremove",
+        "brew cleanup"
+      ], File.readlines(log_path, chomp: true)
+    end
+  end
+
   private
 
   def with_dotf_script
@@ -52,6 +82,15 @@ class DotfCliTest < Minitest::Test
       File.write(File.join(logs_dir, format("dotf_2000-01-01_00-00-%02d.log", index)), "old")
     end
     File.write(File.join(logs_dir, "other.log"), "keep")
+  end
+
+  def write_command_stub(bin_dir, command)
+    path = File.join(bin_dir, command)
+    File.write(path, <<~BASH)
+      #!/bin/bash
+      printf '%s %s\n' "#{command}" "$*" >> "$DOTF_UPGRADE_LOG"
+    BASH
+    FileUtils.chmod("+x", path)
   end
 
   def source_script_and_init_logging(script_path, log_file_record)
