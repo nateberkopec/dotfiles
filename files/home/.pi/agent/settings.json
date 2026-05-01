@@ -7,7 +7,8 @@
   "packages": [
     "npm:pi-mcp-adapter",
     "npm:pi-ding",
-    "npm:pi-subagents"
+    "npm:pi-subagents",
+    "npm:pi-web-providers"
   ],
   "npmCommand": [
     "mise",
