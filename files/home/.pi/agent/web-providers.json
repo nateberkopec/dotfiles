@@ -1,0 +1,20 @@
+{
+  "tools": {
+    "search": "exa",
+    "contents": "exa",
+    "answer": "exa",
+    "research": "exa"
+  },
+  "providers": {
+    "exa": {
+      "credentials": {
+        "api": "!op read 'op://Employee/Pi Web Providers/EXA_API_KEY'"
+      }
+    },
+    "perplexity": {
+      "credentials": {
+        "api": "!op read 'op://Employee/Pi Web Providers/PERPLEXITY_API_KEY'"
+      }
+    }
+  }
+}
