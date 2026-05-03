@@ -198,12 +198,17 @@ Use these mise features when setting up or auditing Ruby projects:
   ```
 
   Reserve `hooks.enter` for setup that truly needs shell code.
-- **Prefer mise dependency providers to manual setup tasks.** Current mise exposes this as `[deps]` / `mise deps` (older docs and articles may call the feature `[prepare]`). For Ruby repos, use the built-in Bundler provider so `bundle install` runs only when `Gemfile` or `Gemfile.lock` changes:
+- **Prefer mise dependency providers to manual setup tasks.** Current mise exposes this as `[deps]` / `mise deps` (older docs and articles may call the feature `[prepare]`). For Ruby repos, set Bundler to install dependencies into `vendor/bundle` and use the built-in Bundler provider so `bundle install` runs only when `Gemfile` or `Gemfile.lock` changes:
 
   ```toml
+  [env]
+  BUNDLE_PATH = "vendor/bundle"
+
   [deps.bundler]
   auto = true
   ```
+
+  Add `vendor/bundle/` to the repo's ignore rules. Do not store private gem source credentials in Bundler config; keep them in 1Password/fnox and use the dotfiles `bundle-private` helper when private gem credentials are needed.
 
   Keep `hk install` as a one-shot command, or model it as a custom deps provider:
 
@@ -279,7 +284,7 @@ Use the right command for the right scope:
 
 Always pass `--redact=75` so secret values do not end up in mise/hk output or CI logs. `--max-target-megabytes 5` skips lockfiles and binary blobs.
 
-**Default config:** when the audit runs without a project-level `.gitleaks.toml`, it uses the bundled `scripts/check-dev-env/gitleaks-default.toml`, which extends gitleaks' defaults and allowlists common vendored or generated directories (`node_modules/`, `.bundle/`, `vendor/bundle/`, `target/`, `dist/`, etc.). Drop a project-local `.gitleaks.toml` if you need different rules.
+**Default config:** when the audit runs without a project-level `.gitleaks.toml`, it uses the bundled `scripts/check-dev-env/gitleaks-default.toml`, which extends gitleaks' defaults and allowlists common vendored or generated directories (`node_modules/`, `.bundle/ruby/`, `vendor/bundle/`, `target/`, `dist/`, etc.). Bundler config files are intentionally scanned so private gem credentials do not settle in plaintext. Drop a project-local `.gitleaks.toml` if you need different rules.
 
 **Handling false positives:**
 
@@ -429,9 +434,12 @@ Or configure a custom `[deps.hk]` provider as shown above and run `mise deps hk`
 
 ### 13. Dependency Preparation
 
-For Ruby projects, prefer mise dependency providers over a hand-rolled `setup` task:
+For Ruby projects, prefer `vendor/bundle` plus mise dependency providers over a hand-rolled `setup` task:
 
 ```toml
+[env]
+BUNDLE_PATH = "vendor/bundle"
+
 [deps.bundler]
 auto = true
 
@@ -449,7 +457,7 @@ Run `mise deps` to install stale dependencies. Bundler runs automatically before
 2. **Inspect**: Read the project's existing tooling (`package.json`, `Gemfile`, `Makefile`, `Cargo.toml`, etc.) to understand what commands exist.
 3. **Determine ownership**: Check `git shortlog -sn --no-merges | head -5` to decide own vs. others' repo.
 4. **mise config**: Create or update `mise.toml` (own) / `mise.local.toml` (others') with tools and tasks. Move any task `run` block longer than 10 lines into a separate script.
-5. **mise features**: Add task `sources`, prefer `[shell_alias]` to `hooks.enter`, configure `[deps.bundler]` for Ruby projects, and run `mise lock` (shared config) or `mise lock --local` (local config) after changing the mise config.
+5. **mise features**: Add task `sources`, prefer `[shell_alias]` to `hooks.enter`, configure `BUNDLE_PATH = "vendor/bundle"` plus `[deps.bundler]` for Ruby projects, and run `mise lock` (shared config) or `mise lock --local` (local config) after changing the mise config.
 6. **Environment**: Configure mise to load `.env`, ensure `.env` is ignored, and add `.env.example` as a subset of `.env`.
 7. **Serve URL**: For projects with a server, ensure `mise run serve` logs the server URL within the last 10 lines of output.
 8. **Test runtime**: Let the checker time `mise run test` and warn when it exceeds 10 seconds.

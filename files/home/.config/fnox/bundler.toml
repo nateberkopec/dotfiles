@@ -1,0 +1,8 @@
+[providers.speedshop]
+type = "1password"
+account = "thespeedshop.1password.com"
+vault = "Employee"
+
+[secrets]
+BUNDLE_GEMS__GRAPHQL__PRO = { provider = "speedshop", value = "Bundler: GRAPHQL__PRO" }
+BUNDLE_GEMS__CONTRIBSYS__COM = { provider = "speedshop", value = "Bundler: CONTRIBSYS__COM" }

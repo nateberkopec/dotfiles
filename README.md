@@ -19,6 +19,10 @@ Most dotfiles repos just copy files to your home folder. This one does more. It 
 | `dotf steps` | List every setup step with its class name and description. |
 | `dotf help` | Show help |
 
+## Private Ruby Gems
+
+Bundler installs dependencies to `vendor/bundle`. Private gem credentials are not stored in `~/.bundle/config`; use `bundle-private install` (or `bpi` in fish) when a bundle needs private gem source credentials from 1Password/fnox.
+
 ## Installation
 
 Clone this repo:

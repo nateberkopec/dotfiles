@@ -40,6 +40,8 @@ zoxide init fish | source
 complete -c z -f -k -a "(zoxide query -l)"
 alias cd z
 abbr be "bundle exec"
+abbr bp "bundle-private"
+abbr bpi "bundle-private install"
 abbr cc "claude --allow-dangerously-skip-permissions"
 alias oc droid
 alias cat bat

@@ -8,5 +8,8 @@ Brewfile
 logs/
 .rubocop_cache/
 .bundle/
+!files/home/.bundle/
+!files/home/.bundle/config
+vendor/bundle/
 files/home/.pi/agent/auth.json
 tmp/

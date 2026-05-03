@@ -1,0 +1,49 @@
+#!/usr/bin/env fish
+
+set -l wrapper_dir (dirname (realpath (status --current-filename)))
+set -l filtered_path
+
+for dir in $PATH
+    set -l resolved_dir (realpath "$dir" 2>/dev/null)
+    if test "$resolved_dir" != "$wrapper_dir"
+        set -a filtered_path "$dir"
+    end
+end
+
+command env PATH=(string join : $filtered_path) bundle $argv
+set -l bundle_status $status
+
+if test $bundle_status -ne 0; and not set -q BUNDLE_PRIVATE_ACTIVE
+    set -l subcommand $argv[1]
+    test -z "$subcommand"; and set subcommand install
+
+    if contains -- $subcommand install update lock cache package check add pristine
+        set -l public_hosts rubygems.org index.rubygems.org api.rubygems.org
+        set -l urls
+        set -a urls (command rg --only-matching --no-filename "source[^\n]*https?://[^[:space:]\"')}]+" Gemfile gems.rb 2>/dev/null)
+        set -a urls (command rg --only-matching --no-filename "remote: https?://[^[:space:]]+" Gemfile.lock gems.locked 2>/dev/null)
+        set -l hosts (printf "%s\n" $urls |
+            string replace -r ".*https?://" "" |
+            string replace -r "/.*" "" |
+            string lower |
+            sort -u)
+        set -l private_hosts
+
+        for host in $hosts
+            contains -- $host $public_hosts; or set -a private_hosts $host
+        end
+
+        if test (count $private_hosts) -gt 0
+            set -l retry_args $argv
+            test (count $retry_args) -eq 0; and set retry_args install
+            test "$subcommand" = check; and set retry_args install
+
+            echo >&2
+            echo "bundle failed in a repo with non-public gem source(s): "(string join ", " $private_hosts) >&2
+            echo "If this was an auth or fetch failure, retry with:" >&2
+            echo "  bundle-private "(string join " " -- (string escape -- $retry_args)) >&2
+        end
+    end
+end
+
+exit $bundle_status
