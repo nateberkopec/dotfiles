@@ -1,7 +1,7 @@
 [env]
 _.path = ["./bin"]
 _.file = ".env"
-BUNDLE_PATH = ".bundle"
+BUNDLE_PATH = "vendor/bundle"
 
 [shell_alias]
 dfr = "./bin/dotf run"
