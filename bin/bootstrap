@@ -106,6 +106,25 @@ configure_homebrew_shellenv() {
     eval "$("$brew_bin" shellenv -s bash)"
 }
 
+install_homebrew() {
+    local install_script
+    install_script="$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+    if should_install_homebrew_noninteractively; then
+        NONINTERACTIVE=1 /bin/bash -c "$install_script"
+    else
+        /bin/bash -c "$install_script"
+    fi
+}
+
+should_install_homebrew_noninteractively() {
+    [ -n "${CI:-}" ] || [ -n "${NONINTERACTIVE:-}" ] || ! has_terminal
+}
+
+has_terminal() {
+    [ -t 0 ] && [ -t 1 ]
+}
+
 bootstrap_homebrew() {
     if ! is_macos; then
         return 0
@@ -116,7 +135,7 @@ bootstrap_homebrew() {
     if user_has_admin_rights; then
         if ! command -v brew &> /dev/null; then
             debug "Installing Homebrew..."
-            NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+            install_homebrew
         fi
         brew_bin="$(resolve_homebrew_bin)"
     else
@@ -190,6 +209,14 @@ bootstrap_mise() {
     fi
 
     eval "$(mise activate bash)"
+    configure_mise_ruby_precompiled
+}
+
+configure_mise_ruby_precompiled() {
+    # TODO: Remove this once mise 2026.8.0 makes precompiled Rubies the default.
+    # test/bootstrap_test.rb intentionally fails after 2026-08-01 if this remains.
+    debug "Configuring mise to use precompiled Rubies..."
+    stdout_quiet_unless_debug mise settings set ruby.compile false
 }
 
 bootstrap_gum() {
@@ -261,4 +288,6 @@ main() {
     debug "Bootstrap complete."
 }
 
-main "$@"
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+    main "$@"
+fi
