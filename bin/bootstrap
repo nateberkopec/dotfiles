@@ -170,7 +170,6 @@ bootstrap_debian_prereqs() {
         libssl-dev \
         libreadline-dev \
         zlib1g-dev \
-        libyaml-dev \
         libffi-dev \
         libgdbm-dev \
         libncurses5-dev \
@@ -220,22 +219,6 @@ configure_mise_ruby_precompiled() {
     export MISE_RUBY_COMPILE=false
     if command -v mise &> /dev/null; then
         stdout_quiet_unless_debug mise settings set ruby.compile false
-    fi
-}
-
-prepare_ruby_build_dependencies() {
-    if is_macos && command -v brew &> /dev/null; then
-        debug "Installing Ruby build dependencies..."
-        brew_quiet install libyaml
-        configure_ruby_libyaml
-    fi
-}
-
-configure_ruby_libyaml() {
-    local libyaml_prefix
-    libyaml_prefix="$(brew --prefix libyaml 2>/dev/null || true)"
-    if [ -n "$libyaml_prefix" ]; then
-        export RUBY_CONFIGURE_OPTS="${RUBY_CONFIGURE_OPTS:+${RUBY_CONFIGURE_OPTS} }--with-libyaml-dir=${libyaml_prefix}"
     fi
 }
 
@@ -291,7 +274,6 @@ bootstrap_ruby() {
 
     debug "Installing Ruby $latest_version via mise..."
     configure_mise_ruby_precompiled
-    prepare_ruby_build_dependencies
     stdout_quiet_unless_debug mise use --global ruby@latest
     stdout_quiet_unless_debug mise install ruby@latest
 
