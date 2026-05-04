@@ -219,6 +219,22 @@ configure_mise_ruby_precompiled() {
     stdout_quiet_unless_debug mise settings set ruby.compile false
 }
 
+prepare_ruby_build_dependencies() {
+    if is_macos && command -v brew &> /dev/null; then
+        debug "Installing Ruby build dependencies..."
+        brew_quiet install libyaml
+        configure_ruby_libyaml
+    fi
+}
+
+configure_ruby_libyaml() {
+    local libyaml_prefix
+    libyaml_prefix="$(brew --prefix libyaml 2>/dev/null || true)"
+    if [ -n "$libyaml_prefix" ]; then
+        export RUBY_CONFIGURE_OPTS="${RUBY_CONFIGURE_OPTS:+${RUBY_CONFIGURE_OPTS} }--with-libyaml-dir=${libyaml_prefix}"
+    fi
+}
+
 bootstrap_gum() {
     if ! command -v gum &> /dev/null; then
         if command -v mise &> /dev/null; then
@@ -270,6 +286,7 @@ bootstrap_ruby() {
     latest_version=${latest_version:-$(mise latest ruby)}
 
     debug "Installing Ruby $latest_version via mise..."
+    prepare_ruby_build_dependencies
     stdout_quiet_unless_debug mise use --global ruby@latest
     stdout_quiet_unless_debug mise install ruby@latest
 
