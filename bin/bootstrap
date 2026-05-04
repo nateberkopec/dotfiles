@@ -22,21 +22,6 @@ debug() {
     fi
 }
 
-ensure_sudo() {
-    if [ "$(id -u)" -ne 0 ] && ! command -v sudo &> /dev/null; then
-        echo "Error: sudo is required but not available"
-        exit 1
-    fi
-}
-
-run_with_sudo() {
-    if [ "$(id -u)" -eq 0 ]; then
-        "$@"
-    else
-        sudo "$@"
-    fi
-}
-
 brew_quiet() {
     if [ "${DEBUG:-false}" = "true" ]; then
         HOMEBREW_NO_AUTO_UPDATE=1 brew "$@"
@@ -66,16 +51,12 @@ user_has_admin_rights() {
 }
 
 resolve_homebrew_bin() {
-    if [ -x "$(private_homebrew_bin)" ]; then
-        printf '%s\n' "$(private_homebrew_bin)"
-    elif command -v brew &> /dev/null; then
+    if command -v brew &> /dev/null; then
         command -v brew
     elif [ -x /opt/homebrew/bin/brew ]; then
         printf '%s\n' "/opt/homebrew/bin/brew"
     elif [ -x /usr/local/bin/brew ]; then
         printf '%s\n' "/usr/local/bin/brew"
-    elif [ -x /home/linuxbrew/.linuxbrew/bin/brew ]; then
-        printf '%s\n' "/home/linuxbrew/.linuxbrew/bin/brew"
     fi
 }
 
@@ -106,6 +87,25 @@ configure_homebrew_shellenv() {
     eval "$("$brew_bin" shellenv -s bash)"
 }
 
+install_homebrew() {
+    local install_script
+    install_script="$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+    if should_install_homebrew_noninteractively; then
+        NONINTERACTIVE=1 /bin/bash -c "$install_script"
+    else
+        /bin/bash -c "$install_script"
+    fi
+}
+
+should_install_homebrew_noninteractively() {
+    [ -n "${CI:-}" ] || [ -n "${NONINTERACTIVE:-}" ] || ! has_terminal
+}
+
+has_terminal() {
+    [ -t 0 ] && [ -t 1 ]
+}
+
 bootstrap_homebrew() {
     if ! is_macos; then
         return 0
@@ -116,7 +116,7 @@ bootstrap_homebrew() {
     if user_has_admin_rights; then
         if ! command -v brew &> /dev/null; then
             debug "Installing Homebrew..."
-            NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+            install_homebrew
         fi
         brew_bin="$(resolve_homebrew_bin)"
     else
@@ -139,27 +139,13 @@ bootstrap_debian_prereqs() {
         return 0
     fi
 
-    ensure_sudo
     debug "Installing Debian prerequisites..."
-    run_with_sudo apt-get update -y
-    run_with_sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    sudo apt-get update -y
+    sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y \
         ca-certificates \
         curl \
         git \
         gnupg \
-        build-essential \
-        libssl-dev \
-        libreadline-dev \
-        zlib1g-dev \
-        libyaml-dev \
-        libffi-dev \
-        libgdbm-dev \
-        libncurses5-dev \
-        libdb-dev \
-        libbz2-dev \
-        liblzma-dev \
-        libsqlite3-dev \
-        pkg-config \
         unzip \
         xz-utils
 }
@@ -169,6 +155,7 @@ bootstrap_mise() {
         debug "Installing mise..."
         if is_macos; then
             brew_quiet install mise
+            hash -r
         else
             curl -fsSL https://mise.jdx.dev/install.sh | sh
             if [ -d "$HOME/.local/bin" ]; then
@@ -189,27 +176,27 @@ bootstrap_mise() {
         fi
     fi
 
+    configure_mise_ruby_precompiled
     eval "$(mise activate bash)"
 }
 
+configure_mise_ruby_precompiled() {
+    # TODO: Remove this once mise 2026.8.0 makes precompiled Rubies the default.
+    # test/bootstrap_test.rb intentionally fails after 2026-08-01 if this remains.
+    debug "Configuring mise to use precompiled Rubies..."
+    export MISE_RUBY_COMPILE=false
+    stdout_quiet_unless_debug mise settings set ruby.compile false
+}
+
 bootstrap_gum() {
-    if ! command -v gum &> /dev/null; then
-        if command -v mise &> /dev/null; then
-            debug "Installing gum via mise..."
-            stdout_quiet_unless_debug mise use --global gum@latest
-            stdout_quiet_unless_debug mise install gum@latest
-        else
-            debug "Installing gum..."
-            if is_macos; then
-                brew_quiet install gum
-            else
-                ensure_sudo
-                run_with_sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y gum
-            fi
-        fi
-    else
+    if command -v gum &> /dev/null; then
         debug "gum already installed"
+        return
     fi
+
+    debug "Installing gum via mise..."
+    stdout_quiet_unless_debug mise use --global gum@latest
+    stdout_quiet_unless_debug mise install gum@latest
 }
 
 bootstrap_ruby() {
@@ -243,6 +230,7 @@ bootstrap_ruby() {
     latest_version=${latest_version:-$(mise latest ruby)}
 
     debug "Installing Ruby $latest_version via mise..."
+    configure_mise_ruby_precompiled
     stdout_quiet_unless_debug mise use --global ruby@latest
     stdout_quiet_unless_debug mise install ruby@latest
 
@@ -261,4 +249,6 @@ main() {
     debug "Bootstrap complete."
 }
 
-main "$@"
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+    main "$@"
+fi
