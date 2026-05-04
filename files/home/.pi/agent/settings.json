@@ -8,7 +8,7 @@
     "npm:pi-mcp-adapter",
     "npm:pi-ding",
     "npm:pi-subagents",
-    "npm:pi-web-providers"
+    "git:github.com/nateberkopec/pi-web-providers"
   ],
   "npmCommand": [
     "mise",
