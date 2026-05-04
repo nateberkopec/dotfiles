@@ -188,6 +188,7 @@ bootstrap_mise() {
         debug "Installing mise..."
         if is_macos; then
             brew_quiet install mise
+            hash -r
         else
             curl -fsSL https://mise.jdx.dev/install.sh | sh
             if [ -d "$HOME/.local/bin" ]; then
@@ -208,15 +209,18 @@ bootstrap_mise() {
         fi
     fi
 
-    eval "$(mise activate bash)"
     configure_mise_ruby_precompiled
+    eval "$(mise activate bash)"
 }
 
 configure_mise_ruby_precompiled() {
     # TODO: Remove this once mise 2026.8.0 makes precompiled Rubies the default.
     # test/bootstrap_test.rb intentionally fails after 2026-08-01 if this remains.
     debug "Configuring mise to use precompiled Rubies..."
-    stdout_quiet_unless_debug mise settings set ruby.compile false
+    export MISE_RUBY_COMPILE=false
+    if command -v mise &> /dev/null; then
+        stdout_quiet_unless_debug mise settings set ruby.compile false
+    fi
 }
 
 prepare_ruby_build_dependencies() {
@@ -286,6 +290,7 @@ bootstrap_ruby() {
     latest_version=${latest_version:-$(mise latest ruby)}
 
     debug "Installing Ruby $latest_version via mise..."
+    configure_mise_ruby_precompiled
     prepare_ruby_build_dependencies
     stdout_quiet_unless_debug mise use --global ruby@latest
     stdout_quiet_unless_debug mise install ruby@latest

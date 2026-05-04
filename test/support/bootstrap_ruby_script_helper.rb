@@ -30,7 +30,7 @@ module BootstrapRubyScriptHelper
       if [ "$1" = "latest" ] && [ "$2" = "ruby" ]; then
         printf '%s\n' '3.4.0'
       elif [ "$1" = "install" ] && [ "$2" = "ruby@latest" ]; then
-        printf 'mise %s RUBY_CONFIGURE_OPTS=%s\n' "$*" "$RUBY_CONFIGURE_OPTS" >> "$BOOTSTRAP_COMMAND_LOG"
+        printf 'mise %s MISE_RUBY_COMPILE=%s RUBY_CONFIGURE_OPTS=%s\n' "$*" "$MISE_RUBY_COMPILE" "$RUBY_CONFIGURE_OPTS" >> "$BOOTSTRAP_COMMAND_LOG"
       else
         printf 'mise %s\n' "$*" >> "$BOOTSTRAP_COMMAND_LOG"
       fi
@@ -64,11 +64,11 @@ module BootstrapRubyScriptHelper
   end
 
   def mise_install_with_libyaml(env)
-    "mise install ruby@latest RUBY_CONFIGURE_OPTS=--with-libyaml-dir=#{libyaml_prefix(env)}"
+    "mise install ruby@latest MISE_RUBY_COMPILE=false RUBY_CONFIGURE_OPTS=--with-libyaml-dir=#{libyaml_prefix(env)}"
   end
 
   def mise_install_with_existing_opts(env)
-    "mise install ruby@latest RUBY_CONFIGURE_OPTS=--disable-install-doc --with-libyaml-dir=#{libyaml_prefix(env)}"
+    "mise install ruby@latest MISE_RUBY_COMPILE=false RUBY_CONFIGURE_OPTS=--disable-install-doc --with-libyaml-dir=#{libyaml_prefix(env)}"
   end
 
   def bootstrap_command_log(env)
