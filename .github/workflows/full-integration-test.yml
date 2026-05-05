@@ -95,6 +95,13 @@ jobs:
         ruby-version: 'ruby'
         bundler-cache: false
 
+    - name: Cache APT packages
+      if: needs.detect-changes.outputs.docs_only != 'true' && runner.os == 'Linux'
+      uses: awalsh128/cache-apt-pkgs-action@v1.6.0
+      with:
+        packages: trash-cli
+        version: 1.0
+
     - name: Run dotfiles integration script
       if: needs.detect-changes.outputs.docs_only != 'true'
       id: run
