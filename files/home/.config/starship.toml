@@ -17,3 +17,6 @@ disabled = true
 
 [cmd_duration]
 min_time = 500
+
+[git_status]
+use_git_executable = true
