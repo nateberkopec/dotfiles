@@ -8,11 +8,11 @@ class RunnerTest < Minitest::Test
   def test_run_logs_platform_neutral_startup_message
     Dir.mktmpdir("runner-test") do |tmpdir|
       log_file = File.join(tmpdir, "debug.log")
-      runner = Dotfiles::Runner.new(log_file)
-      runner.singleton_class.send(:define_method, :execute_all_steps) {}
-      runner.singleton_class.send(:define_method, :log_total_time) { |_start_time| }
-
-      runner.run
+      Dotfiles::Runner.new(log_file).tap do |runner|
+        runner.singleton_class.send(:define_method, :execute_all_steps) {}
+        runner.singleton_class.send(:define_method, :log_total_time) { |_start_time| }
+        runner.run
+      end
 
       assert_includes File.read(log_file), "Starting development environment setup..."
     end
