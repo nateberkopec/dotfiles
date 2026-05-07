@@ -1,14 +1,18 @@
 # Dotfiles
 
-Set up a fresh Mac with one command.
+Set up a fresh host with one command for development in the way I like it.
 
-Most dotfiles repos just copy files to your home folder. This one does more. It installs apps, sets system settings, and gets your whole dev setup ready to go.
+This is intended exclusively for my personal use, though I encourage you to steal the patterns, tools and concepts within.
 
 ## What It Does
 
-- Bootstraps a minimal environment with Homebrew, Git, and this repository
-- Adds `dotf` to your PATH via `~/.local/bin`
-- Runs all defined Steps (see `dotf steps`)
+Most dotfiles repos just copy files to your home folder. This one does more. It installs apps, sets system settings, and more.
+
+When you run `dotf run` it will:
+
+- Bootstrap a minimal environment with Homebrew, Git, and this repository
+- Add `dotf` to your PATH via `~/.local/bin`
+- Run all defined Steps (see `dotf steps`)
 
 ## Commands
 
@@ -18,10 +22,6 @@ Most dotfiles repos just copy files to your home folder. This one does more. It 
 | `dotf upgrade` | Refresh and upgrade mise tools, Pi extensions, and Homebrew packages. |
 | `dotf steps` | List every setup step with its class name and description. |
 | `dotf help` | Show help |
-
-## Private Ruby Gems
-
-Bundler installs dependencies to `vendor/bundle`. Private gem credentials are not stored in `~/.bundle/config`; use `bundle-private install` (or `bpi` in fish) when a bundle needs private gem source credentials from 1Password/fnox.
 
 ## Installation
 
@@ -44,6 +44,36 @@ For verbose output that also streams subprocess output:
 DEBUG=true ./bin/dotf run
 ```
 
+## Philosophies
+
+This is not intended to be run by anyone except me.
+
+Supported platforms:
+
+1. MacOS with sudo
+2. MacOS without sudo
+3. Ubuntu 22.04
+
+In general, because `mise` is crossplatform, if we can do it with `mise`, we should do it with `mise`.
+
+My system should always be running the latest available Ruby release, so that's what this repo's Ruby version target is too.
+
+`dotf run` aggressively overwrites existing user state. This repo is the source of truth.
+
+Config should drive data, Steps should drive behavior.
+
+Generated artifacts should not be edited as sources of truth, e.g. we ignore generated `Brewfile`.
+
+We do not store secrets on the system in plaintext.
+
+As far as OS settings go, I prefer low/no animation and performance.
+
+There is a GTD-style `~/Documents/Inbox`, which several Steps interact with.
+
+I'm constantly using LLM agents in YOLO mode on my system, so basically I've installed the equivalent of a North Korean rootkit that's running all the time and my system needs to not leave lying around any sharp objects or passwords. See .gem/credentials as an example of the mitigations I take as a result.
+
+We don't trust agents, we make sure they do the right thing and lock destructive/bad actions behind human authentication (immutable flags, 1password).
+
 ## How It Works
 
 The setup runs in **Steps**. Each Step is a Ruby class that does one thing: install packages, set up Fish, sync config files, etc.
@@ -59,6 +89,8 @@ Run `dotf steps` for the current step list, class names, and descriptions. See [
 See [docs/implementing-steps.md](docs/implementing-steps.md) to learn how.
 
 ### Ubuntu 22.04
+
+I'm working on supporting Ubuntu in addition to MacOS. It's in a ~half finished state but should eventually become a full "target" OS.
 
 See [docs/ubuntu-22.04.md](docs/ubuntu-22.04.md) for Ubuntu setup and GUI test container notes.
 
