@@ -12,7 +12,7 @@ class Dotfiles
 
     def run
       start_time = Time.now
-      Dotfiles.debug "Starting macOS development environment setup..."
+      Dotfiles.debug "Starting development environment setup..."
       execute_all_steps
       log_total_time(start_time)
     rescue => e
