@@ -12,6 +12,7 @@ class ConfigTest < Minitest::Test
 
     assert_equal ["git"], packages["brew"]["packages"]
     assert_equal ["firefox", "dropbox"], packages["brew"]["casks"]
+    assert_equal ["example/tap"], packages["brew"]["taps"]
     assert_equal ["git"], packages["debian"]["packages"]
   end
 
@@ -51,7 +52,7 @@ class ConfigTest < Minitest::Test
     config = Dotfiles::Config.new("/nonexistent/dir")
     assert_equal(
       {
-        "brew" => {"packages" => [], "casks" => []},
+        "brew" => {"packages" => [], "casks" => [], "taps" => []},
         "debian" => {"packages" => [], "sources" => []},
         "applications" => []
       },
@@ -85,6 +86,13 @@ class ConfigTest < Minitest::Test
     with_env("BREW_CI_CASKS" => "") do
       config = Dotfiles::Config.new(@fixtures_dir)
       assert_equal [], config.brew_casks
+    end
+  end
+
+  def test_brew_ci_taps_overrides_config
+    with_env("BREW_CI_TAPS" => "rawnly/tap") do
+      config = Dotfiles::Config.new(@fixtures_dir)
+      assert_equal ["rawnly/tap"], config.brew_taps
     end
   end
 end

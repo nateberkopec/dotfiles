@@ -79,6 +79,7 @@ class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
 
   def build_brewfile_content(brew_config)
     [
+      *(brew_config["taps"] || []).map { |tap| "tap \"#{tap}\"" },
       *(brew_config["packages"] || []).map { |pkg| "brew \"#{pkg}\"" },
       *(brew_config["casks"] || []).map { |cask| "cask \"#{cask}\"" }
     ].join("\n") + "\n"

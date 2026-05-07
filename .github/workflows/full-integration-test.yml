@@ -106,6 +106,7 @@ jobs:
         GITHUB_TOKEN: ${{ github.token }}
         MISE_CI_TOOLS: "fzf@latest"
         BREW_CI_PACKAGES: "duti"
+        BREW_CI_TAPS: ""
         BREW_CI_CASKS: ""
         BREW_CI_APPLICATIONS: ""
         DEBIAN_CI_PACKAGES: "trash-cli"
@@ -205,6 +206,7 @@ jobs:
         GITHUB_TOKEN: ${{ github.token }}
         MISE_CI_TOOLS: "fzf@latest"
         BREW_CI_PACKAGES: "duti"
+        BREW_CI_TAPS: ""
         BREW_CI_CASKS: ""
         BREW_CI_APPLICATIONS: ""
       run: |
@@ -223,6 +225,7 @@ jobs:
           GITHUB_TOKEN="${GITHUB_TOKEN}" \
           MISE_CI_TOOLS="${MISE_CI_TOOLS}" \
           BREW_CI_PACKAGES="${BREW_CI_PACKAGES}" \
+          BREW_CI_TAPS="${BREW_CI_TAPS}" \
           BREW_CI_CASKS="${BREW_CI_CASKS}" \
           BREW_CI_APPLICATIONS="${BREW_CI_APPLICATIONS}" \
           bash "${home_dir}/dotfiles/tools/ci/run_dotfiles_integration.sh" "${home_dir}/dotfiles"
