@@ -24,6 +24,10 @@ sources = ["hk.pkl"]
 outputs = [".git/hooks/pre-commit"]
 run = "hk install"
 
+[tasks.setup]
+description = "Install project dependencies and git hooks"
+run = "mise deps"
+
 [tasks."lint:standard"]
 description = "Run standardrb"
 sources = ["**/*.rb", ".standard.yml"]
