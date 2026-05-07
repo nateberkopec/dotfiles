@@ -3,6 +3,22 @@ require "timeout"
 require_relative "../support/fake_runner_step"
 
 class RunnerTest < Minitest::Test
+  def test_run_logs_platform_neutral_startup_message
+    runner = Dotfiles::Runner.allocate
+    def runner.execute_all_steps
+    end
+
+    def runner.log_total_time(_start_time)
+    end
+
+    with_env("DEBUG" => "true") do
+      stdout, = capture_io { runner.run }
+
+      assert_includes stdout, "Starting development environment setup..."
+      refute_includes stdout, "macOS"
+    end
+  end
+
   def test_run_steps_in_parallel_rechecks_should_run_after_dependency_runs
     first_class = build_step_class("First")
     second_class = build_step_class("Second", [first_class])
