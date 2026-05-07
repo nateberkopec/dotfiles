@@ -30,7 +30,7 @@ class ConfigureWallpaperAssetsTest < StepTestCase
     assert_includes content, "<string>#{fish_path}</string>"
     assert_includes content, "<string>#{script_path}</string>"
     assert_includes content, "<key>StartCalendarInterval</key>"
-    assert_includes content, "<integer>9</integer>"
+    assert_includes content, "<integer>5</integer>"
     assert_includes content, "<integer>0</integer>"
   end
 

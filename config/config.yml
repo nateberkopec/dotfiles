@@ -152,7 +152,7 @@ screenshot_settings:
 wallpaper_settings:
   query: woodblock print
   orientation: landscape
-  hour: 9
+  hour: 5
   minute: 0
 spotlight_settings:
   battery_disable: true

@@ -10,7 +10,7 @@ module Dotfiles::Step::ConfigureWallpaperAssets
   end
 
   def wallpaper_hour
-    wallpaper_settings.fetch("hour", 9)
+    wallpaper_settings.fetch("hour", 5)
   end
 
   def wallpaper_minute
