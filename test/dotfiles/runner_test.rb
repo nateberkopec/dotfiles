@@ -3,6 +3,25 @@ require "timeout"
 require_relative "../support/fake_runner_step"
 
 class RunnerTest < Minitest::Test
+  def test_run_logs_platform_neutral_startup_message
+    runner = Dotfiles::Runner.allocate
+    messages = []
+
+    Dotfiles.singleton_class.send(:alias_method, :__runner_test_original_debug, :debug)
+    Dotfiles.singleton_class.send(:define_method, :debug) { |message| messages << message }
+
+    runner.singleton_class.send(:define_method, :execute_all_steps) {}
+    runner.singleton_class.send(:define_method, :log_total_time) { |_start_time| }
+
+    runner.run
+
+    assert_includes messages, "Starting development environment setup..."
+  ensure
+    Dotfiles.singleton_class.send(:remove_method, :debug)
+    Dotfiles.singleton_class.send(:alias_method, :debug, :__runner_test_original_debug)
+    Dotfiles.singleton_class.send(:remove_method, :__runner_test_original_debug)
+  end
+
   def test_run_steps_in_parallel_rechecks_should_run_after_dependency_runs
     first_class = build_step_class("First")
     second_class = build_step_class("Second", [first_class])
