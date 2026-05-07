@@ -7,14 +7,13 @@ require_relative "../support/fake_runner_step"
 class RunnerTest < Minitest::Test
   def test_run_logs_platform_neutral_startup_message
     Dir.mktmpdir("runner-test") do |tmpdir|
-      log_file = File.join(tmpdir, "debug.log")
-      Dotfiles::Runner.new(log_file).tap do |runner|
+      Dotfiles::Runner.new(File.join(tmpdir, "debug.log")).tap do |runner|
         runner.singleton_class.send(:define_method, :execute_all_steps) {}
         runner.singleton_class.send(:define_method, :log_total_time) { |_start_time| }
         runner.run
       end
 
-      assert_includes File.read(log_file), "Starting development environment setup..."
+      assert_includes File.read(File.join(tmpdir, "debug.log")), "Starting development environment setup..."
     end
   ensure
     Dotfiles.log_file = nil
