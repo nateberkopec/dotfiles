@@ -49,7 +49,7 @@ run = "gitleaks dir --redact=75 --no-banner --no-color --max-target-megabytes 5 
 
 [tasks."lint:dead-code"]
 description = "Check for dead Ruby methods"
-sources = ["**/*.rb", ".debride-whitelist", "files/home/.claude/skills/dev-env-setup/scripts/check_dead_code.rb"]
+sources = ["**/*.rb", "**/*.rake", "bin/*", "Rakefile", ".debride-whitelist", "files/home/.claude/skills/dev-env-setup/scripts/check_dead_code.rb"]
 run = "ruby files/home/.claude/skills/dev-env-setup/scripts/check_dead_code.rb"
 
 [tasks."lint:flog"]
