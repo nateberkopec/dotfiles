@@ -4,12 +4,11 @@ require_relative "../support/fake_runner_step"
 
 class RunnerTest < Minitest::Test
   def test_run_logs_platform_neutral_startup_message
-    runner = Dotfiles::Runner.allocate
-    messages = []
-
     Dotfiles.singleton_class.send(:alias_method, :__runner_test_original_debug, :debug)
+    messages = []
     Dotfiles.singleton_class.send(:define_method, :debug) { |message| messages << message }
 
+    runner = Dotfiles::Runner.allocate
     runner.singleton_class.send(:define_method, :execute_all_steps) {}
     runner.singleton_class.send(:define_method, :log_total_time) { |_start_time| }
 
