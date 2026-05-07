@@ -2,7 +2,6 @@ class Dotfiles::Step::ConfigureWallpaperStep < Dotfiles::Step
   DESCRIPTION = "Installs the Unsplash woodblock wallpaper command and daily LaunchAgent.".freeze
 
   include Dotfiles::Step::LaunchCtl
-  include Dotfiles::Step::ConfigureWallpaperAssets
 
   macos_only
 
@@ -10,14 +9,9 @@ class Dotfiles::Step::ConfigureWallpaperStep < Dotfiles::Step
     [Dotfiles::Step::InstallFishShellStep, Dotfiles::Step::InstallBrewPackagesStep]
   end
 
-  def should_run?
-    return false if ENV["CI"]
-    wallpaper_checks.any? { |check| !send(check) }
-  end
-
   def run
-    install_wallpaper_command
-    install_wallpaper_schedule
+    install_script(script_path, script_content) unless script_current?
+    install_plist(launchagent_path, plist_content) unless launchagent_current?
     load_launchagent(launchagent_path)
   end
 
@@ -30,10 +24,6 @@ class Dotfiles::Step::ConfigureWallpaperStep < Dotfiles::Step
 
   private
 
-  def wallpaper_checks
-    [:splash_installed?, :script_current?, :launchagent_current?, :launchagent_loaded?]
-  end
-
   def wallpaper_errors
     [
       ("splash CLI not found on PATH" unless splash_installed?),
@@ -41,14 +31,6 @@ class Dotfiles::Step::ConfigureWallpaperStep < Dotfiles::Step
       ("LaunchAgent not installed at #{launchagent_path}" unless launchagent_current?),
       ("LaunchAgent not loaded: #{launchagent_label}" unless launchagent_loaded?)
     ].compact
-  end
-
-  def install_wallpaper_command
-    install_script(script_path, script_content) unless script_current?
-  end
-
-  def install_wallpaper_schedule
-    install_plist(launchagent_path, plist_content) unless launchagent_current?
   end
 
   def splash_installed?
@@ -69,6 +51,25 @@ class Dotfiles::Step::ConfigureWallpaperStep < Dotfiles::Step
 
   def file_installed_with_content?(path, content)
     @system.file_exist?(path) && @system.read_file(path) == content
+  end
+
+  def script_content
+    @system.read_file(source_script_path)
+  end
+
+  def plist_content
+    @system.read_file(plist_template_path)
+      .gsub("__FISH_PATH__", find_fish_path)
+      .gsub("__SCRIPT_PATH__", script_path)
+      .gsub("__HOME__", @home)
+  end
+
+  def source_script_path
+    File.join(@dotfiles_dir, "files/home/.local/bin/set-woodblock-wallpaper")
+  end
+
+  def plist_template_path
+    File.join(@dotfiles_dir, "files/templates/com.user.woodblock-wallpaper.plist")
   end
 
   def script_path

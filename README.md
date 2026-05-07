@@ -23,19 +23,6 @@ When you run `dotf run` it will:
 | `dotf steps` | List every setup step with its class name and description. |
 | `dotf help` | Show help |
 
-## Wallpaper
-
-On macOS, `dotf run` installs `splash-cli` and a daily LaunchAgent for Unsplash
-woodblock print wallpapers. Unsplash credentials are read from the environment,
-so keep `UNSPLASH_CLIENT_ID` and `UNSPLASH_CLIENT_SECRET` in
-`~/.config/fish/private.fish`.
-
-Set a new wallpaper manually with:
-
-```fish
-set-woodblock-wallpaper
-```
-
 ## Installation
 
 Clone this repo:
