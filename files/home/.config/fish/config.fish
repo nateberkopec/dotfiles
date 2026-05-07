@@ -57,6 +57,9 @@ function mosh
   command mosh --predict=experimental $argv
 end
 
+# Optional untracked local env vars. Only use this for read-only credentials
+# with no side effects, such as free keys that do not bill. Leaks of these keys
+# should be a minor risk.
 if test -f ~/.config/fish/private.fish
   source ~/.config/fish/private.fish
 end
