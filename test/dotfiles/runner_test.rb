@@ -1,24 +1,23 @@
 require "test_helper"
 require "timeout"
+require "tmpdir"
 require_relative "../support/fake_runner_step"
 
+# standard:disable Dotfiles/BanFileSystemClasses
 class RunnerTest < Minitest::Test
   def test_run_logs_platform_neutral_startup_message
-    startup_message = nil
-    Dotfiles.singleton_class.send(:alias_method, :__runner_test_original_debug, :debug)
-    Dotfiles.singleton_class.send(:define_method, :debug) { |message| startup_message = message }
+    Dir.mktmpdir("runner-test") do |tmpdir|
+      log_file = File.join(tmpdir, "debug.log")
+      runner = Dotfiles::Runner.new(log_file)
+      runner.singleton_class.send(:define_method, :execute_all_steps) {}
+      runner.singleton_class.send(:define_method, :log_total_time) { |_start_time| }
 
-    runner = Dotfiles::Runner.allocate
-    runner.singleton_class.send(:define_method, :execute_all_steps) {}
-    runner.singleton_class.send(:define_method, :log_total_time) { |_start_time| }
+      runner.run
 
-    runner.run
-
-    assert_equal "Starting development environment setup...", startup_message
+      assert_includes File.read(log_file), "Starting development environment setup..."
+    end
   ensure
-    Dotfiles.singleton_class.send(:remove_method, :debug)
-    Dotfiles.singleton_class.send(:alias_method, :debug, :__runner_test_original_debug)
-    Dotfiles.singleton_class.send(:remove_method, :__runner_test_original_debug)
+    Dotfiles.log_file = nil
   end
 
   def test_run_steps_in_parallel_rechecks_should_run_after_dependency_runs
@@ -110,3 +109,4 @@ class RunnerTest < Minitest::Test
     end
   end
 end
+# standard:enable Dotfiles/BanFileSystemClasses
