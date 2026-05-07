@@ -39,6 +39,12 @@ class InstallBrewPackagesStepTest < StepTestCase
     assert_includes content, 'brew "mise"'
   end
 
+  def test_build_brewfile_content_includes_taps_before_packages
+    content = step.send(:build_brewfile_content, {"taps" => ["rawnly/tap"], "packages" => ["splash-cli"], "casks" => []})
+
+    assert_equal %(tap "rawnly/tap"\nbrew "splash-cli"\n), content
+  end
+
   def test_run_does_not_check_for_skipped_packages
     @fake_system.stub_macos
     @fake_system.stub_command("groups", "staff")

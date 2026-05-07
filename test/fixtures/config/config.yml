@@ -4,6 +4,8 @@ dotfiles_repo: https://github.com/test/dotfiles.git
 packages:
   git: { brew: git, debian: git }
 brew:
+  taps:
+    - example/tap
   casks:
     - firefox
     - dropbox

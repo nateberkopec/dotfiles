@@ -18,7 +18,7 @@ class Dotfiles
 
     def packages
       {
-        "brew" => {"packages" => brew_packages, "casks" => brew_casks},
+        "brew" => {"packages" => brew_packages, "casks" => brew_casks, "taps" => brew_taps},
         "debian" => {"packages" => debian_packages, "sources" => debian_sources},
         "applications" => applications
       }
@@ -93,6 +93,10 @@ class Dotfiles
 
     def brew_casks
       env_csv("BREW_CI_CASKS") || config.fetch("brew", {}).fetch("casks", [])
+    end
+
+    def brew_taps
+      env_csv("BREW_CI_TAPS") || config.fetch("brew", {}).fetch("taps", [])
     end
 
     private

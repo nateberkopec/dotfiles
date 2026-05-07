@@ -46,6 +46,7 @@ packages:
   ripgrep: { brew: ripgrep, debian: ripgrep }
   shellcheck: { brew: shellcheck, debian: shellcheck }
   snapd: { brew: null, debian: snapd }
+  splash-cli: { brew: splash-cli, debian: null }
   thefuck: { brew: thefuck, debian: thefuck }
   terminal-notifier: { brew: terminal-notifier, debian: null }
   tmux: { brew: tmux, debian: tmux }
@@ -83,6 +84,8 @@ debian_non_apt_packages:
   - droid
 debian_snap_packages: []
 brew:
+  taps:
+  - rawnly/tap
   casks:
   - nikitabobko/tap/aerospace
   - cursor
@@ -146,6 +149,11 @@ trackpad_settings:
 screenshot_settings:
   com.apple.screencapture:
     location: "~/Documents/Inbox"
+wallpaper_settings:
+  query: woodblock print
+  orientation: landscape
+  hour: 9
+  minute: 0
 spotlight_settings:
   battery_disable: true
   battery_volumes:
