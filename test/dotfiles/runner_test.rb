@@ -4,9 +4,9 @@ require_relative "../support/fake_runner_step"
 
 class RunnerTest < Minitest::Test
   def test_run_logs_platform_neutral_startup_message
+    startup_message = nil
     Dotfiles.singleton_class.send(:alias_method, :__runner_test_original_debug, :debug)
-    messages = []
-    Dotfiles.singleton_class.send(:define_method, :debug) { |message| messages << message }
+    Dotfiles.singleton_class.send(:define_method, :debug) { |message| startup_message = message }
 
     runner = Dotfiles::Runner.allocate
     runner.singleton_class.send(:define_method, :execute_all_steps) {}
@@ -14,7 +14,7 @@ class RunnerTest < Minitest::Test
 
     runner.run
 
-    assert_includes messages, "Starting development environment setup..."
+    assert_equal "Starting development environment setup...", startup_message
   ensure
     Dotfiles.singleton_class.send(:remove_method, :debug)
     Dotfiles.singleton_class.send(:alias_method, :debug, :__runner_test_original_debug)
