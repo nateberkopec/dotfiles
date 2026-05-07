@@ -215,3 +215,5 @@ end
 7. **CI-aware**: Check `ci_or_noninteractive?` for steps requiring user interaction
 8. **Admin-aware**: Check `user_has_admin_rights?` for privileged operations
 9. **Testable**: Design steps to work with `FakeSystemAdapter` in tests
+10. **Separate data and behavior**. Data lives in flat config files. Steps encode the behavior which operates with that data.
+11. **Extend where possible, add where necessary**. A lot of times you can just change the config data of an existing step rather than create an entire new step.
