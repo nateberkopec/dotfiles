@@ -1,6 +1,5 @@
 ---
 dotfiles_repo: https://github.com/nateberkopec/dotfiles.git
-master_hostname: Nates-MacBook-Pro.local
 standard_folders:
 - Documents/Inbox
 - Documents/Code.nosync
@@ -83,8 +82,6 @@ debian_sources:
 debian_non_apt_packages:
   - droid
 debian_snap_packages: []
-qmd_collections:
-  - ruby
 brew:
   casks:
   - nikitabobko/tap/aerospace
@@ -158,9 +155,6 @@ spotlight_settings:
   disabled_volumes:
   - "~/Documents/Code.nosync"
 login_items: []
-config_directory_items:
-- fish/config.fish
-- fish/functions/
 file_associations:
   com.microsoft.VSCode:
   - ".md"
