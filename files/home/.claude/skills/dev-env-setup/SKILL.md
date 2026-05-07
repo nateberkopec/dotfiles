@@ -118,7 +118,7 @@ For lint and test tasks, add `sources` so mise can skip unchanged checks during 
 | `test` | `["**/*.rb", "test/**/*", "lib/**/*"]` |
 | `lint:standard` / `lint:rubocop` | `["**/*.rb", ".standard.yml"]` or `["**/*.rb", ".rubocop.yml"]` |
 | `lint:complexity` | `["**/*.rb", ".rubocop-custom.yml"]` |
-| `lint:dead-code` | `["**/*.rb", ".debride-whitelist"]` |
+| `lint:dead-code` | `["**/*.rb", "**/*.rake", "bin/*", "Rakefile", ".debride-whitelist", "tools/check_dead_code.rb"]` |
 | `lint:flog` / `lint:flay` | `["**/*.rb", "Rakefile"]` |
 | `lint:large-files` | `[".git/index", "tools/check_large_files.rb"]` so staging changes rerun the check |
 
@@ -151,7 +151,7 @@ run = "bundle exec rubocop --only Metrics/PerceivedComplexity"
 
 [tasks."lint:dead-code"]
 description = "Check for dead Ruby methods"
-sources = ["**/*.rb", ".debride-whitelist", "tools/check_dead_code.rb"]
+sources = ["**/*.rb", "**/*.rake", "bin/*", "Rakefile", ".debride-whitelist", "tools/check_dead_code.rb"]
 run = "ruby tools/check_dead_code.rb"
 
 [tasks."lint:flog"]
@@ -326,7 +326,7 @@ description = "Check for dead Ruby methods"
 run = "ruby tools/check_dead_code.rb"
 ```
 
-Add `debride` to the project's Ruby dependencies. Because `debride` exits 0 when it reports potentially unused methods, symlink the shared skill wrapper as `tools/check_dead_code.rb`. The wrapper runs `bundle exec debride --json`, parses the `missing` result, and exits 1 when new dead code is reported. Keep intentional false positives in `.debride-whitelist`, with comments explaining broad entries. Start by scanning application directories such as `lib` and `app`; include tests only if the project has a whitelist strategy for test methods.
+Add `debride` to the project's Ruby dependencies. Because `debride` exits 0 when it reports potentially unused methods, symlink the shared skill wrapper as `tools/check_dead_code.rb`. The wrapper runs `bundle exec debride --json`, parses the `missing` result, and exits 1 when new dead code is reported. It scans common application code directories (`app`, `lib`, `tools`, `rubocop`, `rakelib`, `Rakefile`) plus Ruby shebang executables in `bin`, `exe`, `script`, and `scripts` when those paths exist. Keep intentional false positives in `.debride-whitelist`, with comments explaining broad entries. The wrapper also fails on stale whitelist entries, so remove entries as code is deleted or as detection improves. Include tests only if the project has a whitelist strategy for test methods.
 
 ### 11. Ruby flog/flay
 

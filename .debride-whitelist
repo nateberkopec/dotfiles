@@ -4,8 +4,6 @@ applications=
 config=
 copy_if_exists
 execute!
-included
-inherited
 install_direct_download
 log_file
 packages=
