@@ -1,4 +1,4 @@
-import { isToolCallEventType, type ExtensionAPI } from "@mariozechner/pi-coding-agent";
+import { isToolCallEventType, type ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
 const FIND_COMMAND_PATTERN = /(?:^|&&|\|\||[;|\n(])\s*(?:command\s+)?(?:sudo\s+)?find(?:\s|$)/;
 const MAX_FIND_TIMEOUT_SECONDS = 2;
