@@ -152,6 +152,8 @@ cmd_upgrade() {
     announce "Upgrading mise tools"
     mise up --yes
     mise install --yes
+    ensure_mise_env
+    hash -r
 
     announce "Updating Pi extensions"
     pi update --extensions

@@ -50,6 +50,7 @@ class DotfCliTest < Minitest::Test
         "mise outdated --bump",
         "mise up --yes",
         "mise install --yes",
+        "mise activate bash",
         "pi update --extensions",
         "mise prune --yes",
         "mise cache prune --yes",
