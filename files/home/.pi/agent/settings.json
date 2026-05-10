@@ -7,7 +7,7 @@
   "packages": [
     "npm:pi-mcp-adapter",
     "npm:pi-ding",
-    "npm:pi-subagents@0.23.1",
+    "npm:pi-subagents",
     "git:github.com/nateberkopec/pi-web-providers"
   ],
   "npmCommand": [
