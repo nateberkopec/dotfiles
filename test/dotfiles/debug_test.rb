@@ -50,5 +50,16 @@ class DotfilesDebugTest < Minitest::Test
       assert_match(/ second\z/, lines.last)
     end
   end
+
+  def test_debug_scrubs_invalid_utf8_before_logging
+    Dir.mktmpdir("dotfiles-debug-test") do |tmpdir|
+      log_file = File.join(tmpdir, "debug.log")
+      Dotfiles.log_file = log_file
+
+      Dotfiles.debug([0xFF].pack("C"))
+
+      assert_includes File.read(log_file), "�"
+    end
+  end
 end
 # standard:enable Dotfiles/BanFileSystemClasses
