@@ -98,20 +98,21 @@ class Dotfiles
 
     def execute_quiet(command)
       stdout_and_stderr, status = Open3.capture2e(*open3_command(command))
-      [stdout_and_stderr.strip, status.exitstatus]
+      [normalize_output(stdout_and_stderr), status.exitstatus]
     end
 
     def execute_verbose(command)
       output = +""
       status = stream_output(command, output)
-      [output.strip, status]
+      [normalize_output(output), status]
     end
 
     def stream_output(command, output)
       Open3.popen2e(*open3_command(command)) do |_stdin, stdout_and_stderr, wait_thread|
         stdout_and_stderr.each do |line|
-          print line
-          output << line
+          sanitized_line = normalize_output(line, strip: false)
+          $stdout.write(sanitized_line)
+          output << sanitized_line
         end
         return wait_thread.value.exitstatus
       end
@@ -127,6 +128,18 @@ class Dotfiles
 
     def open3_command(command)
       command.is_a?(Array) ? command : [command]
+    end
+
+    def normalize_output(output, strip: true)
+      sanitized = encode_utf8(output.to_s)
+      strip ? sanitized.strip : sanitized
+    end
+
+    def encode_utf8(value)
+      source_encoding = value.encoding == Encoding::ASCII_8BIT ? Encoding::UTF_8 : value.encoding
+      value.encode(Encoding::UTF_8, source_encoding, invalid: :replace, undef: :replace, replace: "�")
+    rescue EncodingError
+      value.dup.force_encoding(Encoding::UTF_8).scrub
     end
   end
 end

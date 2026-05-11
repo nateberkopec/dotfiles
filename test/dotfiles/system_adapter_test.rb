@@ -108,6 +108,30 @@ class SystemAdapterTest < Minitest::Test
     assert_includes stdout, "beta"
   end
 
+  def test_execute_quiet_scrubs_invalid_utf8_output
+    adapter = Dotfiles::SystemAdapter.new
+    command = [RbConfig.ruby, "-e", "$stdout.write([0xFF].pack('C')); exit 9"]
+
+    output, status = adapter.execute_quiet(command)
+
+    assert_equal 9, status
+    assert_equal "�", output
+  end
+
+  def test_execute_verbose_scrubs_invalid_utf8_output
+    adapter = Dotfiles::SystemAdapter.new
+    command = [RbConfig.ruby, "-e", "$stdout.sync = true; $stdout.write([0xFF].pack('C')); exit 4"]
+
+    stdout, = capture_io do
+      output, status = adapter.execute_verbose(command)
+
+      assert_equal 4, status
+      assert_equal "�", output
+    end
+
+    assert_equal "�", stdout
+  end
+
   def test_execute_treats_array_arguments_as_literals
     with_tmpdir do |tmpdir|
       adapter = Dotfiles::SystemAdapter.new

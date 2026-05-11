@@ -265,7 +265,7 @@ class FakeSystemAdapter
 
   def legacy_command_exists_key(command)
     return unless command.is_a?(Array)
-    return unless command[0, 2] == ["bash", "-lc"]
+    return unless ["-c", "-lc"].include?(command[1]) && command[0] == "bash"
     return unless command[2].start_with?('command -v -- "$1"')
 
     normalize_string_command("command -v #{command[4]} >/dev/null 2>&1")

@@ -175,7 +175,7 @@ class Dotfiles
     end
 
     def shell_script(script, *args)
-      command("bash", "-lc", script, "dotfiles", *args)
+      command("bash", "-c", script, "dotfiles", *args)
     end
 
     def format_command_error(command, status, output)
