@@ -131,15 +131,8 @@ class Dotfiles
     end
 
     def normalize_output(output, strip: true)
-      sanitized = encode_utf8(output.to_s)
+      sanitized = Dotfiles.encode_utf8(output.to_s)
       strip ? sanitized.strip : sanitized
-    end
-
-    def encode_utf8(value)
-      source_encoding = value.encoding == Encoding::ASCII_8BIT ? Encoding::UTF_8 : value.encoding
-      value.encode(Encoding::UTF_8, source_encoding, invalid: :replace, undef: :replace, replace: "�")
-    rescue EncodingError
-      value.dup.force_encoding(Encoding::UTF_8).scrub
     end
   end
 end

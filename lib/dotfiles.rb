@@ -29,19 +29,18 @@ class Dotfiles
 
   def self.format_debug_message(message)
     timestamp = Time.now.strftime("%H:%M:%S.%3N")
-    lines = utf8(message.to_s).lines(chomp: true)
+    lines = encode_utf8(message.to_s).lines(chomp: true)
     lines = [""] if lines.empty?
     lines.map { |line| "[#{timestamp}] #{line}" }.join("\n")
   end
   private_class_method :format_debug_message
 
-  def self.utf8(value)
-    source_encoding = value.encoding == Encoding::ASCII_8BIT ? Encoding::UTF_8 : value.encoding
+  def self.encode_utf8(value)
+    source_encoding = (value.encoding == Encoding::ASCII_8BIT) ? Encoding::UTF_8 : value.encoding
     value.encode(Encoding::UTF_8, source_encoding, invalid: :replace, undef: :replace, replace: "�")
   rescue EncodingError
     value.dup.force_encoding(Encoding::UTF_8).scrub
   end
-  private_class_method :utf8
 
   def self.debug_benchmark(label, &block)
     start = Time.now
