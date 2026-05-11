@@ -13,6 +13,7 @@ rust = "latest"
 "go:github.com/mikefarah/yq/v4" = "latest"
 "go:github.com/noperator/yknotify" = "latest"
 "github:pkgforge-dev/ghostty-appimage[bin=ghostty]" = { version = "latest", os = ["linux"] }
+"github:nateberkopec/print-label" = "latest"
 watchexec = "latest"
 fnox = "latest"
 fzf = "latest"
