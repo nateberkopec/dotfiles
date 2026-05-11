@@ -1,10 +1,5 @@
 # Shared Bash setup for interactive shells and login shells used by agents.
 
-# macOS Homebrew setup
-if [[ -x /opt/homebrew/bin/brew ]]; then
-  eval "$(/opt/homebrew/bin/brew shellenv)"
-fi
-
 path_prepend() {
   local dir="$1"
   [[ -d "$dir" ]] || return
@@ -14,6 +9,16 @@ path_prepend() {
     *) PATH="$dir:$PATH" ;;
   esac
 }
+
+# macOS Homebrew setup
+if [[ -x /opt/homebrew/bin/brew ]]; then
+  eval "$(/opt/homebrew/bin/brew shellenv)"
+fi
+
+# Prefer Workbrew's wrapper over the underlying Homebrew binary when present.
+if [[ -x /opt/workbrew/bin/brew ]]; then
+  path_prepend "/opt/workbrew/bin"
+fi
 
 path_prepend "$HOME/go/bin"
 path_prepend "/opt/homebrew/opt/libpq/bin"
