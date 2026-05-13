@@ -6,6 +6,8 @@ I use fish. When writing shell scripts intended for the user, use fish. For temp
 
 Use `gum` to make your shell scripts pretty and fun! Run `gum` alone to see available options/commands for bling.
 
+`find` has a 2 second time limit, enforced via an agent harness hook. When using find, set your timeout to 2 seconds or less. Longer timeouts are rejected.
+
 ## Window Management
 
 I use AeroSpace for macOS window management. For window management tasks, prefer AeroSpace commands and configuration.
