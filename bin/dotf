@@ -114,6 +114,7 @@ ensure_mise_env() {
 }
 
 is_debian() {
+    [ "${DOTF_FORCE_NON_DEBIAN:-false}" = "true" ] && return 1
     [ "${DOTF_FORCE_DEBIAN:-false}" = "true" ] || [ -f /etc/debian_version ]
 }
 

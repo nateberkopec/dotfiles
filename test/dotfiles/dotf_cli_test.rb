@@ -23,6 +23,7 @@ class DotfCliTest < Minitest::Test
   def test_upgrade_updates_pi_extensions
     assert_upgrade_commands(
       stubs: %w[mise brew pi],
+      env: {"DOTF_FORCE_NON_DEBIAN" => "true"},
       expected: [
         "brew shellenv bash", "mise activate bash", "mise cache clear --yes", "mise plugins update",
         "mise outdated --bump", "mise up --yes", "mise install --yes", "pi update --extensions",
