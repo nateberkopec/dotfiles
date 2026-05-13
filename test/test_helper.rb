@@ -7,6 +7,7 @@ require_relative "support/fake_system_adapter"
 require_relative "support/system_assertions"
 require_relative "support/config_fixture_helper"
 require_relative "support/step_test_case"
+require_relative "support/dotf_script_helper"
 
 %w[
   CI
@@ -28,6 +29,8 @@ require_relative "support/step_test_case"
 # protect against running interactive prompts in automated environments.
 
 class Minitest::Test
+  include DotfScriptHelper
+
   def setup
     @fake_system = FakeSystemAdapter.new
     @dotfiles_dir = "/tmp/dotfiles"
