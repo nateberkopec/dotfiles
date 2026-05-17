@@ -252,11 +252,13 @@ class Dotfiles
     def find_fish_path
       return @fish_path if defined?(@fish_path) && !@fish_path.to_s.empty?
 
+      local_fish_path = File.join(@home, ".local", "bin", "fish")
+      return @fish_path = local_fish_path if @system.file_exist?(local_fish_path) || @system.symlink?(local_fish_path)
+
       output, status = @system.execute(shell_script('command -v -- "$1" 2>/dev/null', "fish"))
       return @fish_path = output.strip if status == 0 && !output.strip.empty?
 
       candidates = [
-        File.join(@home, ".local", "bin", "fish"),
         "/opt/homebrew/bin/fish",
         "/usr/local/bin/fish",
         "/usr/bin/fish",
