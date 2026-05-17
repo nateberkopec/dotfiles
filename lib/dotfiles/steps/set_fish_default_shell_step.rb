@@ -11,12 +11,13 @@ class Dotfiles::Step::SetFishDefaultShellStep < Dotfiles::Step
     debug "Setting Fish as the default shell..."
     return add_error("Fish not found on PATH") if fish_path.empty?
     add_fish_to_shells unless fish_in_shells?
-    change_default_shell
+    change_default_shell unless fish_is_default?
   end
 
   def complete?
     super
     add_error("Fish not found on PATH") if fish_path.empty?
+    add_error("Fish is not listed in /etc/shells") unless fish_in_shells?
     add_error("Fish is not set as the default shell (current: #{current_shell.strip})") unless fish_is_default?
     @errors.empty?
   end
@@ -53,6 +54,8 @@ class Dotfiles::Step::SetFishDefaultShellStep < Dotfiles::Step
   def fish_in_shells?
     return false if fish_path.empty?
     @system.readlines("/etc/shells").any? { |line| line.strip == fish_path }
+  rescue Errno::ENOENT
+    false
   end
 
   def current_shell

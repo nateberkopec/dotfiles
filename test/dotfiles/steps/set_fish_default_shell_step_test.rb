@@ -9,12 +9,14 @@ class SetFishDefaultShellStepTest < Minitest::Test
 
   def test_complete_when_fish_is_default_shell
     stub_macos_shell("/opt/homebrew/bin/fish")
+    stub_shells("/opt/homebrew/bin/fish")
 
     assert @step.complete?
   end
 
   def test_incomplete_when_different_shell
     stub_macos_shell("/bin/zsh")
+    stub_shells("/opt/homebrew/bin/fish")
 
     refute @step.complete?
   end
@@ -32,10 +34,36 @@ class SetFishDefaultShellStepTest < Minitest::Test
   def test_rechecks_fish_path_after_initial_miss
     @fake_system.stub_command("command -v fish 2>/dev/null", "", exit_status: 1)
     @fake_system.stub_command(["dscl", ".", "-read", @home, "UserShell"], "UserShell: /usr/bin/fish")
+    stub_shells("/usr/bin/fish")
 
     refute @step.complete?
 
     @fake_system.stub_file_content("/usr/bin/fish", "")
+    assert @step.complete?
+  end
+
+  def test_incomplete_when_fish_is_not_listed_in_shells
+    stub_macos_shell("/opt/homebrew/bin/fish")
+    stub_shells("/bin/zsh")
+
+    refute @step.complete?
+  end
+
+  def test_run_does_not_change_default_shell_when_only_shells_entry_is_missing
+    stub_macos_shell("/opt/homebrew/bin/fish")
+    stub_shells("/bin/zsh")
+    @step.run
+
+    refute @fake_system.operations.any? { |operation, command, _options| operation == :execute && Array(command).first == "chsh" }
+  end
+
+  def test_prefers_local_fish_link_over_path_lookup
+    local_fish = File.join(@home, ".local", "bin", "fish")
+    @fake_system.stub_symlink(local_fish, "/mise/fish")
+    @fake_system.stub_command("command -v fish 2>/dev/null", "/opt/homebrew/bin/fish\n")
+    @fake_system.stub_command(["dscl", ".", "-read", @home, "UserShell"], "UserShell: #{local_fish}")
+    stub_shells(local_fish)
+
     assert @step.complete?
   end
 
@@ -66,5 +94,9 @@ class SetFishDefaultShellStepTest < Minitest::Test
   def stub_macos_shell(shell)
     @fake_system.stub_command("command -v fish 2>/dev/null", "/opt/homebrew/bin/fish\n")
     @fake_system.stub_command(["dscl", ".", "-read", @home, "UserShell"], "UserShell: #{shell}")
+  end
+
+  def stub_shells(*shells)
+    @fake_system.stub_file_content("/etc/shells", shells.join("\n"))
   end
 end
