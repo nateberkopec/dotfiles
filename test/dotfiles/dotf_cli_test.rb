@@ -26,7 +26,8 @@ class DotfCliTest < Minitest::Test
       env: {"DOTF_FORCE_NON_DEBIAN" => "true"},
       expected: [
         "brew shellenv bash", "mise activate bash", "mise cache clear --yes", "mise plugins update",
-        "mise outdated --bump", "mise up --yes", "mise install --yes", "pi update --extensions",
+        "mise up --dry-run --before 3d --yes", "mise up --before 3d --yes",
+        "mise install --before 3d --yes", "pi update --extensions",
         "mise prune --yes", "mise cache prune --yes", "brew update", "brew upgrade",
         "brew autoremove", "brew cleanup"
       ]
@@ -38,8 +39,9 @@ class DotfCliTest < Minitest::Test
       stubs: %w[mise apt-get],
       env: {"DOTF_FORCE_DEBIAN" => "true", "DOTF_SKIP_SUDO" => "true"},
       expected: [
-        "mise activate bash", "mise cache clear --yes", "mise plugins update", "mise outdated --bump",
-        "mise up --yes", "mise install --yes", "mise prune --yes", "mise cache prune --yes",
+        "mise activate bash", "mise cache clear --yes", "mise plugins update",
+        "mise up --dry-run --before 3d --yes", "mise up --before 3d --yes",
+        "mise install --before 3d --yes", "mise prune --yes", "mise cache prune --yes",
         "apt-get update -y", "apt-get upgrade -y", "apt-get autoremove -y", "apt-get clean"
       ]
     )
