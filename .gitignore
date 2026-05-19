@@ -5,6 +5,8 @@
 private.fish
 .env
 Brewfile
+mise.lock
+mise.local.lock
 logs/
 .rubocop_cache/
 .bundle/
