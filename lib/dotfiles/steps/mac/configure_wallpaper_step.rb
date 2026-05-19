@@ -6,7 +6,7 @@ class Dotfiles::Step::ConfigureWallpaperStep < Dotfiles::Step
   macos_only
 
   def self.depends_on
-    [Dotfiles::Step::InstallFishShellStep, Dotfiles::Step::InstallBrewPackagesStep]
+    [Dotfiles::Step::InstallBrewPackagesStep]
   end
 
   def run

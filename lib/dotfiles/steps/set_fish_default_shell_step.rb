@@ -4,11 +4,12 @@ class Dotfiles::Step::SetFishDefaultShellStep < Dotfiles::Step
   prepend Dotfiles::Step::Sudoable
 
   def self.depends_on
-    [Dotfiles::Step::InstallFishShellStep]
+    Dotfiles::Step.system_packages_steps
   end
 
   def run
     debug "Setting Fish as the default shell..."
+    remove_local_fish_symlink
     return add_error("Fish not found on PATH") if fish_path.empty?
     add_fish_to_shells unless fish_in_shells?
     change_default_shell unless fish_is_default?
@@ -16,6 +17,7 @@ class Dotfiles::Step::SetFishDefaultShellStep < Dotfiles::Step
 
   def complete?
     super
+    add_error("Stale Fish symlink remains at #{local_fish_path}") if local_fish_symlink?
     add_error("Fish not found on PATH") if fish_path.empty?
     add_error("Fish is not listed in /etc/shells") unless fish_in_shells?
     add_error("Fish is not set as the default shell (current: #{current_shell.strip})") unless fish_is_default?
@@ -23,6 +25,18 @@ class Dotfiles::Step::SetFishDefaultShellStep < Dotfiles::Step
   end
 
   private
+
+  def remove_local_fish_symlink
+    @system.rm_rf(local_fish_path) if local_fish_symlink?
+  end
+
+  def local_fish_symlink?
+    @system.symlink?(local_fish_path)
+  end
+
+  def local_fish_path
+    File.join(@home, ".local", "bin", "fish")
+  end
 
   def add_fish_to_shells
     debug "Adding Fish to allowed shells..."
