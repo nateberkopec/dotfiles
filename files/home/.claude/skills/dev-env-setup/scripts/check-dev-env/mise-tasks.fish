@@ -85,31 +85,11 @@ function check_mise_modern_features
         return
     end
 
-    check_mise_lockfile
     check_shell_alias_preference
 
     if test $is_ruby_project -eq 1
         check_mise_task_sources
         check_ruby_dependency_prep
-    end
-end
-
-function check_mise_lockfile
-    set config_name (basename "$mise_file")
-
-    switch "$config_name"
-        case mise.local.toml .mise.local.toml
-            if test -f "$target_dir/mise.local.lock"
-                check_pass "mise lockfile (mise.local.lock)"
-            else
-                check_warn "mise lockfile" "Run 'mise lock --local' after changing local mise config to avoid GitHub API lookups and pin checksums in mise.local.lock."
-            end
-        case '*'
-            if test -f "$target_dir/mise.lock"
-                check_pass "mise lockfile (mise.lock)"
-            else
-                check_warn "mise lockfile" "Run 'mise lock' after changing shared mise config and commit mise.lock to avoid GitHub API lookups and pin checksums."
-            end
     end
 end
 
