@@ -7,6 +7,10 @@ class SetFishDefaultShellStepTest < Minitest::Test
     @step = create_step(Dotfiles::Step::SetFishDefaultShellStep)
   end
 
+  def test_depends_on_system_packages
+    assert_equal Dotfiles::Step.system_packages_steps, Dotfiles::Step::SetFishDefaultShellStep.depends_on
+  end
+
   def test_complete_when_fish_is_default_shell
     stub_macos_shell("/opt/homebrew/bin/fish")
     stub_shells("/opt/homebrew/bin/fish")
@@ -57,12 +61,32 @@ class SetFishDefaultShellStepTest < Minitest::Test
     refute @fake_system.operations.any? { |operation, command, _options| operation == :execute && Array(command).first == "chsh" }
   end
 
-  def test_prefers_local_fish_link_over_path_lookup
+  def test_run_removes_stale_local_fish_symlink
     local_fish = File.join(@home, ".local", "bin", "fish")
     @fake_system.stub_symlink(local_fish, "/mise/fish")
-    @fake_system.stub_command("command -v fish 2>/dev/null", "/opt/homebrew/bin/fish\n")
-    @fake_system.stub_command(["dscl", ".", "-read", @home, "UserShell"], "UserShell: #{local_fish}")
-    stub_shells(local_fish)
+    stub_macos_shell("/opt/homebrew/bin/fish")
+    stub_shells("/opt/homebrew/bin/fish")
+
+    @step.run
+
+    assert @fake_system.received_operation?(:rm_rf, local_fish)
+  end
+
+  def test_incomplete_when_stale_local_fish_symlink_exists
+    local_fish = File.join(@home, ".local", "bin", "fish")
+    @fake_system.stub_symlink(local_fish, "/mise/fish")
+    stub_macos_shell("/opt/homebrew/bin/fish")
+    stub_shells("/opt/homebrew/bin/fish")
+
+    refute @step.complete?
+  end
+
+  def test_ignores_local_fish_executable
+    local_fish = File.join(@home, ".local", "bin", "fish")
+    @fake_system.stub_file_content(local_fish, "launcher")
+    @fake_system.stub_file_content("/opt/homebrew/bin/fish", "binary")
+    @fake_system.stub_command(["dscl", ".", "-read", @home, "UserShell"], "UserShell: /opt/homebrew/bin/fish")
+    stub_shells("/opt/homebrew/bin/fish")
 
     assert @step.complete?
   end

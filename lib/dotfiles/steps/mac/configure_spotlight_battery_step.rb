@@ -7,7 +7,7 @@ class Dotfiles::Step::ConfigureSpotlightBatteryStep < Dotfiles::Step
   macos_only
 
   def self.depends_on
-    [Dotfiles::Step::InstallFishShellStep]
+    [Dotfiles::Step::InstallBrewPackagesStep]
   end
 
   def should_run?
