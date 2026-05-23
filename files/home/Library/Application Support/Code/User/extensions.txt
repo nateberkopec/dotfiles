@@ -1,16 +1,10 @@
-4ops.terraform
 castwide.solargraph
-dbaeumer.vscode-eslint
-esbenp.prettier-vscode
 ms-vscode-remote.remote-containers
 ms-vscode-remote.remote-ssh
 ms-vscode-remote.remote-ssh-edit
 ms-vscode.remote-explorer
 ms-vscode.remote-server
 ms-vscode.wordcount
-pascalreitermann93.vscode-yaml-sort
 redhat.vscode-yaml
-rvest.vs-code-prettier-eslint
 shopify.ruby-lsp
-streetsidesoftware.code-spell-checker
 vscodevim.vim
