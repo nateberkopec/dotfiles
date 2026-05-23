@@ -21,48 +21,12 @@
   "chat.commandCenter.enabled": false,
   "workbench.secondarySideBar.defaultVisibility": "hidden",
 
-  "cSpell.enabledFileTypes": {
-    "*": false
-  },
-  "cSpell.userWords": [
-    "andon",
-    "autoscale",
-    "Babylist",
-    "Berkopec",
-    "codegen",
-    "dynos",
-    "failpoint",
-    "footgun",
-    "frontends",
-    "hudu",
-    "jemalloc",
-    "Judoscale",
-    "MALLOC",
-    "Memcachier",
-    "mortemable",
-    "nplusone",
-    "packwerk",
-    "Repli",
-    "repros",
-    "sidekiq",
-    "sidekiqswarm",
-    "speedshop",
-    "srcset",
-    "Terraforming",
-    "Theo",
-    "unindexed",
-    "upsert",
-    "wargame",
-    "whiteboarding",
-    "YJIT"
-  ],
 
   "rubyLsp.rubyVersionManager": {
     "identifier": "mise"
   },
 
   "[markdown]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.wordWrap": "wordWrapColumn",
     "editor.wordWrapColumn": 80,
     "editor.wrappingIndent": "same"
@@ -78,10 +42,6 @@
     "editor.semanticHighlighting.enabled": true,
     "editor.tabSize": 2
   },
-  "[yaml]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  },
-
   "http.proxyStrictSSL": false,
   "redhat.telemetry.enabled": false,
 
@@ -91,17 +51,11 @@
   "remote.SSH.showLoginTerminal": true,
   "remote.SSH.useLocalServer": false,
 
-  "vscode-yaml-sort.customSortKeywords_2": ["name"]
-  ,
   "dev.containers.defaultExtensions": [
     "castwide.solargraph",
-    "dbaeumer.vscode-eslint",
-    "esbenp.prettier-vscode",
     "ms-vscode.wordcount",
     "redhat.vscode-yaml",
-    "rvest.vs-code-prettier-eslint",
     "shopify.ruby-lsp",
-    "streetsidesoftware.code-spell-checker",
     "vscodevim.vim"
   ],
   "rubyLsp.rubyExecutablePath": "/usr/local/bin/ruby"
