@@ -30,7 +30,7 @@ jobs:
         experimental: true
 
     - name: Install gitleaks
-      run: mise install gitleaks
+      run: mise use -g gitleaks@latest
 
     - name: Run lint
       run: mise run lint
