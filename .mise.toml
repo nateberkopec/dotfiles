@@ -7,14 +7,8 @@ BUNDLE_PATH = "vendor/bundle"
 dfr = "./bin/dotf run"
 
 [tools]
-ruby = "latest"
 hk = "latest"
-pkl = "latest"
-fd = "latest"
-go = "latest"
-rg = "latest"
 "github:aldanial/cloc" = "latest"
-gitleaks = "latest"
 
 [deps.bundler]
 auto = true
