@@ -24,6 +24,21 @@ end
 set -x FZF_DEFAULT_COMMAND "fd --type f"
 set -x AGENT_CMD "pi"
 
+# Suppress pi's startup update/package-update notices for normal agent sessions.
+# Leave package-management subcommands online so `pi update` still works.
+function pi
+  if test (count $argv) -gt 0
+    switch $argv[1]
+      case install remove uninstall update list
+        command pi $argv
+      case '*'
+        env PI_SKIP_VERSION_CHECK=1 PI_OFFLINE=1 command pi $argv
+    end
+  else
+    env PI_SKIP_VERSION_CHECK=1 PI_OFFLINE=1 command pi
+  end
+end
+
 # Activate mise early so cargo/gem/npm tools are available
 if command -v mise >/dev/null 2>&1
   mise activate fish --no-hook-env | source
