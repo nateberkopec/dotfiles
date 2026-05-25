@@ -3,10 +3,11 @@ import {
   CACHE_VERSION,
   OPENROUTER_BASE_URL,
   modelCachePath,
+  performanceCachePath,
   type ModelCache,
 } from "./config";
 import { fetchGuardrail, fetchOpenRouterModels } from "./guardrail_api";
-import { writeJson } from "./json_cache";
+import { removeJson, writeJson } from "./json_cache";
 import { toPiModel } from "./pi_models";
 
 export function hideOpenRouter(pi: ExtensionAPI) {
@@ -47,6 +48,7 @@ export async function refreshModelCache(provisioningKey: string) {
   };
 
   await writeJson(modelCachePath, cache);
+  await removeJson(performanceCachePath);
   return cache;
 }
 
