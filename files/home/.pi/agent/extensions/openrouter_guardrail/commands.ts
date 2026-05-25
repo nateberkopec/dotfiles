@@ -77,16 +77,24 @@ async function showSpeedRows(
   const forceRefresh = /(^|\s)(refresh|--refresh)(\s|$)/.test(args ?? "");
   const listOnly = /(^|\s)(list|--list)(\s|$)/.test(args ?? "");
   const rows = await getPerformanceRows(modelCache, provisioningKey, forceRefresh);
-  const passing = rows.filter((row) => row.passes).sort((a, b) => b.throughput_p50_tps - a.throughput_p50_tps);
-  const topRows = passing.slice(0, parseLimit(args) ?? 30);
+  const topRows = rows.sort(compareRowsByThroughput).slice(0, parseLimit(args) ?? 30);
 
   if (topRows.length === 0) {
-    ctx.ui.notify("No guardrailed OpenRouter endpoints currently pass the throughput filters.", "error");
+    ctx.ui.notify("No guardrailed OpenRouter endpoints are available.", "error");
   } else if (listOnly || !ctx.hasUI) {
     ctx.ui.notify(formatRows(topRows), "info");
   } else {
     await selectSpeedRow(pi, ctx, modelCache, apiKey, topRows);
   }
+}
+
+function compareRowsByThroughput(a: any, b: any) {
+  if (Number.isFinite(a.throughput_p50_tps) && Number.isFinite(b.throughput_p50_tps)) {
+    return b.throughput_p50_tps - a.throughput_p50_tps;
+  }
+  if (Number.isFinite(a.throughput_p50_tps)) return -1;
+  if (Number.isFinite(b.throughput_p50_tps)) return 1;
+  return a.model.localeCompare(b.model) || a.provider.localeCompare(b.provider);
 }
 
 async function selectSpeedRow(pi: ExtensionAPI, ctx: any, modelCache: any, apiKey: string, rows: any[]) {
