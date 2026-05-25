@@ -10,11 +10,11 @@ class Dotfiles::Step::UpdateMacOSStep < Dotfiles::Step
   end
 
   def should_run?
-    user_has_admin_rights? && minor_updates_available.any?
+    user_has_admin_rights? && software_updates_available.any?
   end
 
   def run
-    updates = minor_updates_available
+    updates = software_updates_available
     update_list = updates.map { |id| "  • #{id}" }.join("\n")
 
     add_notice(
@@ -26,7 +26,7 @@ class Dotfiles::Step::UpdateMacOSStep < Dotfiles::Step
   def complete?
     super
     check_background_update_freshness
-    updates = minor_updates_available
+    updates = software_updates_available
     return true if ENV["CI"] && updates.any?
 
     updates.each { |update| add_error("macOS update available: #{update}") }
@@ -35,10 +35,10 @@ class Dotfiles::Step::UpdateMacOSStep < Dotfiles::Step
 
   private
 
-  def minor_updates_available
+  def software_updates_available
     output = read_software_update_plist("RecommendedUpdates")
     return [] unless output
-    parse_minor_updates(output)
+    parse_software_updates(output)
   end
 
   def read_software_update_plist(key)
@@ -48,14 +48,16 @@ class Dotfiles::Step::UpdateMacOSStep < Dotfiles::Step
     (status == 0) ? output : nil
   end
 
-  def parse_minor_updates(output)
-    updates = output.lines.filter_map { |line| extract_minor_update_id(line) }
-    debug "Minor macOS updates available: #{updates.join(", ")}" unless updates.empty?
+  def parse_software_updates(output)
+    updates = output.lines.filter_map { |line| extract_software_update_id(line) }
+    debug "macOS software updates available: #{updates.join(", ")}" unless updates.empty?
     updates
   end
 
-  def extract_minor_update_id(line)
-    line.match(/Identifier = "(MSU_UPDATE_[^"]+_minor)"/)&.[](1)
+  def extract_software_update_id(line)
+    id = line.match(/Identifier = "([^"]+)"/)&.[](1)
+    return if id&.end_with?("_major")
+    id
   end
 
   def check_background_update_freshness
