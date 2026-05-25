@@ -3,7 +3,6 @@ import { readValidOpenRouterApiKey } from "./auth";
 import type { ModelCacheState } from "./config";
 import {
   errorMessage,
-  formatRow,
   formatRows,
   openRouterAuthMessage,
   parseLimit,
@@ -12,6 +11,7 @@ import { getPerformanceRows } from "./performance";
 import { refreshModelCache, registerGuardrailedOpenRouter } from "./provider";
 import { switchToEndpointRoute } from "./route";
 import { readOpenRouterProvisioningKey } from "./secrets";
+import { selectSpeedRow } from "./speed_picker";
 
 export function registerCommands(pi: ExtensionAPI, state: ModelCacheState) {
   pi.registerCommand("or-refresh", {
@@ -84,7 +84,8 @@ async function showSpeedRows(
   } else if (listOnly || !ctx.hasUI) {
     ctx.ui.notify(formatRows(topRows), "info");
   } else {
-    await selectSpeedRow(pi, ctx, modelCache, apiKey, topRows);
+    const row = await selectSpeedRow(ctx, topRows);
+    if (row) await switchToEndpointRoute(pi, ctx, modelCache, row, apiKey);
   }
 }
 
@@ -97,11 +98,3 @@ function compareRowsByThroughput(a: any, b: any) {
   return a.model.localeCompare(b.model) || a.provider.localeCompare(b.provider);
 }
 
-async function selectSpeedRow(pi: ExtensionAPI, ctx: any, modelCache: any, apiKey: string, rows: any[]) {
-  const choices = rows.map((row, index) => `${index + 1}. ${formatRow(row)}`);
-  const selected = await ctx.ui.select("OpenRouter endpoint by throughput:", choices);
-  if (!selected) return;
-
-  const row = rows[choices.indexOf(selected)];
-  if (row) await switchToEndpointRoute(pi, ctx, modelCache, row, apiKey);
-}
