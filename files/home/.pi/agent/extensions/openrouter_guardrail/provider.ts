@@ -33,22 +33,34 @@ export function registerGuardrailedOpenRouter(pi: ExtensionAPI, cache: ModelCach
 export async function refreshModelCache(provisioningKey: string) {
   const guardrail = await fetchGuardrail(provisioningKey);
   const openRouterModels = await fetchOpenRouterModels();
-  const byId = new Map(openRouterModels.map((model: any) => [model.id, model]));
-  const models = guardrail.allowedModels.map((id) =>
-    toPiModel(byId.get(id) ?? { id, name: id }, guardrail.allowedProviders),
-  );
+  const bySlug = modelSlugMap(openRouterModels);
+  const modelRecords = guardrail.allowedModels.map((slug) => bySlug.get(slug) ?? { id: slug, name: slug });
+  const models = modelRecords.map((model) => toPiModel(model, guardrail.allowedProviders));
 
   const cache = {
     version: CACHE_VERSION,
     fetchedAt: Date.now(),
     guardrailName: guardrail.name,
-    allowedModels: guardrail.allowedModels,
+    allowedModels: uniqueSorted(modelRecords.map((model) => model.id)),
     allowedProviders: guardrail.allowedProviders,
     models,
   };
 
   await writeJson(modelCachePath, cache);
   return cache;
+}
+
+function modelSlugMap(models: any[]) {
+  const bySlug = new Map<string, any>();
+  for (const model of models) {
+    if (model?.id) bySlug.set(model.id, model);
+    if (model?.canonical_slug) bySlug.set(model.canonical_slug, model);
+  }
+  return bySlug;
+}
+
+function uniqueSorted(values: unknown[]) {
+  return Array.from(new Set(values.map(String).filter(Boolean))).sort();
 }
 
 function unavailableModel() {
