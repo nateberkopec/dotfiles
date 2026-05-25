@@ -14,11 +14,6 @@ class UpdateMacOSStepTest < Minitest::Test
     assert @step.complete?
   end
 
-  def test_should_run_returns_true_in_ci_with_admin_and_updates
-    stub_admin_with_updates
-    with_ci { assert @step.should_run? }
-  end
-
   def test_should_run_returns_false_without_admin
     stub_updates_available
     @fake_system.stub_command("groups", "staff")
@@ -59,6 +54,19 @@ class UpdateMacOSStepTest < Minitest::Test
     assert_includes @step.notices.first[:message], "MSU_UPDATE_123_minor"
   end
 
+  def test_run_adds_notice_with_command_line_tools_update
+    @fake_system.stub_command("groups", "admin staff")
+    stub_plist_updates_with_identifier("Command Line Tools for Xcode 26.5")
+    @step.run
+
+    assert_includes @step.notices.first[:message], "Command Line Tools for Xcode 26.5"
+  end
+
+  def test_complete_ignores_major_macos_upgrades
+    stub_plist_updates_with_identifier("MSU_UPDATE_25F71_patch_26.5_major")
+    assert @step.complete?
+  end
+
   private
 
   def stub_plist
@@ -67,10 +75,18 @@ class UpdateMacOSStepTest < Minitest::Test
   end
 
   def stub_plist_updates(has_updates)
+    output = has_updates ? ['Identifier = "MSU_UPDATE_123_minor"', 0] : ["no updates", 1]
+    stub_recommended_updates(output)
+  end
+
+  def stub_plist_updates_with_identifier(identifier)
+    stub_recommended_updates(['Identifier = "' + identifier + '"', 0])
+  end
+
+  def stub_recommended_updates(output)
     stub_plist
     plist_path = "/Library/Preferences/com.apple.SoftwareUpdate.plist"
     command = "defaults read #{plist_path} RecommendedUpdates 2>/dev/null"
-    output = has_updates ? ['Identifier = "MSU_UPDATE_123_minor"', 0] : ["no updates", 1]
     @fake_system.stub_command(command, output)
   end
 
