@@ -6,7 +6,7 @@ function fish_should_add_to_history --description 'Skip sensitive commands and l
       return 1
   end
 
-  set -l lower_commandline (string lower -- "$commandline")
+  set -l lower_commandline (string lower -- "$commandline" | string collect)
 
   switch $lower_commandline
     case '*api*' '*token*' '*secret*' '*password*' '*passwd*' '*private*key*' '*access*key*' '*authorization*' '*bearer*'
