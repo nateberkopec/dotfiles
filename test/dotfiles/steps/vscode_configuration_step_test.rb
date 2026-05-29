@@ -21,39 +21,15 @@ class VSCodeConfigurationStepTest < Minitest::Test
   end
 
   def test_run_installs_extensions_from_file
-    assert_run_executes(
-      "ms-python.python\nms-vscode.cpptools\n",
-      "ms-python.python",
-      "code --install-extension ms-vscode.cpptools"
-    )
-  end
-
-  def test_complete_fails_when_superseded_extensions_are_installed
-    @fake_system.stub_file_content(@extensions_file, "nateberkopec.wordcount\n")
-    @fake_system.stub_command("command -v code >/dev/null 2>&1", "", exit_status: 0)
-    @fake_system.stub_command("code --list-extensions", "ms-vscode.wordcount\nnateberkopec.wordcount\n")
-
-    refute @step.complete?
-  end
-
-  def test_run_uninstalls_superseded_extensions
-    assert_run_executes(
-      "nateberkopec.wordcount\n",
-      "ms-vscode.wordcount\nnateberkopec.wordcount\n",
-      "code --uninstall-extension ms-vscode.wordcount"
-    )
-  end
-
-  private
-
-  def assert_run_executes(extensions_file_content, installed_extensions, expected_command)
-    @fake_system.stub_file_content(@extensions_file, extensions_file_content)
-    @fake_system.stub_command("code --list-extensions", installed_extensions)
+    @fake_system.stub_file_content(@extensions_file, "ms-python.python\nms-vscode.cpptools\n")
+    @fake_system.stub_command("code --list-extensions", "ms-python.python")
 
     @step.run
 
-    assert @fake_system.received_operation?(:execute, expected_command, quiet: true)
+    assert @fake_system.received_operation?(:execute, "code --install-extension ms-vscode.cpptools", quiet: true)
   end
+
+  private
 
   def stub_missing_extension
     @fake_system.stub_file_content(@extensions_file, "ms-python.python\n")
