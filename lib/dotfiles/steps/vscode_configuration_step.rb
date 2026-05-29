@@ -1,5 +1,10 @@
 class Dotfiles::Step::VSCodeConfigurationStep < Dotfiles::Step
   DESCRIPTION = "Installs configured VS Code extensions when the code CLI is available.".freeze
+  SUPERSEDED_EXTENSIONS = %w[
+    ms-vscode.wordcount
+    redhat.vscode-yaml
+    vscodevim.vim
+  ].freeze
 
   def self.display_name
     "VS Code Configuration"
@@ -10,6 +15,7 @@ class Dotfiles::Step::VSCodeConfigurationStep < Dotfiles::Step
   end
 
   def run
+    uninstall_superseded_vscode_extensions
     install_vscode_extensions
   end
 
@@ -36,7 +42,8 @@ class Dotfiles::Step::VSCodeConfigurationStep < Dotfiles::Step
   def extensions_installed?
     return true unless @system.file_exist?(extensions_file) && command_exists?("code")
     installed = installed_extensions
-    expected_extensions.all? { |ext| installed.include?(ext) }
+    expected_extensions.all? { |ext| installed.include?(ext) } &&
+      SUPERSEDED_EXTENSIONS.none? { |ext| installed.include?(ext) }
   end
 
   def expected_extensions
@@ -52,6 +59,17 @@ class Dotfiles::Step::VSCodeConfigurationStep < Dotfiles::Step
       execute(command("code", "--install-extension", ext))
     end
     @installed_extensions = nil if missing.any?
+  end
+
+  def uninstall_superseded_vscode_extensions
+    return unless @system.file_exist?(extensions_file)
+    installed = installed_extensions
+    superseded = SUPERSEDED_EXTENSIONS.select { |ext| installed.include?(ext) }
+    superseded.each do |ext|
+      debug "Uninstalling superseded VSCode extension: #{ext}"
+      execute(command("code", "--uninstall-extension", ext))
+    end
+    @installed_extensions = nil if superseded.any?
   end
 
   def config_home
