@@ -1,5 +1,5 @@
 castwide.solargraph
-ms-vscode.wordcount
-redhat.vscode-yaml
+nateberkopec.simple-yaml-tools
+nateberkopec.vscodevim-core
+nateberkopec.wordcount
 shopify.ruby-lsp
-vscodevim.vim
