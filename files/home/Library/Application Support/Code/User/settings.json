@@ -45,18 +45,5 @@
   "http.proxyStrictSSL": false,
   "redhat.telemetry.enabled": false,
 
-  "remote.SSH.remotePlatform": {
-    "MBP-Server.local": "macOS"
-  },
-  "remote.SSH.showLoginTerminal": true,
-  "remote.SSH.useLocalServer": false,
-
-  "dev.containers.defaultExtensions": [
-    "castwide.solargraph",
-    "ms-vscode.wordcount",
-    "redhat.vscode-yaml",
-    "shopify.ruby-lsp",
-    "vscodevim.vim"
-  ],
   "rubyLsp.rubyExecutablePath": "/usr/local/bin/ruby"
 }
