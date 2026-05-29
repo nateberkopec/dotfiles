@@ -1,3 +1,5 @@
+require "uri"
+
 class Dotfiles::Step::VSCodeConfigurationStep < Dotfiles::Step
   DESCRIPTION = "Installs configured VS Code extensions when the code CLI is available.".freeze
 
@@ -36,22 +38,48 @@ class Dotfiles::Step::VSCodeConfigurationStep < Dotfiles::Step
   def extensions_installed?
     return true unless @system.file_exist?(extensions_file) && command_exists?("code")
     installed = installed_extensions
-    expected_extensions.all? { |ext| installed.include?(ext) }
+    expected_extensions.all? { |ext| installed.include?(ext[:id]) }
   end
 
   def expected_extensions
-    @system.readlines(extensions_file).map(&:strip)
+    @system.readlines(extensions_file).filter_map do |line|
+      parse_extension_line(line.strip)
+    end
   end
 
   def install_vscode_extensions
     return unless @system.file_exist?(extensions_file)
     debug "Installing VSCode extensions..."
-    missing = expected_extensions.reject { |ext| installed_extensions.include?(ext) }
-    missing.each do |ext|
-      debug "Installing VSCode extension: #{ext}"
-      execute(command("code", "--install-extension", ext))
-    end
+    missing = expected_extensions.reject { |ext| installed_extensions.include?(ext[:id]) }
+    missing.each { |ext| install_extension(ext) }
     @installed_extensions = nil if missing.any?
+  end
+
+  def parse_extension_line(line)
+    return if line.empty?
+    id, source = line.split(/\s+/, 2)
+    {id: id, source: source}
+  end
+
+  def install_extension(ext)
+    debug "Installing VSCode extension: #{ext[:id]}"
+    execute(command("code", "--install-extension", install_arg_for(ext)))
+  end
+
+  def install_arg_for(ext)
+    source = ext[:source].to_s
+    return ext[:id] if source.empty?
+    return downloaded_extension(source) if source.start_with?("http://", "https://")
+
+    source
+  end
+
+  def downloaded_extension(url)
+    dir = temp_path("vscode-extension")
+    path = File.join(dir, File.basename(URI.parse(url).path))
+    @system.mkdir_p(dir)
+    execute(command("curl", "-fsSL", url, "-o", path))
+    path
   end
 
   def config_home

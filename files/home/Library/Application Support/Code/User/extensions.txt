@@ -1,5 +1,5 @@
 castwide.solargraph
-ms-vscode.wordcount
+nateberkopec.wordcount https://github.com/nateberkopec/vscode-wordcount/releases/download/v0.1.0-nate.1/wordcount.vsix
 redhat.vscode-yaml
 shopify.ruby-lsp
 vscodevim.vim
