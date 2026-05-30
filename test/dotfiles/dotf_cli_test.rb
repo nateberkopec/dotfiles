@@ -28,8 +28,10 @@ class DotfCliTest < Minitest::Test
         "brew shellenv bash", "mise activate bash", "mise cache clear --yes", "mise plugins update",
         "mise up --dry-run --before 3d --yes", "mise up --before 3d --yes",
         "mise install --before 3d --yes", "pi update --extensions",
-        "mise prune --yes", "mise cache prune --yes", "brew update", "brew upgrade",
-        "brew autoremove", "brew cleanup"
+        "mise prune --yes", "mise cache prune --yes",
+        "HOMEBREW_AUTO_UPDATE_SECS=604800 brew update-if-needed",
+        "HOMEBREW_NO_AUTO_UPDATE=1 brew upgrade",
+        "HOMEBREW_NO_AUTO_UPDATE=1 brew autoremove", "HOMEBREW_NO_AUTO_UPDATE=1 brew cleanup"
       ]
     )
   end
@@ -57,7 +59,8 @@ class DotfCliTest < Minitest::Test
       stubs.each { |command| write_command_stub(bin_dir, command) }
 
       with_env(env.merge("DOTF_UPGRADE_LOG" => log_path, "PATH" => "#{bin_dir}:/usr/bin:/bin")) do
-        assert system("bash", script_path, "upgrade", out: File::NULL)
+        clean_homebrew_env = {"HOMEBREW_AUTO_UPDATE_SECS" => nil, "HOMEBREW_NO_AUTO_UPDATE" => nil}
+        assert system(clean_homebrew_env, "bash", script_path, "upgrade", out: File::NULL)
       end
 
       assert_equal expected, File.readlines(log_path, chomp: true)

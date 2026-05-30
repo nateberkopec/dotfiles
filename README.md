@@ -19,7 +19,7 @@ When you run `dotf run` it will:
 | Command | What it does |
 |---------|--------------|
 | `dotf run` | Set up your Mac. Safe to run many times. |
-| `dotf upgrade` | Refresh and upgrade mise tools, Pi extensions, Homebrew packages, and APT packages on Debian/Ubuntu. |
+| `dotf upgrade` | Refresh and upgrade mise tools, Pi extensions, Homebrew packages, and APT packages on Debian/Ubuntu. Homebrew auto-updates are throttled to about once every 7 days. |
 | `dotf steps` | List every setup step with its class name and description. |
 | `dotf help` | Show help |
 
