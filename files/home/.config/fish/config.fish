@@ -23,6 +23,7 @@ else
 end
 set -x FZF_DEFAULT_COMMAND "fd --type f"
 set -x AGENT_CMD "pi"
+set -Ux HOMEBREW_NO_REQUIRE_TAP_TRUST 1
 
 # Suppress pi's startup update/package-update notices for normal agent sessions.
 # Leave package-management subcommands online so `pi update` still works.
