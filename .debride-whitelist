@@ -3,6 +3,7 @@
 applications=
 config=
 copy_if_exists
+down
 execute!
 install_direct_download
 log_file
