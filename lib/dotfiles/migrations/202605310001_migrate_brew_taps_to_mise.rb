@@ -55,7 +55,7 @@ class Dotfiles::Migration::MigrateBrewTapsToMise < Dotfiles::Migration
   def install_mise_tools
     return unless command_exists?("mise")
 
-    execute(command("mise", "--cd", @home, "install", "--yes", *MISE_TOOLS))
+    execute(command("mise", "--cd", @home, "install", "--yes", "--minimum-release-age", "3d", *MISE_TOOLS))
   end
 
   def uninstall_formula(formula)
@@ -95,6 +95,6 @@ class Dotfiles::Migration::MigrateBrewTapsToMise < Dotfiles::Migration
   end
 
   def brew_command(*args)
-    env_command({"HOMEBREW_NO_AUTO_UPDATE" => "1", "HOMEBREW_NO_ENV_HINTS" => "1"}, "brew", *args)
+    env_command({"HOMEBREW_AUTO_UPDATE_SECS" => "604800", "HOMEBREW_NO_ENV_HINTS" => "1"}, "brew", *args)
   end
 end

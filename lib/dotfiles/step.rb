@@ -196,7 +196,11 @@ class Dotfiles
     end
 
     def brew_quiet(*args)
-      @system.execute(env_command({"HOMEBREW_NO_AUTO_UPDATE" => "1", "HOMEBREW_NO_ENV_HINTS" => "1"}, "brew", *args))
+      @system.execute(env_command({"HOMEBREW_AUTO_UPDATE_SECS" => homebrew_auto_update_secs, "HOMEBREW_NO_ENV_HINTS" => "1"}, "brew", *args))
+    end
+
+    def homebrew_auto_update_secs
+      ENV.fetch("DOTF_HOMEBREW_AUTO_UPDATE_SECS", "604800")
     end
 
     def user_has_admin_rights?

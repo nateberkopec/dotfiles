@@ -32,6 +32,7 @@ heroku = "11.4.0"
 "github:fabro-sh/fabro" = "0.246.0-nightly.0"
 
 [settings]
+minimum_release_age = "3d"
 env_shell_expand = false
 idiomatic_version_file_enable_tools = ["ruby", "node"]
 legacy_version_file = true

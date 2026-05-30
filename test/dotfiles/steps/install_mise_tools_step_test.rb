@@ -66,6 +66,30 @@ class InstallMiseToolsStepTest < StepTestCase
     end
   end
 
+  def test_package_release_age_override_uses_new_name_first
+    with_env("DOTF_PACKAGE_RELEASE_AGE" => "5d", "DOTF_PACKAGE_UPGRADE_DELAY" => "1d") do
+      stub_managed_global_mise_config
+      stub_mise_available
+      @fake_system.stub_command(mise_install_command(release_age: "5d"), "", exit_status: 0)
+
+      step.run
+
+      assert_executed(mise_install_command(release_age: "5d"))
+    end
+  end
+
+  def test_package_release_age_preserves_old_override_name
+    with_env("DOTF_PACKAGE_UPGRADE_DELAY" => "2d") do
+      stub_managed_global_mise_config
+      stub_mise_available
+      @fake_system.stub_command(mise_install_command(release_age: "2d"), "", exit_status: 0)
+
+      step.run
+
+      assert_executed(mise_install_command(release_age: "2d"))
+    end
+  end
+
   private
 
   def global_mise_config_path
@@ -88,8 +112,8 @@ class InstallMiseToolsStepTest < StepTestCase
     @fake_system.stub_command(mise_install_command(dry_run: true), output, exit_status: 0)
   end
 
-  def mise_install_command(*specs, dry_run: false)
-    command = "mise --cd #{@home} install --yes"
+  def mise_install_command(*specs, dry_run: false, release_age: "3d")
+    command = "mise --cd #{@home} install --yes --minimum-release-age #{release_age}"
     command = "#{command} --dry-run" if dry_run
     return command if specs.empty?
 

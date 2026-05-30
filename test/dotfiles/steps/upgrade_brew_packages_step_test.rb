@@ -60,6 +60,6 @@ class UpgradeBrewPackagesStepTest < Minitest::Test
   end
 
   def brew_outdated_command
-    [{"HOMEBREW_NO_AUTO_UPDATE" => "1", "HOMEBREW_NO_ENV_HINTS" => "1"}, "brew", "outdated", "--quiet"]
+    [{"HOMEBREW_AUTO_UPDATE_SECS" => "604800", "HOMEBREW_NO_ENV_HINTS" => "1"}, "brew", "outdated", "--quiet"]
   end
 end

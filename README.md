@@ -56,6 +56,8 @@ Supported platforms:
 
 In general, because `mise` is crossplatform, if we can do it with `mise`, we should do it with `mise`.
 
+Package installs avoid very new releases where supported. Mise waits 3 days before installing new releases, and Homebrew auto-updates are throttled to about once every 7 days.
+
 My system should always be running the latest available Ruby release, so that's what this repo's Ruby version target is too.
 
 `dotf run` aggressively overwrites existing user state. This repo is the source of truth.

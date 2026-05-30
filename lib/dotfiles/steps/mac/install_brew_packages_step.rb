@@ -61,7 +61,7 @@ class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
 
   def install_packages
     cask_opts = user_has_admin_rights? ? "" : "--appdir=~/Applications"
-    @system.execute(env_command({"HOMEBREW_NO_AUTO_UPDATE" => "1", "HOMEBREW_NO_ENV_HINTS" => "1", "HOMEBREW_CASK_OPTS" => cask_opts}, "brew", "bundle", "install", "--file=#{@brewfile_path}"))
+    @system.execute(env_command({"HOMEBREW_AUTO_UPDATE_SECS" => homebrew_auto_update_secs, "HOMEBREW_NO_ENV_HINTS" => "1", "HOMEBREW_CASK_OPTS" => cask_opts}, "brew", "bundle", "install", "--file=#{@brewfile_path}"))
   end
 
   def log_installation_results(output, exit_status)

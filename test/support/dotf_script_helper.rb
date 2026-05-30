@@ -29,7 +29,11 @@ module DotfScriptHelper
     path = File.join(bin_dir, command)
     File.write(path, <<~BASH)
       #!/bin/bash
-      printf '%s %s\n' "#{command}" "$*" >> "$DOTF_UPGRADE_LOG"
+      if [ "#{command}" = "brew" ] && [ "${1:-}" != "shellenv" ]; then
+        printf 'HOMEBREW_AUTO_UPDATE_SECS=%s %s %s\n' "$HOMEBREW_AUTO_UPDATE_SECS" "#{command}" "$*" >> "$DOTF_UPGRADE_LOG"
+      else
+        printf '%s %s\n' "#{command}" "$*" >> "$DOTF_UPGRADE_LOG"
+      fi
     BASH
     FileUtils.chmod("+x", path)
   end

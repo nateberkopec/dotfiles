@@ -107,9 +107,13 @@ class Dotfiles::Step::InstallMiseToolsStep < Dotfiles::Step
   end
 
   def install_command(dry_run: false)
-    args = ["install", "--yes"]
+    args = ["install", "--yes", "--minimum-release-age", package_release_age]
     args << "--dry-run" if dry_run
     args.concat(ordered_tools(ci_tools)) unless ci_tools.empty?
     mise_command(*args)
+  end
+
+  def package_release_age
+    ENV.fetch("DOTF_PACKAGE_RELEASE_AGE", ENV.fetch("DOTF_PACKAGE_UPGRADE_DELAY", "3d"))
   end
 end
