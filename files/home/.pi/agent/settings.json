@@ -5,10 +5,10 @@
   "defaultThinkingLevel": "medium",
   "hideThinkingBlock": false,
   "packages": [
-    "npm:pi-mcp-adapter",
-    "npm:pi-ding",
-    "npm:pi-subagents",
-    "npm:pi-web-providers"
+    "npm:pi-mcp-adapter@2.8.0",
+    "npm:pi-ding@0.2.2",
+    "npm:pi-subagents@0.25.0",
+    "npm:pi-web-providers@3.2.0"
   ],
   "npmCommand": [
     "mise",
