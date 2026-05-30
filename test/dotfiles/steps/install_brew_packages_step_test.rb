@@ -91,19 +91,19 @@ class InstallBrewPackagesStepTest < StepTestCase
   end
 
   def bundle_check_command
-    "HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 brew bundle check --file=#{brewfile_path} --no-upgrade 2>&1"
+    "HOMEBREW_AUTO_UPDATE_SECS=604800 HOMEBREW_NO_ENV_HINTS=1 brew bundle check --file=#{brewfile_path} --no-upgrade 2>&1"
   end
 
   def bundle_install_command(admin: false)
     cask_opts = admin ? "" : "--appdir=~/Applications"
-    %(HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 HOMEBREW_CASK_OPTS="#{cask_opts}" brew bundle install --file=#{@dotfiles_dir}/Brewfile 2>&1)
+    %(HOMEBREW_AUTO_UPDATE_SECS=604800 HOMEBREW_NO_ENV_HINTS=1 HOMEBREW_CASK_OPTS="#{cask_opts}" brew bundle install --file=#{@dotfiles_dir}/Brewfile 2>&1)
   end
 
   def brew_list_formula_command
-    "HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 brew list --formula 2>&1"
+    "HOMEBREW_AUTO_UPDATE_SECS=604800 HOMEBREW_NO_ENV_HINTS=1 brew list --formula 2>&1"
   end
 
   def brew_list_cask_command
-    "HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 brew list --cask 2>&1"
+    "HOMEBREW_AUTO_UPDATE_SECS=604800 HOMEBREW_NO_ENV_HINTS=1 brew list --cask 2>&1"
   end
 end

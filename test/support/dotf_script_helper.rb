@@ -29,6 +29,15 @@ module DotfScriptHelper
     path = File.join(bin_dir, command)
     File.write(path, <<~BASH)
       #!/bin/bash
+      env_prefix=()
+      for var in HOMEBREW_AUTO_UPDATE_SECS HOMEBREW_NO_AUTO_UPDATE; do
+        if [ -n "${!var+x}" ]; then
+          env_prefix+=("$var=${!var}")
+        fi
+      done
+      if [ ${#env_prefix[@]} -gt 0 ]; then
+        printf '%s ' "${env_prefix[@]}" >> "$DOTF_UPGRADE_LOG"
+      fi
       printf '%s %s\n' "#{command}" "$*" >> "$DOTF_UPGRADE_LOG"
     BASH
     FileUtils.chmod("+x", path)

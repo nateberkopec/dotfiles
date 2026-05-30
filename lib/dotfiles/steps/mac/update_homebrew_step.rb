@@ -1,11 +1,11 @@
 class Dotfiles::Step::UpdateHomebrewStep < Dotfiles::Step
-  DESCRIPTION = "Updates Homebrew package definitions before package installation runs.".freeze
+  DESCRIPTION = "Lets Homebrew auto-update package definitions when its throttle allows.".freeze
 
   macos_only
 
   def run
-    debug "Updating Homebrew package definitions..."
-    brew_quiet("update")
+    debug "Checking whether Homebrew package definitions need an auto-update..."
+    brew_quiet("update-if-needed")
   end
 
   def complete?

@@ -17,7 +17,8 @@ DOTFILES_DIR="$(dirname "$SCRIPT_DIR")"
 export DOTFILES_DIR
 LOGS_DIR="$DOTFILES_DIR/logs"
 LOG_RETENTION=30
-PACKAGE_UPGRADE_DELAY="${DOTF_PACKAGE_UPGRADE_DELAY:-3d}"
+PACKAGE_RELEASE_AGE="${DOTF_PACKAGE_RELEASE_AGE:-${DOTF_PACKAGE_UPGRADE_DELAY:-3d}}"
+HOMEBREW_AUTO_UPDATE_SECS="${DOTF_HOMEBREW_AUTO_UPDATE_SECS:-604800}"
 
 rotate_logs() {
     local retention="${1:-$LOG_RETENTION}"
@@ -161,12 +162,12 @@ cmd_upgrade() {
     mise cache clear --yes
     mise plugins update
 
-    announce "Checking for mise updates older than $PACKAGE_UPGRADE_DELAY"
-    mise up --dry-run --before "$PACKAGE_UPGRADE_DELAY" --yes
+    announce "Checking for mise updates older than $PACKAGE_RELEASE_AGE"
+    mise up --dry-run --minimum-release-age "$PACKAGE_RELEASE_AGE" --yes
 
-    announce "Upgrading mise tools older than $PACKAGE_UPGRADE_DELAY"
-    mise up --before "$PACKAGE_UPGRADE_DELAY" --yes
-    mise install --before "$PACKAGE_UPGRADE_DELAY" --yes
+    announce "Upgrading mise tools older than $PACKAGE_RELEASE_AGE"
+    mise up --minimum-release-age "$PACKAGE_RELEASE_AGE" --yes
+    mise install --minimum-release-age "$PACKAGE_RELEASE_AGE" --yes
 
     if command -v pi &> /dev/null; then
         announce "Updating Pi extensions"
@@ -180,13 +181,15 @@ cmd_upgrade() {
     mise cache prune --yes
 
     if command -v brew &> /dev/null; then
-        announce "Updating Homebrew"
-        brew update
-        brew upgrade
+        announce "Checking Homebrew metadata"
+        env HOMEBREW_AUTO_UPDATE_SECS="$HOMEBREW_AUTO_UPDATE_SECS" brew update-if-needed
+
+        announce "Upgrading Homebrew"
+        env HOMEBREW_NO_AUTO_UPDATE=1 brew upgrade
 
         announce "Cleaning Homebrew"
-        brew autoremove
-        brew cleanup
+        env HOMEBREW_NO_AUTO_UPDATE=1 brew autoremove
+        env HOMEBREW_NO_AUTO_UPDATE=1 brew cleanup
     elif is_debian; then
         warn "Skipping Homebrew (brew not found on PATH)"
     fi

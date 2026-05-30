@@ -63,7 +63,7 @@ class InstallApplicationsStepTest < StepTestCase
 
   def install_command_for(app)
     flag = "--appdir=~/Applications"
-    "HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 brew install --cask #{flag} #{app["brew_cask"]} 2>&1"
+    "HOMEBREW_AUTO_UPDATE_SECS=604800 HOMEBREW_NO_ENV_HINTS=1 brew install --cask #{flag} #{app["brew_cask"]} 2>&1"
   end
 
   def user_app_path(app)
