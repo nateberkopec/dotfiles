@@ -39,6 +39,7 @@ experimental = true
 github.credential_command = "gh auth token"
 ruby.compile = false
 fetch_remote_versions_cache = "7d"
+minimum_release_age = "3d"
 http_timeout = "5s"
 fetch_remote_versions_timeout = "5s"
 
