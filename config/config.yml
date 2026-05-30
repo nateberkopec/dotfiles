@@ -169,3 +169,12 @@ file_associations:
   - ".md"
   company.thebrowser.dia:
   - ".svg"
+vscode_extension_sources:
+  nateberkopec.simple-yaml-tools:
+    github: nateberkopec/simple-yaml-tools
+    tag: v0.0.1
+    asset: simple-yaml-tools-0.0.1.vsix
+  nateberkopec.vscodevim-core:
+    github: nateberkopec/vscodevim
+    tag: core-v1.32.4
+    asset: vscodevim-core-1.32.4.vsix

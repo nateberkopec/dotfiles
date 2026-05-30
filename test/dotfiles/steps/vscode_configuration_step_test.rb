@@ -29,7 +29,71 @@ class VSCodeConfigurationStepTest < Minitest::Test
     assert @fake_system.received_operation?(:execute, "code --install-extension ms-vscode.cpptools", quiet: true)
   end
 
+  def test_run_installs_configured_extensions_from_github_release_assets
+    stub_extension_source
+    @fake_system.stub_file_content(@extensions_file, "nateberkopec.simple-yaml-tools\n")
+    @fake_system.stub_command("code --list-extensions", "")
+    @fake_system.stub_command("command -v gh >/dev/null 2>&1", "", exit_status: 0)
+
+    @step.run
+
+    assert @fake_system.received_operation?(:mkdir_p, "/tmp/dotfiles-vscode-extensions")
+    assert @fake_system.received_operation?(:execute, "gh release download v0.0.1 -R nateberkopec/simple-yaml-tools -p simple-yaml-tools-0.0.1.vsix -D /tmp/dotfiles-vscode-extensions --clobber", quiet: true)
+    assert @fake_system.received_operation?(:execute, "code --install-extension /tmp/dotfiles-vscode-extensions/simple-yaml-tools-0.0.1.vsix", quiet: true)
+  end
+
+  def test_run_skips_github_release_assets_when_extension_is_already_installed
+    stub_extension_source
+    @fake_system.stub_file_content(@extensions_file, "nateberkopec.simple-yaml-tools\n")
+    @fake_system.stub_command("code --list-extensions", "nateberkopec.simple-yaml-tools")
+
+    @step.run
+
+    refute @fake_system.received_operation?(:execute, "gh release download v0.0.1 -R nateberkopec/simple-yaml-tools -p simple-yaml-tools-0.0.1.vsix -D /tmp/dotfiles-vscode-extensions --clobber", quiet: true)
+    refute @fake_system.received_operation?(:execute, "code --install-extension /tmp/dotfiles-vscode-extensions/simple-yaml-tools-0.0.1.vsix", quiet: true)
+  end
+
+  def test_run_reports_missing_gh_for_github_release_assets
+    stub_extension_source
+    @fake_system.stub_file_content(@extensions_file, "nateberkopec.simple-yaml-tools\n")
+    @fake_system.stub_command("code --list-extensions", "")
+    @fake_system.stub_command("command -v gh >/dev/null 2>&1", "", exit_status: 1)
+
+    @step.run
+
+    assert_includes @step.errors, "gh CLI is required to install nateberkopec.simple-yaml-tools from GitHub release assets"
+    refute @fake_system.received_operation?(:execute, "gh release download v0.0.1 -R nateberkopec/simple-yaml-tools -p simple-yaml-tools-0.0.1.vsix -D /tmp/dotfiles-vscode-extensions --clobber", quiet: true)
+  end
+
+  def test_run_reports_github_download_failures
+    stub_extension_source
+    @fake_system.stub_file_content(@extensions_file, "nateberkopec.simple-yaml-tools\n")
+    @fake_system.stub_command("code --list-extensions", "")
+    @fake_system.stub_command("command -v gh >/dev/null 2>&1", "", exit_status: 0)
+    @fake_system.stub_command("gh release download v0.0.1 -R nateberkopec/simple-yaml-tools -p simple-yaml-tools-0.0.1.vsix -D /tmp/dotfiles-vscode-extensions --clobber", "not found", exit_status: 1)
+
+    @step.run
+
+    assert_includes @step.errors, "gh release download v0.0.1 -R nateberkopec/simple-yaml-tools -p simple-yaml-tools-0.0.1.vsix -D /tmp/dotfiles-vscode-extensions --clobber failed (status 1): not found"
+    refute @fake_system.received_operation?(:execute, "code --install-extension /tmp/dotfiles-vscode-extensions/simple-yaml-tools-0.0.1.vsix", quiet: true)
+  end
+
   private
+
+  def stub_extension_source
+    @fake_system.stub_file_content(
+      File.join(@dotfiles_dir, "config", "config.yml"),
+      YAML.dump(
+        "vscode_extension_sources" => {
+          "nateberkopec.simple-yaml-tools" => {
+            "github" => "nateberkopec/simple-yaml-tools",
+            "tag" => "v0.0.1",
+            "asset" => "simple-yaml-tools-0.0.1.vsix"
+          }
+        }
+      )
+    )
+  end
 
   def stub_missing_extension
     @fake_system.stub_file_content(@extensions_file, "ms-python.python\n")
