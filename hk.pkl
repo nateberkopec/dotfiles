@@ -12,6 +12,9 @@ hooks {
       ["large-files"] {
         check = "mise run lint:large-files"
       }
+      ["human-only"] {
+        check = "mise run lint:human-only"
+      }
       ["secrets"] {
         check = "mise run lint:secrets"
       }
