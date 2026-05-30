@@ -4,6 +4,7 @@ class Dotfiles
       load_path
       require_core
       require_steps
+      require_migrations
       require_runtime
     end
 
@@ -22,6 +23,7 @@ class Dotfiles
       require "step/protectable"
       require "step/launchctl"
       require "step/debian_packages"
+      require "migration"
     end
 
     def self.require_steps
@@ -32,9 +34,18 @@ class Dotfiles
       Dotfiles::SystemAdapter.new.glob(File.join(__dir__, "steps", "**", "*.rb")).sort
     end
 
+    def self.require_migrations
+      migration_files.each { |file| require file }
+    end
+
+    def self.migration_files
+      Dotfiles::SystemAdapter.new.glob(File.join(__dir__, "migrations", "*.rb")).sort
+    end
+
     def self.require_runtime
       require "output_formatter"
       require "runner"
+      require "migration_runner"
     end
   end
 end

@@ -39,6 +39,7 @@ rotate_logs() {
 DOTF_COMMANDS=(
     $'run\tSet up development environment from scratch'
     $'upgrade\tRefresh and upgrade mise tools, Pi extensions, Homebrew, and APT packages'
+    $'migrate\tRun one-time migrations for existing machines'
     $'steps\tList every setup step with its class name and description'
     $'help\tShow this help message'
 )
@@ -203,6 +204,18 @@ cmd_upgrade() {
     debug "Upgrade complete"
 }
 
+cmd_migrate() {
+    init_logging
+    debug "Starting dotf migrate command"
+    ensure_homebrew_env
+    ensure_mise_env
+
+    cd "$DOTFILES_DIR"
+    ruby -r ./lib/dotfiles.rb -e "Dotfiles::MigrationRunner.new('$LOG_FILE').run"
+
+    debug "Migrate complete"
+}
+
 cmd_steps() {
     ensure_homebrew_env
     ensure_mise_env
@@ -236,6 +249,7 @@ Logging:
 Examples:
   dotf run                              # Initial setup
   dotf upgrade                          # Upgrade mise tools, Pi extensions, Homebrew, and APT packages
+  dotf migrate                          # Run pending migrations on this machine
   DEBUG=true dotf run                   # Run with debug output to console
 EOF
 }
@@ -254,6 +268,9 @@ main() {
             ;;
         upgrade)
             cmd_upgrade
+            ;;
+        migrate)
+            cmd_migrate
             ;;
         steps)
             cmd_steps

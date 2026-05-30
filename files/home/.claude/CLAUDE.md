@@ -36,6 +36,14 @@ Avoid diff noise from purely stylistic changes (e.g., `'` vs `"`, misc blank lin
 
 Use boolean expressions with implicit return for predicate methods, not guard clauses or case statements with literal true/false.
 
+## Dotfiles Migrations
+
+Use dotf migrations for one-time changes needed on machines that have already run `dotf run`, especially cleanup or state changes that a fresh setup would not need. Examples: uninstalling packages moved from Homebrew to mise, untapping obsolete taps, deleting old files, or migrating local state.
+
+Do not add migrations for normal desired-state setup. If a fresh machine should get something, encode it in config/steps; migrations only bring existing machines closer to that fresh-machine state.
+
+Migrations live in `lib/dotfiles/migrations/`, have monotonically increasing timestamp-like versions, and define `up`/`down` methods. They can use the same helpers as steps. Keep them idempotent and safe to rerun where practical. Do not write tests for individual migrations.
+
 ## Important Locations on My System
 
 My dotfiles in live ~/.dotfiles. See the README.md there for info on how they work.
