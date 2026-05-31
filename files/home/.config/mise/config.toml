@@ -11,7 +11,7 @@ hk = "latest"
 "cargo:starship" = "latest"
 "gem:try-cli" = "latest"
 "npm:@openai/codex" = { version = "latest", depends = ["aube"] }
-"npm:@earendil-works/pi-coding-agent" = { version = "latest", depends = ["aube"] }
+"npm:@earendil-works/pi-coding-agent" = { version = "0.78.0", depends = ["aube"], minimum_release_age = "0d", aube_args = "--deny-build=@google/genai --deny-build=protobufjs" }
 "go:github.com/mikefarah/yq/v4" = "latest"
 "go:github.com/noperator/yknotify" = "latest"
 "github:aldanial/cloc" = "latest"
