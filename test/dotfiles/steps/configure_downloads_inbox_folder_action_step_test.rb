@@ -39,23 +39,24 @@ class ConfigureDownloadsInboxFolderActionStepTest < StepTestCase
     assert_executed(enable_command)
   end
 
-  def test_run_reveals_script_and_opens_setup_when_unattached
+  def test_run_adds_notice_without_opening_setup_when_unattached
     run_unattached_with_folder_actions_disabled
 
-    assert_executed(reveal_command, quiet: false)
-    assert_executed(open_setup_command, quiet: false)
+    refute_executed(reveal_command, quiet: false)
+    refute_executed(open_setup_command, quiet: false)
     notice = step.notices.first
     assert notice, "Expected a notice when the folder action still needs attaching"
     assert_includes notice[:message], "Move Downloads to Inbox.scpt"
   end
 
-  def test_run_skips_ui_when_attachment_is_current
+  def test_run_skips_notice_when_attachment_is_current
     install_current_compiled_script
     stub_folder_actions_enabled
     stub_attached
 
     step.run
 
+    assert_empty step.notices
     refute_executed(reveal_command, quiet: false)
     refute_executed(open_setup_command, quiet: false)
   end
@@ -66,6 +67,16 @@ class ConfigureDownloadsInboxFolderActionStepTest < StepTestCase
     stub_attached
 
     assert_complete
+  end
+
+  def test_complete_does_not_tell_folder_actions_setup
+    install_current_compiled_script
+    stub_folder_actions_enabled
+    stub_attached
+
+    assert_complete
+
+    refute @fake_system.operations.any? { |operation| operation[1].to_s.include?("Folder Actions Setup") }
   end
 
   def test_incomplete_when_attachment_is_missing
@@ -126,15 +137,11 @@ class ConfigureDownloadsInboxFolderActionStepTest < StepTestCase
   end
 
   def stub_attached
-    @fake_system.stub_command(downloads_scripts_query, compiled_script_path, 0)
+    @fake_system.write_file(folder_actions_preferences_path, "#{downloads_path.downcase}\n#{compiled_script_path.downcase}")
   end
 
   def stub_unattached
-    @fake_system.stub_command(downloads_scripts_query, "", 1)
-  end
-
-  def downloads_scripts_query
-    "osascript -e 'tell application \"Folder Actions Setup\" to get POSIX path of every script of folder action \"Downloads\"'"
+    @fake_system.write_file(folder_actions_preferences_path, "")
   end
 
   def source_path
@@ -147,6 +154,10 @@ class ConfigureDownloadsInboxFolderActionStepTest < StepTestCase
 
   def source_digest_path
     File.join(@home, "Library/Scripts/Folder Action Scripts/Move Downloads to Inbox.source.md5")
+  end
+
+  def folder_actions_preferences_path
+    File.join(@home, "Library/Preferences/com.apple.FolderActionsDispatcher.plist")
   end
 
   def downloads_path

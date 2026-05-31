@@ -17,12 +17,10 @@ class Dotfiles::Step::ConfigureDownloadsInboxFolderActionStep < Dotfiles::Step
     enable_folder_actions unless folder_actions_enabled?
     return if attachment_current?
 
-    reveal_compiled_script
-    open_folder_action_setup
     add_notice(
       title: "Attach the Downloads folder action",
       message: <<~MESSAGE.strip
-        Attach #{collapse_path_to_home(compiled_script_path)} to Downloads in Folder Actions Setup.
+        Open Folder Actions Setup manually and attach #{collapse_path_to_home(compiled_script_path)} to Downloads.
         Once it is attached, rerun dotfiles and this step should go green.
       MESSAGE
     )
@@ -51,28 +49,16 @@ class Dotfiles::Step::ConfigureDownloadsInboxFolderActionStep < Dotfiles::Step
     execute(command("defaults", "write", "com.apple.FolderActionsDispatcher", "folderActionsEnabled", "-bool", "true"))
   end
 
-  def reveal_compiled_script
-    execute(command("open", "-R", compiled_script_path), quiet: false)
-  end
-
-  def open_folder_action_setup
-    execute(command("open", "-a", "Folder Actions Setup", downloads_path), quiet: false)
-  end
-
   def folder_actions_enabled?
     output, status = execute(command("defaults", "read", "com.apple.FolderActionsDispatcher", "folderActionsEnabled"))
     status == 0 && ["1", "true", "YES"].include?(output.strip)
   end
 
   def attachment_current?
-    output, status = execute(downloads_scripts_query)
-    return false unless status == 0
+    return false unless @system.file_exist?(folder_actions_preferences_path)
 
-    output.split(/,\s*/).include?(compiled_script_path)
-  end
-
-  def downloads_scripts_query
-    command("osascript", "-e", "tell application \"Folder Actions Setup\" to get POSIX path of every script of folder action \"Downloads\"")
+    preferences = @system.read_file(folder_actions_preferences_path).b
+    [downloads_path, compiled_script_path].all? { |path| preferences.include?(path.downcase.b) }
   end
 
   def source_digest
@@ -93,6 +79,10 @@ class Dotfiles::Step::ConfigureDownloadsInboxFolderActionStep < Dotfiles::Step
 
   def source_digest_path
     File.join(@home, "Library/Scripts/Folder Action Scripts/Move Downloads to Inbox.source.md5")
+  end
+
+  def folder_actions_preferences_path
+    File.join(@home, "Library/Preferences/com.apple.FolderActionsDispatcher.plist")
   end
 
   def downloads_path
