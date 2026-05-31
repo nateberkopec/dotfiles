@@ -49,6 +49,19 @@ class DotfCliTest < Minitest::Test
     )
   end
 
+  def test_run_runs_migrations_before_setup_steps
+    with_dotf_script do |tmpdir, script_path, _logs_dir|
+      log_path = File.join(tmpdir, "run-commands.log")
+      File.write(File.join(tmpdir, "bin", "bootstrap"), bootstrap_stub(log_path))
+      FileUtils.chmod("+x", File.join(tmpdir, "bin", "bootstrap"))
+      command = run_function_command(script_path, log_path)
+
+      assert system("bash", "-c", command, out: File::NULL)
+
+      assert_run_commands(log_path)
+    end
+  end
+
   private
 
   def assert_upgrade_commands(stubs:, expected:, env: {})
@@ -73,6 +86,33 @@ class DotfCliTest < Minitest::Test
     removed.each { |log| refute_includes dotf_logs, log }
     assert_includes dotf_logs, "dotf_2000-01-01_00-00-30.log"
     assert File.exist?(File.join(logs_dir, "other.log"))
+  end
+
+  def assert_run_commands(log_path)
+    commands = File.readlines(log_path, chomp: true)
+    assert_equal "bootstrap", commands[0]
+    assert_equal "mise activate bash", commands[1]
+    assert_match(/\Aruby -r \.\/lib\/dotfiles\.rb -e Dotfiles::MigrationRunner\.new\('.+'\)\.run\z/, commands[2])
+    assert_match(/\Aruby -r \.\/lib\/dotfiles\.rb -e Dotfiles::Runner\.new\('.+'\)\.run\z/, commands[3])
+    assert_equal 4, commands.size
+  end
+
+  def bootstrap_stub(log_path)
+    <<~BASH
+      #!/bin/bash
+      echo bootstrap >> #{Shellwords.escape(log_path)}
+    BASH
+  end
+
+  def run_function_command(script_path, log_path)
+    escaped_script = Shellwords.escape(script_path)
+    escaped_log = Shellwords.escape(log_path)
+    <<~BASH
+      source #{escaped_script}
+      mise() { printf 'mise %s\\n' "$*" >> #{escaped_log}; }
+      ruby() { printf 'ruby %s\\n' "$*" >> #{escaped_log}; }
+      cmd_run
+    BASH
   end
 end
 # standard:enable Dotfiles/BanFileSystemClasses
