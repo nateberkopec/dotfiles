@@ -15,7 +15,7 @@ export function hideOpenRouter(pi: ExtensionAPI) {
     name: "OpenRouter (guardrail unavailable)",
     baseUrl: OPENROUTER_BASE_URL,
     api: "openai-completions",
-    apiKey: "OPENROUTER_API_KEY",
+    apiKey: "$OPENROUTER_API_KEY",
     models: [unavailableModel()],
   });
 }
