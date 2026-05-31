@@ -14,6 +14,14 @@ class MigrationTest < Minitest::Test
     refute migration.allowed_on_platform?
   end
 
+  def test_execute_streams_migration_commands_by_default
+    migration = create_migration(Dotfiles::Migration::MigrateBrewTapsToMise)
+
+    migration.send(:execute, ["echo", "hello"])
+
+    assert @fake_system.received_operation?(:execute, ["echo", "hello"], {quiet: false})
+  end
+
   private
 
   def create_migration(migration_class, **overrides)

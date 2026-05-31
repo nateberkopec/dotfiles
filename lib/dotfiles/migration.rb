@@ -53,7 +53,7 @@ class Dotfiles
 
     private
 
-    def execute(command, quiet: true)
+    def execute(command, quiet: false)
       @system.execute(command, quiet: quiet)
     end
 
