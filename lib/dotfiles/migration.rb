@@ -75,8 +75,8 @@ class Dotfiles
     end
 
     def platform_requirement_met?(platform)
-      predicate = "#{platform}?"
-      !self.class.public_send(predicate) || @system.public_send(predicate)
+      predicate = "#{platform}_only?"
+      !self.class.public_send(predicate) || @system.public_send("#{platform}?")
     end
 
     def command_exists?(command)
