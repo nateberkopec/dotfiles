@@ -11,12 +11,6 @@ class ConfigureFileAssociationsStepTest < StepTestCase
         "com.microsoft.VSCode" => [".md"]
       }
     })
-    stub_bundle_installed("com.microsoft.VSCode", "/Applications/Visual Studio Code.app")
-  end
-
-  def test_should_not_run_when_bundle_missing
-    stub_bundle_missing("com.microsoft.VSCode")
-    refute_should_run
   end
 
   def test_should_not_run_when_handler_matches
@@ -56,13 +50,10 @@ class ConfigureFileAssociationsStepTest < StepTestCase
     assert_incomplete
   end
 
-  def test_skips_when_bundle_missing
-    stub_bundle_missing("com.microsoft.VSCode")
-
+  def test_does_not_query_applications_with_osascript
     step.run
 
-    refute_executed("duti -s com.microsoft.VSCode .md all")
-    assert_complete
+    refute @fake_system.operations.any? { |operation| operation[1].to_s.include?("path to application id") }
   end
 
   def test_handles_multiple_extensions
@@ -73,8 +64,6 @@ class ConfigureFileAssociationsStepTest < StepTestCase
       }
     })
     rebuild_step!
-    stub_bundle_installed("com.microsoft.VSCode", "/Applications/Visual Studio Code.app")
-    stub_bundle_installed("com.apple.Safari", "/Applications/Safari.app")
 
     step.run
 
@@ -87,15 +76,5 @@ class ConfigureFileAssociationsStepTest < StepTestCase
     write_config(:file_associations, {"file_associations" => {}})
     rebuild_step!
     assert_complete
-  end
-
-  private
-
-  def stub_bundle_installed(bundle_id, path)
-    @fake_system.stub_command("osascript -e 'path to application id \"#{bundle_id}\"' 2>/dev/null", path, 0)
-  end
-
-  def stub_bundle_missing(bundle_id)
-    @fake_system.stub_command("osascript -e 'path to application id \"#{bundle_id}\"' 2>/dev/null", "", 1)
   end
 end

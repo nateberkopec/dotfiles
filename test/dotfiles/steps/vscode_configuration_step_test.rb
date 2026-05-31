@@ -22,7 +22,7 @@ class VSCodeConfigurationStepTest < Minitest::Test
 
   def test_run_installs_extensions_from_file
     @fake_system.stub_file_content(@extensions_file, "ms-python.python\nms-vscode.cpptools\n")
-    @fake_system.stub_command("code --list-extensions", "ms-python.python")
+    stub_installed_extensions("ms-python.python")
 
     @step.run
 
@@ -32,7 +32,7 @@ class VSCodeConfigurationStepTest < Minitest::Test
   def test_run_installs_configured_extensions_from_github_release_assets
     stub_extension_source
     @fake_system.stub_file_content(@extensions_file, "nateberkopec.simple-yaml-tools\n")
-    @fake_system.stub_command("code --list-extensions", "")
+    stub_installed_extensions
     @fake_system.stub_command("command -v gh >/dev/null 2>&1", "", exit_status: 0)
 
     @step.run
@@ -45,7 +45,7 @@ class VSCodeConfigurationStepTest < Minitest::Test
   def test_run_skips_github_release_assets_when_extension_is_already_installed
     stub_extension_source
     @fake_system.stub_file_content(@extensions_file, "nateberkopec.simple-yaml-tools\n")
-    @fake_system.stub_command("code --list-extensions", "nateberkopec.simple-yaml-tools")
+    stub_installed_extensions("nateberkopec.simple-yaml-tools")
 
     @step.run
 
@@ -56,7 +56,7 @@ class VSCodeConfigurationStepTest < Minitest::Test
   def test_run_reports_missing_gh_for_github_release_assets
     stub_extension_source
     @fake_system.stub_file_content(@extensions_file, "nateberkopec.simple-yaml-tools\n")
-    @fake_system.stub_command("code --list-extensions", "")
+    stub_installed_extensions
     @fake_system.stub_command("command -v gh >/dev/null 2>&1", "", exit_status: 1)
 
     @step.run
@@ -68,7 +68,7 @@ class VSCodeConfigurationStepTest < Minitest::Test
   def test_run_reports_github_download_failures
     stub_extension_source
     @fake_system.stub_file_content(@extensions_file, "nateberkopec.simple-yaml-tools\n")
-    @fake_system.stub_command("code --list-extensions", "")
+    stub_installed_extensions
     @fake_system.stub_command("command -v gh >/dev/null 2>&1", "", exit_status: 0)
     @fake_system.stub_command("gh release download v0.0.1 -R nateberkopec/simple-yaml-tools -p simple-yaml-tools-0.0.1.vsix -D /tmp/dotfiles-vscode-extensions --clobber", "not found", exit_status: 1)
 
@@ -76,6 +76,16 @@ class VSCodeConfigurationStepTest < Minitest::Test
 
     assert_includes @step.errors, "gh release download v0.0.1 -R nateberkopec/simple-yaml-tools -p simple-yaml-tools-0.0.1.vsix -D /tmp/dotfiles-vscode-extensions --clobber failed (status 1): not found"
     refute @fake_system.received_operation?(:execute, "code --install-extension /tmp/dotfiles-vscode-extensions/simple-yaml-tools-0.0.1.vsix", quiet: true)
+  end
+
+  def test_complete_checks_extension_directories_without_running_code_cli
+    @fake_system.stub_file_content(@extensions_file, "ms-python.python\n")
+    @fake_system.stub_command("command -v code >/dev/null 2>&1", "", exit_status: 0)
+    stub_installed_extensions("ms-python.python")
+
+    assert @step.complete?
+
+    refute @fake_system.received_operation?(:execute, "code --list-extensions", quiet: true)
   end
 
   private
@@ -98,6 +108,12 @@ class VSCodeConfigurationStepTest < Minitest::Test
   def stub_missing_extension
     @fake_system.stub_file_content(@extensions_file, "ms-python.python\n")
     @fake_system.stub_command("command -v code >/dev/null 2>&1", "", exit_status: 0)
-    @fake_system.stub_command("code --list-extensions", "")
+    stub_installed_extensions
+  end
+
+  def stub_installed_extensions(*extension_ids)
+    extension_ids.each do |extension_id|
+      @fake_system.filesystem["#{@home}/.vscode/extensions/#{extension_id}-1.0.0"] = :directory
+    end
   end
 end
