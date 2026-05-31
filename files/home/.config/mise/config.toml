@@ -2,6 +2,7 @@
 [tools]
 ruby = "latest"
 node = "lts"
+aube = "latest"
 go = "latest"
 rust = "latest"
 hk = "latest"
@@ -36,6 +37,7 @@ env_shell_expand = false
 idiomatic_version_file_enable_tools = ["ruby", "node"]
 legacy_version_file = true
 experimental = true
+npm.package_manager = "aube"
 github.credential_command = "gh auth token"
 ruby.compile = false
 fetch_remote_versions_cache = "7d"
