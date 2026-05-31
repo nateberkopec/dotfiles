@@ -22,6 +22,17 @@ class ConfigureFileAssociationsStepTest < StepTestCase
     refute_should_run
   end
 
+  def test_should_not_run_in_ci
+    with_ci { refute_should_run }
+  end
+
+  def test_complete_in_ci_without_checking_handlers
+    with_ci do
+      assert_complete
+      refute_executed("duti -x .md 2>/dev/null")
+    end
+  end
+
   def test_runs_duti_command_for_each_extension
     step.run
     assert_executed("duti -s com.microsoft.VSCode .md all")

@@ -12,6 +12,7 @@ class Dotfiles::Step::ConfigureFileAssociationsStep < Dotfiles::Step
   end
 
   def should_run?
+    return false if ENV["CI"]
     return false unless allowed_on_platform?
     return false if file_associations.empty?
 
@@ -28,6 +29,8 @@ class Dotfiles::Step::ConfigureFileAssociationsStep < Dotfiles::Step
   end
 
   def complete?
+    return true if ENV["CI"]
+
     super
     file_associations.each do |bundle_id, extensions|
       extensions.each do |ext|
