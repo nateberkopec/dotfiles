@@ -23,7 +23,6 @@ fzf = "latest"
 zoxide = "latest"
 pkl = "latest"
 claude = "latest"
-"npm:@tobilu/qmd" = { version = "latest", depends = ["aube"] }
 gitleaks = "latest"
 "1password-cli" = "2.34.0"
 acli = "1.3.18-stable"
@@ -48,4 +47,3 @@ fetch_remote_versions_timeout = "5s"
 [env]
 CARGO_HTTP_TIMEOUT = "5"
 GO_GET_TIMEOUT = "5s"
-QMD_FORCE_CPU = "1"
