@@ -4,7 +4,6 @@ class Dotfiles::Migration::ReinstallNpmMiseToolsWithAube < Dotfiles::Migration
   MISE_TOOLS = [
     "npm:@openai/codex",
     "npm:@earendil-works/pi-coding-agent",
-    "npm:@tobilu/qmd",
     "heroku"
   ].freeze
 

@@ -54,13 +54,3 @@ Rather than dirty up the present working directory, I like to put "temporary" wo
 
 When I ask questions about how dependencies work, read the source code. Clone/download the dependency to /tmp, or use `bundle open` or equivalent.
 
-## qmd
-
-I keep useful information in qmd. This useful information is stored in "document collections".
-
-- Local search/RAG for document collections. Installed via mise (`npm:@tobilu/qmd`).
-- Important collections to know:
-  - `ruby` - consult this collection when doing complex tasks with Ruby, such as refactoring, planning a feature.
-  - `ruby-perf` - consult this collection when doing complex tasks with Ruby performance.
-- Usage: `qmd --help`.
-- **Never commit collection contents to git.** Collections contain user documents and must remain local-only.
