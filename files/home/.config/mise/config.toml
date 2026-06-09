@@ -11,6 +11,7 @@ hk = "latest"
 "cargo:starship" = "latest"
 "gem:try-cli" = "latest"
 "npm:@openai/codex" = { version = "latest", depends = ["aube"] }
+"npm:sfw" = { version = "latest", depends = ["aube"] }
 "npm:@earendil-works/pi-coding-agent" = { version = "0.78.0", depends = ["aube"], minimum_release_age = "0d", aube_args = "--deny-build=@google/genai --deny-build=protobufjs" }
 "go:github.com/mikefarah/yq/v4" = "latest"
 "go:github.com/noperator/yknotify" = "latest"
@@ -45,5 +46,6 @@ http_timeout = "5s"
 fetch_remote_versions_timeout = "5s"
 
 [env]
+AUBE_SECURITY_SCANNER = "{{env.HOME}}/.config/aube/socket-security-scanner.mjs"
 CARGO_HTTP_TIMEOUT = "5"
 GO_GET_TIMEOUT = "5s"
