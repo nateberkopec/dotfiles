@@ -160,6 +160,16 @@ spotlight_settings:
   check_interval_seconds: 60
   disabled_volumes:
   - "~/Documents/Code.nosync"
+time_machine_settings:
+  auto_backup: true
+  auto_backup_interval_seconds: 86400
+  requires_ac_power: false
+  exclusions:
+  - "~/.cache/huggingface"
+  - "~/.npm"
+  - "~/Library/pnpm"
+  - "~/.local/share/mise"
+  - "~/Library/Application Support/com.apple.wallpaper/aerials/videos"
 login_items: []
 file_associations:
   com.microsoft.VSCode:
