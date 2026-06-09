@@ -165,6 +165,7 @@ time_machine_settings:
   auto_backup_interval_seconds: 86400
   requires_ac_power: false
   exclusions:
+  - "~/Documents/Code.nosync"
   - "~/.cache/huggingface"
   - "~/.npm"
   - "~/Library/pnpm"
