@@ -1,0 +1,19 @@
+{
+  "model": "opus",
+  "effortLevel": "high",
+  "autoMemoryEnabled": false,
+  "skipDangerousModePermissionPrompt": true,
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/deny-rm-rf.jq"
+          }
+        ]
+      }
+    ]
+  }
+}
