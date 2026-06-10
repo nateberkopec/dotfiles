@@ -1,0 +1,6 @@
+{
+  "model": "opus",
+  "effortLevel": "high",
+  "autoMemoryEnabled": false,
+  "skipDangerousModePermissionPrompt": true
+}
