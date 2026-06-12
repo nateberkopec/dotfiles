@@ -2,7 +2,7 @@
 [tools]
 ruby = "latest"
 node = "lts"
-aube = "latest"
+"github:jdx/aube" = "latest"
 go = "latest"
 rust = "latest"
 hk = "latest"
@@ -10,9 +10,9 @@ hk = "latest"
 "cargo:difftastic" = "latest"
 "cargo:starship" = "latest"
 "gem:try-cli" = "latest"
-"npm:@openai/codex" = { version = "latest", depends = ["aube"] }
-"npm:sfw" = { version = "latest", depends = ["aube"] }
-"npm:@earendil-works/pi-coding-agent" = { version = "0.78.0", depends = ["aube"], minimum_release_age = "0d", aube_args = "--deny-build=@google/genai --deny-build=protobufjs" }
+"npm:@openai/codex" = { version = "latest", depends = ["github:jdx/aube"] }
+"npm:sfw" = { version = "latest", depends = ["github:jdx/aube"] }
+"npm:@earendil-works/pi-coding-agent" = { version = "0.78.0", depends = ["github:jdx/aube"], minimum_release_age = "0d", aube_args = "--deny-build=@google/genai --deny-build=protobufjs" }
 "go:github.com/mikefarah/yq/v4" = "latest"
 "go:github.com/noperator/yknotify" = "latest"
 "github:aldanial/cloc" = "latest"
@@ -27,7 +27,7 @@ claude = "latest"
 gitleaks = "latest"
 "1password-cli" = "2.34.0"
 acli = "1.3.18-stable"
-heroku = { version = "11.4.0", depends = ["aube"] }
+heroku = { version = "11.4.0", depends = ["github:jdx/aube"] }
 "aqua:planetscale/cli" = "0.285.0"
 "github:rawnly/splash-cli" = "4.1.7"
 "github:fabro-sh/fabro" = "0.246.0-nightly.0"
