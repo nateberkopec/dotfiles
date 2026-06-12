@@ -1,6 +1,8 @@
 class Dotfiles::Migration::ReinstallNpmMiseToolsWithAube < Dotfiles::Migration
   VERSION = 202605310002
 
+  AUBE_TOOL = "github:jdx/aube"
+
   MISE_TOOLS = [
     "npm:@openai/codex",
     "npm:@earendil-works/pi-coding-agent",
@@ -21,7 +23,7 @@ class Dotfiles::Migration::ReinstallNpmMiseToolsWithAube < Dotfiles::Migration
   private
 
   def install_aube
-    execute(mise_command("install", "--yes", "aube"))
+    execute(mise_command("install", "--yes", AUBE_TOOL))
   end
 
   def reinstall_tool(tool)
