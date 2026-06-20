@@ -41,6 +41,7 @@ class SetFishDefaultShellStepTest < Minitest::Test
     stub_shells("/usr/bin/fish")
 
     refute @step.complete?
+    refute @fake_system.received_operation?(:file_exist?, nil)
 
     @fake_system.stub_file_content("/usr/bin/fish", "")
     assert @step.complete?
