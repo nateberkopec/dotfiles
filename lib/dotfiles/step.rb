@@ -252,7 +252,7 @@ class Dotfiles
         "/usr/bin/fish",
         "/home/linuxbrew/.linuxbrew/bin/fish"
       ]
-      candidate = candidates.find { |path| @system.file_exist?(path) }
+      candidate = candidates.compact.find { |path| @system.file_exist?(path) }
       return @fish_path = candidate if candidate
 
       output, status = @system.execute(shell_script('command -v -- "$1" 2>/dev/null', "fish"))
