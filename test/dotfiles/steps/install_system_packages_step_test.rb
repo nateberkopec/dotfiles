@@ -34,6 +34,28 @@ class InstallSystemPackagesStepTest < StepTestCase
     assert_executed("mise system install --yes --update apt:trash-cli")
   end
 
+  def test_falls_back_to_brew_when_mise_system_is_unavailable
+    @fake_system.stub_macos
+    @fake_system.stub_command("groups", "admin staff")
+    @fake_system.stub_command("mise help system", "no task system found", exit_status: 1)
+    write_config(:brew, {"brew" => {"packages" => ["duti"], "casks" => []}})
+
+    step.run
+
+    assert_executed("HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 brew install duti")
+  end
+
+  def test_falls_back_to_apt_when_mise_system_is_unavailable
+    @fake_system.stub_debian
+    @fake_system.stub_command("mise help system", "no task system found", exit_status: 1)
+    write_config("config", "packages" => {"trash" => {"debian" => "trash-cli"}})
+
+    step.run
+
+    assert_executed("sudo env DEBIAN_FRONTEND=noninteractive apt-get update -y")
+    assert_executed("sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y trash-cli")
+  end
+
   def test_macos_non_admin_leaves_brew_packages_for_homebrew_step
     @fake_system.stub_macos
     @fake_system.stub_command("groups", "staff")
