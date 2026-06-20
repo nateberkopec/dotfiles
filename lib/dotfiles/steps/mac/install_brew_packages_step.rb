@@ -1,5 +1,5 @@
 class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
-  DESCRIPTION = "Installs command-line tools from the repository Brewfile using Homebrew.".freeze
+  DESCRIPTION = "Installs Homebrew-managed apps and non-admin formulae.".freeze
 
   macos_only
 
@@ -14,28 +14,33 @@ class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
   end
 
   def should_run?
+    return false unless brewfile_needed?
+
     generate_brewfile
     !packages_already_installed?
   end
 
   def run
-    debug "Installing command-line tools via Homebrew..."
-    output, exit_status = install_packages
-    log_installation_results(output, exit_status)
-    reset_package_status
+    debug "Installing Homebrew-managed apps..."
+    install_and_reset
+    install_and_reset unless packages_already_installed?
   end
 
   def complete?
     super
-    unless @system.file_exist?(@brewfile_path)
-      add_error("Brewfile does not exist at #{@brewfile_path}")
-      return false
-    end
+    return true unless brewfile_needed?
+
     add_missing_packages_error unless packages_already_installed?
     @packages_installed_status
   end
 
   private
+
+  def install_and_reset
+    output, exit_status = install_packages
+    log_installation_results(output, exit_status)
+    reset_package_status
+  end
 
   def packages_already_installed?
     return @packages_installed_status unless @packages_installed_status.nil?
@@ -43,7 +48,7 @@ class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
     output, status = brew_quiet("bundle", "check", "--file=#{@brewfile_path}", "--no-upgrade")
     @packages_installed_status = status == 0
     @packages_installed_error = output unless @packages_installed_status
-    debug "All packages already installed" if @packages_installed_status
+    debug "All Homebrew-managed apps are installed" if @packages_installed_status
     @packages_installed_status
   end
 
@@ -53,14 +58,13 @@ class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
   end
 
   def add_missing_packages_error
-    message = "Some Homebrew packages are not installed"
+    message = "Some Homebrew-managed apps are not installed"
     details = @packages_installed_error.to_s.strip
     message = "#{message}: #{details}" unless details.empty?
     add_error(message)
   end
 
   def install_packages
-    cask_opts = user_has_admin_rights? ? "" : "--appdir=~/Applications"
     @system.execute(env_command({"HOMEBREW_NO_AUTO_UPDATE" => "1", "HOMEBREW_NO_ENV_HINTS" => "1", "HOMEBREW_CASK_OPTS" => cask_opts}, "brew", "bundle", "install", "--file=#{@brewfile_path}"))
   end
 
@@ -72,16 +76,30 @@ class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
   end
 
   def generate_brewfile
-    brew_config = @config.packages&.dig("brew") || {}
-    content = build_brewfile_content(brew_config)
-    @system.write_file(@brewfile_path, content)
+    @system.write_file(@brewfile_path, build_brewfile_content(brew_config))
   end
 
-  def build_brewfile_content(brew_config)
+  def build_brewfile_content(config)
     [
-      *(brew_config["taps"] || []).map { |tap| "tap \"#{tap}\"" },
-      *(brew_config["packages"] || []).map { |pkg| "brew \"#{pkg}\"" },
-      *(brew_config["casks"] || []).map { |cask| "cask \"#{cask}\"" }
+      *(config["taps"] || []).map { |tap| "tap \"#{tap}\"" },
+      *formulae_for_brewfile(config).map { |pkg| "brew \"#{pkg}\"" },
+      *(config["casks"] || []).map { |cask| "cask \"#{cask}\"" }
     ].join("\n") + "\n"
+  end
+
+  def brewfile_needed?
+    (brew_config["taps"] || []).any? || (brew_config["casks"] || []).any? || formulae_for_brewfile(brew_config).any?
+  end
+
+  def formulae_for_brewfile(config)
+    user_has_admin_rights? ? [] : (config["packages"] || [])
+  end
+
+  def brew_config
+    @config.packages&.dig("brew") || {}
+  end
+
+  def cask_opts
+    user_has_admin_rights? ? "" : "--appdir=~/Applications"
   end
 end

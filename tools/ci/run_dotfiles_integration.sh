@@ -51,6 +51,11 @@ find_fish_bin() {
 }
 
 check_fish() {
+    if [ "${CHECK_FISH:-true}" = "false" ]; then
+        echo "Skipping fish shell initialization check"
+        return 0
+    fi
+
     echo "Starting fish shell to check for initialization errors..."
 
     local fish_bin

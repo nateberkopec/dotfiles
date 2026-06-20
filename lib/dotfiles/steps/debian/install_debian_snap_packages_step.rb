@@ -8,7 +8,7 @@ class Dotfiles::Step::InstallDebianSnapPackagesStep < Dotfiles::Step
   end
 
   def self.depends_on
-    [Dotfiles::Step::InstallDebianPackagesStep]
+    [Dotfiles::Step::InstallSystemPackagesStep]
   end
 
   def should_run?

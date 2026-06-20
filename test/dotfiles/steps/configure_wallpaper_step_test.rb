@@ -6,8 +6,8 @@ class ConfigureWallpaperStepTest < StepTestCase
 
   step_class Dotfiles::Step::ConfigureWallpaperStep
 
-  def test_depends_on_brew_packages
-    assert_equal [Dotfiles::Step::InstallBrewPackagesStep], self.class.step_class.depends_on
+  def test_depends_on_mise_tools
+    assert_equal [Dotfiles::Step::InstallMiseToolsStep], self.class.step_class.depends_on
   end
 
   def test_skips_in_ci

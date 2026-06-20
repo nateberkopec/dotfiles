@@ -28,7 +28,7 @@ class DotfCliTest < Minitest::Test
         "brew shellenv bash", "mise activate bash", "mise cache clear --yes", "mise plugins update",
         "mise up --dry-run --before 3d --yes", "mise up --before 3d --yes",
         "mise install --before 3d --yes", "pi update --extensions",
-        "mise prune --yes", "mise cache prune --yes",
+        "mise prune --yes", "mise cache prune --yes", "mise system upgrade",
         "HOMEBREW_AUTO_UPDATE_SECS=604800 brew update-if-needed",
         "HOMEBREW_NO_AUTO_UPDATE=1 brew upgrade",
         "HOMEBREW_NO_AUTO_UPDATE=1 brew autoremove", "HOMEBREW_NO_AUTO_UPDATE=1 brew cleanup"
@@ -44,7 +44,7 @@ class DotfCliTest < Minitest::Test
         "mise activate bash", "mise cache clear --yes", "mise plugins update",
         "mise up --dry-run --before 3d --yes", "mise up --before 3d --yes",
         "mise install --before 3d --yes", "mise prune --yes", "mise cache prune --yes",
-        "apt-get update -y", "apt-get upgrade -y", "apt-get autoremove -y", "apt-get clean"
+        "mise system upgrade"
       ]
     )
   end

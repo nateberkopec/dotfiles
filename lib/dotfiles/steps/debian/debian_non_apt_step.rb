@@ -9,7 +9,7 @@ class Dotfiles
 
       module ClassMethods
         def depends_on
-          [Dotfiles::Step::InstallDebianPackagesStep]
+          [Dotfiles::Step::InstallSystemPackagesStep]
         end
       end
 
