@@ -30,7 +30,7 @@ class Dotfiles
     end
 
     def self.system_packages_steps
-      [Dotfiles::Step::InstallBrewPackagesStep, Dotfiles::Step::InstallDebianPackagesStep]
+      [Dotfiles::Step::InstallSystemPackagesStep]
     end
 
     def self.display_name
@@ -163,15 +163,6 @@ class Dotfiles
 
     def sudo_command(*parts)
       root? ? command(*parts) : command("sudo", *parts)
-    end
-
-    def sudo_env_command(vars, *parts)
-      if root?
-        env_command(vars, *parts)
-      else
-        assignments = vars.to_h.map { |key, value| "#{key}=#{value}" }
-        command("sudo", *assignments, *parts)
-      end
     end
 
     def shell_script(script, *args)

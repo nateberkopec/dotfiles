@@ -39,7 +39,7 @@ rotate_logs() {
 
 DOTF_COMMANDS=(
     $'run\tSet up development environment from scratch'
-    $'upgrade\tRefresh and upgrade mise tools, Pi extensions, Homebrew, and APT packages'
+    $'upgrade\tRefresh and upgrade mise tools, system packages, Pi extensions, and Homebrew apps'
     $'migrate\tRun one-time migrations for existing machines'
     $'steps\tList every setup step with its class name and description'
     $'help\tShow this help message'
@@ -121,14 +121,6 @@ is_debian() {
     [ "${DOTF_FORCE_DEBIAN:-false}" = "true" ] || [ -f /etc/debian_version ]
 }
 
-run_apt_get() {
-    if [ "$(id -u)" -eq 0 ] || [ "${DOTF_SKIP_SUDO:-false}" = "true" ]; then
-        env DEBIAN_FRONTEND=noninteractive apt-get "$@"
-    else
-        sudo env DEBIAN_FRONTEND=noninteractive apt-get "$@"
-    fi
-}
-
 cmd_run() {
     init_logging
     debug "Starting dotf run command"
@@ -181,6 +173,9 @@ cmd_upgrade() {
     mise prune --yes
     mise cache prune --yes
 
+    announce "Upgrading mise system packages"
+    mise system upgrade || warn "Skipping mise system packages (unsupported by this mise version)"
+
     if command -v brew &> /dev/null; then
         announce "Checking Homebrew metadata"
         env HOMEBREW_AUTO_UPDATE_SECS="$HOMEBREW_AUTO_UPDATE_SECS" brew update-if-needed
@@ -193,16 +188,6 @@ cmd_upgrade() {
         env HOMEBREW_NO_AUTO_UPDATE=1 brew cleanup
     elif is_debian; then
         warn "Skipping Homebrew (brew not found on PATH)"
-    fi
-
-    if is_debian && command -v apt-get &> /dev/null; then
-        announce "Updating APT"
-        run_apt_get update -y
-        run_apt_get upgrade -y
-
-        announce "Cleaning APT"
-        run_apt_get autoremove -y
-        run_apt_get clean
     fi
 
     debug "Upgrade complete"
@@ -252,7 +237,7 @@ Logging:
 
 Examples:
   dotf run                              # Initial setup
-  dotf upgrade                          # Upgrade mise tools, Pi extensions, Homebrew, and APT packages
+  dotf upgrade                          # Upgrade mise tools, system packages, Pi extensions, and Homebrew apps
   dotf migrate                          # Run pending migrations on this machine
   DEBUG=true dotf run                   # Run with debug output to console
 EOF

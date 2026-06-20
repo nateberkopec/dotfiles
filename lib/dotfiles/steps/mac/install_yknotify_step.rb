@@ -6,7 +6,7 @@ class Dotfiles::Step::InstallYknotifyStep < Dotfiles::Step
   macos_only
 
   def self.depends_on
-    [Dotfiles::Step::InstallMiseToolsStep, Dotfiles::Step::InstallBrewPackagesStep]
+    [Dotfiles::Step::InstallMiseToolsStep, Dotfiles::Step::InstallSystemPackagesStep]
   end
 
   def should_run?
