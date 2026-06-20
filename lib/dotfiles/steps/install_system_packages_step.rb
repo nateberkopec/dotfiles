@@ -38,7 +38,7 @@ class Dotfiles::Step::InstallSystemPackagesStep < Dotfiles::Step
   end
 
   def mise_install_command
-    command("mise", "system", "install", "--yes", "--update", *package_args)
+    env_command({"MISE_EXPERIMENTAL" => "1"}, "mise", "system", "install", "--yes", "--update", *package_args)
   end
 
   def apt_update_command
@@ -74,6 +74,6 @@ class Dotfiles::Step::InstallSystemPackagesStep < Dotfiles::Step
   def mise_system_available?
     return @mise_system_available unless @mise_system_available.nil?
 
-    @mise_system_available = command_succeeds?(command("mise", "help", "system"))
+    @mise_system_available = command_succeeds?(env_command({"MISE_EXPERIMENTAL" => "1"}, "mise", "system", "install", "--help"))
   end
 end
