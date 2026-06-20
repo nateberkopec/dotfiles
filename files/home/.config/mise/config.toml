@@ -19,7 +19,7 @@ hk = "latest"
 "github:pkgforge-dev/ghostty-appimage[bin=ghostty]" = { version = "latest", os = ["linux"] }
 "github:nateberkopec/print-label" = "latest"
 watchexec = "latest"
-fnox = "latest"
+fnox = { version = "latest", minimum_release_age = "0d" }
 bat = "latest"
 cmake = "latest"
 fd = "latest"
