@@ -209,6 +209,7 @@ jobs:
         BREW_CI_TAPS: ""
         BREW_CI_CASKS: ""
         BREW_CI_APPLICATIONS: ""
+        CHECK_FISH: false
       run: |
         set -euo pipefail
 
@@ -228,6 +229,7 @@ jobs:
           BREW_CI_TAPS="${BREW_CI_TAPS}" \
           BREW_CI_CASKS="${BREW_CI_CASKS}" \
           BREW_CI_APPLICATIONS="${BREW_CI_APPLICATIONS}" \
+          CHECK_FISH="${CHECK_FISH}" \
           bash "${home_dir}/dotfiles/tools/ci/run_dotfiles_integration.sh" "${home_dir}/dotfiles"
 
     - name: Upload non-admin logs
