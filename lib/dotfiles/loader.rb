@@ -16,6 +16,7 @@ class Dotfiles
       require "config"
       require "command"
       require "system_adapter"
+      require "home_file_set"
       require "step"
       require "step/defaultable"
       require "step/defaults_configurable"
