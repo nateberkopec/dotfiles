@@ -243,7 +243,7 @@ class Dotfiles
     def find_fish_path
       return @fish_path if defined?(@fish_path) && !@fish_path.to_s.empty?
 
-      mise_fish = @system.glob(File.join(@home, ".local", "share", "mise", "installs", "aqua-fish-shell-fish-shell", "*", "fish.pkg", "Payload", "usr", "local", "bin", "fish")).max
+      mise_fish = @system.glob(File.join(@home, ".local", "share", "mise", "installs", "aqua-fish-shell-fish-shell", "*", "{fish,fish.pkg/Payload/usr/local/bin/fish}")).max
       candidates = [
         mise_fish,
         File.join(@home, ".homebrew", "bin", "fish"),

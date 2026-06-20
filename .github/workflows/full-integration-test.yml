@@ -109,7 +109,7 @@ jobs:
         BREW_CI_TAPS: ""
         BREW_CI_CASKS: ""
         BREW_CI_APPLICATIONS: ""
-        DEBIAN_CI_PACKAGES: "trash-cli,fish"
+        DEBIAN_CI_PACKAGES: "trash-cli"
         DEBIAN_CI_SOURCES: ""
         DEBIAN_CI_NON_APT_PACKAGES: ""
         DEBIAN_CI_SNAP_PACKAGES: ""
