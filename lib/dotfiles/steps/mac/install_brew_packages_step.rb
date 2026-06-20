@@ -22,9 +22,8 @@ class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
 
   def run
     debug "Installing Homebrew-managed apps..."
-    output, exit_status = install_packages
-    log_installation_results(output, exit_status)
-    reset_package_status
+    install_and_reset
+    install_and_reset unless packages_already_installed?
   end
 
   def complete?
@@ -36,6 +35,12 @@ class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
   end
 
   private
+
+  def install_and_reset
+    output, exit_status = install_packages
+    log_installation_results(output, exit_status)
+    reset_package_status
+  end
 
   def packages_already_installed?
     return @packages_installed_status unless @packages_installed_status.nil?
