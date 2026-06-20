@@ -47,10 +47,5 @@ function check_long_mise_run_blocks
 end
 
 function check_large_file_tooling
-    report_flag has_cloc_tool "mise tool: cloc" check_fail "Add cloc from GitHub to the mise [tools] section for the large file LOC check: \"github:aldanial/cloc\" = \"latest\""
-    report_flag has_large_files "mise task: lint:large-files" check_fail "Add a [tasks.\"lint:large-files\"] section that checks staged files crossing the LOC limit."
-
-    if test $has_large_files -eq 1
-        check_shared_tool_reference check_large_files.rb
-    end
+    report_flag has_large_files "mise task: lint:large-files" check_fail "Add a self-contained [tasks.\"lint:large-files\"] section that checks files with more than 100 staged additions."
 end

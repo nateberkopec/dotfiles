@@ -9,16 +9,12 @@ function check_mise_tasks
 end
 
 function collect_mise_task_flags
-    for flag in cloc_tool test lint large_files complexity dead_code flog flay serve_or_dev serve_task build
+    for flag in test lint large_files complexity dead_code flog flay serve_or_dev serve_task build
         set -g has_$flag 0
     end
 
     if test -z "$mise_file"
         return
-    end
-
-    if string match -rq '^\s*["\']github:aldanial/cloc["\']\s*=' -- (cat "$mise_file")
-        set -g has_cloc_tool 1
     end
 
     for task_name in (mise_task_names)

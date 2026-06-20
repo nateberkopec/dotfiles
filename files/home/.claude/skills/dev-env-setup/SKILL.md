@@ -37,11 +37,8 @@ The reusable hook tools live in the skill directory. Prefer symlinking those too
 
 ```fish
 mkdir -p tools
-ln -sf ~/.claude/skills/dev-env-setup/scripts/check_large_files.rb tools/check_large_files.rb
 ln -sf ~/.claude/skills/dev-env-setup/scripts/check_dead_code.rb tools/check_dead_code.rb
 ```
-
-Then point mise tasks at the project-local symlink, e.g. `ruby tools/check_large_files.rb`. If a repo cannot use symlinks, call the skill script directly from the mise task rather than copying it.
 
 ## Git Cleanliness
 
@@ -72,7 +69,7 @@ All dev tools must be managed via mise. Choose the config file based on repo own
 
 If `mise.toml` already exists in someone else's repo, work within it rather than creating `mise.local.toml`.
 
-The config must have a `[tools]` section listing the project's dev dependencies. Inspect the project to determine what tools are needed (language runtimes, linters, formatters, etc.) and add them. Include `cloc` when adding the large-file LOC check. `gitleaks` is expected via the global mise config (`~/.config/mise/config.toml`); add it to the project mise config too if the project pins versions in CI.
+The config must have a `[tools]` section listing the project's dev dependencies. Inspect the project to determine what tools are needed (language runtimes, linters, formatters, etc.) and add them. `gitleaks` is expected via the global mise config (`~/.config/mise/config.toml`); add it to the project mise config too if the project pins versions in CI.
 
 ### 2. Environment Variables and Secrets
 
@@ -120,7 +117,7 @@ For lint and test tasks, add `sources` so mise can skip unchanged checks during 
 | `lint:complexity` | `["**/*.rb", ".rubocop-custom.yml"]` |
 | `lint:dead-code` | `["**/*.rb", "**/*.rake", "bin/*", "Rakefile", ".debride-whitelist", "tools/check_dead_code.rb"]` |
 | `lint:flog` / `lint:flay` | `["**/*.rb", "Rakefile"]` |
-| `lint:large-files` | `[".git/index", "tools/check_large_files.rb"]` so staging changes rerun the check |
+| `lint:large-files` | `[".git/index"]` so staging changes rerun the check |
 
 Example mise tasks section:
 
@@ -141,8 +138,8 @@ run = "bundle exec standardrb"
 
 [tasks."lint:large-files"]
 description = "Check staged files for large files"
-sources = [".git/index", "tools/check_large_files.rb"]
-run = "ruby tools/check_large_files.rb"
+sources = [".git/index"]
+run = '''git diff --cached --numstat --diff-filter=ACMR | awk -F '\t' '$1 ~ /^[0-9]+$/ && $1 > 100 { print "You are adding more than 100 lines to a file: " $3 " (+" $1 "). This is rarely necessary; consider simplifying the code. Is this the most YAGNI solution? Commit with --no-verify if needed."; bad=1 } END { exit bad }' '''
 
 [tasks."lint:complexity"]
 description = "Run Ruby complexity checks"
@@ -243,22 +240,18 @@ Acceptable remediations for a slow test task are:
 
 ### 7. Large File Check
 
-Pre-commit must include a large-file LOC check so files do not casually grow past the standard size limit. Add `cloc` as a mise-managed tool:
-
-```toml
-[tools]
-"github:aldanial/cloc" = "latest"
-```
+Pre-commit must include a large-file check so commits do not casually add too many lines to one file.
 
 Add a dedicated mise task named `lint:large-files` that checks staged files:
 
 ```toml
 [tasks."lint:large-files"]
 description = "Check staged files for large files"
-run = "ruby tools/check_large_files.rb"
+sources = [".git/index"]
+run = '''git diff --cached --numstat --diff-filter=ACMR | awk -F '\t' '$1 ~ /^[0-9]+$/ && $1 > 100 { print "You are adding more than 100 lines to a file: " $3 " (+" $1 "). This is rarely necessary; consider simplifying the code. Is this the most YAGNI solution? Commit with --no-verify if needed."; bad=1 } END { exit bad }' '''
 ```
 
-Use the shared skill tool by symlinking it into the project as `tools/check_large_files.rb`; do not copy it. For Ruby projects, the tool inspects staged changes and uses `cloc` to compare the staged version to `HEAD`. It only checks recognized source-code extensions and common extensionless code filenames, so generated assets and data files like SVGs are ignored. It fails when the changes cause any code file to go from fewer than 100 lines of code to more than 100 lines of code. The failure tells the user: "Don't do this unless absolutely appropriate for the domain. Consider decomposing into multiple files. To override this check, use LARGE_FILES_APPROPRIATE=true." `LARGE_FILES_APPROPRIATE=true` skips the hook.
+Keep this check self-contained in the mise task. It fails when a commit stages more than 100 added lines in any added, copied, modified, or renamed file. Existing files over 100 lines are fine unless the current staged change adds more than 100 lines to that file. There is no project script or override environment variable; use the normal `--no-verify` escape hatch if needed.
 
 ### 8. Secret Scanning
 
@@ -458,7 +451,7 @@ Run `mise deps` to install stale dependencies. Bundler runs automatically before
 6. **Environment**: Configure mise to load `.env`, ensure `.env` is ignored, and add `.env.example` as a subset of `.env`.
 7. **Serve URL**: For projects with a server, ensure `mise run serve` logs the server URL within the last 10 lines of output.
 8. **Test runtime**: Let the checker time `mise run test` and warn when it exceeds 10 seconds.
-9. **Large files**: Symlink the shared skill tool, then add a dedicated `lint:large-files` task and pre-commit hook step.
+9. **Large files**: Add a self-contained `lint:large-files` task and pre-commit hook step.
 10. **Secrets**: Add a `lint:secrets` task running `gitleaks dir`. If the project has existing findings that won't be fixed immediately, generate `.gitleaks-baseline.json`. Migrate any plaintext secrets in `.env` to fnox/1Password (see `env-to-fnox` skill).
 11. **Ruby checks**: For Ruby projects, symlink shared skill tools where available, then add dedicated `lint:complexity`, `lint:dead-code`, `lint:flog`, and `lint:flay` tasks and pre-commit hook steps.
 12. **hk config**: Create or update `hk.pkl` with pre-commit hooks. For others' repos, add `hk.pkl` to `.git/info/exclude`.
