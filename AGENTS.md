@@ -16,7 +16,7 @@ Lints enforced on this codebase via `hk`/git hooks:
 
 - `standard`: Runs `standardrb`, including custom cops that prefer `SystemAdapter` over direct filesystem classes and keep Step public methods constrained.
 - `complexity`: Runs RuboCop's `Metrics/PerceivedComplexity` using `.rubocop-custom.yml`.
-- `large-files`: Checks staged files for oversized blobs before commit.
+- `large-files`: Checks files for the staged line-addition limit before commit.
 - `secrets`: Runs `gitleaks` over the working tree with repo config and redacted output.
 - `dead-code`: Runs the custom dead-code checker for unused Ruby methods, honoring `.debride-whitelist`.
 - `flog`: Fails if any Ruby method's flog complexity reaches the configured threshold, which is 25 by default.
