@@ -18,6 +18,7 @@ When the user asks to "set up my standard dev environment" or "change to my stan
   - `lint`
   - `build`, for artifacts
 - **Git hooks are managed with `hk`.** `hk` runs hook steps in parallel, so split checks like lint and test into separate steps instead of combining them in one shell task. Linting and testing should run before every commit.
+- **GitHub Actions are pinned to commit SHAs.** For any `uses: owner/repo@ref` workflow step, replace the tag or branch with the full 40-character commit SHA and keep the human-friendly version as a comment.
 
 ## Compliance Checker
 
@@ -374,7 +375,17 @@ run = "bundle exec rake flay"
 
 Add separate hk pre-commit steps for `lint:flog` and `lint:flay` so hk can run them in parallel with the rest of the pre-commit checks.
 
-### 12. hk Git Hooks
+### 12. GitHub Actions
+
+Pin GitHub Actions workflow dependencies to full commit SHAs:
+
+```yaml
+- uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+```
+
+Resolve tags with `git ls-remote https://github.com/<owner>/<repo>.git refs/tags/<tag>`. Do not add extra tooling unless the project already has it; the compliance checker flags unpinned `uses: owner/repo@ref` entries.
+
+### 13. hk Git Hooks
 
 Git hooks are managed with [hk](https://hk.jdx.dev/). Configure them in `hk.pkl` at the project root.
 
@@ -429,7 +440,7 @@ mise run -- hk install
 
 Or configure a custom `[deps.hk]` provider as shown above and run `mise deps hk`.
 
-### 13. Dependency Preparation
+### 14. Dependency Preparation
 
 For Ruby projects, prefer `vendor/bundle` plus mise dependency providers over a hand-rolled `setup` task:
 
@@ -461,7 +472,8 @@ Run `mise deps` to install stale dependencies. Bundler runs automatically before
 9. **Large files**: Symlink the shared skill tool, then add a dedicated `lint:large-files` task and pre-commit hook step.
 10. **Secrets**: Add a `lint:secrets` task running `gitleaks dir`. If the project has existing findings that won't be fixed immediately, generate `.gitleaks-baseline.json`. Migrate any plaintext secrets in `.env` to fnox/1Password (see `env-to-fnox` skill).
 11. **Ruby checks**: For Ruby projects, symlink shared skill tools where available, then add dedicated `lint:complexity`, `lint:dead-code`, `lint:flog`, and `lint:flay` tasks and pre-commit hook steps.
-12. **hk config**: Create or update `hk.pkl` with pre-commit hooks. For others' repos, add `hk.pkl` to `.git/info/exclude`.
-13. **Install**: Run `mise deps`, then `mise deps hk` or `hk install` to activate the hooks.
-14. **Verify**: Run the compliance checker again to confirm everything passes, including git cleanliness.
+12. **GitHub Actions**: Pin any workflow `uses: owner/repo@ref` actions to full commit SHAs, keeping the original tag as a comment.
+13. **hk config**: Create or update `hk.pkl` with pre-commit hooks. For others' repos, add `hk.pkl` to `.git/info/exclude`.
+14. **Install**: Run `mise deps`, then `mise deps hk` or `hk install` to activate the hooks.
+15. **Verify**: Run the compliance checker again to confirm everything passes, including git cleanliness.
 
