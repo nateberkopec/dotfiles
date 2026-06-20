@@ -11,29 +11,20 @@ packages:
   asdf: { brew: asdf, debian: null }
   automake: { brew: automake, debian: automake }
   bash: { brew: bash, debian: bash }
-  bat: { brew: bat, debian: bat }
   bison: { brew: bison, debian: bison }
-  cmake: { brew: cmake, debian: cmake }
   coreutils: { brew: coreutils, debian: coreutils }
   curl: { brew: curl, debian: curl }
   docker: { brew: null, debian: docker.io }
   droid: { brew: null, debian: droid }
   duti: { brew: duti, debian: null }
   eza: { brew: eza, debian: eza }
-  fd: { brew: fd, debian: fd-find }
-  fish: { brew: null, debian: fish }
   fontconfig: { brew: fontconfig, debian: fontconfig }
   gemini-cli: { brew: gemini-cli, debian: null }
-  gh: { brew: gh, debian: null }
   git: { brew: git, debian: git }
-  git-lfs: { brew: git-lfs, debian: git-lfs }
   gnupg: { brew: gnupg, debian: gnupg }
   google-chrome: { brew: null, debian: google-chrome-stable }
-  gum: { brew: gum, debian: gum }
   jemalloc: { brew: jemalloc, debian: libjemalloc-dev }
   jpeg: { brew: jpeg, debian: libjpeg-dev }
-  jq: { brew: jq, debian: jq }
-  lazygit: { brew: lazygit, debian: lazygit }
   libffi: { brew: libffi, debian: libffi-dev }
   libheif: { brew: libheif, debian: libheif-dev }
   libmagic: { brew: libmagic, debian: libmagic-dev }
@@ -44,12 +35,9 @@ packages:
   mise: { brew: mise, debian: mise }
   pinentry-mac: { brew: pinentry-mac, debian: pinentry-tty }
   pkgconf: { brew: pkgconf, debian: pkgconf }
-  ripgrep: { brew: ripgrep, debian: ripgrep }
-  shellcheck: { brew: shellcheck, debian: shellcheck }
   snapd: { brew: null, debian: snapd }
   thefuck: { brew: thefuck, debian: thefuck }
   terminal-notifier: { brew: terminal-notifier, debian: null }
-  tmux: { brew: tmux, debian: tmux }
   trash: { brew: trash, debian: trash-cli }
   ykman: { brew: ykman, debian: yubikey-manager }
 debian_sources:
