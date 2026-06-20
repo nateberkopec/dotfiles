@@ -1,19 +1,14 @@
 {
   "tools": {
-    "search": "parallel",
+    "search": "exa",
     "contents": "exa",
-    "answer": "parallel",
-    "research": "parallel"
+    "answer": "exa",
+    "research": "exa"
   },
   "providers": {
     "exa": {
       "credentials": {
         "api": "!op --account thespeedshop read 'op://Employee/Pi Web Providers/EXA_API_KEY'"
-      }
-    },
-    "parallel": {
-      "credentials": {
-        "api": "!op --account thespeedshop read 'op://Employee/Pi Web Providers/PARALLEL_API_KEY'"
       }
     },
     "perplexity": {
