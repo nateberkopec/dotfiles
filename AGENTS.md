@@ -1,6 +1,6 @@
 # AGENTS.md
 
-These are my dotfiles. See README.md. For high-level project intent, see docs/repo-intent.md.
+These are my dotfiles. See README.md.
 
 I make changes to this repository exclusively through GitHub pull requests. Pushing to main directly is disabled.
 
