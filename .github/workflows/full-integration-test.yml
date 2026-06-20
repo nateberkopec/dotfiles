@@ -104,8 +104,8 @@ jobs:
         CI: true
         NONINTERACTIVE: true
         GITHUB_TOKEN: ${{ github.token }}
-        MISE_CI_TOOLS: "fzf@latest"
-        BREW_CI_PACKAGES: "duti,fish"
+        MISE_CI_TOOLS: "fzf@latest,aqua:fish-shell/fish-shell@latest"
+        BREW_CI_PACKAGES: "duti"
         BREW_CI_TAPS: ""
         BREW_CI_CASKS: ""
         BREW_CI_APPLICATIONS: ""
@@ -204,12 +204,11 @@ jobs:
         CI: true
         NONINTERACTIVE: true
         GITHUB_TOKEN: ${{ github.token }}
-        MISE_CI_TOOLS: "fzf@latest"
+        MISE_CI_TOOLS: "fzf@latest,aqua:fish-shell/fish-shell@latest"
         BREW_CI_PACKAGES: "duti"
         BREW_CI_TAPS: ""
         BREW_CI_CASKS: ""
         BREW_CI_APPLICATIONS: ""
-        CHECK_FISH: false
       run: |
         set -euo pipefail
 
@@ -229,7 +228,6 @@ jobs:
           BREW_CI_TAPS="${BREW_CI_TAPS}" \
           BREW_CI_CASKS="${BREW_CI_CASKS}" \
           BREW_CI_APPLICATIONS="${BREW_CI_APPLICATIONS}" \
-          CHECK_FISH="${CHECK_FISH}" \
           bash "${home_dir}/dotfiles/tools/ci/run_dotfiles_integration.sh" "${home_dir}/dotfiles"
 
     - name: Upload non-admin logs

@@ -51,20 +51,19 @@ find_fish_bin() {
 }
 
 check_fish() {
-    if [ "${CHECK_FISH:-true}" = "false" ]; then
-        echo "Skipping fish shell initialization check"
-        return 0
-    fi
-
     echo "Starting fish shell to check for initialization errors..."
 
-    local fish_bin
-    fish_bin="$(find_fish_bin)" || {
-        echo "❌ Fish shell not found"
-        return 1
-    }
+    if command -v mise >/dev/null 2>&1 && mise --cd "$HOME" where aqua:fish-shell/fish-shell >/dev/null 2>&1; then
+        mise --cd "$HOME" x aqua:fish-shell/fish-shell -- fish -c 'echo "Fish shell initialized successfully"' 2>&1 | tee "$fish_log"
+    else
+        local fish_bin
+        fish_bin="$(find_fish_bin)" || {
+            echo "❌ Fish shell not found"
+            return 1
+        }
+        "$fish_bin" -c 'echo "Fish shell initialized successfully"' 2>&1 | tee "$fish_log"
+    fi
 
-    "$fish_bin" -c 'echo "Fish shell initialized successfully"' 2>&1 | tee "$fish_log"
     echo "✅ Fish shell started without errors"
 }
 

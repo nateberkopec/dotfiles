@@ -91,6 +91,16 @@ class SetFishDefaultShellStepTest < Minitest::Test
     assert @step.complete?
   end
 
+  def test_prefers_mise_managed_fish
+    fish = File.join(@home, ".local", "share", "mise", "installs", "aqua-fish-shell-fish-shell", "4.7.1", "fish.pkg", "Payload", "usr", "local", "bin", "fish")
+    @fake_system.stub_file_content(fish, "binary")
+    @fake_system.stub_file_content("/opt/homebrew/bin/fish", "binary")
+    @fake_system.stub_command(["dscl", ".", "-read", @home, "UserShell"], "UserShell: #{fish}")
+    stub_shells(fish)
+
+    assert @step.complete?
+  end
+
   def test_run_falls_back_to_usermod_when_chsh_does_not_change_shell
     @fake_system.stub_macos(false)
     @fake_system.stub_debian

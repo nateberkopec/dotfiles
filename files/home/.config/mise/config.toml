@@ -21,6 +21,7 @@ hk = "latest"
 watchexec = "latest"
 fnox = "latest"
 fzf = "latest"
+"aqua:fish-shell/fish-shell" = { version = "latest", os = ["macos"] }
 zoxide = "latest"
 pkl = "latest"
 claude = "latest"
