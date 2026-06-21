@@ -30,7 +30,7 @@ module DotfScriptHelper
     File.write(path, <<~BASH)
       #!/bin/bash
       env_prefix=()
-      for var in HOMEBREW_AUTO_UPDATE_SECS HOMEBREW_NO_AUTO_UPDATE; do
+      for var in HOMEBREW_AUTO_UPDATE_SECS HOMEBREW_NO_AUTO_UPDATE MISE_EXPERIMENTAL; do
         if [ -n "${!var+x}" ]; then
           env_prefix+=("$var=${!var}")
         fi

@@ -22,7 +22,7 @@ class InstallSystemPackagesStepTest < StepTestCase
 
     step.run
 
-    assert_executed("mise system install --yes --update brew:duti")
+    assert_executed("MISE_EXPERIMENTAL=1 mise system install --yes --update brew:duti")
   end
 
   def test_run_installs_apt_packages_with_mise_on_debian
@@ -31,13 +31,13 @@ class InstallSystemPackagesStepTest < StepTestCase
 
     step.run
 
-    assert_executed("mise system install --yes --update apt:trash-cli")
+    assert_executed("MISE_EXPERIMENTAL=1 mise system install --yes --update apt:trash-cli")
   end
 
   def test_falls_back_to_brew_when_mise_system_is_unavailable
     @fake_system.stub_macos
     @fake_system.stub_command("groups", "admin staff")
-    @fake_system.stub_command("mise help system", "no task system found", exit_status: 1)
+    @fake_system.stub_command("MISE_EXPERIMENTAL=1 mise system install --help", "no task system found", exit_status: 1)
     write_config(:brew, {"brew" => {"packages" => ["duti"], "casks" => []}})
 
     step.run
@@ -47,7 +47,7 @@ class InstallSystemPackagesStepTest < StepTestCase
 
   def test_falls_back_to_apt_when_mise_system_is_unavailable
     @fake_system.stub_debian
-    @fake_system.stub_command("mise help system", "no task system found", exit_status: 1)
+    @fake_system.stub_command("MISE_EXPERIMENTAL=1 mise system install --help", "no task system found", exit_status: 1)
     write_config("config", "packages" => {"trash" => {"debian" => "trash-cli"}})
 
     step.run
@@ -79,7 +79,7 @@ class InstallSystemPackagesStepTest < StepTestCase
     @fake_system.stub_macos
     @fake_system.stub_command("groups", "admin staff")
     write_config(:brew, {"brew" => {"packages" => ["duti"], "casks" => []}})
-    @fake_system.stub_command("mise system install --yes --update brew:duti", "boom", exit_status: 1)
+    @fake_system.stub_command("MISE_EXPERIMENTAL=1 mise system install --yes --update brew:duti", "boom", exit_status: 1)
 
     step.run
 
