@@ -17,6 +17,12 @@ class UpdateDebianStepTest < StepTestCase
     assert_should_run
   end
 
+  def test_should_not_run_in_ci_when_release_update_available
+    stub_release_update("99.99")
+
+    with_ci { refute_should_run }
+  end
+
   def test_incomplete_when_release_update_available
     stub_release_update("99.99")
 

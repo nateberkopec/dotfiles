@@ -3,7 +3,6 @@
 set -euo pipefail
 
 repo_dir="${1:-$PWD}"
-output_log="$repo_dir/output.log"
 fish_log="$repo_dir/fish-init.log"
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -11,9 +10,24 @@ script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$script_dir/package_probe.sh"
 
 run_dotfiles() {
+    local log_name="${1:-output.log}"
+
     cd "$repo_dir"
     chmod +x bin/dotf
-    ./bin/dotf run 2>&1 | tee "$output_log"
+    ./bin/dotf run 2>&1 | tee "$repo_dir/$log_name"
+}
+
+assert_no_steps_ran() {
+    local label="$1"
+    local log_name="$2"
+    local log_path="$repo_dir/$log_name"
+
+    if grep -F "Running step:" "$log_path"; then
+        echo "❌ $label was not a no-op when converged"
+        return 1
+    fi
+
+    echo "✅ $label was a no-op when converged"
 }
 
 find_fish_bin() {
@@ -68,6 +82,8 @@ check_fish() {
 }
 
 check_ci_packages "Pre-run" assert_not_installed
-run_dotfiles
+run_dotfiles output.log
 check_ci_packages "Post-run" assert_installed
+run_dotfiles output-second.log
+assert_no_steps_ran "Second dotf run" output-second.log
 check_fish
