@@ -38,7 +38,10 @@ class Dotfiles::Migration::ReinstallNpmMiseToolsWithAube < Dotfiles::Migration
   end
 
   def aube_mise_command(*args)
-    env_command({"MISE_NPM_PACKAGE_MANAGER" => "aube"}, *mise_command(*args))
+    env_command(
+      {"MISE_NPM_PACKAGE_MANAGER" => "aube"},
+      "mise", "--cd", @home, "x", AUBE_TOOL, "--", "mise", "--cd", @home, *args
+    )
   end
 
   def mise_command(*args)

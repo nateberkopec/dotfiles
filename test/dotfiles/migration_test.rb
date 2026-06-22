@@ -45,6 +45,15 @@ class MigrationTest < Minitest::Test
     assert_equal "false", @fake_system.read_file(File.join(@home, "command-succeeded"))
   end
 
+  def test_npm_mise_migration_runs_mise_with_aube_on_path
+    migration = create_migration(Dotfiles::Migration::ReinstallNpmMiseToolsWithAube)
+    stub_only_heroku_installed
+
+    migration.up
+
+    assert_executed!("MISE_NPM_PACKAGE_MANAGER=aube mise --cd #{@home} x github:jdx/aube -- mise --cd #{@home} install --yes heroku")
+  end
+
   def test_hk_hook_migration_skips_absent_legacy_config
     @fake_system.mkdir_p(File.join(@dotfiles_dir, ".git"))
     stub_legacy_hook_config_absent
@@ -87,6 +96,12 @@ class MigrationTest < Minitest::Test
       end
       define_method(:down) {}
     end
+  end
+
+  def stub_only_heroku_installed
+    @fake_system.stub_command("mise --cd #{@home} where npm:@openai/codex", "", exit_status: 1)
+    @fake_system.stub_command("mise --cd #{@home} where npm:@earendil-works/pi-coding-agent", "", exit_status: 1)
+    @fake_system.stub_command("mise --cd #{@home} where heroku", "/tmp/heroku", exit_status: 0)
   end
 
   def stub_legacy_hook_config_absent
