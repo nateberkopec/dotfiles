@@ -122,6 +122,7 @@ jobs:
         name: logs-${{ matrix.os }}
         path: |
           output.log
+          output-second.log
           fish-init.log
         retention-days: 7
 
@@ -237,5 +238,6 @@ jobs:
         name: logs-macos-latest-non-admin
         path: |
           /Users/dotfiles-ci/dotfiles/output.log
+          /Users/dotfiles-ci/dotfiles/output-second.log
           /Users/dotfiles-ci/dotfiles/fish-init.log
         retention-days: 7
