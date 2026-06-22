@@ -353,42 +353,19 @@ class SystemAdapterTest < Minitest::Test
 
   def stub_singleton_method(object, method_name, return_value)
     singleton_class = object.singleton_class
-    backup_name = :"__stubbed_original_#{method_name}_#{object_id}"
-    had_original = object.respond_to?(method_name)
-
-    preserve_singleton_method(singleton_class, backup_name, method_name) if had_original
-    replace_singleton_method(singleton_class, method_name, return_value)
-
-    yield
-  ensure
-    restore_singleton_method(singleton_class, method_name, backup_name, had_original)
-  end
-
-  def preserve_singleton_method(singleton_class, backup_name, method_name)
-    singleton_class.send(:alias_method, backup_name, method_name)
-  end
-
-  def replace_singleton_method(singleton_class, method_name, return_value)
+    original = object.method(method_name) if object.respond_to?(method_name)
     remove_singleton_method(singleton_class, method_name)
-    singleton_class.send(:define_method, method_name, &singleton_method_stub(return_value))
-  end
-
-  def singleton_method_stub(return_value)
-    lambda do |*args, **kwargs, &block|
+    singleton_class.define_method(method_name) do |*args, **kwargs, &block|
       if return_value.respond_to?(:call)
         return_value.call(*args, **kwargs, &block)
       else
         return_value
       end
     end
-  end
-
-  def restore_singleton_method(singleton_class, method_name, backup_name, had_original)
+    yield
+  ensure
     remove_singleton_method(singleton_class, method_name)
-    return unless had_original
-
-    singleton_class.send(:alias_method, method_name, backup_name)
-    remove_singleton_method(singleton_class, backup_name)
+    singleton_class.define_method(method_name, original) if original
   end
 
   def remove_singleton_method(singleton_class, method_name)
