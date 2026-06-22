@@ -34,9 +34,9 @@ class Dotfiles
       @debian_only || false
     end
 
-    def initialize(debug:, dotfiles_repo:, dotfiles_dir:, home:, system: SystemAdapter.new)
+    def initialize(debug:, dotfiles_repo:, dotfiles_dir:, home:, system: SystemAdapter.new, config: nil)
       @debug, @dotfiles_repo, @dotfiles_dir, @home, @system = debug, dotfiles_repo, dotfiles_dir, home, system
-      @config = Config.new(dotfiles_dir, system: system)
+      @config = config || Config.new(dotfiles_dir, system: system)
     end
 
     def allowed_on_platform?

@@ -44,6 +44,13 @@ class RunnerTest < Minitest::Test
     assert_equal 0, step.should_run_calls
   end
 
+  def test_build_step_params_shares_runner_config
+    runner = Dotfiles::Runner.new
+    params = runner.send(:build_step_params)
+
+    assert_equal runner.instance_variable_get(:@config), params[:config]
+  end
+
   private
 
   def build_runner(step_classes, step_instances)

@@ -91,9 +91,9 @@ class Dotfiles
       context[:result] << step
     end
 
-    def initialize(debug:, dotfiles_repo:, dotfiles_dir:, home:, system: SystemAdapter.new)
+    def initialize(debug:, dotfiles_repo:, dotfiles_dir:, home:, system: SystemAdapter.new, config: nil)
       @debug, @dotfiles_repo, @dotfiles_dir, @home, @system = debug, dotfiles_repo, dotfiles_dir, home, system
-      @config = Config.new(dotfiles_dir, system: system)
+      @config = config || Config.new(dotfiles_dir, system: system)
       reset_state
     end
 
