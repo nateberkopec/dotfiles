@@ -37,22 +37,6 @@ class Dotfiles::Step::ConfigureWallpaperStep < Dotfiles::Step
     command_exists?("splash")
   end
 
-  def script_current?
-    file_installed_with_content?(script_path, script_content)
-  end
-
-  def launchagent_current?
-    file_installed_with_content?(launchagent_path, plist_content)
-  end
-
-  def launchagent_loaded?
-    command_succeeds?(command("launchctl", "print", "gui/#{Process.uid}/#{launchagent_label}"))
-  end
-
-  def file_installed_with_content?(path, content)
-    @system.file_exist?(path) && @system.read_file(path) == content
-  end
-
   def script_content
     @system.read_file(source_script_path)
   end
@@ -78,9 +62,5 @@ class Dotfiles::Step::ConfigureWallpaperStep < Dotfiles::Step
 
   def launchagent_path
     File.join(@home, "Library/LaunchAgents/com.user.woodblock-wallpaper.plist")
-  end
-
-  def launchagent_label
-    File.basename(launchagent_path, ".plist")
   end
 end

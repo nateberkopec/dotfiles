@@ -14,7 +14,6 @@ class Dotfiles::Step::InstallMiseToolsStep < Dotfiles::Step
     return unless mise_available?
 
     @install_errors = {}
-    @install_outputs = {}
     install_tools
     reset_cache
   end
@@ -71,7 +70,6 @@ class Dotfiles::Step::InstallMiseToolsStep < Dotfiles::Step
     cleaned = output.to_s.strip.gsub(/\s+/, " ")
     return if cleaned.empty?
 
-    @install_outputs[spec] = cleaned
     debug "mise output (#{spec}): #{cleaned}"
   end
 
@@ -95,7 +93,6 @@ class Dotfiles::Step::InstallMiseToolsStep < Dotfiles::Step
 
   def reset_cache
     @install_errors = nil
-    @install_outputs = nil
   end
 
   def global_mise_config_path
