@@ -23,7 +23,11 @@ class DotfCliTest < Minitest::Test
   def test_upgrade_updates_pi_extensions
     assert_upgrade_commands(
       stubs: %w[mise brew pi],
-      env: {"DOTF_FORCE_NON_DEBIAN" => "true"},
+      env: {
+        "DOTF_FORCE_NON_DEBIAN" => "true",
+        "DOTF_MANAGED_BREW_FORMULAE" => "duti,fish",
+        "DOTF_BREW_OUTDATED_FORMULAE" => "duti,unmanaged"
+      },
       expected: [
         "brew shellenv bash", "mise activate bash", "mise cache clear --yes", "mise plugins update",
         "mise outdated --json",
@@ -32,8 +36,30 @@ class DotfCliTest < Minitest::Test
         "mise prune --yes", "mise cache prune --yes", "MISE_EXPERIMENTAL=1 mise system install --help",
         "MISE_EXPERIMENTAL=1 mise system install --yes --update",
         "HOMEBREW_AUTO_UPDATE_SECS=604800 brew update-if-needed",
-        "HOMEBREW_NO_AUTO_UPDATE=1 brew upgrade",
-        "HOMEBREW_NO_AUTO_UPDATE=1 brew autoremove", "HOMEBREW_NO_AUTO_UPDATE=1 brew cleanup"
+        "HOMEBREW_NO_AUTO_UPDATE=1 brew outdated --formula --quiet",
+        "HOMEBREW_NO_AUTO_UPDATE=1 brew upgrade duti",
+        "HOMEBREW_NO_AUTO_UPDATE=1 brew cleanup duti"
+      ]
+    )
+  end
+
+  def test_upgrade_skips_brew_upgrade_when_no_managed_formulae_are_outdated
+    assert_upgrade_commands(
+      stubs: %w[mise brew],
+      env: {
+        "DOTF_FORCE_NON_DEBIAN" => "true",
+        "DOTF_MANAGED_BREW_FORMULAE" => "duti",
+        "DOTF_BREW_OUTDATED_FORMULAE" => "unmanaged"
+      },
+      expected: [
+        "brew shellenv bash", "mise activate bash", "mise cache clear --yes", "mise plugins update",
+        "mise outdated --json",
+        "mise up --dry-run --before 3d --yes", "mise up --before 3d --yes",
+        "mise install --before 3d --yes", "mise prune --yes", "mise cache prune --yes",
+        "MISE_EXPERIMENTAL=1 mise system install --help",
+        "MISE_EXPERIMENTAL=1 mise system install --yes --update",
+        "HOMEBREW_AUTO_UPDATE_SECS=604800 brew update-if-needed",
+        "HOMEBREW_NO_AUTO_UPDATE=1 brew outdated --formula --quiet"
       ]
     )
   end

@@ -20,16 +20,21 @@ class Dotfiles::Step::UpgradeBrewPackagesStep < Dotfiles::Step
   private
 
   def check_outdated_packages
-    output, status = brew_quiet("outdated", "--quiet")
-    debug("brew outdated --quiet output: #{output.inspect}")
+    output, status = brew_quiet("outdated", "--formula", "--quiet")
+    debug("brew outdated --formula --quiet output: #{output.inspect}")
     return unless status == 0
 
-    packages = output.lines.map(&:strip).reject(&:empty?)
+    packages = managed_outdated_packages(output)
     return if packages.empty?
 
     add_notice(
       title: "🍺 Homebrew Updates Available",
-      message: "#{packages.count} package(s) have updates available.\n\nRun 'brew upgrade' to update them."
+      message: "#{packages.count} managed package(s) have updates available.\n\nRun 'brew upgrade #{packages.join(" ")}' to update them."
     )
+  end
+
+  def managed_outdated_packages(output)
+    outdated_packages = output.lines.map(&:strip).reject(&:empty?)
+    outdated_packages & @config.brew_packages
   end
 end

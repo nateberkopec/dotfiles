@@ -1,18 +1,31 @@
 require "test_helper"
 
 class UpgradeBrewPackagesStepTest < Minitest::Test
+  include ConfigFixtureHelper
+
   def test_complete_returns_true
     step = create_step(Dotfiles::Step::UpgradeBrewPackagesStep)
     assert step.complete?
   end
 
-  def test_adds_notice_for_outdated_packages
+  def test_adds_notice_for_outdated_managed_packages
+    write_config("config", "packages" => {"fish" => {"brew" => "fish"}, "gh" => {"brew" => "gh"}})
     step = create_step(Dotfiles::Step::UpgradeBrewPackagesStep)
     @fake_system.stub_command(brew_outdated_command, "bat\nfish\ngh\n")
 
     step.should_run?
 
-    assert_brew_update_notice(step, "3 package(s)")
+    assert_brew_update_notice(step, "2 managed package(s)", "brew upgrade fish gh")
+  end
+
+  def test_no_notice_when_only_unmanaged_packages_are_outdated
+    write_config("config", "packages" => {"fish" => {"brew" => "fish"}})
+    step = create_step(Dotfiles::Step::UpgradeBrewPackagesStep)
+    @fake_system.stub_command(brew_outdated_command, "bat\n")
+
+    step.should_run?
+
+    assert_empty step.notices
   end
 
   def test_no_notice_when_packages_up_to_date
@@ -51,15 +64,15 @@ class UpgradeBrewPackagesStepTest < Minitest::Test
 
   private
 
-  def assert_brew_update_notice(step, count_message)
+  def assert_brew_update_notice(step, count_message, upgrade_command)
     assert_equal 1, step.notices.size
     notice = step.notices.first
     assert_includes notice[:title], "Homebrew Updates Available"
     assert_includes notice[:message], count_message
-    assert_includes notice[:message], "brew upgrade"
+    assert_includes notice[:message], upgrade_command
   end
 
   def brew_outdated_command
-    [{"HOMEBREW_NO_AUTO_UPDATE" => "1", "HOMEBREW_NO_ENV_HINTS" => "1"}, "brew", "outdated", "--quiet"]
+    [{"HOMEBREW_NO_AUTO_UPDATE" => "1", "HOMEBREW_NO_ENV_HINTS" => "1"}, "brew", "outdated", "--formula", "--quiet"]
   end
 end
