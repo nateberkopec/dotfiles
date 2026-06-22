@@ -80,9 +80,9 @@ class Dotfiles
       context[:result] << step
     end
 
-    def initialize(debug:, dotfiles_repo:, dotfiles_dir:, home:, system: SystemAdapter.new)
+    def initialize(debug:, dotfiles_repo:, dotfiles_dir:, home:, system: SystemAdapter.new, config: nil)
       @debug, @dotfiles_repo, @dotfiles_dir, @home, @system = debug, dotfiles_repo, dotfiles_dir, home, system
-      @config = Config.new(dotfiles_dir, system: system)
+      @config = config || Config.new(dotfiles_dir, system: system)
       reset_state
     end
 
@@ -209,8 +209,15 @@ class Dotfiles
     end
 
     def find_fish_path
-      return @fish_path if defined?(@fish_path) && !@fish_path.to_s.empty?
+      return @fish_path if @fish_path_resolved
 
+      path = resolve_fish_path
+      @fish_path = path
+      @fish_path_resolved = !path.to_s.empty?
+      path
+    end
+
+    def resolve_fish_path
       mise_fish = @system.glob(File.join(@home, ".local", "share", "mise", "installs", "aqua-fish-shell-fish-shell", "*", "{fish,fish.pkg/Payload/usr/local/bin/fish}")).max
       candidates = [
         mise_fish,
@@ -221,10 +228,10 @@ class Dotfiles
         "/home/linuxbrew/.linuxbrew/bin/fish"
       ]
       candidate = candidates.compact.find { |path| @system.file_exist?(path) }
-      return @fish_path = candidate if candidate
+      return candidate if candidate
 
       output, status = @system.execute(shell_script('command -v -- "$1" 2>/dev/null', "fish"))
-      @fish_path = (status == 0) ? output.strip : ""
+      (status == 0) ? output.strip : ""
     end
 
     def temp_path(label)

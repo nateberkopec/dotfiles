@@ -50,7 +50,8 @@ class Dotfiles
         dotfiles_repo: @config.dotfiles_repo,
         dotfiles_dir: @dotfiles_dir,
         home: @home,
-        system: @system
+        system: @system,
+        config: @config
       }
     end
 

@@ -32,7 +32,8 @@ class Dotfiles
         debug: @debug,
         dotfiles_repo: @config.dotfiles_repo,
         dotfiles_dir: @config.dotfiles_dir,
-        home: @config.home
+        home: @config.home,
+        config: @config
       }
     end
 

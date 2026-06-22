@@ -2,6 +2,10 @@
 
 set -e
 
+BOOTSTRAP_DIR="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib/dotf-common.sh
+source "$BOOTSTRAP_DIR/lib/dotf-common.sh"
+
 is_macos() {
     [ "$(uname -s)" = "Darwin" ]
 }
@@ -12,12 +16,7 @@ is_linux() {
 
 debug() {
     if [ "${DEBUG:-false}" = "true" ]; then
-        # Use gdate if available (GNU coreutils on macOS), otherwise use standard date without milliseconds
-        if command -v gdate &> /dev/null; then
-            timestamp=$(gdate '+%H:%M:%S.%3N')
-        else
-            timestamp=$(date '+%H:%M:%S')
-        fi
+        timestamp=$(dotf_date '%H:%M:%S.%3N' '%H:%M:%S')
         echo "[$timestamp] $1"
     fi
 }
@@ -27,14 +26,6 @@ brew_quiet() {
         HOMEBREW_NO_AUTO_UPDATE=1 brew "$@"
     else
         HOMEBREW_NO_AUTO_UPDATE=1 brew "$@" >/dev/null 2>&1
-    fi
-}
-
-stdout_quiet_unless_debug() {
-    if [ "${DEBUG:-false}" = "true" ]; then
-        "$@"
-    else
-        "$@" >/dev/null
     fi
 }
 

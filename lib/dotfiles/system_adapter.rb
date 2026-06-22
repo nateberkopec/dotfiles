@@ -25,8 +25,8 @@ class Dotfiles
     end
 
     def running_container?
-      File.exist?("/.dockerenv") ||
-        (File.exist?("/proc/1/cgroup") && File.read("/proc/1/cgroup").include?("docker"))
+      file_exist?("/.dockerenv") ||
+        (file_exist?("/proc/1/cgroup") && read_file("/proc/1/cgroup").include?("docker"))
     end
 
     def file_exist?(path)

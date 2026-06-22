@@ -15,6 +15,8 @@ done
 SCRIPT_DIR="$(cd -P "$(dirname "$SOURCE_PATH")" && pwd)"
 DOTFILES_DIR="$(dirname "$SCRIPT_DIR")"
 export DOTFILES_DIR
+# shellcheck source=lib/dotf-common.sh
+source "$SCRIPT_DIR/lib/dotf-common.sh"
 LOGS_DIR="$DOTFILES_DIR/logs"
 LOG_RETENTION=30
 PACKAGE_UPGRADE_DELAY="${DOTF_PACKAGE_UPGRADE_DELAY:-3d}"
@@ -50,23 +52,14 @@ init_logging() {
     mkdir -p "$LOGS_DIR"
     rotate_logs $((LOG_RETENTION - 1))
     # Generate timestamp for log filename
-    if command -v gdate &> /dev/null; then
-        LOG_TIMESTAMP=$(gdate '+%Y-%m-%d_%H-%M-%S')
-    else
-        LOG_TIMESTAMP=$(date '+%Y-%m-%d_%H-%M-%S')
-    fi
+    LOG_TIMESTAMP=$(dotf_date '%Y-%m-%d_%H-%M-%S')
     LOG_FILE="$LOGS_DIR/dotf_${LOG_TIMESTAMP}.log"
     export LOG_FILE
     : > "$LOG_FILE"
 }
 
 debug() {
-    # Use gdate if available (GNU coreutils on macOS), otherwise use standard date without milliseconds
-    if command -v gdate &> /dev/null; then
-        timestamp=$(gdate '+%H:%M:%S.%3N')
-    else
-        timestamp=$(date '+%H:%M:%S')
-    fi
+    timestamp=$(dotf_date '%H:%M:%S.%3N' '%H:%M:%S')
     local message="[$timestamp] $1"
 
     # Always write to log file
@@ -92,6 +85,30 @@ warn() {
     else
         echo "$1"
     fi
+}
+
+report_mise_updates() {
+    announce "Checking for mise updates"
+    (
+        unset BUNDLE_GEMFILE BUNDLE_BIN_PATH RUBYOPT GEM_HOME GEM_PATH 2>/dev/null || true
+        mise outdated --json 2>/dev/null | ruby -rjson -e '
+            begin
+              tools = JSON.parse(STDIN.read)
+            rescue JSON::ParserError
+              exit 0
+            end
+            semver = ->(v) { v.to_s.match?(/^v?\d+(?:\.\d+)*(?:[-+][0-9A-Za-z.-]+)?$/) }
+            actionable = tools.select do |_name, t|
+              semver.call(t["requested"]) && semver.call(t["current"]) && semver.call(t["latest"]) && t["current"] != t["latest"]
+            end
+            if actionable.empty?
+              puts "mise tools are up to date"
+            else
+              puts "#{actionable.size} tool(s) have updates available:"
+              actionable.each { |name, t| puts "  #{name}: #{t["current"]} -> #{t["latest"]}" }
+            end
+        '
+    )
 }
 
 ensure_homebrew_env() {
@@ -125,7 +142,39 @@ is_debian() {
     [ "${DOTF_FORCE_DEBIAN:-false}" = "true" ] || [ -f /etc/debian_version ]
 }
 
+DOTF_LOCK_DIR="${DOTF_LOCK_DIR:-$HOME/.dotfiles.lock}"
+
+acquire_dotf_lock() {
+    if mkdir "$DOTF_LOCK_DIR" 2>/dev/null; then
+        echo "$$" > "$DOTF_LOCK_DIR/pid"
+        trap release_dotf_lock EXIT
+        return 0
+    fi
+
+    local existing_pid
+    existing_pid="$(cat "$DOTF_LOCK_DIR/pid" 2>/dev/null)" || true
+    if [ -n "$existing_pid" ] && kill -0 "$existing_pid" 2>/dev/null; then
+        echo "Error: another dotf instance is already running (PID $existing_pid, lock: $DOTF_LOCK_DIR). If stale, remove $DOTF_LOCK_DIR." >&2
+        exit 1
+    fi
+
+    rm -rf "$DOTF_LOCK_DIR" 2>/dev/null || true
+    if mkdir "$DOTF_LOCK_DIR" 2>/dev/null; then
+        echo "$$" > "$DOTF_LOCK_DIR/pid"
+        trap release_dotf_lock EXIT
+        return 0
+    fi
+
+    echo "Error: could not acquire dotf lock at $DOTF_LOCK_DIR" >&2
+    exit 1
+}
+
+release_dotf_lock() {
+    rm -rf "$DOTF_LOCK_DIR" 2>/dev/null || true
+}
+
 cmd_run() {
+    acquire_dotf_lock
     init_logging
     debug "Starting dotf run command"
     "$SCRIPT_DIR/bootstrap"
@@ -140,6 +189,7 @@ cmd_run() {
 }
 
 cmd_upgrade() {
+    acquire_dotf_lock
     init_logging
     debug "Starting dotf upgrade command"
     is_debian || ensure_homebrew_env
@@ -158,6 +208,7 @@ cmd_upgrade() {
     announce "Refreshing mise metadata"
     mise cache clear --yes
     mise plugins update
+    report_mise_updates
 
     announce "Checking for mise updates older than $PACKAGE_UPGRADE_DELAY"
     mise up --dry-run --before "$PACKAGE_UPGRADE_DELAY" --yes
@@ -202,6 +253,7 @@ cmd_upgrade() {
 }
 
 cmd_migrate() {
+    acquire_dotf_lock
     init_logging
     debug "Starting dotf migrate command"
     ensure_homebrew_env
