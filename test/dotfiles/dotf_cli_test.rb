@@ -50,6 +50,39 @@ class DotfCliTest < Minitest::Test
     )
   end
 
+  def test_acquire_dotf_lock_blocks_second_live_holder
+    with_dotf_script do |tmpdir, script_path, _logs_dir|
+      lock_dir = File.join(tmpdir, "dotf.lock")
+      escaped_script = Shellwords.escape(script_path)
+      escaped_lock = Shellwords.escape(lock_dir)
+      holder_cmd = "source #{escaped_script}; export DOTF_LOCK_DIR=#{escaped_lock}; acquire_dotf_lock; sleep 2"
+      holder = IO.popen(["bash", "-c", holder_cmd])
+      begin
+        sleep 0.5
+        second = system({"DOTF_LOCK_DIR" => lock_dir}, "bash", "-c", "source #{escaped_script}; acquire_dotf_lock", out: File::NULL, err: File::NULL)
+        refute second
+      ensure
+        begin
+          Process.kill("TERM", holder.pid)
+        rescue
+          nil
+        end
+        holder.wait
+      end
+    end
+  end
+
+  def test_acquire_dotf_lock_recovers_stale_lock
+    with_dotf_script do |tmpdir, script_path, _logs_dir|
+      lock_dir = File.join(tmpdir, "dotf.lock")
+      FileUtils.mkdir_p(lock_dir)
+      File.write(File.join(lock_dir, "pid"), "999999")
+      escaped_script = Shellwords.escape(script_path)
+
+      assert system({"DOTF_LOCK_DIR" => lock_dir}, "bash", "-c", "source #{escaped_script}; acquire_dotf_lock", out: File::NULL)
+    end
+  end
+
   def test_run_runs_migrations_before_setup_steps
     with_dotf_script do |tmpdir, script_path, _logs_dir|
       log_path = File.join(tmpdir, "run-commands.log")
@@ -72,7 +105,8 @@ class DotfCliTest < Minitest::Test
       FileUtils.mkdir_p(bin_dir)
       stubs.each { |command| write_command_stub(bin_dir, command) }
 
-      with_env(env.merge("DOTF_UPGRADE_LOG" => log_path, "PATH" => "#{bin_dir}:/usr/bin:/bin")) do
+      lock_dir = File.join(tmpdir, "dotf.lock")
+      with_env(env.merge("DOTF_UPGRADE_LOG" => log_path, "DOTF_LOCK_DIR" => lock_dir, "PATH" => "#{bin_dir}:/usr/bin:/bin")) do
         clean_homebrew_env = {"HOMEBREW_AUTO_UPDATE_SECS" => nil, "HOMEBREW_NO_AUTO_UPDATE" => nil}
         assert system(clean_homebrew_env, "bash", script_path, "upgrade", out: File::NULL)
       end
@@ -110,6 +144,7 @@ class DotfCliTest < Minitest::Test
     escaped_log = Shellwords.escape(log_path)
     <<~BASH
       source #{escaped_script}
+      export DOTF_LOCK_DIR=#{Shellwords.escape(File.join(File.dirname(escaped_log), "dotf.lock"))}
       mise() { printf 'mise %s\\n' "$*" >> #{escaped_log}; }
       ruby() { printf 'ruby %s\\n' "$*" >> #{escaped_log}; }
       cmd_run

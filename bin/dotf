@@ -125,7 +125,39 @@ is_debian() {
     [ "${DOTF_FORCE_DEBIAN:-false}" = "true" ] || [ -f /etc/debian_version ]
 }
 
+DOTF_LOCK_DIR="${DOTF_LOCK_DIR:-$HOME/.dotfiles.lock}"
+
+acquire_dotf_lock() {
+    if mkdir "$DOTF_LOCK_DIR" 2>/dev/null; then
+        echo "$$" > "$DOTF_LOCK_DIR/pid"
+        trap release_dotf_lock EXIT
+        return 0
+    fi
+
+    local existing_pid
+    existing_pid="$(cat "$DOTF_LOCK_DIR/pid" 2>/dev/null)" || true
+    if [ -n "$existing_pid" ] && kill -0 "$existing_pid" 2>/dev/null; then
+        echo "Error: another dotf instance is already running (PID $existing_pid, lock: $DOTF_LOCK_DIR). If stale, remove $DOTF_LOCK_DIR." >&2
+        exit 1
+    fi
+
+    rm -rf "$DOTF_LOCK_DIR" 2>/dev/null || true
+    if mkdir "$DOTF_LOCK_DIR" 2>/dev/null; then
+        echo "$$" > "$DOTF_LOCK_DIR/pid"
+        trap release_dotf_lock EXIT
+        return 0
+    fi
+
+    echo "Error: could not acquire dotf lock at $DOTF_LOCK_DIR" >&2
+    exit 1
+}
+
+release_dotf_lock() {
+    rm -rf "$DOTF_LOCK_DIR" 2>/dev/null || true
+}
+
 cmd_run() {
+    acquire_dotf_lock
     init_logging
     debug "Starting dotf run command"
     "$SCRIPT_DIR/bootstrap"
@@ -140,6 +172,7 @@ cmd_run() {
 }
 
 cmd_upgrade() {
+    acquire_dotf_lock
     init_logging
     debug "Starting dotf upgrade command"
     is_debian || ensure_homebrew_env
@@ -202,6 +235,7 @@ cmd_upgrade() {
 }
 
 cmd_migrate() {
+    acquire_dotf_lock
     init_logging
     debug "Starting dotf migrate command"
     ensure_homebrew_env
