@@ -10,7 +10,7 @@ class Dotfiles::Step::UpdateDebianStep < Dotfiles::Step
   end
 
   def should_run?
-    release_updates_available.any?
+    !ci_or_noninteractive? && release_updates_available.any?
   end
 
   def run
