@@ -5,28 +5,17 @@ class Dotfiles
   class Step
     @@steps = []
 
+    extend Dotfiles::PlatformRestrictable
+    include Dotfiles::CommandHelpers
+
+    private :command, :env_command, :shell_script, :command_succeeds?, :command_exists?
+
     def self.inherited(subclass)
       @@steps << subclass
     end
 
     def self.depends_on
       []
-    end
-
-    def self.macos_only
-      @macos_only = true
-    end
-
-    def self.macos_only?
-      @macos_only || false
-    end
-
-    def self.debian_only
-      @debian_only = true
-    end
-
-    def self.debian_only?
-      @debian_only || false
     end
 
     def self.system_packages_steps
@@ -153,20 +142,8 @@ class Dotfiles
       @system.execute(cmd, quiet: quiet)
     end
 
-    def command(*parts)
-      Dotfiles::Command.argv(*parts)
-    end
-
-    def env_command(vars, *parts)
-      Dotfiles::Command.env(vars, *parts)
-    end
-
     def sudo_command(*parts)
       root? ? command(*parts) : command("sudo", *parts)
-    end
-
-    def shell_script(script, *args)
-      command("bash", "-c", script, "dotfiles", *args)
     end
 
     def format_command_error(command, status, output)
@@ -175,15 +152,6 @@ class Dotfiles
       return "#{display_command} failed (status #{status})" if cleaned.empty?
 
       "#{display_command} failed (status #{status}): #{cleaned}"
-    end
-
-    def command_succeeds?(command)
-      _, status = @system.execute(command)
-      status == 0
-    end
-
-    def command_exists?(command)
-      command_succeeds?(shell_script('command -v -- "$1" >/dev/null 2>&1', command))
     end
 
     def brew_quiet(*args)
