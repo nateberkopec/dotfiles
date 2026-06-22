@@ -13,6 +13,7 @@ module DotfScriptHelper
 
       script_path = File.join(bin_dir, "dotf")
       FileUtils.cp(File.expand_path("../../bin/dotf", __dir__), script_path)
+      FileUtils.cp_r(File.expand_path("../../bin/lib", __dir__), File.join(tmpdir, "bin"))
 
       yield tmpdir, script_path, logs_dir
     end
