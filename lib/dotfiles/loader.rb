@@ -15,6 +15,8 @@ class Dotfiles
     def self.require_core
       require "config"
       require "command"
+      require "command_helpers"
+      require "platform_restrictable"
       require "system_adapter"
       require "home_file_set"
       require "step"
