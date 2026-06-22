@@ -182,7 +182,7 @@ cmd_run() {
     ensure_mise_env
 
     cd "$DOTFILES_DIR"
-    ruby -r ./lib/dotfiles.rb -e "Dotfiles::MigrationRunner.new('$LOG_FILE').run"
+    ruby -r ./lib/dotfiles.rb -e "Dotfiles::MigrationRunner.new('$LOG_FILE').run_if_existing_machine"
     ruby -r ./lib/dotfiles.rb -e "Dotfiles::Runner.new('$LOG_FILE').run"
 
     debug "Run complete"
