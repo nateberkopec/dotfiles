@@ -20,6 +20,15 @@ class Dotfiles
       abort "Error: #{e.message}"
     end
 
+    def run_if_existing_machine
+      return run if existing_machine?
+
+      mark_version(latest_migration_version)
+      puts "Skipping migrations on fresh machine."
+    rescue => e
+      abort "Error: #{e.message}"
+    end
+
     def current_version
       return 0 unless @system.file_exist?(version_file)
 
@@ -31,6 +40,14 @@ class Dotfiles
     end
 
     private
+
+    def existing_machine?
+      @system.file_exist?(version_file) || @system.file_exist?(dotf_command_file)
+    end
+
+    def latest_migration_version
+      Migration.all_migrations.map(&:version).max || 0
+    end
 
     def run_migration(migration_class)
       migration = migration_class.new(**migration_params)
@@ -62,6 +79,10 @@ class Dotfiles
 
     def version_file
       File.join(@home, ".local", "state", "dotf", "migration_version")
+    end
+
+    def dotf_command_file
+      File.join(@home, ".local", "bin", "dotf")
     end
   end
 end

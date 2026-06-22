@@ -85,7 +85,7 @@ class DotfCliTest < Minitest::Test
     end
   end
 
-  def test_run_runs_migrations_before_setup_steps
+  def test_run_runs_existing_machine_migrations_before_setup_steps
     with_dotf_script do |tmpdir, script_path, _logs_dir|
       log_path = File.join(tmpdir, "run-commands.log")
       File.write(File.join(tmpdir, "bin", "bootstrap"), bootstrap_stub(log_path))
@@ -129,7 +129,7 @@ class DotfCliTest < Minitest::Test
     commands = File.readlines(log_path, chomp: true)
     assert_equal "bootstrap", commands[0]
     assert_equal "mise activate bash", commands[1]
-    assert_match(/\Aruby -r \.\/lib\/dotfiles\.rb -e Dotfiles::MigrationRunner\.new\('.+'\)\.run\z/, commands[2])
+    assert_match(/\Aruby -r \.\/lib\/dotfiles\.rb -e Dotfiles::MigrationRunner\.new\('.+'\)\.run_if_existing_machine\z/, commands[2])
     assert_match(/\Aruby -r \.\/lib\/dotfiles\.rb -e Dotfiles::Runner\.new\('.+'\)\.run\z/, commands[3])
     assert_equal 4, commands.size
   end
