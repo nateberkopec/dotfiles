@@ -26,6 +26,10 @@ class FakeRunnerStep < Struct.new(:allowed, :complete_value, :should_run_value, 
     complete_value
   end
 
+  def collect_errors
+    errors
+  end
+
   def ran?
     instance_variable_get(:@ran) || run_calls.positive?
   end
