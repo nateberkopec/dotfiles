@@ -132,6 +132,18 @@ class Dotfiles
       false
     end
 
+    # Validate the step and return its error messages. This is the explicit
+    # entry point for collecting errors for display; it clears @errors, runs
+    # the complete? check (which populates @errors), and returns a duplicate
+    # of the collected errors. complete? remains a boolean predicate that
+    # callers can use directly, but the Runner routes validation through here
+    # so the display path does not depend on the predicate's side effect.
+    def collect_errors
+      @errors.clear
+      complete?
+      errors.dup
+    end
+
     def allowed_on_platform?
       return false if self.class.macos_only? && !@system.macos?
       return false if self.class.debian_only? && !@system.debian?

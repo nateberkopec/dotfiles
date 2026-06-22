@@ -12,6 +12,17 @@ class StepTest < Minitest::Test
     end
   end
 
+  class TestStepWithError < Dotfiles::Step
+    def run
+    end
+
+    def complete?
+      super
+      add_error("not done")
+      false
+    end
+  end
+
   class TestStepB < Dotfiles::Step
     def self.depends_on
       [TestStepA]
@@ -124,22 +135,6 @@ class StepTest < Minitest::Test
     assert_empty missing.map(&:name)
   end
 
-  private
-
-  def production_steps
-    Dotfiles::Step.all_steps.select { |step| step.name&.start_with?("Dotfiles::Step::") }
-  end
-
-  def assert_collection(collection_method, add_method, title:, message:)
-    step = create_step(TestStepA)
-    step.send(add_method, title: title, message: message)
-
-    collection = step.send(collection_method)
-    assert_equal 1, collection.length
-    assert_equal title, collection.first[:title]
-    assert_equal message, collection.first[:message]
-  end
-
   def test_ran_tracking
     step = create_step(TestStepA)
     refute step.ran?
@@ -170,6 +165,39 @@ class StepTest < Minitest::Test
     step.complete?
 
     assert_empty step.errors
+  end
+
+  def test_collect_errors_returns_errors_from_complete_check
+    step = create_step(TestStepA)
+    step.add_error("Stale error")
+
+    assert_equal [], step.collect_errors
+    assert_empty step.errors
+  end
+
+  def test_collect_errors_reflects_validation_errors
+    step = create_step(TestStepWithError)
+
+    errors = step.collect_errors
+
+    refute_empty errors
+    assert_equal step.errors, errors
+  end
+
+  private
+
+  def production_steps
+    Dotfiles::Step.all_steps.select { |step| step.name&.start_with?("Dotfiles::Step::") }
+  end
+
+  def assert_collection(collection_method, add_method, title:, message:)
+    step = create_step(TestStepA)
+    step.send(add_method, title: title, message: message)
+
+    collection = step.send(collection_method)
+    assert_equal 1, collection.length
+    assert_equal title, collection.first[:title]
+    assert_equal message, collection.first[:message]
   end
 end
 

@@ -175,12 +175,14 @@ class Dotfiles
     def build_step_data(step_class, index)
       step = @step_instances[index]
       step_name = step_class.display_name
-      complete = if step.allowed_on_platform?
-        Dotfiles.debug_benchmark("Complete check: #{step_name}") { !!step.complete? }
+      if step.allowed_on_platform?
+        collected = Dotfiles.debug_benchmark("Complete check: #{step_name}") { step.collect_errors }
+        complete = collected.empty?
       else
-        true
+        collected = []
+        complete = true
       end
-      {index: index, name: step_name, complete: complete, step: step}
+      {index: index, name: step_name, complete: complete, step: step, errors: collected}
     end
 
     def merge_step_result(data, results)
@@ -208,7 +210,7 @@ class Dotfiles
     end
 
     def append_step_errors(data, results)
-      results[:errors].concat(data[:step].errors.map { |err| {step: data[:name], message: err} })
+      results[:errors].concat(data[:errors].map { |err| {step: data[:name], message: err} })
     end
   end
 end
