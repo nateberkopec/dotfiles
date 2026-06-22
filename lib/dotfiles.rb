@@ -6,8 +6,13 @@ Dotfiles::Loader.load!
 
 class Dotfiles
   @log_file = nil
+  @log_io = nil
 
   def self.log_file=(path)
+    return if @log_file == path
+
+    @log_io&.close
+    @log_io = nil
     @log_file = path
   end
 
@@ -17,15 +22,23 @@ class Dotfiles
 
   def self.debug(message)
     formatted = format_debug_message(message)
-
-    # Always write to log file if set
-    if @log_file
-      File.open(@log_file, "a") { |f| f.puts(formatted) }
-    end
-
-    # Also output to STDOUT if DEBUG=true
+    write_log(formatted)
     puts formatted if ENV["DEBUG"] == "true"
   end
+
+  def self.write_log(formatted)
+    return unless @log_file
+
+    @log_io ||= begin
+      io = File.open(@log_file, "a")
+      io.sync = true
+      io
+    end
+    @log_io.puts(formatted)
+  end
+  private_class_method :write_log
+
+  at_exit { @log_io&.close }
 
   def self.format_debug_message(message)
     timestamp = Time.now.strftime("%H:%M:%S.%3N")
