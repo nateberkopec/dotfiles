@@ -137,6 +137,40 @@ mise_system_available() {
     MISE_EXPERIMENTAL=1 mise system install --help &> /dev/null
 }
 
+managed_brew_formulae() {
+    if [ -n "${DOTF_MANAGED_BREW_FORMULAE:-}" ]; then
+        printf '%s\n' "$DOTF_MANAGED_BREW_FORMULAE" | tr ',' '\n' | awk '{$1=$1}; NF'
+        return 0
+    fi
+
+    (
+        cd "$DOTFILES_DIR"
+        ruby -r ./lib/dotfiles.rb -e 'puts Dotfiles::Config.new(ENV.fetch("DOTFILES_DIR")).brew_packages'
+    )
+}
+
+outdated_managed_brew_formulae() {
+    local formula outdated_formula
+    local managed_formulae=()
+    local outdated_formulae=()
+
+    while IFS= read -r formula; do
+        [ -n "$formula" ] && managed_formulae+=("$formula")
+    done < <(managed_brew_formulae)
+
+    [ ${#managed_formulae[@]} -gt 0 ] || return 0
+
+    while IFS= read -r formula; do
+        [ -n "$formula" ] && outdated_formulae+=("$formula")
+    done < <(env HOMEBREW_NO_AUTO_UPDATE=1 brew outdated --formula --quiet)
+
+    for outdated_formula in "${outdated_formulae[@]}"; do
+        for formula in "${managed_formulae[@]}"; do
+            [ "$outdated_formula" = "$formula" ] && printf '%s\n' "$outdated_formula"
+        done
+    done
+}
+
 is_debian() {
     [ "${DOTF_FORCE_NON_DEBIAN:-false}" = "true" ] && return 1
     [ "${DOTF_FORCE_DEBIAN:-false}" = "true" ] || [ -f /etc/debian_version ]
@@ -236,15 +270,25 @@ cmd_upgrade() {
     fi
 
     if command -v brew &> /dev/null; then
+        local brew_formulae=()
+        local formula
+
         announce "Checking Homebrew metadata"
         env HOMEBREW_AUTO_UPDATE_SECS="$HOMEBREW_AUTO_UPDATE_SECS" brew update-if-needed
 
-        announce "Upgrading Homebrew"
-        env HOMEBREW_NO_AUTO_UPDATE=1 brew upgrade
+        while IFS= read -r formula; do
+            [ -n "$formula" ] && brew_formulae+=("$formula")
+        done < <(outdated_managed_brew_formulae)
 
-        announce "Cleaning Homebrew"
-        env HOMEBREW_NO_AUTO_UPDATE=1 brew autoremove
-        env HOMEBREW_NO_AUTO_UPDATE=1 brew cleanup
+        if [ ${#brew_formulae[@]} -gt 0 ]; then
+            announce "Upgrading managed Homebrew formulae"
+            env HOMEBREW_NO_AUTO_UPDATE=1 brew upgrade "${brew_formulae[@]}"
+
+            announce "Cleaning upgraded Homebrew formulae"
+            env HOMEBREW_NO_AUTO_UPDATE=1 brew cleanup "${brew_formulae[@]}"
+        else
+            warn "No managed Homebrew formulae need upgrades"
+        fi
     elif is_debian; then
         warn "Skipping Homebrew (brew not found on PATH)"
     fi

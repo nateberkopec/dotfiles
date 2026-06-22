@@ -40,6 +40,9 @@ module DotfScriptHelper
         printf '%s ' "${env_prefix[@]}" >> "$DOTF_UPGRADE_LOG"
       fi
       printf '%s %s\n' "#{command}" "$*" >> "$DOTF_UPGRADE_LOG"
+      if [ "#{command}" = "brew" ] && [ "$*" = "outdated --formula --quiet" ]; then
+        printf '%s\n' "${DOTF_BREW_OUTDATED_FORMULAE:-}" | tr ',' '\n' | awk '{$1=$1}; NF'
+      fi
     BASH
     FileUtils.chmod("+x", path)
   end
