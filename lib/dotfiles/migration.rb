@@ -43,7 +43,7 @@ class Dotfiles
     private
 
     def execute(command, quiet: true)
-      @system.execute(command, quiet: quiet)
+      @system.execute!(command, quiet: quiet)
     end
 
     def platform_requirement_met?(platform)

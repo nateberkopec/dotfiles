@@ -19,8 +19,15 @@ class Dotfiles::Migration::ReinstallDotfilesHkHook < Dotfiles::Migration
   private
 
   def uninstall_legacy_hook_config
-    execute(git_command("config", "--local", "--unset-all", "hook.#{LEGACY_HOOK_NAME}.command"))
-    execute(git_command("config", "--local", "--unset-all", "hook.#{LEGACY_HOOK_NAME}.event"))
+    unset_legacy_hook_config("command")
+    unset_legacy_hook_config("event")
+  end
+
+  def unset_legacy_hook_config(key)
+    config_key = "hook.#{LEGACY_HOOK_NAME}.#{key}"
+    return unless command_succeeds?(git_command("config", "--local", "--get-all", config_key))
+
+    execute(git_command("config", "--local", "--unset-all", config_key))
   end
 
   def git_command(*args)
