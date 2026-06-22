@@ -94,6 +94,30 @@ warn() {
     fi
 }
 
+report_mise_updates() {
+    announce "Checking for mise updates"
+    (
+        unset BUNDLE_GEMFILE BUNDLE_BIN_PATH RUBYOPT GEM_HOME GEM_PATH 2>/dev/null || true
+        mise outdated --json 2>/dev/null | ruby -rjson -e '
+            begin
+              tools = JSON.parse(STDIN.read)
+            rescue JSON::ParserError
+              exit 0
+            end
+            semver = ->(v) { v.to_s.match?(/^v?\d+(?:\.\d+)*(?:[-+][0-9A-Za-z.-]+)?$/) }
+            actionable = tools.select do |_name, t|
+              semver.call(t["requested"]) && semver.call(t["current"]) && semver.call(t["latest"]) && t["current"] != t["latest"]
+            end
+            if actionable.empty?
+              puts "mise tools are up to date"
+            else
+              puts "#{actionable.size} tool(s) have updates available:"
+              actionable.each { |name, t| puts "  #{name}: #{t["current"]} -> #{t["latest"]}" }
+            end
+        '
+    )
+}
+
 ensure_homebrew_env() {
     if [ -x "$HOME/.homebrew/bin/brew" ]; then
         eval "$("$HOME/.homebrew/bin/brew" shellenv bash)"
@@ -158,6 +182,7 @@ cmd_upgrade() {
     announce "Refreshing mise metadata"
     mise cache clear --yes
     mise plugins update
+    report_mise_updates
 
     announce "Checking for mise updates older than $PACKAGE_UPGRADE_DELAY"
     mise up --dry-run --before "$PACKAGE_UPGRADE_DELAY" --yes
