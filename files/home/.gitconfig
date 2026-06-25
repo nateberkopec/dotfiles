@@ -1,7 +1,7 @@
 [user]
 	name = Nate Berkopec
 	email = nate.berkopec@gmail.com
-	signingkey = 19616755F4328D71
+	signingkey = C85159D1D1496A315A7E01466BF45F815F702663
 [push]
   default = simple
         followTags = true
