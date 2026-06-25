@@ -59,7 +59,10 @@ class Dotfiles::Step::InstallSystemPackagesStep < Dotfiles::Step
   end
 
   def missing_brew_packages
-    brew_packages.reject { |package| brew_package_installed?(package) }
+    packages = brew_packages
+    return [] if packages.empty?
+
+    packages - installed_brew_packages(packages)
   end
 
   def missing_apt_packages
@@ -80,13 +83,14 @@ class Dotfiles::Step::InstallSystemPackagesStep < Dotfiles::Step
     packages.reject { |package| package == "docker.io" && command_exists?("docker") }
   end
 
-  def brew_package_installed?(package)
-    command_succeeds?(
+  def installed_brew_packages(packages)
+    output, _status = execute(
       env_command(
         {"HOMEBREW_NO_AUTO_UPDATE" => "1", "HOMEBREW_NO_ENV_HINTS" => "1"},
-        "brew", "list", "--formula", package
+        "brew", "list", "--formula", "--versions", *packages
       )
     )
+    output.lines.filter_map { |line| line.split.first }
   end
 
   def apt_package_installed?(package)
