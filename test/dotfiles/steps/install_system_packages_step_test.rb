@@ -33,6 +33,26 @@ class InstallSystemPackagesStepTest < StepTestCase
     assert_should_run
   end
 
+  def test_checks_brew_packages_in_bulk
+    @fake_system.stub_macos
+    @fake_system.stub_command("groups", "admin staff")
+    write_config(:brew, {"brew" => {"packages" => ["duti", "trash"], "casks" => []}})
+    stub_brew_packages_installed("duti", "trash")
+
+    refute_should_run
+
+    assert_equal 1, brew_list_versions_count
+  end
+
+  def test_should_run_when_one_brew_package_is_missing
+    @fake_system.stub_macos
+    @fake_system.stub_command("groups", "admin staff")
+    write_config(:brew, {"brew" => {"packages" => ["duti", "trash"], "casks" => []}})
+    stub_brew_packages_installed("duti", missing: ["trash"])
+
+    assert_should_run
+  end
+
   def test_should_not_run_when_apt_packages_are_installed
     @fake_system.stub_debian
     write_config("config", "packages" => {"trash" => {"debian" => "trash-cli"}})
@@ -129,19 +149,27 @@ class InstallSystemPackagesStepTest < StepTestCase
   private
 
   def stub_brew_package_installed(package)
-    stub_brew_package_check(package, exit_status: 0)
+    stub_brew_packages_installed(package)
   end
 
   def stub_brew_package_missing(package)
-    stub_brew_package_check(package, exit_status: 1)
+    stub_brew_packages_installed(missing: [package])
   end
 
-  def stub_brew_package_check(package, exit_status:)
+  def stub_brew_packages_installed(*installed, missing: [])
+    packages = installed + missing
+    output = installed.map { |package| "#{package} 1.0.0" }.join("\n")
     @fake_system.stub_command(
-      "HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 brew list --formula #{package}",
-      "",
-      exit_status: exit_status
+      "HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 brew list --formula --versions #{packages.join(" ")}",
+      output,
+      exit_status: missing.empty? ? 0 : 1
     )
+  end
+
+  def brew_list_versions_count
+    @fake_system.operations.count do |operation, command, _options|
+      operation == :execute && Dotfiles::Command.display(command).include?("brew list --formula --versions")
+    end
   end
 
   def stub_apt_package_installed(package)
