@@ -45,6 +45,9 @@ end
 if command -v mise >/dev/null 2>&1
   mise activate fish --no-hook-env | source
   mise hook-env -s fish | source
+  if command -q aube
+    aube activate fish | source
+  end
 
   function __mise_refresh_on_cd --on-variable PWD
     mise hook-env -s fish | source
