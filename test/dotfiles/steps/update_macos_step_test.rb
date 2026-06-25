@@ -30,6 +30,11 @@ class UpdateMacOSStepTest < Minitest::Test
     assert @step.should_run?
   end
 
+  def test_should_run_returns_false_in_ci_with_admin_and_updates
+    stub_admin_with_updates
+    with_ci { refute @step.should_run? }
+  end
+
   def test_complete_returns_true_in_ci_with_updates
     stub_updates_with_last_check
     with_ci { assert @step.complete? }

@@ -24,3 +24,14 @@ paths = [
   '''(^|/)\.venv/''',
   '''(^|/)__pycache__/''',
 ]
+
+[[allowlists]]
+description = "Git GPG signing key fingerprints"
+condition = "AND"
+paths = [
+  '''(^|/)\.gitconfig$''',
+  '''(^|/)files/home/\.gitconfig$''',
+]
+regexes = [
+  '''signingkey\s*=\s*[A-F0-9]{40}''',
+]

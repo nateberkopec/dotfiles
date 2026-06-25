@@ -104,7 +104,7 @@ jobs:
         CI: true
         NONINTERACTIVE: true
         GITHUB_TOKEN: ${{ github.token }}
-        MISE_CI_TOOLS: "fzf@latest,aqua:fish-shell/fish-shell@latest"
+        MISE_CI_TOOLS: "fzf@latest,aqua:fish-shell/fish-shell@4.7.1"
         BREW_CI_PACKAGES: "duti"
         BREW_CI_TAPS: ""
         BREW_CI_CASKS: ""
@@ -205,7 +205,7 @@ jobs:
         CI: true
         NONINTERACTIVE: true
         GITHUB_TOKEN: ${{ github.token }}
-        MISE_CI_TOOLS: "fzf@latest,aqua:fish-shell/fish-shell@latest"
+        MISE_CI_TOOLS: "fzf@latest,aqua:fish-shell/fish-shell@4.7.1"
         BREW_CI_PACKAGES: "duti"
         BREW_CI_TAPS: ""
         BREW_CI_CASKS: ""
