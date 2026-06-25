@@ -10,7 +10,7 @@ class Dotfiles::Step::UpdateMacOSStep < Dotfiles::Step
   end
 
   def should_run?
-    user_has_admin_rights? && software_updates_available.any?
+    !ENV["CI"] && user_has_admin_rights? && software_updates_available.any?
   end
 
   def run
