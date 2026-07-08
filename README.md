@@ -20,6 +20,7 @@ When you run `dotf run` it will:
 |---------|--------------|
 | `dotf run` | Set up your Mac. Safe to run many times. |
 | `dotf upgrade` | Refresh and upgrade mise tools, Pi extensions, Homebrew packages, and APT packages on Debian/Ubuntu. Homebrew auto-updates are throttled to about once every 7 days. |
+| `dotf outdated` | Show managed package updates that match configured constraints and write a Pi upgrade prompt under `tmp/`. |
 | `dotf steps` | List every setup step with its class name and description. |
 | `dotf help` | Show help |
 
@@ -56,7 +57,7 @@ Supported platforms:
 
 In general, because `mise` is crossplatform, if we can do it with `mise`, we should do it with `mise`.
 
-My system should always be running the latest available Ruby release, so that's what this repo's Ruby version target is too.
+Managed tools are pinned to explicit versions. `dotf outdated` shows newer versions that match package-manager constraints and prints the `pi "$(cat tmp/pi-upgrade-prompt-...)"` command to start an update PR.
 
 `dotf run` aggressively overwrites existing user state. This repo is the source of truth.
 

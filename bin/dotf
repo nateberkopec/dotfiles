@@ -42,6 +42,7 @@ rotate_logs() {
 DOTF_COMMANDS=(
     $'run\tSet up development environment from scratch'
     $'upgrade\tRefresh and upgrade mise tools, system packages, Pi extensions, and Homebrew apps'
+    $'outdated\tShow managed package updates that match configured constraints'
     $'migrate\tRun one-time migrations for existing machines'
     $'steps\tList every setup step with its class name and description'
     $'help\tShow this help message'
@@ -84,6 +85,14 @@ warn() {
         gum style --foreground 214 "$1"
     else
         echo "$1"
+    fi
+}
+
+render_tsv_table() {
+    if command -v gum &> /dev/null; then
+        gum table --separator $'\t' --border rounded --print
+    else
+        cat
     fi
 }
 
@@ -146,6 +155,21 @@ managed_brew_formulae() {
     (
         cd "$DOTFILES_DIR"
         ruby -r ./lib/dotfiles.rb -e 'puts Dotfiles::Config.new(ENV.fetch("DOTFILES_DIR")).brew_packages'
+    )
+}
+
+managed_brew_casks() {
+    if [ -n "${DOTF_MANAGED_BREW_CASKS:-}" ]; then
+        printf '%s\n' "$DOTF_MANAGED_BREW_CASKS" | tr ',' '\n' | awk '{$1=$1}; NF'
+        return 0
+    fi
+
+    (
+        cd "$DOTFILES_DIR"
+        ruby -r ./lib/dotfiles.rb -e '
+          config = Dotfiles::Config.new(ENV.fetch("DOTFILES_DIR"))
+          puts((config.brew_casks + config.applications.map { |app| app["brew_cask"] }).compact.uniq)
+        '
     )
 }
 
@@ -296,6 +320,120 @@ cmd_upgrade() {
     debug "Upgrade complete"
 }
 
+report_mise_outdated() {
+    announce "Checking mise tools"
+    if ! command -v mise &> /dev/null; then
+        warn "Skipping mise (mise not found on PATH)"
+        return 0
+    fi
+
+    local output
+    output="$(
+        unset BUNDLE_GEMFILE BUNDLE_BIN_PATH RUBYOPT GEM_HOME GEM_PATH 2>/dev/null || true
+        mise outdated --json 2>/dev/null | ruby -rjson -e '
+          begin
+            tools = JSON.parse(STDIN.read)
+          rescue JSON::ParserError
+            tools = {}
+          end
+          if tools.empty?
+            puts "mise tools are up to date"
+          else
+            puts "tool\tcurrent\tlatest"
+            tools.each do |name, tool|
+              current = tool["current"].to_s
+              latest = tool["latest"].to_s
+              next if current.empty? || latest.empty? || current == latest
+              puts "#{name}\t#{current}\t#{latest}"
+            end
+          end
+        '
+    )"
+    if [[ "$output" == $'tool\tcurrent\tlatest'* ]]; then
+        printf '%s\n' "$output" | render_tsv_table
+    else
+        printf '%s\n' "$output"
+    fi
+}
+
+report_brew_outdated() {
+    command -v brew &> /dev/null || return 0
+
+    local managed_formulae managed_casks
+    managed_formulae="$(managed_brew_formulae | paste -sd, -)"
+    managed_casks="$(managed_brew_casks | paste -sd, -)"
+
+    announce "Checking Homebrew formulae and casks"
+    env HOMEBREW_AUTO_UPDATE_SECS="$HOMEBREW_AUTO_UPDATE_SECS" brew update-if-needed
+    local output
+    output="$(
+        unset BUNDLE_GEMFILE BUNDLE_BIN_PATH RUBYOPT GEM_HOME GEM_PATH 2>/dev/null || true
+        env HOMEBREW_NO_AUTO_UPDATE=1 brew outdated --json=v2 | env DOTF_MANAGED_FORMULAE="$managed_formulae" DOTF_MANAGED_CASKS="$managed_casks" ruby -rjson -e '
+          managed_formulae = ENV.fetch("DOTF_MANAGED_FORMULAE", "").split(",")
+          managed_casks = ENV.fetch("DOTF_MANAGED_CASKS", "").split(",")
+          data = JSON.parse(STDIN.read)
+          rows = []
+          data.fetch("formulae", []).each do |formula|
+            name = formula["name"]
+            next unless managed_formulae.include?(name)
+            rows << ["brew", name, Array(formula["installed_versions"]).join(", "), formula["current_version"]]
+          end
+          data.fetch("casks", []).each do |cask|
+            name = cask["name"] || cask["token"]
+            next unless managed_casks.include?(name)
+            rows << ["brew cask", name, Array(cask["installed_versions"]).join(", "), cask["current_version"]]
+          end
+          if rows.empty?
+            puts "Homebrew packages are up to date"
+          else
+            puts "manager\tpackage\tcurrent\tlatest"
+            rows.each { |row| puts row.join("\t") }
+          end
+        '
+    )"
+    if [[ "$output" == $'manager\tpackage\tcurrent\tlatest'* ]]; then
+        printf '%s\n' "$output" | render_tsv_table
+    else
+        printf '%s\n' "$output"
+    fi
+}
+
+write_outdated_pi_prompt() {
+    local prompt_dir="$DOTFILES_DIR/tmp"
+    local prompt_path="$prompt_dir/pi-upgrade-prompt-$(dotf_date '%Y-%m-%d_%H-%M-%S').md"
+
+    mkdir -p "$prompt_dir"
+    cat > "$prompt_path" <<'EOF'
+Update the pinned package versions in this dotfiles repository to the latest versions allowed by configured constraints.
+
+Run `dotf outdated` first. Update files/home/.config/mise/config.toml and any other pinned package-manager files as needed, run the relevant tests, then open a GitHub PR.
+EOF
+
+    warn "Wrote Pi upgrade prompt to $prompt_path"
+    warn "You can run: pi \"\$(cat \"$prompt_path\")\""
+}
+
+cmd_outdated() {
+    if [ $# -gt 0 ]; then
+        echo "Error: dotf outdated does not accept options"
+        return 1
+    fi
+
+    init_logging
+    debug "Starting dotf outdated command"
+    is_debian || ensure_homebrew_env
+    ensure_mise_env
+
+    report_mise_outdated
+    if ! is_debian; then
+        report_brew_outdated
+    fi
+
+    write_outdated_pi_prompt
+
+    debug "Outdated check complete"
+}
+
 cmd_migrate() {
     acquire_dotf_lock
     init_logging
@@ -342,6 +480,7 @@ Logging:
 Examples:
   dotf run                              # Initial setup
   dotf upgrade                          # Upgrade mise tools, system packages, Pi extensions, and Homebrew apps
+  dotf outdated                         # Show update candidates and write a Pi PR prompt
   dotf migrate                          # Run pending migrations on this machine
   DEBUG=true dotf run                   # Run with debug output to console
 EOF
@@ -361,6 +500,10 @@ main() {
             ;;
         upgrade)
             cmd_upgrade
+            ;;
+        outdated)
+            shift
+            cmd_outdated "$@"
             ;;
         migrate)
             cmd_migrate

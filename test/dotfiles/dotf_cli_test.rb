@@ -64,6 +64,46 @@ class DotfCliTest < Minitest::Test
     )
   end
 
+  def test_outdated_reports_mise_and_managed_homebrew_updates
+    with_dotf_script do |tmpdir, script_path, _logs_dir|
+      bin_dir = File.join(tmpdir, "fake-bin")
+      log_path = File.join(tmpdir, "outdated-commands.log")
+      output_path = File.join(tmpdir, "outdated-output.log")
+      FileUtils.mkdir_p(bin_dir)
+      %w[mise brew].each { |command| write_command_stub(bin_dir, command) }
+
+      brew_json = '{"formulae":[{"name":"duti","installed_versions":["1.0"],"current_version":"1.1"}],"casks":[{"token":"cursor","installed_versions":["2.0"],"current_version":"2.1"}]}'
+      mise_json = '{"ruby":{"current":"4.0.5","latest":"4.0.6"}}'
+      env = {
+        "DOTF_FORCE_NON_DEBIAN" => "true",
+        "DOTF_MANAGED_BREW_FORMULAE" => "duti",
+        "DOTF_MANAGED_BREW_CASKS" => "cursor",
+        "DOTF_BREW_OUTDATED_JSON" => brew_json,
+        "DOTF_MISE_OUTDATED_JSON" => mise_json,
+        "DOTF_UPGRADE_LOG" => log_path,
+        "PATH" => "#{bin_dir}:/usr/bin:/bin"
+      }
+
+      clean_homebrew_env = {"HOMEBREW_AUTO_UPDATE_SECS" => nil, "HOMEBREW_NO_AUTO_UPDATE" => nil}
+      assert system(clean_homebrew_env.merge(env), "bash", script_path, "outdated", out: output_path)
+
+      prompt_paths = Dir.glob(File.join(tmpdir, "tmp", "pi-upgrade-prompt-*.md"))
+      assert_equal 1, prompt_paths.size
+      assert_includes File.read(prompt_paths.first), "Update the pinned package versions"
+
+      assert_equal [
+        "brew shellenv bash", "mise activate bash", "mise outdated --json",
+        "HOMEBREW_AUTO_UPDATE_SECS=604800 brew update-if-needed",
+        "HOMEBREW_NO_AUTO_UPDATE=1 brew outdated --json=v2"
+      ], File.readlines(log_path, chomp: true)
+      output = File.read(output_path)
+      assert_includes output, "ruby\t4.0.5\t4.0.6"
+      assert_includes output, "brew\tduti\t1.0\t1.1"
+      assert_includes output, "brew cask\tcursor\t2.0\t2.1"
+      assert_includes output, "You can run: pi"
+    end
+  end
+
   def test_upgrade_runs_on_debian_without_homebrew
     assert_upgrade_commands(
       stubs: %w[mise apt-get],

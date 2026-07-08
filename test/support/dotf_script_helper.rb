@@ -43,6 +43,20 @@ module DotfScriptHelper
       if [ "#{command}" = "brew" ] && [ "$*" = "outdated --formula --quiet" ]; then
         printf '%s\n' "${DOTF_BREW_OUTDATED_FORMULAE:-}" | tr ',' '\n' | awk '{$1=$1}; NF'
       fi
+      if [ "#{command}" = "brew" ] && [ "$*" = "outdated --json=v2" ]; then
+        if [ -n "${DOTF_BREW_OUTDATED_JSON+x}" ]; then
+          printf '%s\n' "$DOTF_BREW_OUTDATED_JSON"
+        else
+          printf '%s\n' '{"formulae":[],"casks":[]}'
+        fi
+      fi
+      if [ "#{command}" = "mise" ] && [ "$*" = "outdated --json" ]; then
+        if [ -n "${DOTF_MISE_OUTDATED_JSON+x}" ]; then
+          printf '%s\n' "$DOTF_MISE_OUTDATED_JSON"
+        else
+          printf '%s\n' '{}'
+        fi
+      fi
     BASH
     FileUtils.chmod("+x", path)
   end
