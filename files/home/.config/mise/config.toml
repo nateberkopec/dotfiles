@@ -15,11 +15,11 @@ hk = "latest"
 "npm:@earendil-works/pi-coding-agent" = { version = "0.78.0", depends = ["github:jdx/aube"], minimum_release_age = "0d", aube_args = "--deny-build=@google/genai --deny-build=protobufjs" }
 "go:github.com/mikefarah/yq/v4" = "latest"
 "go:github.com/noperator/yknotify" = "latest"
-"github:aldanial/cloc" = "latest"
+"github:aldanial/cloc" = "2.08"
 "github:pkgforge-dev/ghostty-appimage[bin=ghostty]" = { version = "latest", os = ["linux"] }
 "github:nateberkopec/print-label" = "latest"
 watchexec = "latest"
-fnox = "latest"
+fnox = "1.28.0"
 bat = "latest"
 cmake = "latest"
 fd = "latest"
