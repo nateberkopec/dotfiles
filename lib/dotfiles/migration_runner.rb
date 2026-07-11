@@ -41,8 +41,11 @@ class Dotfiles
 
     private
 
+    # Only the version file counts: `dotf run` now converges dotfiles (which
+    # place ~/.local/bin/dotf) before migrations run, so the command's
+    # presence no longer distinguishes an existing machine from a fresh one.
     def existing_machine?
-      @system.file_exist?(version_file) || @system.file_exist?(dotf_command_file)
+      @system.file_exist?(version_file)
     end
 
     def latest_migration_version
@@ -79,10 +82,6 @@ class Dotfiles
 
     def version_file
       File.join(@home, ".local", "state", "dotf", "migration_version")
-    end
-
-    def dotf_command_file
-      File.join(@home, ".local", "bin", "dotf")
     end
   end
 end

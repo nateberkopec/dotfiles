@@ -18,10 +18,6 @@ class Dotfiles
       []
     end
 
-    def self.system_packages_steps
-      [Dotfiles::Step::InstallSystemPackagesStep]
-    end
-
     def self.display_name
       name.gsub(/^Dotfiles::Step::/, "").gsub(/Step$/, "").gsub(/([A-Z]+)([A-Z][a-z])/, '\1 \2').gsub(/([a-z\d])([A-Z])/, '\1 \2')
     end
@@ -207,12 +203,6 @@ class Dotfiles
       return nil unless path && @system.file_exist?(path)
       content = @system.read_file(path)
       Digest::MD5.hexdigest(content)
-    end
-
-    def files_match?(file1, file2)
-      return false unless file1 && file2
-      return false unless @system.file_exist?(file1) && @system.file_exist?(file2)
-      file_hash(file1) == file_hash(file2)
     end
 
     def root?

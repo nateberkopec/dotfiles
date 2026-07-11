@@ -25,46 +25,39 @@ class DotfCliTest < Minitest::Test
       stubs: %w[mise brew pi],
       env: {
         "DOTF_FORCE_NON_DEBIAN" => "true",
-        "DOTF_MANAGED_BREW_FORMULAE" => "duti,fish",
-        "DOTF_BREW_OUTDATED_FORMULAE" => "duti,unmanaged"
+        "DOTF_FORCE_ADMIN" => "true"
       },
       expected: [
         "brew shellenv bash", "mise activate bash", "mise cache clear --yes", "mise plugins update",
         "mise outdated --json",
         "mise up --dry-run --before 3d --yes", "mise up --before 3d --yes",
         "mise install --before 3d --yes", "pi update --extensions",
-        "mise prune --yes", "mise cache prune --yes", "MISE_EXPERIMENTAL=1 mise system install --help",
-        "MISE_EXPERIMENTAL=1 mise system install --yes --update",
-        "HOMEBREW_AUTO_UPDATE_SECS=604800 brew update-if-needed",
-        "HOMEBREW_NO_AUTO_UPDATE=1 brew outdated --formula --quiet",
-        "HOMEBREW_NO_AUTO_UPDATE=1 brew upgrade duti",
-        "HOMEBREW_NO_AUTO_UPDATE=1 brew cleanup duti"
+        "mise prune --yes", "mise cache prune --yes",
+        "mise -C #{Dir.home} bootstrap packages upgrade --yes"
       ]
     )
   end
 
-  def test_upgrade_skips_brew_upgrade_when_no_managed_formulae_are_outdated
+  def test_upgrade_uses_private_homebrew_on_non_admin_macos
     assert_upgrade_commands(
       stubs: %w[mise brew],
       env: {
         "DOTF_FORCE_NON_DEBIAN" => "true",
-        "DOTF_MANAGED_BREW_FORMULAE" => "duti",
-        "DOTF_BREW_OUTDATED_FORMULAE" => "unmanaged"
+        "DOTF_FORCE_ADMIN" => "false"
       },
       expected: [
         "brew shellenv bash", "mise activate bash", "mise cache clear --yes", "mise plugins update",
         "mise outdated --json",
         "mise up --dry-run --before 3d --yes", "mise up --before 3d --yes",
         "mise install --before 3d --yes", "mise prune --yes", "mise cache prune --yes",
-        "MISE_EXPERIMENTAL=1 mise system install --help",
-        "MISE_EXPERIMENTAL=1 mise system install --yes --update",
         "HOMEBREW_AUTO_UPDATE_SECS=604800 brew update-if-needed",
-        "HOMEBREW_NO_AUTO_UPDATE=1 brew outdated --formula --quiet"
+        "HOMEBREW_NO_AUTO_UPDATE=1 brew upgrade",
+        "HOMEBREW_NO_AUTO_UPDATE=1 brew cleanup"
       ]
     )
   end
 
-  def test_outdated_reports_mise_and_managed_homebrew_updates
+  def test_outdated_reports_mise_and_system_package_updates
     with_dotf_script do |tmpdir, script_path, _logs_dir|
       bin_dir = File.join(tmpdir, "fake-bin")
       log_path = File.join(tmpdir, "outdated-commands.log")
@@ -72,13 +65,10 @@ class DotfCliTest < Minitest::Test
       FileUtils.mkdir_p(bin_dir)
       %w[mise brew].each { |command| write_command_stub(bin_dir, command) }
 
-      brew_json = '{"formulae":[{"name":"duti","installed_versions":["1.0"],"current_version":"1.1"}],"casks":[{"token":"cursor","installed_versions":["2.0"],"current_version":"2.1"}]}'
       mise_json = '{"ruby":{"current":"4.0.5","latest":"4.0.6"}}'
       env = {
         "DOTF_FORCE_NON_DEBIAN" => "true",
-        "DOTF_MANAGED_BREW_FORMULAE" => "duti",
-        "DOTF_MANAGED_BREW_CASKS" => "cursor",
-        "DOTF_BREW_OUTDATED_JSON" => brew_json,
+        "DOTF_FORCE_ADMIN" => "true",
         "DOTF_MISE_OUTDATED_JSON" => mise_json,
         "DOTF_UPGRADE_LOG" => log_path,
         "PATH" => "#{bin_dir}:/usr/bin:/bin"
@@ -93,13 +83,12 @@ class DotfCliTest < Minitest::Test
 
       assert_equal [
         "brew shellenv bash", "mise activate bash", "mise outdated --json",
+        "mise -C #{Dir.home} bootstrap packages upgrade --dry-run",
         "HOMEBREW_AUTO_UPDATE_SECS=604800 brew update-if-needed",
-        "HOMEBREW_NO_AUTO_UPDATE=1 brew outdated --json=v2"
+        "HOMEBREW_NO_AUTO_UPDATE=1 brew outdated"
       ], File.readlines(log_path, chomp: true)
       output = File.read(output_path)
       assert_includes output, "ruby\t4.0.5\t4.0.6"
-      assert_includes output, "brew\tduti\t1.0\t1.1"
-      assert_includes output, "brew cask\tcursor\t2.0\t2.1"
       assert_includes output, "You can run: pi"
     end
   end
@@ -113,7 +102,7 @@ class DotfCliTest < Minitest::Test
         "mise outdated --json",
         "mise up --dry-run --before 3d --yes", "mise up --before 3d --yes",
         "mise install --before 3d --yes", "mise prune --yes", "mise cache prune --yes",
-        "MISE_EXPERIMENTAL=1 mise system install --help", "MISE_EXPERIMENTAL=1 mise system install --yes --update"
+        "mise -C #{Dir.home} bootstrap packages upgrade --yes"
       ]
     )
   end
@@ -151,14 +140,14 @@ class DotfCliTest < Minitest::Test
     end
   end
 
-  def test_run_runs_existing_machine_migrations_before_setup_steps
+  def test_run_converges_with_mise_bootstrap_before_migrations_and_steps
     with_dotf_script do |tmpdir, script_path, _logs_dir|
       log_path = File.join(tmpdir, "run-commands.log")
       File.write(File.join(tmpdir, "bin", "bootstrap"), bootstrap_stub(log_path))
       FileUtils.chmod("+x", File.join(tmpdir, "bin", "bootstrap"))
       command = run_function_command(script_path, log_path)
 
-      assert system("bash", "-c", command, out: File::NULL)
+      assert system({"DOTF_FORCE_ADMIN" => "true"}, "bash", "-c", command, out: File::NULL)
 
       assert_run_commands(log_path)
     end
@@ -195,9 +184,11 @@ class DotfCliTest < Minitest::Test
     commands = File.readlines(log_path, chomp: true)
     assert_equal "bootstrap", commands[0]
     assert_equal "mise activate bash", commands[1]
-    assert_match(/\Aruby -r \.\/lib\/dotfiles\.rb -e Dotfiles::MigrationRunner\.new\('.+'\)\.run_if_existing_machine\z/, commands[2])
-    assert_match(/\Aruby -r \.\/lib\/dotfiles\.rb -e Dotfiles::Runner\.new\('.+'\)\.run\z/, commands[3])
-    assert_equal 4, commands.size
+    assert_equal "mise -C #{Dir.home} bootstrap --yes --update", commands[2]
+    assert_equal "mise activate bash", commands[3]
+    assert_match(/\Aruby -r \.\/lib\/dotfiles\.rb -e Dotfiles::MigrationRunner\.new\('.+'\)\.run_if_existing_machine\z/, commands[4])
+    assert_match(/\Aruby -r \.\/lib\/dotfiles\.rb -e Dotfiles::Runner\.new\('.+'\)\.run\z/, commands[5])
+    assert_equal 6, commands.size
   end
 
   def bootstrap_stub(log_path)

@@ -10,10 +10,6 @@ class Dotfiles::Step::ProtectGitHooksStep < Dotfiles::Step
     "Protect Git Hooks"
   end
 
-  def self.depends_on
-    [Dotfiles::Step::SyncHomeDirectoryStep]
-  end
-
   private
 
   def protected_files

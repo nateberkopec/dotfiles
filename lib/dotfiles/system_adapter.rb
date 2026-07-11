@@ -1,6 +1,5 @@
 require "fileutils"
 require "open3"
-require "socket"
 
 class Dotfiles
   class SystemAdapter
@@ -14,10 +13,6 @@ class Dotfiles
 
     def debian?
       linux? && File.exist?("/etc/debian_version")
-    end
-
-    def hostname
-      Socket.gethostname
     end
 
     def running_codespaces?
@@ -39,14 +34,6 @@ class Dotfiles
 
     def symlink?(path)
       File.symlink?(path)
-    end
-
-    def readlink(path)
-      File.readlink(path)
-    end
-
-    def create_symlink(target, link_path)
-      File.symlink(target, link_path)
     end
 
     def read_file(path)

@@ -3,14 +3,7 @@ class Dotfiles
     module DebianNonAptStep
       def self.included(base)
         base.include(Dotfiles::Step::DebianNonAptHelper)
-        base.extend(ClassMethods)
         base.debian_only
-      end
-
-      module ClassMethods
-        def depends_on
-          [Dotfiles::Step::InstallSystemPackagesStep]
-        end
       end
 
       def should_run?

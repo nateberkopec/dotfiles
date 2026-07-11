@@ -1,15 +1,18 @@
-class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
-  DESCRIPTION = "Installs Homebrew-managed apps and non-admin formulae.".freeze
+require "json"
+
+# Casks stay with real Homebrew: mise's cask backend can't recognize casks
+# brew installed and can't install tapped casks without API metadata. On
+# non-admin machines this step also installs the [bootstrap.packages] brew
+# formulae, since `dotf run` skips the mise packages phase there (mise's
+# native brew backend can't target the private ~/.homebrew prefix).
+class Dotfiles::Step::InstallBrewCasksStep < Dotfiles::Step
+  DESCRIPTION = "Installs Homebrew casks, plus formulae on non-admin machines.".freeze
 
   macos_only
 
-  def self.depends_on
-    [Dotfiles::Step::UpdateHomebrewStep]
-  end
-
   def initialize(**kwargs)
     super
-    @brewfile_path = File.join(@dotfiles_dir, "Brewfile")
+    @brewfile_path = temp_path("brewfile")
     @packages_installed_status = nil
   end
 
@@ -21,7 +24,8 @@ class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
   end
 
   def run
-    debug "Installing Homebrew-managed apps..."
+    debug "Installing Homebrew casks..."
+    update_homebrew
     install_and_reset
     install_and_reset unless packages_already_installed?
   end
@@ -30,11 +34,16 @@ class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
     super
     return true unless brewfile_needed?
 
+    generate_brewfile
     add_missing_packages_error unless packages_already_installed?
     @packages_installed_status
   end
 
   private
+
+  def update_homebrew
+    brew_quiet("update")
+  end
 
   def install_and_reset
     output, exit_status = install_packages
@@ -48,7 +57,7 @@ class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
     output, status = brew_quiet("bundle", "check", "--file=#{@brewfile_path}", "--no-upgrade")
     @packages_installed_status = status == 0
     @packages_installed_error = output unless @packages_installed_status
-    debug "All Homebrew-managed apps are installed" if @packages_installed_status
+    debug "All Homebrew casks are installed" if @packages_installed_status
     @packages_installed_status
   end
 
@@ -58,7 +67,7 @@ class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
   end
 
   def add_missing_packages_error
-    message = "Some Homebrew-managed apps are not installed"
+    message = "Some Homebrew casks are not installed"
     details = @packages_installed_error.to_s.strip
     message = "#{message}: #{details}" unless details.empty?
     add_error(message)
@@ -66,6 +75,10 @@ class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
 
   def install_packages
     @system.execute(env_command({"HOMEBREW_NO_AUTO_UPDATE" => "1", "HOMEBREW_NO_ENV_HINTS" => "1", "HOMEBREW_CASK_OPTS" => cask_opts}, "brew", "bundle", "install", "--file=#{@brewfile_path}"))
+  end
+
+  def cask_opts
+    user_has_admin_rights? ? "" : "--appdir=~/Applications"
   end
 
   def log_installation_results(output, exit_status)
@@ -76,30 +89,40 @@ class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
   end
 
   def generate_brewfile
-    @system.write_file(@brewfile_path, build_brewfile_content(brew_config))
+    @system.write_file(@brewfile_path, brewfile_content)
   end
 
-  def build_brewfile_content(config)
+  def brewfile_content
     [
-      *(config["taps"] || []).map { |tap| "tap \"#{tap}\"" },
-      *formulae_for_brewfile(config).map { |pkg| "brew \"#{pkg}\"" },
-      *(config["casks"] || []).map { |cask| "cask \"#{cask}\"" }
+      *formulae.map { |pkg| "brew \"#{pkg}\"" },
+      *casks.map { |cask| "cask \"#{cask}\"" }
     ].join("\n") + "\n"
   end
 
   def brewfile_needed?
-    (brew_config["taps"] || []).any? || (brew_config["casks"] || []).any? || formulae_for_brewfile(brew_config).any?
+    formulae.any? || casks.any?
   end
 
-  def formulae_for_brewfile(config)
-    user_has_admin_rights? ? [] : (config["packages"] || [])
+  def casks
+    @config.brew_casks
   end
 
-  def brew_config
-    @config.packages&.dig("brew") || {}
+  def formulae
+    return [] if user_has_admin_rights?
+
+    declared_mise_brew_formulae
   end
 
-  def cask_opts
-    user_has_admin_rights? ? "" : "--appdir=~/Applications"
+  def declared_mise_brew_formulae
+    @declared_mise_brew_formulae ||= fetch_declared_mise_brew_formulae
+  end
+
+  def fetch_declared_mise_brew_formulae
+    output, status = execute(command("mise", "-C", @home, "bootstrap", "packages", "status", "--json"))
+    return [] unless status == 0
+
+    JSON.parse(output).fetch("brew", {}).fetch("packages", []).map { |package| package["package"] }
+  rescue JSON::ParserError
+    []
   end
 end

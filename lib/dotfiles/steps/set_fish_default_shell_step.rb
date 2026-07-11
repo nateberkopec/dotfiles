@@ -3,10 +3,6 @@ class Dotfiles::Step::SetFishDefaultShellStep < Dotfiles::Step
 
   prepend Dotfiles::Step::Sudoable
 
-  def self.depends_on
-    Dotfiles::Step.system_packages_steps
-  end
-
   def run
     debug "Setting Fish as the default shell..."
     remove_local_fish_symlink

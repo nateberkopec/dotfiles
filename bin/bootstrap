@@ -3,6 +3,7 @@
 set -e
 
 BOOTSTRAP_DIR="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DOTFILES_ROOT="$(dirname "$BOOTSTRAP_DIR")"
 # shellcheck source=lib/dotf-common.sh
 source "$BOOTSTRAP_DIR/lib/dotf-common.sh"
 
@@ -139,6 +140,36 @@ bootstrap_debian_prereqs() {
         gnupg \
         unzip \
         xz-utils
+
+    bootstrap_debian_apt_sources
+}
+
+# APT sources that [bootstrap.packages] apt entries need before `mise
+# bootstrap` installs packages. Desktop app sources that don't work in
+# containers (1Password, Chrome) live in the Debian Desktop Apps step instead.
+bootstrap_debian_apt_sources() {
+    ensure_apt_source gierens \
+        "deb [signed-by=/usr/share/keyrings/gierens-archive-keyring.gpg] http://deb.gierens.de stable main" \
+        "https://raw.githubusercontent.com/eza-community/eza/main/deb.asc"
+    ensure_apt_source mise \
+        "deb [signed-by=/usr/share/keyrings/mise-archive-keyring.gpg] https://mise.jdx.dev/deb stable main" \
+        "https://mise.jdx.dev/gpg-key.pub"
+}
+
+ensure_apt_source() {
+    local name="$1" line="$2" key_url="$3"
+    local list_path="/etc/apt/sources.list.d/${name}.list"
+    local keyring_path="/usr/share/keyrings/${name}-archive-keyring.gpg"
+
+    if [ ! -f "$keyring_path" ]; then
+        debug "Installing APT keyring for ${name}..."
+        curl -fsSL "$key_url" | sudo gpg --dearmor -o "$keyring_path"
+    fi
+
+    if [ ! -f "$list_path" ] || ! grep -Fqx "$line" "$list_path"; then
+        debug "Installing APT source for ${name}..."
+        printf '%s\n' "$line" | sudo tee "$list_path" >/dev/null
+    fi
 }
 
 bootstrap_mise() {
@@ -157,6 +188,8 @@ bootstrap_mise() {
         debug "mise already installed"
     fi
 
+    seed_global_mise_config
+
     # Trust mise config in current directory (needed for non-interactive environments)
     if [ -f ".mise.toml" ]; then
         debug "Trusting mise config..."
@@ -167,75 +200,39 @@ bootstrap_mise() {
         fi
     fi
 
-    configure_mise_ruby_precompiled
+    # TODO: Remove this once mise 2026.8.0 makes precompiled Rubies the default.
+    # test/bootstrap_test.rb intentionally fails after 2026-08-01 if this remains.
+    export MISE_RUBY_COMPILE=false
+
     eval "$(mise activate bash)"
 }
 
-configure_mise_ruby_precompiled() {
-    # TODO: Remove this once mise 2026.8.0 makes precompiled Rubies the default.
-    # test/bootstrap_test.rb intentionally fails after 2026-08-01 if this remains.
-    debug "Configuring mise to use precompiled Rubies..."
-    export MISE_RUBY_COMPILE=false
-    stdout_quiet_unless_debug mise settings set ruby.compile false
+# The mise config's [dotfiles] sources and bootstrap hooks reference the repo
+# as ~/.dotfiles; link it there when the checkout lives elsewhere (CI).
+ensure_dotfiles_location() {
+    [ "$DOTFILES_ROOT" = "$HOME/.dotfiles" ] && return 0
+    [ -e "$HOME/.dotfiles" ] && return 0
+
+    debug "Linking ~/.dotfiles to $DOTFILES_ROOT..."
+    ln -s "$DOTFILES_ROOT" "$HOME/.dotfiles"
 }
 
-bootstrap_gum() {
-    if command -v gum &> /dev/null; then
-        debug "gum already installed"
-        return
-    fi
-
-    debug "Installing gum via mise..."
-    stdout_quiet_unless_debug mise use --global gum@latest
-    stdout_quiet_unless_debug mise install gum@latest
-}
-
-bootstrap_ruby() {
-    # Check if we have a suitable Ruby already installed
-    if command -v ruby &> /dev/null; then
-        local current_version
-        current_version=$(ruby -v | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
-        local major_version
-        major_version=$(echo "$current_version" | cut -d. -f1)
-
-        # In CI, accept any Ruby 3.x+ to avoid slow source builds
-        if [ "${CI:-}" = "true" ] && [ "$major_version" -ge 3 ]; then
-            debug "CI mode: Ruby $current_version is sufficient (>= 3.x), skipping mise Ruby installation"
-            return
-        fi
-
-        # Resolve what ruby@latest actually means
-        local latest_version
-        latest_version=$(mise latest ruby)
-
-        if [ "$current_version" = "$latest_version" ]; then
-            debug "Ruby $current_version already installed (matches ruby@latest), skipping mise Ruby installation"
-            return
-        else
-            debug "Ruby $current_version installed but ruby@latest is $latest_version"
-        fi
-    fi
-
-    # Resolve what ruby@latest actually means (if not already resolved)
-    local latest_version
-    latest_version=${latest_version:-$(mise latest ruby)}
-
-    debug "Installing Ruby $latest_version via mise..."
-    configure_mise_ruby_precompiled
-    stdout_quiet_unless_debug mise use --global ruby@latest
-    stdout_quiet_unless_debug mise install ruby@latest
-
-    debug "Ruby bootstrap complete. Modern Ruby should now be available."
+# `mise bootstrap` reads [bootstrap]/[dotfiles] from the global config, and
+# the dotfiles phase keeps that file in sync afterwards. Seeding it here makes
+# the current run converge against the repo's config, not last run's copy.
+seed_global_mise_config() {
+    debug "Seeding global mise config from the repo..."
+    mkdir -p "$HOME/.config/mise"
+    cp "$DOTFILES_ROOT/files/home/.config/mise/config.toml" "$HOME/.config/mise/config.toml"
 }
 
 main() {
     debug "Bootstrapping development environment..."
 
+    ensure_dotfiles_location
     bootstrap_homebrew
     bootstrap_debian_prereqs
     bootstrap_mise
-    bootstrap_ruby
-    bootstrap_gum
 
     debug "Bootstrap complete."
 }

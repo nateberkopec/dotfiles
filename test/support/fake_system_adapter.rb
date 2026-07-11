@@ -1,7 +1,7 @@
 require "shellwords"
 
 class FakeSystemAdapter
-  attr_reader :operations, :filesystem, :exit_statuses, :hostname
+  attr_reader :operations, :filesystem, :exit_statuses
 
   def initialize
     @operations = []
@@ -11,7 +11,6 @@ class FakeSystemAdapter
     @macos = false
     @linux = false
     @debian = false
-    @hostname = "test-host"
   end
 
   def macos?
@@ -45,10 +44,6 @@ class FakeSystemAdapter
 
   def stub_running_container(value = true)
     @running_container = value
-  end
-
-  def stub_hostname(value)
-    @hostname = value
   end
 
   def stub_file_content(path, content)
@@ -90,18 +85,6 @@ class FakeSystemAdapter
     @operations << [:symlink?, path]
     entry = @filesystem[File.expand_path(path)]
     entry.is_a?(Hash) && entry.key?(:symlink)
-  end
-
-  def readlink(path)
-    @operations << [:readlink, path]
-    entry = @filesystem[File.expand_path(path)]
-    raise Errno::EINVAL, path unless entry.is_a?(Hash) && entry.key?(:symlink)
-    entry[:symlink]
-  end
-
-  def create_symlink(target, link_path)
-    @operations << [:create_symlink, target, link_path]
-    @filesystem[File.expand_path(link_path)] = {symlink: target}
   end
 
   def read_file(path)

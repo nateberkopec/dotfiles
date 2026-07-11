@@ -7,9 +7,9 @@ class ConfigureRaycastHotkeyStepTest < StepTestCase
     assert_incomplete
   end
 
-  def test_depends_on_homebrew_package_install
+  def test_depends_on_non_admin_brew_packages
     assert_includes Dotfiles::Step::ConfigureRaycastHotkeyStep.depends_on,
-      Dotfiles::Step::InstallBrewPackagesStep
+      Dotfiles::Step::InstallBrewCasksStep
   end
 
   def test_run_writes_raycast_defaults

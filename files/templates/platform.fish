@@ -1,3 +1,4 @@
+{% if os() == "macos" -%}
 if status is-interactive
   if test -d /opt/homebrew
     set -gx HOMEBREW_PREFIX /opt/homebrew
@@ -28,3 +29,6 @@ end
 if test -f ~/.orbstack/shell/init2.fish
   source ~/.orbstack/shell/init2.fish 2>/dev/null || :
 end
+{%- else -%}
+set -x MAKEFLAGS -j(nproc)
+{%- endif %}

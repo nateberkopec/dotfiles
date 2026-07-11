@@ -21,14 +21,14 @@ class MigrationRunnerTest < Minitest::Test
     refute @fake_system.file_exist?(ran_file)
   end
 
-  def test_run_if_existing_machine_runs_when_dotf_command_exists
+  def test_run_if_existing_machine_skips_when_only_dotf_command_exists
     build_migration_class(900000000001)
     @fake_system.stub_file_content(File.join(@home, ".local", "bin", "dotf"), "dotf")
     runner = build_runner
 
     capture_io { runner.run_if_existing_machine }
 
-    assert_equal "yes", @fake_system.read_file(ran_file)
+    refute @fake_system.file_exist?(ran_file)
     assert_equal "900000000001\n", @fake_system.read_file(version_file)
   end
 
