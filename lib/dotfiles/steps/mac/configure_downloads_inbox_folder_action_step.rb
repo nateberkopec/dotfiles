@@ -4,7 +4,7 @@ class Dotfiles::Step::ConfigureDownloadsInboxFolderActionStep < Dotfiles::Step
   macos_only
 
   def self.depends_on
-    [Dotfiles::Step::CreateStandardFoldersStep, Dotfiles::Step::SyncHomeDirectoryStep]
+    [Dotfiles::Step::CreateStandardFoldersStep]
   end
 
   def should_run?

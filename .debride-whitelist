@@ -1,12 +1,10 @@
 # Public API and framework hooks that debride cannot see statically.
 /^on_/
-applications=
 config=
 copy_if_exists
 down
 install_direct_download
 log_file
-packages=
 print_steps
 run_if_existing_machine
 running_codespaces?

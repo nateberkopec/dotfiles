@@ -6,30 +6,32 @@ class ConfigTest < Minitest::Test
     @fixtures_dir = File.expand_path("../fixtures", __dir__)
   end
 
-  def test_loads_packages_from_yaml
-    config = Dotfiles::Config.new(@fixtures_dir)
-    packages = config.packages
-
-    assert_equal ["git"], packages["brew"]["packages"]
-    assert_equal ["firefox", "dropbox"], packages["brew"]["casks"]
-    assert_equal ["example/tap"], packages["brew"]["taps"]
-    assert_equal ["git"], packages["debian"]["packages"]
-  end
-
-  def test_loads_debian_sources_from_yaml
+  def test_loads_debian_desktop_apps_from_yaml
     config = Dotfiles::Config.new(@fixtures_dir)
 
     assert_equal(
-      [
-        {
-          "name" => "example",
-          "repo" => "http://example.invalid/debian",
-          "suite" => "stable",
-          "components" => ["main"]
-        }
-      ],
-      config.debian_sources
+      {
+        "name" => "example",
+        "package" => "example-app",
+        "line" => "deb [signed-by=/usr/share/keyrings/example-archive-keyring.gpg] http://example.invalid/debian stable main",
+        "key_url" => "http://example.invalid/key.asc"
+      },
+      config.debian_desktop_apps.first
     )
+  end
+
+  def test_loads_brew_casks_from_yaml
+    config = Dotfiles::Config.new(@fixtures_dir)
+
+    assert_equal ["firefox", "example/tap/widget"], config.brew_casks
+  end
+
+  def test_brew_ci_casks_overrides_config
+    with_env("BREW_CI_CASKS" => "ghostty, cursor") do
+      config = Dotfiles::Config.new(@fixtures_dir)
+
+      assert_equal ["ghostty", "cursor"], config.brew_casks
+    end
   end
 
   def test_loads_debian_non_apt_packages_from_yaml
@@ -50,14 +52,8 @@ class ConfigTest < Minitest::Test
 
   def test_missing_config_file_returns_empty
     config = Dotfiles::Config.new("/nonexistent/dir")
-    assert_equal(
-      {
-        "brew" => {"packages" => [], "casks" => [], "taps" => []},
-        "debian" => {"packages" => [], "sources" => []},
-        "applications" => []
-      },
-      config.packages
-    )
+    assert_equal [], config.debian_desktop_apps
+    assert_equal [], config.debian_non_apt_packages
   end
 
   def test_fetch_returns_config_value
@@ -73,26 +69,5 @@ class ConfigTest < Minitest::Test
   def test_bracket_accessor_returns_config_value
     config = Dotfiles::Config.new(@fixtures_dir)
     assert_equal "https://github.com/test/dotfiles.git", config["dotfiles_repo"]
-  end
-
-  def test_brew_ci_casks_overrides_config
-    with_env("BREW_CI_CASKS" => "ghostty, cursor") do
-      config = Dotfiles::Config.new(@fixtures_dir)
-      assert_equal ["ghostty", "cursor"], config.brew_casks
-    end
-  end
-
-  def test_brew_ci_casks_empty_string_returns_empty_array
-    with_env("BREW_CI_CASKS" => "") do
-      config = Dotfiles::Config.new(@fixtures_dir)
-      assert_equal [], config.brew_casks
-    end
-  end
-
-  def test_brew_ci_taps_overrides_config
-    with_env("BREW_CI_TAPS" => "rawnly/tap") do
-      config = Dotfiles::Config.new(@fixtures_dir)
-      assert_equal ["rawnly/tap"], config.brew_taps
-    end
   end
 end

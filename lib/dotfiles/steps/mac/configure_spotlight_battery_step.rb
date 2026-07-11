@@ -6,10 +6,6 @@ class Dotfiles::Step::ConfigureSpotlightBatteryStep < Dotfiles::Step
 
   macos_only
 
-  def self.depends_on
-    [Dotfiles::Step::InstallSystemPackagesStep]
-  end
-
   def should_run?
     battery_mode_enabled? && !battery_toggle_installed?
   end

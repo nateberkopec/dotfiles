@@ -37,13 +37,17 @@ class BootstrapTest < Minitest::Test
     end
   end
 
-  def test_bootstrap_mise_sets_ruby_compile_false
+  def test_bootstrap_mise_uses_precompiled_rubies_and_seeds_global_config
     with_bootstrap_stub do |env|
       write_mise_stub(env)
-      run_bootstrap_mise(env)
+      run_bootstrap_commands(env, nil, <<~'BASH')
+        bootstrap_mise
+        printf 'MISE_RUBY_COMPILE=%s\n' "$MISE_RUBY_COMPILE" >> "$MISE_COMMAND_LOG"
+      BASH
 
       assert_includes logged_mise_commands(env), "mise activate bash"
-      assert_includes logged_mise_commands(env), "mise settings set ruby.compile false"
+      assert_includes logged_mise_commands(env), "MISE_RUBY_COMPILE=false"
+      assert File.exist?(File.join(env.fetch("HOME"), ".config", "mise", "config.toml"))
     end
   end
 

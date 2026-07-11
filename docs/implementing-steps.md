@@ -52,7 +52,7 @@ Declares dependencies on other steps. The system automatically runs steps in the
 ```ruby
 def self.depends_on
   # Example
-  [Dotfiles::Step::SyncHomeDirectoryStep]
+  [Dotfiles::Step::CreateStandardFoldersStep]
 end
 ```
 

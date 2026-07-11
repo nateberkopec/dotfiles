@@ -1,5 +1,4 @@
 require "yaml"
-require "package_matrix"
 
 class Dotfiles
   class Config
@@ -14,23 +13,6 @@ class Dotfiles
 
     def config
       @config ||= load_config
-    end
-
-    def packages
-      {
-        "brew" => {"packages" => brew_packages, "casks" => brew_casks, "taps" => brew_taps},
-        "debian" => {"packages" => debian_packages, "sources" => debian_sources},
-        "applications" => applications
-      }
-    end
-
-    def packages=(hash)
-      @config ||= {}
-      @config["brew"] = hash["brew"] if hash.key?("brew")
-      @config["packages"] = hash["packages"] if hash.key?("packages")
-      @config["debian_non_apt_packages"] = hash["debian_non_apt_packages"] if hash.key?("debian_non_apt_packages")
-      @config["debian_sources"] = hash["debian_sources"] if hash.key?("debian_sources")
-      @config["applications"] = hash["applications"] if hash.key?("applications")
     end
 
     def dotfiles_repo
@@ -49,54 +31,21 @@ class Dotfiles
       config.fetch(key, default)
     end
 
-    def package_matrix
-      @package_matrix ||= PackageMatrix.new(config)
+    def brew_casks
+      env_csv("BREW_CI_CASKS") || config.fetch("brew_casks", [])
     end
 
-    def brew_packages
-      env_csv("BREW_CI_PACKAGES") || package_matrix.brew_packages
-    end
+    def debian_desktop_apps
+      selected = env_csv("DEBIAN_CI_DESKTOP_APPS")
+      apps = config.fetch("debian_desktop_apps", [])
+      return apps unless selected
 
-    def debian_packages
-      env_csv("DEBIAN_CI_PACKAGES") || package_matrix.debian_packages
-    end
-
-    def debian_sources
-      selected = env_csv("DEBIAN_CI_SOURCES")
-      sources = config.fetch("debian_sources", [])
-      return sources unless selected
-
-      sources.select { |source| selected.include?(source["name"].to_s) }
+      apps.select { |app| selected.include?(app["name"].to_s) }
     end
 
     def debian_non_apt_packages
       packages = env_csv("DEBIAN_CI_NON_APT_PACKAGES") || config.fetch("debian_non_apt_packages", [])
       packages.map(&:to_s)
-    end
-
-    def debian_snap_packages
-      env_csv("DEBIAN_CI_SNAP_PACKAGES") || config.fetch("debian_snap_packages", [])
-    end
-
-    def applications
-      selected = env_csv("BREW_CI_APPLICATIONS")
-      apps = config.fetch("applications", [])
-      return apps unless selected
-
-      apps.select { |app| selected.include?(app["name"].to_s) || selected.include?(app["brew_cask"].to_s) }
-    end
-
-    def applications=(apps)
-      @config ||= {}
-      @config["applications"] = apps
-    end
-
-    def brew_casks
-      env_csv("BREW_CI_CASKS") || config.fetch("brew", {}).fetch("casks", [])
-    end
-
-    def brew_taps
-      env_csv("BREW_CI_TAPS") || config.fetch("brew", {}).fetch("taps", [])
     end
 
     private

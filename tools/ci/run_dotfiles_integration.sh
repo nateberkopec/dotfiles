@@ -9,6 +9,12 @@ script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=tools/ci/package_probe.sh
 source "$script_dir/package_probe.sh"
 
+trim_mise_config() {
+    if [ -n "${MISE_CI_TOOLS:-}${BREW_CI_PACKAGES:-}${DEBIAN_CI_PACKAGES:-}" ]; then
+        ruby "$script_dir/trim_mise_config.rb"
+    fi
+}
+
 run_dotfiles() {
     local log_name="${1:-output.log}"
 
@@ -81,6 +87,7 @@ check_fish() {
     echo "✅ Fish shell started without errors"
 }
 
+trim_mise_config
 check_ci_packages "Pre-run" assert_not_installed
 run_dotfiles output.log
 check_ci_packages "Post-run" assert_installed

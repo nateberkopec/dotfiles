@@ -1,4 +1,6 @@
-# Managed by dotfiles. This file is the source of truth for machine-wide mise tools.
+# Managed by dotfiles. This file is the source of truth for machine-wide mise
+# tools, system packages, dotfiles, and macOS bootstrap config. `dotf run`
+# converges it all with `mise bootstrap`.
 [tools]
 ruby = "4.0.5"
 node = "24.18.0"
@@ -61,3 +63,138 @@ fetch_remote_versions_timeout = "5s"
 AUBE_SECURITY_SCANNER = "{{env.HOME}}/.config/aube/socket-security-scanner.mjs"
 CARGO_HTTP_TIMEOUT = "5"
 GO_GET_TIMEOUT = "5s"
+
+# System packages. brew: entries apply on macOS, apt: on Debian; dotf scopes
+# the managers per platform via MISE_SYSTEM_PACKAGES_MANAGERS (mise's brew
+# backend would otherwise also run on Linux). Casks stay with real Homebrew in
+# the Install Brew Casks step: mise's cask backend can't see casks brew
+# installed (Caskroom .metadata dirs read as "multiple versions") and can't
+# install tapped casks without API metadata (aerospace). Packages needing a
+# third-party APT source get that source from bin/bootstrap (gierens, mise) or
+# the Debian Desktop Apps step (1password, google-chrome). docker.io installs
+# via the post-packages hook below so machines with Docker from another source
+# skip it.
+[bootstrap.packages]
+"brew:asdf" = "latest"
+"brew:automake" = "latest"
+"brew:bash" = "latest"
+"brew:bison" = "latest"
+"brew:coreutils" = "latest"
+"brew:curl" = "latest"
+"brew:duti" = "latest"
+"brew:eza" = "latest"
+"brew:fontconfig" = "latest"
+"brew:gemini-cli" = "latest"
+"brew:git" = "latest"
+"brew:gnupg" = "latest"
+"brew:jemalloc" = "latest"
+"brew:jpeg" = "latest"
+"brew:libffi" = "latest"
+"brew:libheif" = "latest"
+"brew:libmagic" = "latest"
+"brew:libpq" = "latest"
+"brew:librsvg" = "latest"
+"brew:libyaml" = "latest"
+"brew:llm" = "latest"
+"brew:mise" = "latest"
+"brew:pinentry-mac" = "latest"
+"brew:pkgconf" = "latest"
+"brew:terminal-notifier" = "latest"
+"brew:thefuck" = "latest"
+"brew:trash" = "latest"
+"brew:ykman" = "latest"
+"apt:automake" = "latest"
+"apt:bash" = "latest"
+"apt:bison" = "latest"
+"apt:coreutils" = "latest"
+"apt:curl" = "latest"
+"apt:eza" = "latest"
+"apt:fontconfig" = "latest"
+"apt:git" = "latest"
+"apt:gnupg" = "latest"
+"apt:libffi-dev" = "latest"
+"apt:libheif-dev" = "latest"
+"apt:libjemalloc-dev" = "latest"
+"apt:libjpeg-dev" = "latest"
+"apt:libmagic-dev" = "latest"
+"apt:libpq-dev" = "latest"
+"apt:librsvg2-dev" = "latest"
+"apt:libyaml-dev" = "latest"
+"apt:mise" = "latest"
+"apt:pinentry-tty" = "latest"
+"apt:pkgconf" = "latest"
+"apt:thefuck" = "latest"
+"apt:trash-cli" = "latest"
+"apt:yubikey-manager" = "latest"
+
+# Home directory files. The whole-tree copy mirrors files/home into ~;
+# platform-specific files render through mise's template engine; symlink
+# entries recreate the links the repo used to check in as symlink files.
+[dotfiles]
+"~" = { source = "~/.dotfiles/files/home", mode = "copy" }
+"~/.config/fish/conf.d/platform.fish" = { source = "~/.dotfiles/files/templates/platform.fish", mode = "template" }
+"~/.config/ghostty/config.platform" = { source = "~/.dotfiles/files/templates/ghostty-config.platform", mode = "template" }
+"~/.local/bin/dotf" = { source = "~/.dotfiles/bin/dotf", mode = "symlink" }
+"~/.agents/skills" = { source = "~/.dotfiles/files/home/.claude/skills", mode = "symlink" }
+"~/.codex/skills" = { source = "~/.dotfiles/files/home/.claude/skills", mode = "symlink" }
+"~/.pi/agent/skills/claude" = { source = "~/.dotfiles/files/home/.claude/skills", mode = "symlink" }
+"~/.codex/AGENTS.md" = { source = "~/.dotfiles/files/home/.claude/CLAUDE.md", mode = "symlink" }
+"~/.factory/AGENTS.md" = { source = "~/.dotfiles/files/home/.claude/CLAUDE.md", mode = "symlink" }
+"~/.pi/agent/AGENTS.md" = { source = "~/.dotfiles/files/home/.claude/CLAUDE.md", mode = "symlink" }
+
+[bootstrap.macos.defaults.NSGlobalDomain]
+NSAutomaticWindowAnimationsEnabled = 0
+NSScrollAnimationEnabled = 0
+QLPanelAnimationDuration = 0
+NSScrollViewRubberbanding = 0
+NSDocumentRevisionsWindowTransformAnimation = 0
+NSToolbarFullScreenAnimationDuration = 0
+NSBrowserColumnAnimationSpeedMultiplier = 0
+"com.apple.mouse.scaling" = 2.0
+
+[bootstrap.macos.defaults."com.apple.Accessibility"]
+ReduceMotionEnabled = 1
+
+[bootstrap.macos.defaults."com.apple.dock"]
+autohide-time-modifier = 0
+autohide-delay = 0
+springboard-show-duration = 0
+springboard-hide-duration = 0
+springboard-page-duration = 0
+launchanim = 0
+mineffect = "scale"
+
+[bootstrap.macos.defaults."com.apple.finder"]
+DisableAllAnimations = 1
+
+[bootstrap.macos.defaults."com.apple.AppleMultitouchTrackpad"]
+Clicking = 0
+TrackpadRightClick = 1
+FirstClickThreshold = 1
+ActuateDetents = 1
+DragLock = 0
+Dragging = 0
+ForceSuppressed = 0
+TrackpadCornerSecondaryClick = 0
+TrackpadTwoFingerDoubleTapGesture = 1
+
+[bootstrap.macos.defaults."com.apple.spaces"]
+spans-displays = true
+
+[bootstrap.macos.launchd.agents.yknotify]
+program = "~/.local/share/yknotify/yknotify.sh"
+run_at_load = true
+keep_alive = true
+stdout_path = "/tmp/yknotify.out"
+stderr_path = "/tmp/yknotify.err"
+
+# The pre-dotfiles hook lifts immutable flags from managed files the protect
+# steps re-apply. The defaults hooks track drift, write $HOME-dependent
+# defaults mise can't express, and relaunch affected apps only when something
+# changed.
+[bootstrap.hooks]
+pre-dotfiles = 'bash "$HOME/.dotfiles/bin/lib/unprotect-managed-files.sh"'
+post-dotfiles = 'bash "$HOME/.dotfiles/bin/lib/post-dotfiles-hook.sh"'
+pre-defaults = 'bash "$HOME/.dotfiles/bin/lib/pre-defaults-hook.sh"'
+post-defaults = 'bash "$HOME/.dotfiles/bin/lib/post-defaults-hook.sh"'
+post-packages = '[ ! -f /etc/debian_version ] || command -v docker >/dev/null 2>&1 || sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y docker.io'

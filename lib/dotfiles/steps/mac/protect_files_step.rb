@@ -10,10 +10,6 @@ class Dotfiles::Step::ProtectFilesStep < Dotfiles::Step
     "Protect Files"
   end
 
-  def self.depends_on
-    [Dotfiles::Step::SyncHomeDirectoryStep]
-  end
-
   private
 
   def protected_files

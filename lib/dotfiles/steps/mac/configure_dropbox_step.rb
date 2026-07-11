@@ -6,7 +6,7 @@ class Dotfiles::Step::ConfigureDropboxStep < Dotfiles::Step
   macos_only
 
   def self.depends_on
-    [Dotfiles::Step::InstallBrewPackagesStep]
+    [Dotfiles::Step::InstallBrewCasksStep]
   end
 
   def should_run?

@@ -11,8 +11,9 @@ Most dotfiles repos just copy files to your home folder. This one does more. It 
 When you run `dotf run` it will:
 
 - Bootstrap a minimal environment with Homebrew, Git, and this repository
+- Converge the machine with `mise bootstrap`: system packages, home directory files, macOS defaults, LaunchAgents, and pinned tools, all declared in [files/home/.config/mise/config.toml](files/home/.config/mise/config.toml)
 - Add `dotf` to your PATH via `~/.local/bin`
-- Run all defined Steps (see `dotf steps`)
+- Run the remaining imperative Steps (see `dotf steps`)
 
 ## Commands
 
@@ -55,7 +56,7 @@ Supported platforms:
 2. MacOS without sudo
 3. Ubuntu 22.04
 
-In general, because `mise` is crossplatform, if we can do it with `mise`, we should do it with `mise`.
+In general, because `mise` is crossplatform, if we can do it with `mise`, we should do it with `mise`. Everything declarative — packages, dotfiles, macOS defaults, LaunchAgents, tools — lives in the mise config and is converged by `mise bootstrap`; Ruby Steps exist only for things mise can't express (see ADR 0006).
 
 Managed tools are pinned to explicit versions. `dotf outdated` shows newer versions that match package-manager constraints and prints the `pi "$(cat tmp/pi-upgrade-prompt-...)"` command to start an update PR.
 
@@ -63,7 +64,7 @@ Managed tools are pinned to explicit versions. `dotf outdated` shows newer versi
 
 Config should drive data, Steps should drive behavior.
 
-Generated artifacts should not be edited as sources of truth, e.g. we ignore generated `Brewfile`.
+Generated artifacts should not be edited as sources of truth.
 
 We do not store secrets on the system in plaintext.
 
@@ -77,7 +78,7 @@ We don't trust agents, we make sure they do the right thing and lock destructive
 
 ## How It Works
 
-The setup runs in **Steps**. Each Step is a Ruby class that does one thing: install packages, set up Fish, sync config files, etc.
+`dotf run` first converges the declarative config with `mise bootstrap`, then runs **Steps**. Each Step is a Ruby class that does one imperative thing mise can't: set the login shell, protect files with immutable flags, configure Spotlight, etc.
 
 Steps can depend on other steps.
 
