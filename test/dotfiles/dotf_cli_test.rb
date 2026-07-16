@@ -38,13 +38,14 @@ class DotfCliTest < Minitest::Test
 
       brew_json = '{"formulae":[{"name":"duti","installed_versions":["1.0"],"current_version":"1.1"}],"casks":[{"token":"cursor","installed_versions":["2.0"],"current_version":"2.1"}]}'
       mise_json = '{"ruby":{"current":"4.0.5","latest":"4.0.6"}}'
+      npm_json = '{"versions":["0.2.2","0.2.3","0.2.4"],"time":{"0.2.2":"2000-01-01T00:00:00.000Z","0.2.3":"2000-01-02T00:00:00.000Z","0.2.4":"2999-01-01T00:00:00.000Z"}}'
       env = {
         "DOTF_FORCE_NON_DEBIAN" => "true",
         "DOTF_MANAGED_BREW_FORMULAE" => "duti",
         "DOTF_MANAGED_BREW_CASKS" => "cursor",
         "DOTF_BREW_OUTDATED_JSON" => brew_json,
         "DOTF_MISE_OUTDATED_JSON" => mise_json,
-        "DOTF_NPM_LATEST" => "pi-ding=0.2.3",
+        "DOTF_NPM_VIEW_JSON" => npm_json,
         "DOTF_UPGRADE_LOG" => log_path,
         "PATH" => "#{bin_dir}:/usr/bin:/bin"
       }
@@ -54,17 +55,24 @@ class DotfCliTest < Minitest::Test
 
       prompt_paths = Dir.glob(File.join(tmpdir, "tmp", "pi-upgrade-prompt-*.md"))
       assert_equal 1, prompt_paths.size
-      assert_includes File.read(prompt_paths.first), "Update the pinned package versions"
+      prompt = File.read(prompt_paths.first)
+      assert_includes prompt, "Update the pinned package versions"
+      assert_includes prompt, "| mise | ruby | 4.0.5 | 4.0.6 |"
+      assert_includes prompt, "| pi package | pi-ding | 0.2.2 | 0.2.3 |"
+      assert_includes prompt, "| brew | duti | 1.0 | 1.1 |"
+      assert_includes prompt, "| brew cask | cursor | 2.0 | 2.1 |"
+      refute_includes prompt, "Run `dotf outdated` first"
 
       assert_equal [
         "brew shellenv bash", "mise activate bash", "mise outdated --bump --json",
-        "mise exec node@lts -- npm view pi-ding version",
+        "mise exec node@lts -- npm view pi-ding time versions --json",
         "HOMEBREW_AUTO_UPDATE_SECS=604800 brew update-if-needed",
         "HOMEBREW_NO_AUTO_UPDATE=1 brew outdated --json=v2"
       ], File.readlines(log_path, chomp: true)
       output = File.read(output_path)
       assert_includes output, "ruby\t4.0.5\t4.0.6"
       assert_includes output, "pi package\tpi-ding\t0.2.2\t0.2.3"
+      refute_includes output, "0.2.4"
       assert_includes output, "brew\tduti\t1.0\t1.1"
       assert_includes output, "brew cask\tcursor\t2.0\t2.1"
       assert_includes output, "You can run: pi"

@@ -210,16 +210,24 @@ report_mise_outdated() {
           rescue JSON::ParserError
             tools = {}
           end
-          if tools.empty?
+          rows = []
+          tools.each do |name, tool|
+            current = tool["current"].to_s
+            latest = tool["latest"].to_s
+            next if current.empty? || latest.empty? || current == latest
+            rows << [name, current, latest]
+          end
+
+          if rows.empty?
             puts "mise tools are up to date"
           else
-            puts "tool\tcurrent\tlatest"
-            tools.each do |name, tool|
-              current = tool["current"].to_s
-              latest = tool["latest"].to_s
-              next if current.empty? || latest.empty? || current == latest
-              puts "#{name}\t#{current}\t#{latest}"
+            if ENV["DOTF_OUTDATED_ROWS_PATH"]
+              File.open(ENV.fetch("DOTF_OUTDATED_ROWS_PATH"), "a") do |file|
+                rows.each { |row| file.puts((["mise"] + row).join("\t")) }
+              end
             end
+            puts "tool\tcurrent\tlatest"
+            rows.each { |row| puts row.join("\t") }
           end
         '
     )"
@@ -255,15 +263,42 @@ report_pi_package_outdated() {
             puts [match[1], match[2]].join("\t")
           end
         ' "$settings_path" | while IFS=$'\t' read -r package current; do
-            latest="$(mise exec node@lts -- npm view "$package" version 2>/dev/null || true)"
+            latest="$(
+                unset BUNDLE_GEMFILE BUNDLE_BIN_PATH RUBYOPT GEM_HOME GEM_PATH 2>/dev/null || true
+                mise exec node@lts -- npm view "$package" time versions --json 2>/dev/null | env DOTF_CURRENT_VERSION="$current" ruby -rjson -rtime -e '
+                  begin
+                    data = JSON.parse(STDIN.read)
+                  rescue JSON::ParserError
+                    data = {}
+                  end
+
+                  current = ENV.fetch("DOTF_CURRENT_VERSION")
+                  cutoff = Time.now - (3 * 24 * 60 * 60)
+                  versions = Array(data["versions"])
+                  times = data.fetch("time", {})
+                  latest = versions.reverse.find do |version|
+                    published_at = times[version]
+                    published_at && Time.parse(published_at) <= cutoff
+                  rescue ArgumentError
+                    false
+                  end
+                  current_index = versions.index(current)
+                  latest_index = versions.index(latest)
+                  puts latest if latest && (!current_index || !latest_index || latest_index > current_index)
+                '
+            )"
             [ -n "$latest" ] || continue
-            [ "$current" = "$latest" ] && continue
             printf 'pi package\t%s\t%s\t%s\n' "$package" "$current" "$latest"
         done | ruby -e '
           rows = STDIN.read.lines.map(&:chomp).reject(&:empty?)
           if rows.empty?
             puts "Pi packages are up to date"
           else
+            if ENV["DOTF_OUTDATED_ROWS_PATH"]
+              File.open(ENV.fetch("DOTF_OUTDATED_ROWS_PATH"), "a") do |file|
+                rows.each { |row| file.puts(row) }
+              end
+            end
             puts "manager\tpackage\tcurrent\tlatest"
             puts rows
           end
@@ -307,6 +342,11 @@ report_brew_outdated() {
           if rows.empty?
             puts "Homebrew packages are up to date"
           else
+            if ENV["DOTF_OUTDATED_ROWS_PATH"]
+              File.open(ENV.fetch("DOTF_OUTDATED_ROWS_PATH"), "a") do |file|
+                rows.each { |row| file.puts(row.join("\t")) }
+              end
+            end
             puts "manager\tpackage\tcurrent\tlatest"
             rows.each { |row| puts row.join("\t") }
           end
@@ -324,11 +364,33 @@ write_outdated_pi_prompt() {
     local prompt_path="$prompt_dir/pi-upgrade-prompt-$(dotf_date '%Y-%m-%d_%H-%M-%S').md"
 
     mkdir -p "$prompt_dir"
-    cat > "$prompt_path" <<'EOF'
-Update the pinned package versions in this dotfiles repository to the latest versions allowed by configured constraints.
+    (
+        unset BUNDLE_GEMFILE BUNDLE_BIN_PATH RUBYOPT GEM_HOME GEM_PATH 2>/dev/null || true
+        ruby -e '
+          rows = if ENV["DOTF_OUTDATED_ROWS_PATH"] && File.exist?(ENV.fetch("DOTF_OUTDATED_ROWS_PATH"))
+            File.readlines(ENV.fetch("DOTF_OUTDATED_ROWS_PATH"), chomp: true).reject(&:empty?)
+          else
+            []
+          end
 
-Run `dotf outdated` first. Update files/home/.config/mise/config.toml, files/home/.pi/agent/settings.json, and any other pinned package-manager files as needed, run the relevant tests, then open a GitHub PR.
-EOF
+          puts "Update the pinned package versions in this dotfiles repository to the latest versions allowed by configured constraints."
+          puts
+          if rows.empty?
+            puts "No managed package updates were found by this dotf outdated run."
+          else
+            puts "Upgrade these managed packages:"
+            puts
+            puts "| Manager | Package | Current | Latest |"
+            puts "| --- | --- | --- | --- |"
+            rows.each do |row|
+              manager, package, current, latest = row.split("\t", 4)
+              puts "| #{manager} | #{package} | #{current} | #{latest} |"
+            end
+          end
+          puts
+          puts "Update files/home/.config/mise/config.toml, files/home/.pi/agent/settings.json, and any other pinned package-manager files as needed, run the relevant tests, then open a GitHub PR."
+        '
+    ) > "$prompt_path"
 
     warn "Wrote Pi upgrade prompt to $prompt_path"
     warn "You can run: pi \"\$(cat \"$prompt_path\")\""
@@ -345,6 +407,11 @@ cmd_outdated() {
     is_debian || ensure_homebrew_env
     ensure_mise_env
 
+    mkdir -p "$DOTFILES_DIR/tmp"
+    local outdated_rows_path="$DOTFILES_DIR/tmp/outdated-updates-$$.tsv"
+    : > "$outdated_rows_path"
+    export DOTF_OUTDATED_ROWS_PATH="$outdated_rows_path"
+
     report_mise_outdated
     report_pi_package_outdated
     if ! is_debian; then
@@ -352,6 +419,8 @@ cmd_outdated() {
     fi
 
     write_outdated_pi_prompt
+    rm -f "$outdated_rows_path"
+    unset DOTF_OUTDATED_ROWS_PATH
 
     debug "Outdated check complete"
 }
