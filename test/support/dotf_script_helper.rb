@@ -50,12 +50,16 @@ module DotfScriptHelper
           printf '%s\n' '{"formulae":[],"casks":[]}'
         fi
       fi
-      if [ "#{command}" = "mise" ] && [ "$*" = "outdated --json" ]; then
+      if [ "#{command}" = "mise" ] && { [ "$*" = "outdated --json" ] || [ "$*" = "outdated --bump --json" ]; }; then
         if [ -n "${DOTF_MISE_OUTDATED_JSON+x}" ]; then
           printf '%s\n' "$DOTF_MISE_OUTDATED_JSON"
         else
           printf '%s\n' '{}'
         fi
+      fi
+      if [ "#{command}" = "mise" ] && [ "${1:-}" = "exec" ] && [ "${2:-}" = "node@lts" ] && [ "${3:-}" = "--" ] && [ "${4:-}" = "npm" ] && [ "${5:-}" = "view" ] && [ "${7:-}" = "version" ]; then
+        package="$6"
+        printf '%s\n' "${DOTF_NPM_LATEST:-}" | tr ',' '\n' | awk -F= -v package="$package" '$1 == package { print $2 }'
       fi
     BASH
     FileUtils.chmod("+x", path)
