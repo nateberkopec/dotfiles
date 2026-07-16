@@ -57,9 +57,14 @@ module DotfScriptHelper
           printf '%s\n' '{}'
         fi
       fi
-      if [ "#{command}" = "mise" ] && [ "${1:-}" = "exec" ] && [ "${2:-}" = "node@lts" ] && [ "${3:-}" = "--" ] && [ "${4:-}" = "npm" ] && [ "${5:-}" = "view" ] && [ "${7:-}" = "version" ]; then
-        package="$6"
-        printf '%s\n' "${DOTF_NPM_LATEST:-}" | tr ',' '\n' | awk -F= -v package="$package" '$1 == package { print $2 }'
+      if [ "#{command}" = "mise" ] && [ "${1:-}" = "exec" ] && [ "${2:-}" = "node@lts" ] && [ "${3:-}" = "--" ] && [ "${4:-}" = "npm" ] && [ "${5:-}" = "view" ] && [ "${7:-}" = "time" ] && [ "${8:-}" = "versions" ] && [ "${9:-}" = "--json" ]; then
+        if [ -n "${DOTF_NPM_VIEW_JSON+x}" ]; then
+          printf '%s\n' "$DOTF_NPM_VIEW_JSON"
+        else
+          package="$6"
+          version="$(printf '%s\n' "${DOTF_NPM_LATEST:-}" | tr ',' '\n' | awk -F= -v package="$package" '$1 == package { print $2 }')"
+          printf '{"versions":["%s"],"time":{"%s":"2000-01-01T00:00:00.000Z"}}\n' "$version" "$version"
+        fi
       fi
     BASH
     FileUtils.chmod("+x", path)
