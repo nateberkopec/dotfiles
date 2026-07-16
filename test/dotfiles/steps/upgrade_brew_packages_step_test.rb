@@ -2,55 +2,61 @@ require "test_helper"
 
 class UpgradeBrewPackagesStepTest < Minitest::Test
   include ConfigFixtureHelper
+  include SystemAssertions
 
   def test_complete_returns_true
     step = create_step(Dotfiles::Step::UpgradeBrewPackagesStep)
     assert step.complete?
   end
 
-  def test_adds_notice_for_outdated_managed_packages
+  def test_should_run_for_outdated_managed_packages
     write_config("config", "packages" => {"fish" => {"brew" => "fish"}, "gh" => {"brew" => "gh"}})
     step = create_step(Dotfiles::Step::UpgradeBrewPackagesStep)
     @fake_system.stub_command(brew_outdated_command, "bat\nfish\ngh\n")
 
-    step.should_run?
-
-    assert_brew_update_notice(step, "2 managed package(s)", "brew upgrade fish gh")
+    assert step.should_run?
   end
 
-  def test_no_notice_when_only_unmanaged_packages_are_outdated
+  def test_should_not_run_when_only_unmanaged_packages_are_outdated
     write_config("config", "packages" => {"fish" => {"brew" => "fish"}})
     step = create_step(Dotfiles::Step::UpgradeBrewPackagesStep)
     @fake_system.stub_command(brew_outdated_command, "bat\n")
 
-    step.should_run?
-
-    assert_empty step.notices
+    refute step.should_run?
   end
 
-  def test_no_notice_when_packages_up_to_date
-    step = create_step(Dotfiles::Step::UpgradeBrewPackagesStep)
-    @fake_system.stub_command(brew_outdated_command, "")
-
-    step.should_run?
-
-    assert_empty step.notices
-  end
-
-  def test_should_run_returns_false
+  def test_should_not_run_when_packages_up_to_date
     step = create_step(Dotfiles::Step::UpgradeBrewPackagesStep)
     @fake_system.stub_command(brew_outdated_command, "")
 
     refute step.should_run?
   end
 
-  def test_no_notice_when_brew_outdated_fails
+  def test_run_upgrades_and_cleans_outdated_managed_packages
+    write_config("config", "packages" => {"fish" => {"brew" => "fish"}, "gh" => {"brew" => "gh"}})
     step = create_step(Dotfiles::Step::UpgradeBrewPackagesStep)
-    @fake_system.stub_command(brew_outdated_command, "Warning: Homebrew had a problem\nTry again later", exit_status: 1)
+    @fake_system.stub_command(brew_outdated_command, "bat\nfish\ngh\n")
+    @fake_system.stub_command(brew_upgrade_command("fish", "gh"), "")
+    @fake_system.stub_command(brew_cleanup_command("fish", "gh"), "")
 
     step.should_run?
+    step.run
 
-    assert_empty step.notices
+    assert_executed(brew_upgrade_command("fish", "gh"))
+    assert_executed(brew_cleanup_command("fish", "gh"))
+  end
+
+  def test_complete_reports_upgrade_failure
+    write_config("config", "packages" => {"fish" => {"brew" => "fish"}})
+    step = create_step(Dotfiles::Step::UpgradeBrewPackagesStep)
+    @fake_system.stub_command(brew_outdated_command, "fish\n")
+    @fake_system.stub_command(brew_upgrade_command("fish"), "boom", exit_status: 1)
+
+    step.should_run?
+    step.run
+
+    refute step.complete?
+    assert_includes step.errors.join("\n"), "brew upgrade fish failed"
   end
 
   def test_uses_quiet_homebrew_environment
@@ -64,15 +70,19 @@ class UpgradeBrewPackagesStepTest < Minitest::Test
 
   private
 
-  def assert_brew_update_notice(step, count_message, upgrade_command)
-    assert_equal 1, step.notices.size
-    notice = step.notices.first
-    assert_includes notice[:title], "Homebrew Updates Available"
-    assert_includes notice[:message], count_message
-    assert_includes notice[:message], upgrade_command
+  def brew_outdated_command
+    brew_command("outdated", "--formula", "--quiet")
   end
 
-  def brew_outdated_command
-    [{"HOMEBREW_NO_AUTO_UPDATE" => "1", "HOMEBREW_NO_ENV_HINTS" => "1"}, "brew", "outdated", "--formula", "--quiet"]
+  def brew_upgrade_command(*packages)
+    brew_command("upgrade", *packages)
+  end
+
+  def brew_cleanup_command(*packages)
+    brew_command("cleanup", *packages)
+  end
+
+  def brew_command(*args)
+    [{"HOMEBREW_NO_AUTO_UPDATE" => "1", "HOMEBREW_NO_ENV_HINTS" => "1"}, "brew", *args]
   end
 end

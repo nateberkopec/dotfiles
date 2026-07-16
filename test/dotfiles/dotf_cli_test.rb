@@ -20,57 +20,21 @@ class DotfCliTest < Minitest::Test
     end
   end
 
-  def test_upgrade_updates_pi_extensions
-    assert_upgrade_commands(
-      stubs: %w[mise brew pi],
-      env: {
-        "DOTF_FORCE_NON_DEBIAN" => "true",
-        "DOTF_MANAGED_BREW_FORMULAE" => "duti,fish",
-        "DOTF_BREW_OUTDATED_FORMULAE" => "duti,unmanaged"
-      },
-      expected: [
-        "brew shellenv bash", "mise activate bash", "mise cache clear --yes", "mise plugins update",
-        "mise outdated --json",
-        "mise up --dry-run --before 3d --yes", "mise up --before 3d --yes",
-        "mise install --before 3d --yes", "pi update --extensions",
-        "mise prune --yes", "mise cache prune --yes", "MISE_EXPERIMENTAL=1 mise system install --help",
-        "MISE_EXPERIMENTAL=1 mise system install --yes --update",
-        "HOMEBREW_AUTO_UPDATE_SECS=604800 brew update-if-needed",
-        "HOMEBREW_NO_AUTO_UPDATE=1 brew outdated --formula --quiet",
-        "HOMEBREW_NO_AUTO_UPDATE=1 brew upgrade duti",
-        "HOMEBREW_NO_AUTO_UPDATE=1 brew cleanup duti"
-      ]
-    )
+  def test_upgrade_command_is_removed
+    with_dotf_script do |_tmpdir, script_path, _logs_dir|
+      refute system("bash", script_path, "upgrade", out: File::NULL, err: File::NULL)
+    end
   end
 
-  def test_upgrade_skips_brew_upgrade_when_no_managed_formulae_are_outdated
-    assert_upgrade_commands(
-      stubs: %w[mise brew],
-      env: {
-        "DOTF_FORCE_NON_DEBIAN" => "true",
-        "DOTF_MANAGED_BREW_FORMULAE" => "duti",
-        "DOTF_BREW_OUTDATED_FORMULAE" => "unmanaged"
-      },
-      expected: [
-        "brew shellenv bash", "mise activate bash", "mise cache clear --yes", "mise plugins update",
-        "mise outdated --json",
-        "mise up --dry-run --before 3d --yes", "mise up --before 3d --yes",
-        "mise install --before 3d --yes", "mise prune --yes", "mise cache prune --yes",
-        "MISE_EXPERIMENTAL=1 mise system install --help",
-        "MISE_EXPERIMENTAL=1 mise system install --yes --update",
-        "HOMEBREW_AUTO_UPDATE_SECS=604800 brew update-if-needed",
-        "HOMEBREW_NO_AUTO_UPDATE=1 brew outdated --formula --quiet"
-      ]
-    )
-  end
-
-  def test_outdated_reports_mise_and_managed_homebrew_updates
+  def test_outdated_reports_mise_pi_and_managed_homebrew_updates
     with_dotf_script do |tmpdir, script_path, _logs_dir|
       bin_dir = File.join(tmpdir, "fake-bin")
       log_path = File.join(tmpdir, "outdated-commands.log")
       output_path = File.join(tmpdir, "outdated-output.log")
       FileUtils.mkdir_p(bin_dir)
       %w[mise brew].each { |command| write_command_stub(bin_dir, command) }
+      FileUtils.mkdir_p(File.join(tmpdir, "files", "home", ".pi", "agent"))
+      File.write(File.join(tmpdir, "files", "home", ".pi", "agent", "settings.json"), '{"packages":["npm:pi-ding@0.2.2"]}')
 
       brew_json = '{"formulae":[{"name":"duti","installed_versions":["1.0"],"current_version":"1.1"}],"casks":[{"token":"cursor","installed_versions":["2.0"],"current_version":"2.1"}]}'
       mise_json = '{"ruby":{"current":"4.0.5","latest":"4.0.6"}}'
@@ -80,6 +44,7 @@ class DotfCliTest < Minitest::Test
         "DOTF_MANAGED_BREW_CASKS" => "cursor",
         "DOTF_BREW_OUTDATED_JSON" => brew_json,
         "DOTF_MISE_OUTDATED_JSON" => mise_json,
+        "DOTF_NPM_LATEST" => "pi-ding=0.2.3",
         "DOTF_UPGRADE_LOG" => log_path,
         "PATH" => "#{bin_dir}:/usr/bin:/bin"
       }
@@ -92,30 +57,18 @@ class DotfCliTest < Minitest::Test
       assert_includes File.read(prompt_paths.first), "Update the pinned package versions"
 
       assert_equal [
-        "brew shellenv bash", "mise activate bash", "mise outdated --json",
+        "brew shellenv bash", "mise activate bash", "mise outdated --bump --json",
+        "mise exec node@lts -- npm view pi-ding version",
         "HOMEBREW_AUTO_UPDATE_SECS=604800 brew update-if-needed",
         "HOMEBREW_NO_AUTO_UPDATE=1 brew outdated --json=v2"
       ], File.readlines(log_path, chomp: true)
       output = File.read(output_path)
       assert_includes output, "ruby\t4.0.5\t4.0.6"
+      assert_includes output, "pi package\tpi-ding\t0.2.2\t0.2.3"
       assert_includes output, "brew\tduti\t1.0\t1.1"
       assert_includes output, "brew cask\tcursor\t2.0\t2.1"
       assert_includes output, "You can run: pi"
     end
-  end
-
-  def test_upgrade_runs_on_debian_without_homebrew
-    assert_upgrade_commands(
-      stubs: %w[mise apt-get],
-      env: {"DOTF_FORCE_DEBIAN" => "true", "DOTF_SKIP_SUDO" => "true"},
-      expected: [
-        "mise activate bash", "mise cache clear --yes", "mise plugins update",
-        "mise outdated --json",
-        "mise up --dry-run --before 3d --yes", "mise up --before 3d --yes",
-        "mise install --before 3d --yes", "mise prune --yes", "mise cache prune --yes",
-        "MISE_EXPERIMENTAL=1 mise system install --help", "MISE_EXPERIMENTAL=1 mise system install --yes --update"
-      ]
-    )
   end
 
   def test_acquire_dotf_lock_blocks_second_live_holder
@@ -165,23 +118,6 @@ class DotfCliTest < Minitest::Test
   end
 
   private
-
-  def assert_upgrade_commands(stubs:, expected:, env: {})
-    with_dotf_script do |tmpdir, script_path, _logs_dir|
-      bin_dir = File.join(tmpdir, "fake-bin")
-      log_path = File.join(tmpdir, "upgrade-commands.log")
-      FileUtils.mkdir_p(bin_dir)
-      stubs.each { |command| write_command_stub(bin_dir, command) }
-
-      lock_dir = File.join(tmpdir, "dotf.lock")
-      with_env(env.merge("DOTF_UPGRADE_LOG" => log_path, "DOTF_LOCK_DIR" => lock_dir, "PATH" => "#{bin_dir}:/usr/bin:/bin")) do
-        clean_homebrew_env = {"HOMEBREW_AUTO_UPDATE_SECS" => nil, "HOMEBREW_NO_AUTO_UPDATE" => nil}
-        assert system(clean_homebrew_env, "bash", script_path, "upgrade", out: File::NULL)
-      end
-
-      assert_equal expected, File.readlines(log_path, chomp: true)
-    end
-  end
 
   def assert_last_thirty_logs_remain(logs_dir, removed: ["dotf_2000-01-01_00-00-00.log", "dotf_2000-01-01_00-00-01.log"])
     dotf_logs = current_dotf_logs(logs_dir)

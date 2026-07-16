@@ -2,7 +2,7 @@ class Dotfiles::Step::InstallMiseToolsStep < Dotfiles::Step
   DESCRIPTION = "Installs tools defined in mise configuration for the current platform.".freeze
 
   def self.depends_on
-    [Dotfiles::Step::SyncHomeDirectoryStep]
+    [Dotfiles::Step::ClearMiseCacheStep]
   end
 
   def should_run?

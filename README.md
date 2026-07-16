@@ -18,9 +18,8 @@ When you run `dotf run` it will:
 
 | Command | What it does |
 |---------|--------------|
-| `dotf run` | Set up your Mac. Safe to run many times. |
-| `dotf upgrade` | Refresh and upgrade mise tools, Pi extensions, Homebrew packages, and APT packages on Debian/Ubuntu. Homebrew auto-updates are throttled to about once every 7 days. |
-| `dotf outdated` | Show managed package updates that match configured constraints and write a Pi upgrade prompt under `tmp/`. |
+| `dotf run` | Converge this host, including installing missing managed packages and applying safe local upgrades/pruning. Safe to run many times. |
+| `dotf outdated` | Show available upgrades for pinned mise tools, pinned Pi packages/extensions, and managed Homebrew packages, then write a Pi upgrade prompt under `tmp/`. |
 | `dotf steps` | List every setup step with its class name and description. |
 | `dotf help` | Show help |
 
@@ -57,7 +56,7 @@ Supported platforms:
 
 In general, because `mise` is crossplatform, if we can do it with `mise`, we should do it with `mise`.
 
-Managed tools are pinned to explicit versions. `dotf outdated` shows newer versions that match package-manager constraints and prints the `pi "$(cat tmp/pi-upgrade-prompt-...)"` command to start an update PR.
+Managed tools are pinned to explicit versions. `dotf run` converges the machine to those pins and handles safe local cleanup; `dotf outdated` reports newer pins to review and prints the `pi "$(cat tmp/pi-upgrade-prompt-...)"` command to start an update PR.
 
 `dotf run` aggressively overwrites existing user state. This repo is the source of truth.
 

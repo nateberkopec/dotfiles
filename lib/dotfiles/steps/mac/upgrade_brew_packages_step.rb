@@ -1,5 +1,5 @@
 class Dotfiles::Step::UpgradeBrewPackagesStep < Dotfiles::Step
-  DESCRIPTION = "Checks for outdated Homebrew packages and reports available upgrades.".freeze
+  DESCRIPTION = "Upgrades managed Homebrew packages that are already installed and outdated.".freeze
 
   macos_only
 
@@ -8,33 +8,45 @@ class Dotfiles::Step::UpgradeBrewPackagesStep < Dotfiles::Step
   end
 
   def should_run?
-    check_outdated_packages
-    false
+    outdated_managed_packages.any?
+  end
+
+  def run
+    @upgrade_error = nil
+    upgrade_outdated_packages
+    cleanup_upgraded_packages if @upgrade_error.nil?
   end
 
   def complete?
     super
-    true
+    add_error(@upgrade_error) if @upgrade_error
+    @errors.empty?
   end
 
   private
 
-  def check_outdated_packages
-    output, status = brew_quiet("outdated", "--formula", "--quiet")
-    debug("brew outdated --formula --quiet output: #{output.inspect}")
-    return unless status == 0
-
-    packages = managed_outdated_packages(output)
-    return if packages.empty?
-
-    add_notice(
-      title: "🍺 Homebrew Updates Available",
-      message: "#{packages.count} managed package(s) have updates available.\n\nRun 'brew upgrade #{packages.join(" ")}' to update them."
-    )
+  def upgrade_outdated_packages
+    output, status = brew_quiet("upgrade", *outdated_managed_packages)
+    @upgrade_error = format_command_error(brew_upgrade_command, status, output) unless status == 0
   end
 
-  def managed_outdated_packages(output)
-    outdated_packages = output.lines.map(&:strip).reject(&:empty?)
-    outdated_packages & @config.brew_packages
+  def cleanup_upgraded_packages
+    brew_quiet("cleanup", *outdated_managed_packages)
+  end
+
+  def outdated_managed_packages
+    @outdated_managed_packages ||= fetch_outdated_managed_packages
+  end
+
+  def fetch_outdated_managed_packages
+    output, status = brew_quiet("outdated", "--formula", "--quiet")
+    debug("brew outdated --formula --quiet output: #{output.inspect}")
+    return [] unless status == 0
+
+    output.lines.map(&:strip).reject(&:empty?) & @config.brew_packages
+  end
+
+  def brew_upgrade_command
+    env_command({"HOMEBREW_NO_AUTO_UPDATE" => "1", "HOMEBREW_NO_ENV_HINTS" => "1"}, "brew", "upgrade", *outdated_managed_packages)
   end
 end
