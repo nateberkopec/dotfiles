@@ -1,7 +1,7 @@
 {
-  "lastChangelogVersion": "0.62.0",
+  "lastChangelogVersion": "0.80.9",
   "defaultProvider": "openai-codex",
-  "defaultModel": "gpt-5.5",
+  "defaultModel": "gpt-5.6-sol",
   "defaultThinkingLevel": "medium",
   "hideThinkingBlock": false,
   "packages": [
@@ -23,8 +23,10 @@
     "path": "/System/Library/Sounds/Glass.aiff"
   },
   "enabledModels": [
-    "openai-codex/gpt-5.5",
-    "openai-codex/gpt-5.4-mini:xhigh"
+    "openai-codex/gpt-5.6-sol:medium",
+    "openai-codex/gpt-5.6-terra:xhigh",
+    "x-ai/grok-4.5",
+    "fireworks/glm-5p2-priority"
   ],
   "subagents": {
     "agentOverrides": {
@@ -38,6 +40,9 @@
     "enabled": true,
     "maxRetries": 5,
     "baseDelayMs": 2000,
-    "maxDelayMs": 30000
-  }
+    "provider": {
+      "maxRetryDelayMs": 30000
+    }
+  },
+  "theme": "dark"
 }
