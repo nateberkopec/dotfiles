@@ -2,12 +2,12 @@ class Dotfiles::Migration::MigrateBrewTapsToMise < Dotfiles::Migration
   VERSION = 202605310001
 
   MISE_TOOLS = [
-    "1password-cli@2.34.0",
-    "acli@1.3.18-stable",
-    "heroku@11.4.0",
-    "aqua:planetscale/cli@0.285.0",
+    "1password-cli@2.35.0",
+    "acli@1.3.22-stable",
+    "heroku@11.8.1",
+    "aqua:planetscale/cli@0.303.0",
     "github:rawnly/splash-cli@4.1.7",
-    "github:fabro-sh/fabro@0.246.0-nightly.0"
+    "github:fabro-sh/fabro@0.254.0"
   ].freeze
 
   BREW_FORMULAE = %w[
