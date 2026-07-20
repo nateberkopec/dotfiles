@@ -93,7 +93,7 @@ class SetFishDefaultShellStepTest < Minitest::Test
   end
 
   def test_prefers_mise_managed_fish
-    fish = File.join(@home, ".local", "share", "mise", "installs", "aqua-fish-shell-fish-shell", "4.7.1", "fish.pkg", "Payload", "usr", "local", "bin", "fish")
+    fish = File.join(@home, ".local", "share", "mise", "installs", "aqua-fish-shell-fish-shell", "4.8.1", "fish.pkg", "Payload", "usr", "local", "bin", "fish")
     @fake_system.stub_file_content(fish, "binary")
     @fake_system.stub_file_content("/opt/homebrew/bin/fish", "binary")
     @fake_system.stub_command(["dscl", ".", "-read", @home, "UserShell"], "UserShell: #{fish}")

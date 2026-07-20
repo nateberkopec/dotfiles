@@ -1,30 +1,30 @@
 # Managed by dotfiles. This file is the source of truth for machine-wide mise tools.
 [tools]
-ruby = "4.0.5"
-node = "24.18.0"
-"github:jdx/aube" = "1.25.2"
+ruby = "4.0.6"
+node = "26.5.0"
+"github:jdx/aube" = "1.28.0"
 go = "1.26.4"
 rust = "1.96.1"
-hk = "1.49.0"
+hk = "1.51.0"
 "cargo:broot" = "1.57.0"
 "cargo:difftastic" = "0.69.0"
 "cargo:starship" = "1.26.0"
 "gem:try-cli" = "1.9.3"
-"npm:@openai/codex" = { version = "0.142.5", depends = ["github:jdx/aube"] }
+"npm:@openai/codex" = { version = "0.144.5", depends = ["github:jdx/aube"] }
 "npm:sfw" = { version = "2.0.6", depends = ["github:jdx/aube"] }
-"npm:@earendil-works/pi-coding-agent" = { version = "0.78.0", depends = ["github:jdx/aube"], minimum_release_age = "0d", aube_args = "--deny-build=@google/genai --deny-build=protobufjs" }
+"npm:@earendil-works/pi-coding-agent" = { version = "0.80.9", depends = ["github:jdx/aube"], minimum_release_age = "0d", aube_args = "--deny-build=@google/genai --deny-build=protobufjs" }
 "go:github.com/mikefarah/yq/v4" = "4.53.3"
 "go:github.com/noperator/yknotify" = "0.0.0-20260324103239-0c773bdadedb"
 "github:aldanial/cloc" = "2.08"
 "github:pkgforge-dev/ghostty-appimage[bin=ghostty]" = { version = "1.3.1", os = ["linux"] }
 "github:nateberkopec/print-label" = "0.1.2"
 watchexec = "2.5.1"
-fnox = "1.28.0"
+fnox = "1.30.0"
 bat = "0.26.1"
 cmake = "4.3.3"
 fd = "10.4.2"
 fzf = "0.73.1"
-"aqua:fish-shell/fish-shell" = "4.7.1"
+"aqua:fish-shell/fish-shell" = "4.8.1"
 gh = "2.96.0"
 git-lfs = "3.7.1"
 gum = "0.17.0"
@@ -35,14 +35,14 @@ shellcheck = "0.11.0"
 tmux = "3.7b"
 zoxide = "0.10.0"
 pkl = "0.31.1"
-claude = "2.1.201"
+claude = "2.1.211"
 gitleaks = "8.30.1"
-"1password-cli" = "2.34.0"
-acli = "1.3.18-stable"
-heroku = { version = "11.4.0", depends = ["github:jdx/aube"] }
-"aqua:planetscale/cli" = "0.285.0"
+"1password-cli" = "2.35.0"
+acli = "1.3.22-stable"
+heroku = { version = "11.8.1", depends = ["github:jdx/aube"] }
+"aqua:planetscale/cli" = "0.303.0"
 "github:rawnly/splash-cli" = "4.1.7"
-"github:fabro-sh/fabro" = "0.246.0-nightly.0"
+"github:fabro-sh/fabro" = "0.254.0"
 
 [settings]
 env_shell_expand = false
