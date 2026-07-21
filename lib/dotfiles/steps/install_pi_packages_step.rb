@@ -4,7 +4,7 @@ class Dotfiles::Step::InstallPiPackagesStep < Dotfiles::Step
   DESCRIPTION = "Installs Pi packages pinned in Pi settings.".freeze
 
   def self.depends_on
-    [Dotfiles::Step::InstallMiseToolsStep]
+    [Dotfiles::Step::InstallMiseToolsStep, Dotfiles::Step::SyncHomeDirectoryStep]
   end
 
   def should_run?
@@ -37,7 +37,23 @@ class Dotfiles::Step::InstallPiPackagesStep < Dotfiles::Step
   end
 
   def missing_packages
-    expected_packages.reject { |package| installed_packages.include?(package) }
+    expected_packages.reject { |package| package_installed?(package) }
+  end
+
+  def package_installed?(package)
+    npm_package = package.match(/\Anpm:(.+)@([^@]+)\z/)
+    return installed_packages.include?(package) unless npm_package
+
+    installed_npm_version(npm_package[1]) == npm_package[2]
+  end
+
+  def installed_npm_version(package)
+    path = File.join(@home, ".pi", "agent", "npm", "node_modules", package, "package.json")
+    return unless @system.file_exist?(path)
+
+    JSON.parse(@system.read_file(path))["version"]
+  rescue JSON::ParserError
+    nil
   end
 
   def expected_packages
