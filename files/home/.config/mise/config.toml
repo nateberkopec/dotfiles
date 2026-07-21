@@ -39,7 +39,7 @@ claude = "2.1.211"
 gitleaks = "8.30.1"
 "1password-cli" = "2.35.0"
 acli = "1.3.22-stable"
-heroku = { version = "11.8.1", depends = ["github:jdx/aube"] }
+heroku = { version = "11.8.1", depends = ["github:jdx/aube"], aube_args = "--deny-build=cpu-features --deny-build=protobufjs --deny-build=ssh2 --deny-build=yarn" }
 "aqua:planetscale/cli" = "0.303.0"
 "github:rawnly/splash-cli" = "4.1.7"
 "github:fabro-sh/fabro" = "0.254.0"
