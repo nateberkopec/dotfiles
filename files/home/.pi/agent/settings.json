@@ -31,7 +31,6 @@
   "subagents": {
     "agentOverrides": {
       "reviewer": {
-        "model": "openai-codex/gpt-5.5",
         "thinking": "xhigh"
       }
     }
