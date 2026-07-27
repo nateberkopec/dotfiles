@@ -1,6 +1,8 @@
 ---
 name: writing-great-skills
 description: Review or edit a skill for predictable invocation, execution, progressive disclosure, and low context cost.
+license: "MIT; copyright Matt Pocock; see ../matt-pocock-skills-LICENSE.txt"
+source: https://github.com/mattpocock/skills/tree/main/skills/productivity/writing-great-skills
 disable-model-invocation: true
 ---
 

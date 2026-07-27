@@ -1,6 +1,8 @@
 ---
 name: setup-matt-pocock-skills
 description: Configure this repo for the engineering skills — set up its issue tracker, triage label vocabulary, and domain doc layout. Run once before first use of the other engineering skills.
+license: "MIT; copyright Matt Pocock; see ../matt-pocock-skills-LICENSE.txt"
+source: https://github.com/mattpocock/skills/tree/main/skills/engineering/setup-matt-pocock-skills
 disable-model-invocation: true
 ---
 
