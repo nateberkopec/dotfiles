@@ -11,13 +11,21 @@ Examples:
     init_skill.py custom-skill --path /custom/location
 """
 
+import re
 import sys
 from pathlib import Path
 
 
+SKILL_NAME = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+
+
+def valid_skill_name(name):
+    return 1 <= len(name) <= 40 and SKILL_NAME.fullmatch(name) is not None
+
+
 SKILL_TEMPLATE = """---
 name: {skill_name}
-description: [TODO: Complete and informative explanation of what the skill does and when to use it. Include WHEN to use this skill - specific scenarios, file types, or tasks that trigger it.]
+description: "TODO: Explain what the skill does and the specific situations that should trigger it."
 ---
 
 # {skill_title}
@@ -202,7 +210,11 @@ def init_skill(skill_name, path):
     Returns:
         Path to created skill directory, or None if error
     """
-    # Determine skill directory path
+    if not valid_skill_name(skill_name):
+        print("❌ Error: skill name must be 1–40 lowercase alphanumeric characters with single hyphens between segments")
+        return None
+
+    # Construct the path only after rejecting separators and traversal.
     skill_dir = Path(path).resolve() / skill_name
 
     # Check if directory already exists

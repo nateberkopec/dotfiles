@@ -87,7 +87,7 @@ Show counts and a one-line summary per item. Let the maintainer pick.
 
 ## Quick state override
 
-If the maintainer says "move #42 to ready-for-agent", trust them and apply the role directly. Confirm what you're about to do (role changes, comment, close), then act. Skip grilling. If moving to `ready-for-agent` without a grilling session, ask whether they want to write an agent brief.
+If the maintainer requests a direct state change, trust the requested state, confirm the effects, and skip grilling. Before applying `ready-for-agent`, verify that a complete agent brief already exists; if not, write and post one using [AGENT-BRIEF.md](AGENT-BRIEF.md), then apply the role. A maintainer override bypasses the normal recommendation flow, never the brief requirement.
 
 ## Needs-info template
 

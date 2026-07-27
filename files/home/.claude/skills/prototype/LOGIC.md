@@ -23,9 +23,9 @@ Use whatever the host project uses. If the project has no obvious runtime (e.g. 
 
 Match the project's existing conventions for tooling — don't add a new package manager or runtime just for the prototype.
 
-### 3. Isolate the logic in a portable module
+### 3. Isolate the logic in a provisional pure module
 
-Put the actual logic — the bit that's answering the question — behind a small, pure interface that could be lifted out and dropped into the real codebase later. The TUI around it is throwaway; the logic module shouldn't be.
+Put the logic behind a small, pure interface so the prototype tests the idea rather than terminal plumbing. The TUI and logic are both provisional. The shape may inform production code, but no prototype module is ready to lift unchanged.
 
 The right shape depends on the question:
 
@@ -36,7 +36,7 @@ The right shape depends on the question:
 
 Pick whichever shape best fits the question being asked, *not* whichever is easiest to wire to a TUI. Keep it pure: no I/O, no terminal code, no `console.log` for control flow. The TUI imports it and calls into it; nothing flows the other direction.
 
-This is what makes the prototype useful past its own lifetime. When the question's been answered, the validated reducer / machine / function set can be lifted into the real module — the TUI shell gets deleted.
+This separation makes the result easier to assess. After the question is answered, delete the TUI. Absorb a logic core only after normal production review, tests, error handling, and integration work; otherwise keep only the decision it revealed.
 
 ### 4. Build the smallest TUI that exposes the state
 
@@ -76,4 +76,4 @@ When the prototype has done its job, the answer to the question is the only thin
 - **Don't wire it to the real database.** Use an in-memory store unless the question is specifically about persistence.
 - **Don't generalise.** No "what if we wanted to support X later." The prototype answers one question.
 - **Don't blur the logic and the TUI together.** If the reducer / state machine references `console.log`, prompts, or terminal escape codes, it's no longer portable. Keep the TUI as a thin shell over a pure module.
-- **Don't ship the TUI shell into production.** The shell is optimised for being driven by hand from a terminal. The logic module behind it is the bit worth keeping.
+- **Don't ship prototype code into production unchanged.** Keep the answer; productionize any logic through the project's normal review and test process.

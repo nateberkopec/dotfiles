@@ -1,3 +1,4 @@
+require "open3"
 require "rake/testtask"
 require "standard/rake"
 
@@ -13,24 +14,24 @@ end
 
 desc "Run flog"
 task :flog do
-  flog_output = `bundle exec flog -a lib`
+  flog_output, status = Open3.capture2e("bundle", "exec", "flog", "-a", "lib")
   puts flog_output
-  method_scores = flog_output.lines.grep(/^\s+[0-9]+\.[0-9]+:.*#/).reject { |line| line.include?("main#none") }
-    .map { |line| line.split.first.to_f }
-  max_score = method_scores.max
-  if max_score && max_score >= FLOG_THRESHOLD
-    abort "flog failed: highest complexity (#{max_score}) exceeds threshold (#{FLOG_THRESHOLD})"
+  abort "flog failed to run" unless status.success?
+
+  method_scores = flog_output.lines.filter_map do |line|
+    line[/^\s+([0-9]+\.[0-9]+):.*(?:#|::)/, 1]&.to_f unless line.include?("main#none")
   end
+  max_score = method_scores.max || 0.0
+  abort "flog failed: highest complexity (#{max_score}) reached threshold (#{FLOG_THRESHOLD})" if max_score >= FLOG_THRESHOLD
   puts "flog passed (max complexity: #{max_score}, threshold: #{FLOG_THRESHOLD})"
 end
 
 desc "Run flay"
 task :flay do
-  flay_output = `bundle exec flay lib`
+  flay_output, = Open3.capture2e("bundle", "exec", "flay", "lib")
   puts flay_output
   flay_score = flay_output[/Total score.*?=\s*(\d+)/, 1]&.to_i
-  if flay_score && flay_score >= FLAY_THRESHOLD
-    abort "flay failed: duplication score (#{flay_score}) exceeds threshold (#{FLAY_THRESHOLD})"
-  end
+  abort "flay failed: no parseable total score" unless flay_score
+  abort "flay failed: duplication score (#{flay_score}) reached threshold (#{FLAY_THRESHOLD})" if flay_score >= FLAY_THRESHOLD
   puts "flay passed (duplication score: #{flay_score}, threshold: #{FLAY_THRESHOLD})"
 end
