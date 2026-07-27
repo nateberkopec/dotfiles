@@ -6,6 +6,10 @@ require "tmpdir"
 class DevEnvGitCleanlinessTest < Minitest::Test
   CHECK = File.expand_path("../../files/home/.claude/skills/dev-env-setup/scripts/check-dev-env/git.fish", __dir__)
 
+  def setup
+    skip "fish is required for checker tests" unless system("fish", "--version", out: File::NULL, err: File::NULL)
+  end
+
   def test_arbitrary_untracked_file_fails
     Dir.mktmpdir do |dir|
       init_repo(dir)
