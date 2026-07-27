@@ -1,6 +1,8 @@
 ---
 name: to-spec
 description: Turn the current conversation into a spec and publish it to the project issue tracker — no interview, just synthesis of what you've already discussed.
+license: "MIT; copyright Matt Pocock; see ../matt-pocock-skills-LICENSE.txt"
+source: https://github.com/mattpocock/skills/tree/main/skills/engineering/to-spec
 disable-model-invocation: true
 ---
 

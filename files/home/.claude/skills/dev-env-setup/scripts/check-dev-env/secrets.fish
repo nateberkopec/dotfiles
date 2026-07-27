@@ -35,6 +35,6 @@ function check_secrets
         set finding_count "?"
     end
     set summary "gitleaks reported $finding_count finding(s). Run 'gitleaks dir -v $target_dir' to see details."
-    set remediation "Real secrets must live in fnox/1Password — see the env-to-fnox skill. For false positives, add the printed fingerprint to .gitleaksignore or annotate the line with a 'gitleaks:allow' comment. To accept all current findings as a baseline (e.g., when adopting on an existing repo), run: gitleaks dir --report-path .gitleaks-baseline.json $target_dir"
+    set remediation "Real secrets must live in fnox/1Password — see the env-to-fnox skill. For false positives, add the printed fingerprint to .gitleaksignore or annotate the line with a 'gitleaks:allow' comment. To baseline current findings, run: gitleaks dir --redact=75 --report-path \"$target_dir/.gitleaks-baseline.json\" \"$target_dir\"; inspect its structure without displaying findings and confirm it contains no recovered values before committing"
     check_fail "no plaintext secrets in working tree" "$summary $remediation"
 end

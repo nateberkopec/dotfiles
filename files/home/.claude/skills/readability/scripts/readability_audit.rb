@@ -3,6 +3,7 @@
 
 require "optparse"
 require "open3"
+require_relative "markdown_prose"
 
 class ReadabilityAudit
   LONG_SENTENCE_WORDS = 25
@@ -12,24 +13,24 @@ class ReadabilityAudit
 
   def initialize(text)
     @original_text = text
-    @normalized_text = normalize_text(text)
   end
 
   def metrics
     @metrics ||= begin
-      words = extract_words(@normalized_text)
-      sentences = extract_sentences(@normalized_text)
-      paragraphs = extract_paragraphs(@normalized_text)
+      words = MarkdownProse.words(@original_text)
+      sentences = MarkdownProse.sentences(@original_text)
+      paragraphs = MarkdownProse.blocks(@original_text)
 
       sentence_lengths = sentences.map { |sentence| extract_words(sentence).size }
       paragraph_lengths = paragraphs.map { |paragraph| extract_words(paragraph).size }
 
+      structure = MarkdownProse.structural_text(@original_text)
       {
         words: words.size,
         sentences: [sentences.size, 1].max,
         paragraphs: [paragraphs.size, 1].max,
-        heading_count: heading_count(@original_text),
-        list_item_count: list_item_count(@original_text),
+        heading_count: heading_count(structure),
+        list_item_count: list_item_count(structure),
         avg_words_per_sentence: average(sentence_lengths),
         avg_words_per_paragraph: average(paragraph_lengths),
         long_sentence_ratio: ratio(sentence_lengths.count { |count| count > LONG_SENTENCE_WORDS }, sentence_lengths.size),
@@ -104,51 +105,8 @@ class ReadabilityAudit
 
   private
 
-  def normalize_text(text)
-    cleaned = text.dup
-    cleaned = strip_markdown_code_blocks(cleaned)
-    cleaned = strip_html_code_blocks(cleaned)
-    cleaned = strip_html_tags(cleaned)
-    cleaned.gsub(/\r\n?/, "\n")
-  end
-
-  def strip_markdown_code_blocks(text)
-    text
-      .gsub(/```.*?```/m, "")
-      .gsub(/^ {4}.*$/, "")
-  end
-
-  def strip_html_code_blocks(text)
-    text
-      .gsub(/<pre\b.*?<\/pre>/im, " ")
-      .gsub(/<code\b.*?<\/code>/im, " ")
-  end
-
-  def strip_html_tags(text)
-    text.gsub(/<[^>]+>/, " ")
-  end
-
   def extract_words(text)
     text.scan(/[A-Za-z0-9']+/)
-  end
-
-  def extract_sentences(text)
-    sentences = text
-      .gsub(/\n+/, " ")
-      .split(/(?<=[.!?])\s+/)
-      .map(&:strip)
-      .reject(&:empty?)
-
-    sentences.empty? ? [text] : sentences
-  end
-
-  def extract_paragraphs(text)
-    paragraphs = text
-      .split(/\n\s*\n+/)
-      .map(&:strip)
-      .reject(&:empty?)
-
-    paragraphs.empty? ? [text] : paragraphs
   end
 
   def heading_count(text)

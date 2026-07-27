@@ -1,6 +1,8 @@
 ---
 name: writing-great-skills
 description: Reference for writing and editing skills well — the vocabulary and principles that make a skill predictable.
+license: "MIT; copyright Matt Pocock; see ../matt-pocock-skills-LICENSE.txt"
+source: https://github.com/mattpocock/skills/tree/main/skills/productivity/writing-great-skills
 disable-model-invocation: true
 ---
 

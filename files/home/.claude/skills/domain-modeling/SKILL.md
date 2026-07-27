@@ -1,6 +1,8 @@
 ---
 name: domain-modeling
 description: Build and sharpen a project's domain model. Use when the user wants to pin down domain terminology or a ubiquitous language, record an architectural decision, or when another skill needs to maintain the domain model.
+license: "MIT; copyright Matt Pocock; see ../matt-pocock-skills-LICENSE.txt"
+source: https://github.com/mattpocock/skills/tree/main/skills/engineering/domain-modeling
 ---
 
 # Domain Modeling

@@ -8,35 +8,17 @@
 #   - If filename and branch: compares current file to version in branch
 
 require_relative "readability_cli"
+require_relative "markdown_prose"
 
 class FleschKincaidCalculator
   def grade_level(text)
-    words = words_in(strip_code_blocks(text))
+    words = MarkdownProse.words(text)
     return 0.0 if words.empty?
 
-    grade_formula(words_per_sentence(words, text), syllables_per_word(words))
+    grade_formula(words.length.to_f / [MarkdownProse.sentences(text).length, 1].max, syllables_per_word(words))
   end
 
   private
-
-  def strip_code_blocks(text)
-    text.gsub(/```.*?```/m, "")
-  end
-
-  def words_in(text)
-    text.split.filter_map do |word|
-      cleaned = word.gsub(/[^a-zA-Z]/, "")
-      cleaned unless cleaned.empty?
-    end
-  end
-
-  def sentence_count(text)
-    [text.scan(/[.!?]+/).length, 1].max
-  end
-
-  def words_per_sentence(words, text)
-    words.length.to_f / sentence_count(text)
-  end
 
   def syllables_per_word(words)
     syllable_count(words).to_f / words.length
@@ -84,4 +66,4 @@ class FleschKincaidCli < ReadabilityCli
   end
 end
 
-FleschKincaidCli.new(ARGV, $stdin).run
+FleschKincaidCli.new(ARGV, $stdin).run if $PROGRAM_NAME == __FILE__

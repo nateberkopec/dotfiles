@@ -32,6 +32,33 @@ def usage_error(message)
   exit 1
 end
 
+def markdown_parts(text)
+  prose = []
+  blocks = []
+  block = nil
+  marker = nil
+
+  text.lines.each do |line|
+    if block
+      if line.match?(/^\s{0,3}#{Regexp.escape(marker[0])}{#{marker.length},}\s*$/)
+        blocks << block.join
+        block = nil
+        marker = nil
+      else
+        block << line
+      end
+    elsif (opening = line.match(/^\s{0,3}(`{3,}|~{3,})[^\n]*$/))
+      marker = opening[1]
+      block = []
+    else
+      prose << line
+    end
+  end
+
+  blocks << block.join if block
+  [prose.join, blocks]
+end
+
 def heading_lines(text)
   text.lines.grep(/^\#{1,6}\s+/)
 end
@@ -50,10 +77,6 @@ end
 
 def words(text)
   text.scan(/[A-Za-z0-9']+/)
-end
-
-def fenced_code_blocks(text)
-  text.scan(/```(?:[^\n]*)\n(.*?)```/m).flatten
 end
 
 def has_command_block?(code_blocks, hints)
@@ -80,14 +103,14 @@ usage_error("File not found: #{file}") unless File.exist?(file)
 text = File.read(file)
 usage_error("File is empty: #{file}") if text.strip.empty?
 
-headings = heading_lines(text)
-code_blocks = fenced_code_blocks(text)
-first_paragraph = first_non_heading_paragraph(text)
-word_count = words(text).size
+prose, code_blocks = markdown_parts(text)
+headings = heading_lines(prose)
+first_paragraph = first_non_heading_paragraph(prose)
+word_count = words(prose).size
 
 results = []
 
-h1_count = text.lines.count { |line| line.match?(/^#\s+\S+/) }
+h1_count = prose.lines.count { |line| line.match?(/^#\s+\S+/) }
 results << if h1_count == 1
   check(:pass, "Exactly one H1", "1 found")
 elsif h1_count.zero?

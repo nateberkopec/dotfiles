@@ -1,6 +1,8 @@
 ---
 name: improve-codebase-architecture
 description: Scan a codebase for deepening opportunities, present them as a visual HTML report, then grill through whichever one you pick.
+license: "MIT; copyright Matt Pocock; see ../matt-pocock-skills-LICENSE.txt"
+source: https://github.com/mattpocock/skills/tree/main/skills/engineering/improve-codebase-architecture
 disable-model-invocation: true
 ---
 

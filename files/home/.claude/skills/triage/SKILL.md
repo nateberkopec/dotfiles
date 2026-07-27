@@ -1,6 +1,8 @@
 ---
 name: triage
 description: Move issues and external PRs through a state machine of triage roles — categorise, verify, grill if needed, and write agent-ready briefs.
+license: "MIT; copyright Matt Pocock; see ../matt-pocock-skills-LICENSE.txt"
+source: https://github.com/mattpocock/skills/tree/main/skills/engineering/triage
 disable-model-invocation: true
 ---
 

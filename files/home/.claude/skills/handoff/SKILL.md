@@ -1,6 +1,8 @@
 ---
 name: handoff
 description: Compact the current conversation into a handoff document for another agent to pick up.
+license: "MIT; copyright Matt Pocock; see ../matt-pocock-skills-LICENSE.txt"
+source: https://github.com/mattpocock/skills/tree/main/skills/productivity/handoff
 argument-hint: "What will the next session be used for?"
 disable-model-invocation: true
 ---

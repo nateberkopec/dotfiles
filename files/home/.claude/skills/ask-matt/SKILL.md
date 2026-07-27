@@ -1,6 +1,8 @@
 ---
 name: ask-matt
 description: Ask which skill or flow fits your situation. A router over the skills in this repo.
+license: "MIT; copyright Matt Pocock; see ../matt-pocock-skills-LICENSE.txt"
+source: https://github.com/mattpocock/skills/tree/main/skills/engineering/ask-matt
 disable-model-invocation: true
 ---
 

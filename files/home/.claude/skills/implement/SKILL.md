@@ -1,6 +1,8 @@
 ---
 name: implement
 description: "Implement a piece of work based on a spec or set of tickets."
+license: "MIT; copyright Matt Pocock; see ../matt-pocock-skills-LICENSE.txt"
+source: https://github.com/mattpocock/skills/tree/main/skills/engineering/implement
 disable-model-invocation: true
 ---
 

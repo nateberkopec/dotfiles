@@ -130,4 +130,4 @@ Before finalizing a report, verify:
 - [ ] Critical analysis beyond mere description
 - [ ] Implications and conclusions clearly stated
 - [ ] Limitations of research acknowledged
-- [ ] Separate sources bibliography file created
+- [ ] Complete source list included in the final report
