@@ -128,19 +128,6 @@ animation_settings:
     mineffect: "scale"
   com.apple.finder:
     DisableAllAnimations: 1
-trackpad_settings:
-  com.apple.AppleMultitouchTrackpad:
-    Clicking: 0
-    TrackpadRightClick: 1
-    FirstClickThreshold: 1
-    ActuateDetents: 1
-    DragLock: 0
-    Dragging: 0
-    ForceSuppressed: 0
-    TrackpadCornerSecondaryClick: 0
-    TrackpadTwoFingerDoubleTapGesture: 1
-  NSGlobalDomain:
-    com.apple.mouse.scaling: 2
 screenshot_settings:
   com.apple.screencapture:
     location: "~/Documents/Inbox"
