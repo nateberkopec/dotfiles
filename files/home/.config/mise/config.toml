@@ -134,7 +134,48 @@ GO_GET_TIMEOUT = "5s"
 "~/.factory/AGENTS.md" = { source = "~/.dotfiles/files/home/.claude/CLAUDE.md", mode = "symlink" }
 "~/.pi/agent/AGENTS.md" = { source = "~/.dotfiles/files/home/.claude/CLAUDE.md", mode = "symlink" }
 
+[bootstrap.macos.defaults.NSGlobalDomain]
+NSAutomaticWindowAnimationsEnabled = 0
+NSScrollAnimationEnabled = 0
+QLPanelAnimationDuration = 0
+NSScrollViewRubberbanding = 0
+NSDocumentRevisionsWindowTransformAnimation = 0
+NSToolbarFullScreenAnimationDuration = 0
+NSBrowserColumnAnimationSpeedMultiplier = 0
+"com.apple.mouse.scaling" = 2.0
+
+[bootstrap.macos.defaults."com.apple.Accessibility"]
+ReduceMotionEnabled = 1
+
+[bootstrap.macos.defaults."com.apple.dock"]
+autohide-time-modifier = 0
+autohide-delay = 0
+springboard-show-duration = 0
+springboard-hide-duration = 0
+springboard-page-duration = 0
+launchanim = 0
+mineffect = "scale"
+
+[bootstrap.macos.defaults."com.apple.finder"]
+DisableAllAnimations = 1
+
+[bootstrap.macos.defaults."com.apple.AppleMultitouchTrackpad"]
+Clicking = 0
+TrackpadRightClick = 1
+FirstClickThreshold = 1
+ActuateDetents = 1
+DragLock = 0
+Dragging = 0
+ForceSuppressed = 0
+TrackpadCornerSecondaryClick = 0
+TrackpadTwoFingerDoubleTapGesture = 1
+
+[bootstrap.macos.defaults."com.apple.spaces"]
+spans-displays = true
+
 [bootstrap.hooks]
 pre-dotfiles = 'bash "$HOME/.dotfiles/bin/lib/unprotect-managed-files.sh"'
 post-dotfiles = 'bash "$HOME/.dotfiles/bin/lib/post-dotfiles-hook.sh"'
+pre-defaults = 'bash "$HOME/.dotfiles/bin/lib/pre-defaults-hook.sh"'
+post-defaults = 'bash "$HOME/.dotfiles/bin/lib/post-defaults-hook.sh"'
 post-packages = '[ ! -f /etc/debian_version ] || command -v docker >/dev/null 2>&1 || sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y docker.io'
