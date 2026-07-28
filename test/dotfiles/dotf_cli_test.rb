@@ -82,12 +82,14 @@ class DotfCliTest < Minitest::Test
       npm_json = '{"versions":["0.2.2","0.2.3","0.2.4"],"time":{"0.2.2":"2000-01-01T00:00:00.000Z","0.2.3":"2000-01-02T00:00:00.000Z","0.2.4":"2999-01-01T00:00:00.000Z"}}'
       env = {
         "DOTF_FORCE_NON_DEBIAN" => "true",
+        "DOTF_FORCE_ADMIN" => "true",
         "DOTF_MANAGED_BREW_FORMULAE" => "duti",
         "DOTF_MANAGED_BREW_CASKS" => "cursor",
         "DOTF_BREW_OUTDATED_JSON" => brew_json,
         "DOTF_MISE_OUTDATED_JSON" => mise_json,
         "DOTF_NPM_VIEW_JSON" => npm_json,
         "DOTF_UPGRADE_LOG" => log_path,
+        "HOME" => File.join(tmpdir, "home"),
         "PATH" => "#{bin_dir}:/usr/bin:/bin"
       }
 
@@ -106,6 +108,7 @@ class DotfCliTest < Minitest::Test
 
       assert_equal [
         "brew shellenv bash", "mise activate bash", "mise outdated --bump --json",
+        "mise -C #{tmpdir}/home bootstrap packages upgrade --dry-run",
         "mise exec node@lts -- npm view pi-ding time versions --json",
         "HOMEBREW_AUTO_UPDATE_SECS=604800 brew update-if-needed",
         "HOMEBREW_NO_AUTO_UPDATE=1 brew outdated --json=v2"

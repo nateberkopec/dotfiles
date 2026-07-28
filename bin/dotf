@@ -271,6 +271,12 @@ report_mise_outdated() {
     fi
 }
 
+report_mise_packages_outdated() {
+    announce "Checking mise-managed system packages"
+    mise_packages_supported || return 0
+    mise -C "$HOME" bootstrap packages upgrade --dry-run || warn "Skipping system packages (mise dry-run failed)"
+}
+
 report_pi_package_outdated() {
     announce "Checking Pi packages"
 
@@ -446,6 +452,7 @@ cmd_outdated() {
     export DOTF_OUTDATED_ROWS_PATH="$outdated_rows_path"
 
     report_mise_outdated
+    report_mise_packages_outdated
     report_pi_package_outdated
     if ! is_debian; then
         report_brew_outdated
