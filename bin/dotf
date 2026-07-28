@@ -107,6 +107,12 @@ ensure_homebrew_env() {
 }
 
 ensure_mise_env() {
+    if is_debian; then
+        export MISE_SYSTEM_PACKAGES_MANAGERS=apt
+    else
+        export MISE_SYSTEM_PACKAGES_MANAGERS=brew
+    fi
+
     if [ -d "$HOME/.local/bin" ]; then
         export PATH="$HOME/.local/bin:$PATH"
     fi

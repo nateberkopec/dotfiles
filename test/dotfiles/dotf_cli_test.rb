@@ -26,6 +26,18 @@ class DotfCliTest < Minitest::Test
     end
   end
 
+  def test_mise_uses_apt_for_system_packages_on_debian
+    with_dotf_script do |_tmpdir, script_path, _logs_dir|
+      assert_equal "apt", mise_system_packages_manager(script_path, "DOTF_FORCE_DEBIAN")
+    end
+  end
+
+  def test_mise_uses_brew_for_system_packages_elsewhere
+    with_dotf_script do |_tmpdir, script_path, _logs_dir|
+      assert_equal "brew", mise_system_packages_manager(script_path, "DOTF_FORCE_NON_DEBIAN")
+    end
+  end
+
   def test_outdated_reports_mise_pi_and_managed_homebrew_updates
     with_dotf_script do |tmpdir, script_path, _logs_dir|
       bin_dir = File.join(tmpdir, "fake-bin")
@@ -126,6 +138,11 @@ class DotfCliTest < Minitest::Test
   end
 
   private
+
+  def mise_system_packages_manager(script_path, platform_override)
+    command = "source #{Shellwords.escape(script_path)}; ensure_mise_env; printf %s \"$MISE_SYSTEM_PACKAGES_MANAGERS\""
+    IO.popen({platform_override => "true", "PATH" => "/usr/bin:/bin"}, ["bash", "-c", command], &:read)
+  end
 
   def assert_last_thirty_logs_remain(logs_dir, removed: ["dotf_2000-01-01_00-00-00.log", "dotf_2000-01-01_00-00-01.log"])
     dotf_logs = current_dotf_logs(logs_dir)
