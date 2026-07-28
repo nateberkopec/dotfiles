@@ -84,6 +84,7 @@ brew:
   taps: []
 brew_casks:
   - nikitabobko/tap/aerospace
+  - 1password
   - cursor
   - discord
   - droid
@@ -97,16 +98,10 @@ brew_casks:
   - steam
   - tailscale-app
   - telegram
+  - thebrowsercompany-dia
   - visual-studio-code
   - whatsapp
   - zoom
-applications:
-- name: 1Password
-  path: "/Applications/1Password.app"
-  brew_cask: 1password
-- name: Dia
-  path: "/Applications/Dia.app"
-  brew_cask: thebrowsercompany-dia
 screenshot_settings:
   com.apple.screencapture:
     location: "~/Documents/Inbox"
