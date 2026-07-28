@@ -107,27 +107,6 @@ applications:
 - name: Dia
   path: "/Applications/Dia.app"
   brew_cask: thebrowsercompany-dia
-animation_settings:
-  NSGlobalDomain:
-    NSAutomaticWindowAnimationsEnabled: 0
-    NSScrollAnimationEnabled: 0
-    QLPanelAnimationDuration: 0
-    NSScrollViewRubberbanding: 0
-    NSDocumentRevisionsWindowTransformAnimation: 0
-    NSToolbarFullScreenAnimationDuration: 0
-    NSBrowserColumnAnimationSpeedMultiplier: 0
-  com.apple.Accessibility:
-    ReduceMotionEnabled: 1
-  com.apple.dock:
-    autohide-time-modifier: 0
-    autohide-delay: 0
-    springboard-show-duration: 0
-    springboard-hide-duration: 0
-    springboard-page-duration: 0
-    launchanim: 0
-    mineffect: "scale"
-  com.apple.finder:
-    DisableAllAnimations: 1
 screenshot_settings:
   com.apple.screencapture:
     location: "~/Documents/Inbox"
