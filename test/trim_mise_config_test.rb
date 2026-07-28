@@ -22,7 +22,7 @@ class TrimMiseConfigTest < Minitest::Test
         experimental = true
       TOML
       env = {
-        "MISE_CI_TOOLS" => "ruby@4.0.6, gh",
+        "MISE_CI_TOOLS" => "ruby@4.0.6, gh, npm:@earendil-works/pi-coding-agent@0.82.1",
         "BREW_CI_PACKAGES" => "ba\"sh",
         "DEBIAN_CI_PACKAGES" => "curl"
       }
@@ -32,6 +32,7 @@ class TrimMiseConfigTest < Minitest::Test
       TomlRB.parse(rendered)
       assert_includes rendered, "\"ruby\" = \"4.0.6\""
       assert_includes rendered, "\"gh\" = \"latest\""
+      assert_includes rendered, "--deny-build=@google/genai --deny-build=protobufjs"
       assert_includes rendered, "\"brew:ba\\\"sh\" = \"latest\""
       assert_includes rendered, "\"apt:curl\" = \"latest\""
       assert_includes rendered, "experimental = true"
