@@ -47,8 +47,8 @@ class Dotfiles::Step::InstallYknotifyStep < Dotfiles::Step
   end
 
   def install_icon
-    debug "Installing YubiKey icon (BSD 2-Clause, Yubico AB)..."
-    execute(command("curl", "-sL", "https://raw.githubusercontent.com/Yubico/yubikey-manager-qt/main/ykman-gui/images/windowicon.png", "-o", icon_path))
+    debug "Installing tracked YubiKey icon (BSD 2-Clause, Yubico AB)..."
+    @system.cp(source_icon_path, icon_path)
   end
 
   def icon_path
@@ -67,87 +67,16 @@ class Dotfiles::Step::InstallYknotifyStep < Dotfiles::Step
     File.join(@home, "Library/LaunchAgents/com.user.yknotify.plist")
   end
 
-  def mise_bin_path
-    [
-      File.join(@home, ".homebrew", "bin", "mise"),
-      "/opt/homebrew/bin/mise",
-      "/usr/local/bin/mise",
-      "/opt/homebrew/opt/mise/bin/mise",
-      "/usr/local/opt/mise/bin/mise"
-    ].find { |path| @system.file_exist?(path) } || "mise"
+  def source_script_path
+    File.join(@dotfiles_dir, "files/yknotify/yknotify.sh")
   end
 
-  def terminal_notifier_path
-    [
-      File.join(@home, ".homebrew", "bin", "terminal-notifier"),
-      "/opt/homebrew/bin/terminal-notifier",
-      "/usr/local/bin/terminal-notifier"
-    ].find { |path| @system.file_exist?(path) } || "terminal-notifier"
+  def source_icon_path
+    File.join(@dotfiles_dir, "files/yknotify/yubikey-icon.png")
   end
 
   def script_content
-    <<~BASH
-      #!/bin/bash
-
-      # List of sounds: https://apple.stackexchange.com/a/479714
-      export PATH="#{@home}/.local/bin:#{@home}/.homebrew/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
-
-      MISE_BIN="#{mise_bin_path}"
-      YKNTFY_BIN="$($MISE_BIN which yknotify 2>/dev/null)"
-      if [[ -z "$YKNTFY_BIN" ]]; then
-          YKNTFY_BIN="$(command -v yknotify 2>/dev/null)"
-      fi
-      if [[ -z "$YKNTFY_BIN" || ! -x "$YKNTFY_BIN" ]]; then
-          echo "yknotify binary not found" >&2
-          exit 1
-      fi
-
-      TERM_NTFY_BIN="#{terminal_notifier_path}"
-      ICON_PATH="#{icon_path}"
-
-      # Tighten log predicate to reduce background CPU usage.
-      YKNTFY_PREDICATE='(processImagePath == "/kernel" AND senderImagePath ENDSWITH "IOHIDFamily" AND (eventMessage CONTAINS "IOHIDLibUserClient" OR eventMessage CONTAINS "AppleUserUSBHostHIDDevice" OR eventMessage ENDSWITH "startQueue" OR eventMessage ENDSWITH "stopQueue")) OR (processImagePath ENDSWITH "usbsmartcardreaderd" AND subsystem CONTAINS "CryptoTokenKit")'
-      YKNTFY_ARGS=(-predicate "$YKNTFY_PREDICATE")
-
-      LAST_NTFY=0
-      # Read one yknotify event per process so stale FIDO2 state does not loop forever.
-      while true; do
-          TEMP_FIFO="$(mktemp "${TMPDIR:-/tmp}/yknotify.XXXXXX")"
-          rm -f "$TEMP_FIFO"
-          mkfifo "$TEMP_FIFO"
-
-          "$YKNTFY_BIN" "${YKNTFY_ARGS[@]}" > "$TEMP_FIFO" &
-          YKNTFY_PID=$!
-
-          line=""
-          if IFS= read -r line < "$TEMP_FIFO"; then
-              kill "$YKNTFY_PID" 2>/dev/null || true
-              wait "$YKNTFY_PID" 2>/dev/null || true
-          else
-              wait "$YKNTFY_PID" 2>/dev/null || true
-          fi
-
-          rm -f "$TEMP_FIFO"
-
-          if [[ -z "$line" ]]; then
-              sleep 1
-              continue
-          fi
-
-          NOW="$(date +%s)"
-          if [[ "$NOW" -le "$((LAST_NTFY + 2))" ]]; then
-              continue
-          fi
-          LAST_NTFY="$NOW"
-
-          message="$(echo "$line" | jq -r '.type')"
-          if [[ -x "$TERM_NTFY_BIN" ]]; then
-              "$TERM_NTFY_BIN" -title "YubiKey" -message "Touch to confirm $message" -sound Submarine -ignoreDnD -contentImage "$ICON_PATH"
-          else
-              osascript -e "display notification \\"$message\\" with title \\"yknotify\\""
-          fi
-      done
-    BASH
+    @system.read_file(source_script_path)
   end
 
   def plist_content
