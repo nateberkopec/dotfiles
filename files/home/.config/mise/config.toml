@@ -127,6 +127,8 @@ GO_GET_TIMEOUT = "5s"
 "~/.config/fish/conf.d/platform.fish" = { source = "~/.dotfiles/files/templates/platform.fish", mode = "template" }
 "~/.config/ghostty/config.platform" = { source = "~/.dotfiles/files/templates/ghostty-config.platform", mode = "template" }
 "~/.local/bin/dotf" = { source = "~/.dotfiles/bin/dotf", mode = "symlink" }
+"~/.local/share/yknotify/yknotify.sh" = { source = "~/.dotfiles/files/yknotify/yknotify.sh", mode = "copy" }
+"~/.local/share/yknotify/yubikey-icon.png" = { source = "~/.dotfiles/files/yknotify/yubikey-icon.png", mode = "copy" }
 "~/.agents/skills" = { source = "~/.dotfiles/files/home/.claude/skills", mode = "symlink" }
 "~/.codex/skills" = { source = "~/.dotfiles/files/home/.claude/skills", mode = "symlink" }
 "~/.pi/agent/skills/claude" = { source = "~/.dotfiles/files/home/.claude/skills", mode = "symlink" }
@@ -172,6 +174,13 @@ TrackpadTwoFingerDoubleTapGesture = 1
 
 [bootstrap.macos.defaults."com.apple.spaces"]
 spans-displays = true
+
+[bootstrap.macos.launchd.agents.yknotify]
+program = "~/.local/share/yknotify/yknotify.sh"
+run_at_load = true
+keep_alive = true
+stdout_path = "/tmp/yknotify.out"
+stderr_path = "/tmp/yknotify.err"
 
 [bootstrap.hooks]
 pre-dotfiles = 'bash "$HOME/.dotfiles/bin/lib/unprotect-managed-files.sh"'
