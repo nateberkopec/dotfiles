@@ -1,10 +1,6 @@
 class Dotfiles::Step::ClearMiseCacheStep < Dotfiles::Step
   DESCRIPTION = "Clears mise metadata cache before installing managed tools.".freeze
 
-  def self.depends_on
-    [Dotfiles::Step::SyncHomeDirectoryStep]
-  end
-
   def should_run?
     mise_available? && !mise_offline? && install_needed?
   end

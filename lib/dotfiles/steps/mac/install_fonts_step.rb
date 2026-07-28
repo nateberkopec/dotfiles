@@ -3,17 +3,13 @@ class Dotfiles::Step::InstallFontsStep < Dotfiles::Step
 
   macos_only
 
-  def self.depends_on
-    [Dotfiles::Step::SyncHomeDirectoryStep]
-  end
-
   def should_run?
-    # Fonts are synced by SyncHomeDirectoryStep, no action needed
+    # Fonts are synced by mise bootstrap, no action needed
     false
   end
 
   def run
-    # No-op: fonts are synced by SyncHomeDirectoryStep
+    # No-op: fonts are synced by mise bootstrap
   end
 
   def complete?

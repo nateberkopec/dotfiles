@@ -4,7 +4,7 @@ class Dotfiles::Step::InstallPiPackagesStep < Dotfiles::Step
   DESCRIPTION = "Installs Pi packages pinned in Pi settings.".freeze
 
   def self.depends_on
-    [Dotfiles::Step::InstallMiseToolsStep, Dotfiles::Step::SyncHomeDirectoryStep]
+    [Dotfiles::Step::InstallMiseToolsStep]
   end
 
   def should_run?
