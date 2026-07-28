@@ -202,9 +202,11 @@ class DotfCliTest < Minitest::Test
     commands = File.readlines(log_path, chomp: true)
     assert_equal "bootstrap", commands[0]
     assert_equal "mise activate bash", commands[1]
-    assert_match(/\Aruby -r \.\/lib\/dotfiles\.rb -e Dotfiles::MigrationRunner\.new\('.+'\)\.run_if_existing_machine\z/, commands[2])
-    assert_match(/\Aruby -r \.\/lib\/dotfiles\.rb -e Dotfiles::Runner\.new\('.+'\)\.run\z/, commands[3])
-    assert_equal 4, commands.size
+    assert_match(/\Amise -C .+ bootstrap --yes --update/, commands[2])
+    assert_equal "mise activate bash", commands[3]
+    assert_match(/\Aruby -r \.\/lib\/dotfiles\.rb -e Dotfiles::MigrationRunner\.new\('.+'\)\.run_if_existing_machine\z/, commands[4])
+    assert_match(/\Aruby -r \.\/lib\/dotfiles\.rb -e Dotfiles::Runner\.new\('.+'\)\.run\z/, commands[5])
+    assert_equal 6, commands.size
   end
 
   def bootstrap_stub(log_path)
