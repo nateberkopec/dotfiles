@@ -98,6 +98,16 @@ has_terminal() {
     [ -t 0 ] && [ -t 1 ]
 }
 
+ensure_dotfiles_checkout() {
+    local target="$HOME/.dotfiles"
+
+    if [ "$DOTFILES_ROOT" = "$target" ] || [ -e "$target" ] || [ -L "$target" ]; then
+        return
+    fi
+
+    ln -s "$DOTFILES_ROOT" "$target"
+}
+
 bootstrap_homebrew() {
     if ! is_macos; then
         return 0
@@ -268,6 +278,7 @@ bootstrap_ruby() {
 }
 
 main() {
+    ensure_dotfiles_checkout
     debug "Bootstrapping development environment..."
 
     bootstrap_homebrew

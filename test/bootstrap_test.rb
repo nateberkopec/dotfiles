@@ -8,6 +8,28 @@ class BootstrapTest < Minitest::Test
 
   MISE_RUBY_COMPILE_WORKAROUND_REMOVE_BY = Date.new(2026, 8, 1)
 
+  def test_ensure_dotfiles_checkout_links_repo_when_target_is_missing
+    with_bootstrap_stub do |env|
+      target = File.join(env.fetch("HOME"), ".dotfiles")
+
+      run_ensure_dotfiles_checkout(env)
+
+      assert File.symlink?(target)
+      assert_equal File.expand_path("..", __dir__), File.readlink(target)
+    end
+  end
+
+  def test_ensure_dotfiles_checkout_preserves_an_existing_entry
+    with_bootstrap_stub do |env|
+      target = File.join(env.fetch("HOME"), ".dotfiles")
+      File.symlink("missing-checkout", target)
+
+      run_ensure_dotfiles_checkout(env)
+
+      assert_equal "missing-checkout", File.readlink(target)
+    end
+  end
+
   def test_homebrew_installer_mode
     homebrew_installer_scenarios.each do |scenario|
       with_bootstrap_stub do |env|

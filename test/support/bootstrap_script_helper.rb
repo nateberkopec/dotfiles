@@ -56,6 +56,10 @@ module BootstrapScriptHelper
     FileUtils.chmod("+x", File.join(bin_dir, "mise"))
   end
 
+  def run_ensure_dotfiles_checkout(env)
+    run_bootstrap_commands(env, nil, "ensure_dotfiles_checkout")
+  end
+
   def run_install_homebrew(env, terminal:)
     run_bootstrap_commands(env, terminal, "install_homebrew")
   end
