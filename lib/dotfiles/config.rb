@@ -69,6 +69,11 @@ class Dotfiles
       sources.select { |source| selected.include?(source["name"].to_s) }
     end
 
+    def debian_desktop_apps
+      apps = config.fetch("debian_desktop_apps", [])
+      select_named(apps, env_csv("DEBIAN_CI_DESKTOP_APPS"))
+    end
+
     def debian_non_apt_packages
       packages = env_csv("DEBIAN_CI_NON_APT_PACKAGES") || config.fetch("debian_non_apt_packages", [])
       packages.map(&:to_s)
@@ -100,6 +105,12 @@ class Dotfiles
     end
 
     private
+
+    def select_named(entries, names)
+      return entries unless names
+
+      entries.select { |entry| names.include?(entry["name"].to_s) }
+    end
 
     def env_csv(name)
       return nil unless ENV.key?(name)

@@ -37,6 +37,14 @@ class ConfigCiOverridesTest < Minitest::Test
     end
   end
 
+  def test_debian_ci_desktop_apps_filters_by_name
+    with_env("DEBIAN_CI_DESKTOP_APPS" => "other") do
+      config = Dotfiles::Config.new(@fixtures_dir)
+
+      assert_equal ["other"], config.debian_desktop_apps.map { |app| app["name"] }
+    end
+  end
+
   def test_brew_ci_applications_filters_by_cask
     with_env("BREW_CI_APPLICATIONS" => "1password") do
       config = Dotfiles::Config.new(@fixtures_dir)

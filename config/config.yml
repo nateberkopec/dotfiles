@@ -40,6 +40,15 @@ packages:
   terminal-notifier: { brew: terminal-notifier, debian: null }
   trash: { brew: trash, debian: trash-cli }
   ykman: { brew: ykman, debian: yubikey-manager }
+debian_desktop_apps:
+  - name: 1password
+    package: 1password
+    line: "deb [arch=amd64 signed-by=/usr/share/keyrings/1password-archive-keyring.gpg] https://downloads.1password.com/linux/debian/amd64 stable main"
+    key_url: https://downloads.1password.com/linux/keys/1password.asc
+  - name: google-chrome
+    package: google-chrome-stable
+    line: "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome-archive-keyring.gpg] http://dl.google.com/linux/chrome/deb/ stable main"
+    key_url: https://dl.google.com/linux/linux_signing_key.pub
 debian_sources:
   - name: gierens
     repo: http://deb.gierens.de
