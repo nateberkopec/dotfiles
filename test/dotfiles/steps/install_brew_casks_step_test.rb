@@ -1,7 +1,7 @@
 require "test_helper"
 
-class InstallBrewPackagesStepTest < StepTestCase
-  step_class Dotfiles::Step::InstallBrewPackagesStep
+class InstallBrewCasksStepTest < StepTestCase
+  step_class Dotfiles::Step::InstallBrewCasksStep
 
   def test_depends_on_homebrew_update
     assert_equal [Dotfiles::Step::UpdateHomebrewStep], self.class.step_class.depends_on

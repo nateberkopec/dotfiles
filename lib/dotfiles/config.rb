@@ -92,7 +92,7 @@ class Dotfiles
     end
 
     def brew_casks
-      env_csv("BREW_CI_CASKS") || config.fetch("brew", {}).fetch("casks", [])
+      env_csv("BREW_CI_CASKS") || config.fetch("brew_casks") { config.fetch("brew", {}).fetch("casks", []) }
     end
 
     def brew_taps
