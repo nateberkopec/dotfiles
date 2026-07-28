@@ -3,6 +3,7 @@
 set -e
 
 BOOTSTRAP_DIR="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DOTFILES_ROOT="$(dirname "$BOOTSTRAP_DIR")"
 # shellcheck source=lib/dotf-common.sh
 source "$BOOTSTRAP_DIR/lib/dotf-common.sh"
 
@@ -157,6 +158,8 @@ bootstrap_mise() {
         debug "mise already installed"
     fi
 
+    seed_global_mise_config
+
     # Trust mise config in current directory (needed for non-interactive environments)
     if [ -f ".mise.toml" ]; then
         debug "Trusting mise config..."
@@ -169,6 +172,12 @@ bootstrap_mise() {
 
     configure_mise_ruby_precompiled
     eval "$(mise activate bash)"
+}
+
+seed_global_mise_config() {
+    debug "Seeding global mise config from the repo..."
+    mkdir -p "$HOME/.config/mise"
+    cp "$DOTFILES_ROOT/files/home/.config/mise/config.toml" "$HOME/.config/mise/config.toml"
 }
 
 configure_mise_ruby_precompiled() {
