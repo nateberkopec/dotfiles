@@ -107,9 +107,6 @@ applications:
 - name: Dia
   path: "/Applications/Dia.app"
   brew_cask: thebrowsercompany-dia
-screenshot_settings:
-  com.apple.screencapture:
-    location: "~/Documents/Inbox"
 wallpaper_settings:
   query: woodblock print
   orientation: landscape
