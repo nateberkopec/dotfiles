@@ -32,6 +32,12 @@ class ConfigTest < Minitest::Test
     )
   end
 
+  def test_debian_desktop_apps_default_to_configured_apps
+    config = Dotfiles::Config.new(@fixtures_dir)
+
+    assert_equal ["example", "other"], config.debian_desktop_apps.map { |app| app["name"] }
+  end
+
   def test_loads_debian_non_apt_packages_from_yaml
     config = Dotfiles::Config.new(@fixtures_dir)
 
@@ -50,6 +56,7 @@ class ConfigTest < Minitest::Test
 
   def test_missing_config_file_returns_empty
     config = Dotfiles::Config.new("/nonexistent/dir")
+    assert_equal [], config.debian_desktop_apps
     assert_equal(
       {
         "brew" => {"packages" => [], "casks" => [], "taps" => []},
