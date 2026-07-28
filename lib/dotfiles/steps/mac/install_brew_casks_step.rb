@@ -1,3 +1,5 @@
+require "json"
+
 class Dotfiles::Step::InstallBrewCasksStep < Dotfiles::Step
   DESCRIPTION = "Installs Homebrew casks.".freeze
 
@@ -91,8 +93,15 @@ class Dotfiles::Step::InstallBrewCasksStep < Dotfiles::Step
     (brew_config["taps"] || []).any? || (brew_config["casks"] || []).any? || formulae_for_brewfile(brew_config).any?
   end
 
-  def formulae_for_brewfile(config)
-    user_has_admin_rights? ? [] : (config["packages"] || [])
+  def formulae_for_brewfile(_config)
+    return [] if user_has_admin_rights?
+
+    output, status = execute(command("mise", "-C", @home, "bootstrap", "packages", "status", "--json"))
+    return [] unless status == 0
+
+    JSON.parse(output).fetch("brew", {}).fetch("packages", []).map { |package| package["package"] }
+  rescue JSON::ParserError
+    []
   end
 
   def brew_config
