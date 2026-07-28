@@ -3,7 +3,6 @@
 applications=
 config=
 copy_if_exists
-debian_desktop_apps
 down
 install_direct_download
 log_file
