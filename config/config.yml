@@ -102,9 +102,6 @@ brew_casks:
   - visual-studio-code
   - whatsapp
   - zoom
-screenshot_settings:
-  com.apple.screencapture:
-    location: "~/Documents/Inbox"
 wallpaper_settings:
   query: woodblock print
   orientation: landscape
