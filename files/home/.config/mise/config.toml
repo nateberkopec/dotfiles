@@ -119,5 +119,22 @@ GO_GET_TIMEOUT = "5s"
 "apt:trash-cli" = "latest"
 "apt:yubikey-manager" = "latest"
 
+# Home directory files. The whole-tree copy mirrors files/home into ~;
+# platform-specific files render through mise's template engine; symlink
+# entries recreate the links the repo still checks in as symlink files.
+[dotfiles]
+"~" = { source = "~/.dotfiles/files/home", mode = "copy" }
+"~/.config/fish/conf.d/platform.fish" = { source = "~/.dotfiles/files/templates/platform.fish", mode = "template" }
+"~/.config/ghostty/config.platform" = { source = "~/.dotfiles/files/templates/ghostty-config.platform", mode = "template" }
+"~/.local/bin/dotf" = { source = "~/.dotfiles/bin/dotf", mode = "symlink" }
+"~/.agents/skills" = { source = "~/.dotfiles/files/home/.claude/skills", mode = "symlink" }
+"~/.codex/skills" = { source = "~/.dotfiles/files/home/.claude/skills", mode = "symlink" }
+"~/.pi/agent/skills/claude" = { source = "~/.dotfiles/files/home/.claude/skills", mode = "symlink" }
+"~/.codex/AGENTS.md" = { source = "~/.dotfiles/files/home/.claude/CLAUDE.md", mode = "symlink" }
+"~/.factory/AGENTS.md" = { source = "~/.dotfiles/files/home/.claude/CLAUDE.md", mode = "symlink" }
+"~/.pi/agent/AGENTS.md" = { source = "~/.dotfiles/files/home/.claude/CLAUDE.md", mode = "symlink" }
+
 [bootstrap.hooks]
+pre-dotfiles = 'bash "$HOME/.dotfiles/bin/lib/unprotect-managed-files.sh"'
+post-dotfiles = 'bash "$HOME/.dotfiles/bin/lib/post-dotfiles-hook.sh"'
 post-packages = '[ ! -f /etc/debian_version ] || command -v docker >/dev/null 2>&1 || sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y docker.io'
