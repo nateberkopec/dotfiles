@@ -5,7 +5,7 @@ class Dotfiles::Migration::MigrateBrewTapsToMise < Dotfiles::Migration
     "1password-cli@2.35.0",
     "acli@1.3.22-stable",
     "heroku@11.8.1",
-    "aqua:planetscale/cli@0.303.0",
+    "aqua:planetscale/cli@0.307.0",
     "github:rawnly/splash-cli@4.1.7",
     "github:fabro-sh/fabro@0.254.0"
   ].freeze
