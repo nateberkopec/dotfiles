@@ -31,7 +31,11 @@ def tool_entries
   csv("MISE_CI_TOOLS").map do |spec|
     name, separator, version = spec.rpartition("@")
     name, version = spec, "latest" if separator.empty?
-    %(#{toml_string(name)} = #{toml_string(version)})
+    if name == "npm:@earendil-works/pi-coding-agent"
+      %(#{toml_string(name)} = { version = #{toml_string(version)}, depends = ["github:jdx/aube"], aube_args = "--deny-build=@google/genai --deny-build=protobufjs" })
+    else
+      %(#{toml_string(name)} = #{toml_string(version)})
+    end
   end
 end
 
