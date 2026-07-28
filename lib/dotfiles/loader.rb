@@ -18,6 +18,7 @@ class Dotfiles
       require "command_helpers"
       require "platform_restrictable"
       require "system_adapter"
+      require "debian_desktop_source_installer"
       require "home_file_set"
       require "step"
       require "step/defaultable"
