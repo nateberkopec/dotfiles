@@ -101,56 +101,6 @@ class SyncHomeDirectoryStepTest < StepTestCase
     assert_complete
   end
 
-  def test_run_prefers_platform_specific_file_over_shared_file
-    @fake_system.stub_macos
-    stub_source_file(".config/ghostty/config.platform", "font-size = 18")
-    stub_source_file(".config/ghostty/config.platform", "font-size = 16", root: "home.macos")
-
-    step.run
-
-    assert_command_run(
-      :cp,
-      source_path(".config/ghostty/config.platform", root: "home.macos"),
-      home_path(".config/ghostty/config.platform")
-    )
-    refute_command_run(
-      :cp,
-      source_path(".config/ghostty/config.platform", root: "home"),
-      home_path(".config/ghostty/config.platform")
-    )
-  end
-
-  def test_should_not_run_when_platform_specific_file_is_in_sync
-    @fake_system.stub_macos
-    stub_source_file(".config/ghostty/config.platform", "font-size = 18")
-    stub_source_file(".config/ghostty/config.platform", "font-size = 16", root: "home.macos")
-    @fake_system.stub_file_content(home_path(".config/ghostty/config.platform"), "font-size = 16")
-
-    refute_should_run
-    assert_complete
-  end
-
-  def test_run_prefers_host_specific_file_over_platform_file
-    @fake_system.stub_macos
-    @fake_system.stub_hostname("workspaces")
-    stub_source_file(".config/ghostty/config.platform", "font-size = 18")
-    stub_source_file(".config/ghostty/config.platform", "font-size = 16", root: "home.macos")
-    stub_source_file(".config/ghostty/config.platform", "font-size = 12", root: "home.hosts/workspaces")
-
-    step.run
-
-    assert_command_run(
-      :cp,
-      source_path(".config/ghostty/config.platform", root: "home.hosts/workspaces"),
-      home_path(".config/ghostty/config.platform")
-    )
-    refute_command_run(
-      :cp,
-      source_path(".config/ghostty/config.platform", root: "home.macos"),
-      home_path(".config/ghostty/config.platform")
-    )
-  end
-
   def test_run_removes_user_immutable_flag_before_retrying_copy
     dest = home_path(".gem/credentials")
     stub_source_file(".gem/credentials", "stub")

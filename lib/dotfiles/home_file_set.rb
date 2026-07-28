@@ -19,20 +19,7 @@ class Dotfiles::HomeFileSet
   private
 
   def source_dirs
-    [source_dir("home"), platform_source_dir, host_source_dir].compact.select { |dir| @system.dir_exist?(dir) }
-  end
-
-  def platform_source_dir
-    if @system.macos?
-      source_dir("home.macos")
-    elsif @system.linux?
-      source_dir("home.linux")
-    end
-  end
-
-  def host_source_dir
-    hostname = @system.hostname.to_s
-    source_dir(File.join("home.hosts", hostname)) unless hostname.empty?
+    [source_dir("home")].select { |dir| @system.dir_exist?(dir) }
   end
 
   def source_dir(name)
