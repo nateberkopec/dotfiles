@@ -22,7 +22,8 @@ module BootstrapScriptHelper
       "HOMEBREW_INSTALL_ENV_LOG" => File.join(tmpdir, "homebrew-install-env"),
       "HOMEBREW_INSTALLED_BREW" => File.join(home_dir, ".installed-homebrew", "bin", "brew"),
       "HOMEBREW_CONFIGURED_BREW_LOG" => File.join(tmpdir, "configured-brew"),
-      "MISE_COMMAND_LOG" => File.join(tmpdir, "mise-commands")
+      "MISE_COMMAND_LOG" => File.join(tmpdir, "mise-commands"),
+      "MISE_CONFIG_AT_ACTIVATION_LOG" => File.join(tmpdir, "mise-config-at-activation")
     }
   end
 
@@ -44,6 +45,9 @@ module BootstrapScriptHelper
     File.write(File.join(bin_dir, "mise"), <<~'BASH')
       #!/bin/bash
       printf '%s\n' "mise $*" >> "$MISE_COMMAND_LOG"
+      if [ "$*" = "activate bash" ]; then
+        cat "$HOME/.config/mise/config.toml" > "$MISE_CONFIG_AT_ACTIVATION_LOG"
+      fi
     BASH
     FileUtils.chmod("+x", File.join(bin_dir, "mise"))
   end

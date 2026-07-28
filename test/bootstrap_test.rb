@@ -47,6 +47,20 @@ class BootstrapTest < Minitest::Test
     end
   end
 
+  def test_bootstrap_mise_seeds_global_config_before_activation
+    with_bootstrap_stub do |env|
+      global_config = File.join(env.fetch("HOME"), ".config", "mise", "config.toml")
+      FileUtils.mkdir_p(File.dirname(global_config))
+      File.write(global_config, "stale config\n")
+      write_mise_stub(env)
+
+      run_bootstrap_mise(env)
+
+      expected = File.read(File.expand_path("../files/home/.config/mise/config.toml", __dir__))
+      assert_equal expected, File.read(env.fetch("MISE_CONFIG_AT_ACTIVATION_LOG"))
+    end
+  end
+
   def test_mise_ruby_compile_workaround_expires
     assert Date.today < MISE_RUBY_COMPILE_WORKAROUND_REMOVE_BY,
       "Remove bootstrap's ruby.compile workaround; mise 2026.8.0 should make this default."
