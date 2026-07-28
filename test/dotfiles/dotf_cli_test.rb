@@ -1,4 +1,5 @@
 require "test_helper"
+require "open3"
 
 # standard:disable Dotfiles/BanFileSystemClasses
 class DotfCliTest < Minitest::Test
@@ -35,6 +36,34 @@ class DotfCliTest < Minitest::Test
   def test_mise_uses_brew_for_system_packages_elsewhere
     with_dotf_script do |_tmpdir, script_path, _logs_dir|
       assert_equal "brew", mise_system_packages_manager(script_path, "DOTF_FORCE_NON_DEBIAN")
+    end
+  end
+
+  def test_mise_bootstrap_includes_packages_for_admin_macos
+    with_dotf_script do |tmpdir, script_path, _logs_dir|
+      stdout, status, log = mise_bootstrap_result(tmpdir, script_path, admin: true)
+
+      assert status.success?
+      assert_includes stdout, "Converging machine with mise bootstrap"
+      assert_equal "mise -C #{tmpdir}/home bootstrap --yes --update\n", log
+    end
+  end
+
+  def test_mise_bootstrap_skips_packages_for_non_admin_macos
+    with_dotf_script do |tmpdir, script_path, _logs_dir|
+      _stdout, status, log = mise_bootstrap_result(tmpdir, script_path, admin: false, exit_status: 23)
+
+      assert_equal 23, status.exitstatus
+      assert_equal "mise -C #{tmpdir}/home bootstrap --yes --update --skip packages\n", log
+    end
+  end
+
+  def test_mise_bootstrap_includes_packages_on_debian
+    with_dotf_script do |tmpdir, script_path, _logs_dir|
+      _stdout, status, log = mise_bootstrap_result(tmpdir, script_path, admin: false, debian: true)
+
+      assert status.success?
+      assert_equal "mise -C #{tmpdir}/home bootstrap --yes --update\n", log
     end
   end
 
@@ -138,6 +167,23 @@ class DotfCliTest < Minitest::Test
   end
 
   private
+
+  def mise_bootstrap_result(tmpdir, script_path, admin:, debian: false, exit_status: 0)
+    home = File.join(tmpdir, "home")
+    log_path = File.join(tmpdir, "mise-bootstrap.log")
+    command = <<~BASH
+      source #{Shellwords.escape(script_path)}
+      export HOME=#{Shellwords.escape(home)} LOG_FILE=#{Shellwords.escape(log_path)}
+      mise() { printf 'mise %s\n' "$*" >&2; return #{exit_status}; }
+      run_mise_bootstrap
+    BASH
+    platform = debian ? "DOTF_FORCE_DEBIAN" : "DOTF_FORCE_NON_DEBIAN"
+    stdout, _stderr, status = Open3.capture3(
+      {platform => "true", "DOTF_FORCE_ADMIN" => admin.to_s, "PATH" => "/usr/bin:/bin"},
+      "bash", "-c", command
+    )
+    [stdout, status, File.read(log_path)]
+  end
 
   def mise_system_packages_manager(script_path, platform_override)
     command = "source #{Shellwords.escape(script_path)}; ensure_mise_env; printf %s \"$MISE_SYSTEM_PACKAGES_MANAGERS\""
