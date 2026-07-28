@@ -22,6 +22,7 @@ class InstallBrewCasksStepTest < StepTestCase
   def test_run_installs_formulae_for_non_admin_user
     @fake_system.stub_macos
     @fake_system.stub_command("groups", "staff")
+    @fake_system.stub_command(mise_status_command, mise_status_json)
     @fake_system.stub_command(bundle_install_command, "", exit_status: 0)
 
     write_config(:brew, {"brew" => {"packages" => ["duti"], "casks" => ["ghostty"]}})
@@ -41,9 +42,18 @@ class InstallBrewCasksStepTest < StepTestCase
 
   def test_build_brewfile_content_includes_formulae_for_non_admin_user
     @fake_system.stub_command("groups", "staff")
-    content = step.send(:build_brewfile_content, {"packages" => ["duti"], "casks" => []})
+    @fake_system.stub_command(mise_status_command, mise_status_json)
+    content = step.send(:build_brewfile_content, {"casks" => []})
 
     assert_equal %(brew "duti"\n), content
+  end
+
+  def test_build_brewfile_content_omits_formulae_when_mise_status_is_unusable
+    @fake_system.stub_command("groups", "staff")
+    [["bad", 0], ["{}", 1]].each do |output, status|
+      @fake_system.stub_command(mise_status_command, output, exit_status: status)
+      assert_equal "\n", step.send(:build_brewfile_content, {})
+    end
   end
 
   def test_build_brewfile_content_includes_taps_before_casks
@@ -91,6 +101,14 @@ class InstallBrewCasksStepTest < StepTestCase
 
   def brewfile_path
     File.join(@dotfiles_dir, "Brewfile")
+  end
+
+  def mise_status_command
+    "mise -C #{@home} bootstrap packages status --json 2>&1"
+  end
+
+  def mise_status_json
+    '{"brew":{"packages":[{"package":"duti"}]}}'
   end
 
   def bundle_check_command
