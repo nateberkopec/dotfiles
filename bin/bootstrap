@@ -126,6 +126,35 @@ bootstrap_homebrew() {
     configure_homebrew_shellenv "$brew_bin"
 }
 
+ensure_debian_apt_source() {
+    local name="$1"
+    local key_url="$2"
+    local source_line="$3"
+    local keyring_dir="${DEBIAN_KEYRING_DIR:-/usr/share/keyrings}"
+    local source_dir="${DEBIAN_SOURCE_DIR:-/etc/apt/sources.list.d}"
+    local keyring_path="$keyring_dir/${name}-archive-keyring.gpg"
+    local source_path="$source_dir/${name}.list"
+
+    if [ ! -f "$keyring_path" ]; then
+        local key_file
+        key_file="$(mktemp)"
+        curl -fsSL "$key_url" -o "$key_file"
+        sudo gpg --dearmor -o "$keyring_path" "$key_file"
+        rm -f "$key_file"
+    fi
+
+    if ! grep -Fxq "$source_line" "$source_path" 2>/dev/null; then
+        printf '%s\n' "$source_line" | sudo tee "$source_path" >/dev/null
+    fi
+}
+
+prepare_debian_apt_sources() {
+    ensure_debian_apt_source "gierens" "https://raw.githubusercontent.com/eza-community/eza/main/deb.asc" \
+        "deb [signed-by=/usr/share/keyrings/gierens-archive-keyring.gpg] http://deb.gierens.de stable main"
+    ensure_debian_apt_source "mise" "https://mise.jdx.dev/gpg-key.pub" \
+        "deb [signed-by=/usr/share/keyrings/mise-archive-keyring.gpg] https://mise.jdx.dev/deb stable main"
+}
+
 bootstrap_debian_prereqs() {
     if ! is_linux; then
         return 0
@@ -140,6 +169,7 @@ bootstrap_debian_prereqs() {
         gnupg \
         unzip \
         xz-utils
+    prepare_debian_apt_sources
 }
 
 bootstrap_mise() {
