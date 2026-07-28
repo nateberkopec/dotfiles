@@ -1,0 +1,5 @@
+{% if os() == "macos" -%}
+font-size = 18
+{%- else -%}
+font-size = 14
+{%- endif %}
