@@ -23,7 +23,11 @@ module BootstrapScriptHelper
       "HOMEBREW_INSTALLED_BREW" => File.join(home_dir, ".installed-homebrew", "bin", "brew"),
       "HOMEBREW_CONFIGURED_BREW_LOG" => File.join(tmpdir, "configured-brew"),
       "MISE_COMMAND_LOG" => File.join(tmpdir, "mise-commands"),
-      "MISE_CONFIG_AT_ACTIVATION_LOG" => File.join(tmpdir, "mise-config-at-activation")
+      "MISE_CONFIG_AT_ACTIVATION_LOG" => File.join(tmpdir, "mise-config-at-activation"),
+      "DEBIAN_KEYRING_DIR" => File.join(tmpdir, "keyrings"),
+      "DEBIAN_SOURCE_DIR" => File.join(tmpdir, "sources"),
+      "APT_CURL_LOG" => File.join(tmpdir, "apt-curl"),
+      "APT_SUDO_LOG" => File.join(tmpdir, "apt-sudo")
     }
   end
 
@@ -72,6 +76,16 @@ module BootstrapScriptHelper
 
   def run_bootstrap_mise(env)
     run_bootstrap_commands(env, nil, "bootstrap_mise")
+  end
+
+  def run_prepare_debian_apt_sources(env)
+    FileUtils.mkdir_p([env.fetch("DEBIAN_KEYRING_DIR"), env.fetch("DEBIAN_SOURCE_DIR")])
+    run_bootstrap_commands(env, nil, <<~'BASH')
+      sudo() { printf '%s\n' "$*" >> "$APT_SUDO_LOG"; "$@"; }
+      curl() { printf '%s\n' "$2" >> "$APT_CURL_LOG"; printf 'key' > "$4"; }
+      gpg() { cp "$4" "$3"; }
+      prepare_debian_apt_sources
+    BASH
   end
 
   def run_bootstrap_commands(env, terminal, script, no_terminal: false)
