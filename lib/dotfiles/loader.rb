@@ -22,7 +22,6 @@ class Dotfiles
       require "home_file_set"
       require "step"
       require "step/defaultable"
-      require "step/defaults_configurable"
       require "step/sudoable"
       require "step/protectable"
       require "step/launchctl"
