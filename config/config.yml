@@ -73,7 +73,7 @@ debian_non_apt_packages:
 debian_snap_packages: []
 brew:
   taps: []
-  casks:
+brew_casks:
   - nikitabobko/tap/aerospace
   - cursor
   - discord

@@ -75,6 +75,13 @@ class ConfigTest < Minitest::Test
     assert_equal "https://github.com/test/dotfiles.git", config["dotfiles_repo"]
   end
 
+  def test_brew_casks_prefers_top_level_config_over_legacy_config
+    config = Dotfiles::Config.new(@fixtures_dir)
+    config.config = {"brew_casks" => ["ghostty"], "brew" => {"casks" => ["firefox"]}}
+
+    assert_equal ["ghostty"], config.brew_casks
+  end
+
   def test_brew_ci_casks_overrides_config
     with_env("BREW_CI_CASKS" => "ghostty, cursor") do
       config = Dotfiles::Config.new(@fixtures_dir)

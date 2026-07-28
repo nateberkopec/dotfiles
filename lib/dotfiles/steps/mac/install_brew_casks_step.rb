@@ -1,5 +1,5 @@
-class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
-  DESCRIPTION = "Installs Homebrew-managed apps and non-admin formulae.".freeze
+class Dotfiles::Step::InstallBrewCasksStep < Dotfiles::Step
+  DESCRIPTION = "Installs Homebrew casks.".freeze
 
   macos_only
 
@@ -21,7 +21,7 @@ class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
   end
 
   def run
-    debug "Installing Homebrew-managed apps..."
+    debug "Installing Homebrew casks..."
     install_and_reset
     install_and_reset unless packages_already_installed?
   end
@@ -48,7 +48,7 @@ class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
     output, status = brew_quiet("bundle", "check", "--file=#{@brewfile_path}", "--no-upgrade")
     @packages_installed_status = status == 0
     @packages_installed_error = output unless @packages_installed_status
-    debug "All Homebrew-managed apps are installed" if @packages_installed_status
+    debug "All Homebrew casks are installed" if @packages_installed_status
     @packages_installed_status
   end
 
@@ -58,7 +58,7 @@ class Dotfiles::Step::InstallBrewPackagesStep < Dotfiles::Step
   end
 
   def add_missing_packages_error
-    message = "Some Homebrew-managed apps are not installed"
+    message = "Some Homebrew casks are not installed"
     details = @packages_installed_error.to_s.strip
     message = "#{message}: #{details}" unless details.empty?
     add_error(message)
