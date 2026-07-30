@@ -1,10 +1,6 @@
 class Dotfiles::Step::InstallGeminiNanobananaExtensionStep < Dotfiles::Step
   DESCRIPTION = "Installs the Gemini Nano Banana extension when the Gemini CLI is available.".freeze
 
-  def self.depends_on
-    Dotfiles::Step.system_packages_steps
-  end
-
   def should_run?
     return false unless command_exists?("gemini")
     !extension_installed?

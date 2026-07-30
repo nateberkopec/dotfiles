@@ -3,8 +3,8 @@ require "test_helper"
 class InstallPiPackagesStepTest < StepTestCase
   step_class Dotfiles::Step::InstallPiPackagesStep
 
-  def test_depends_on_mise_tools_and_home_directory_sync
-    assert_equal [Dotfiles::Step::InstallMiseToolsStep], self.class.step_class.depends_on
+  def test_has_no_step_dependencies
+    assert_empty self.class.step_class.depends_on
   end
 
   def test_should_not_run_by_default

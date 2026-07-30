@@ -106,13 +106,10 @@ jobs:
         GITHUB_TOKEN: ${{ github.token }}
         MISE_CI_TOOLS: "gum@0.17.0,github:jdx/aube@1.32.0,npm:@earendil-works/pi-coding-agent@0.82.1,fzf@latest,aqua:fish-shell/fish-shell@4.8.1"
         BREW_CI_PACKAGES: "duti"
-        BREW_CI_TAPS: ""
         BREW_CI_CASKS: ""
-        BREW_CI_APPLICATIONS: ""
         DEBIAN_CI_PACKAGES: "trash-cli"
-        DEBIAN_CI_SOURCES: ""
+        DEBIAN_CI_DESKTOP_APPS: ""
         DEBIAN_CI_NON_APT_PACKAGES: ""
-        DEBIAN_CI_SNAP_PACKAGES: ""
       run: bash tools/ci/run_dotfiles_integration.sh "${GITHUB_WORKSPACE}"
 
     - name: Upload logs
@@ -207,9 +204,7 @@ jobs:
         GITHUB_TOKEN: ${{ github.token }}
         MISE_CI_TOOLS: "gum@0.17.0,github:jdx/aube@1.32.0,npm:@earendil-works/pi-coding-agent@0.82.1,fzf@latest,aqua:fish-shell/fish-shell@4.8.1"
         BREW_CI_PACKAGES: "duti"
-        BREW_CI_TAPS: ""
         BREW_CI_CASKS: ""
-        BREW_CI_APPLICATIONS: ""
       run: |
         set -euo pipefail
 
@@ -226,9 +221,7 @@ jobs:
           GITHUB_TOKEN="${GITHUB_TOKEN}" \
           MISE_CI_TOOLS="${MISE_CI_TOOLS}" \
           BREW_CI_PACKAGES="${BREW_CI_PACKAGES}" \
-          BREW_CI_TAPS="${BREW_CI_TAPS}" \
           BREW_CI_CASKS="${BREW_CI_CASKS}" \
-          BREW_CI_APPLICATIONS="${BREW_CI_APPLICATIONS}" \
           bash "${home_dir}/dotfiles/tools/ci/run_dotfiles_integration.sh" "${home_dir}/dotfiles"
 
     - name: Upload non-admin logs

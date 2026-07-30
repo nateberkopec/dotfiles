@@ -1,6 +1,6 @@
 # Implementing Steps
 
-Steps are the building blocks of the dotfiles setup system. Each step handles a specific part of the configuration process, from installing packages to configuring Fish shell.
+Steps handle imperative setup that `mise bootstrap` cannot express cleanly. Put tools, system packages, home files, macOS defaults, and LaunchAgents in `files/home/.config/mise/config.toml` instead. Add a Step only for behavior that needs custom sequencing, platform logic, retries, or side effects.
 
 ## Step Anatomy
 
@@ -51,8 +51,7 @@ Declares dependencies on other steps. The system automatically runs steps in the
 
 ```ruby
 def self.depends_on
-  # Example
-  [Dotfiles::Step::SyncHomeDirectoryStep]
+  [Dotfiles::Step::CreateStandardFoldersStep]
 end
 ```
 
@@ -215,5 +214,5 @@ end
 7. **CI-aware**: Check `ci_or_noninteractive?` for steps requiring user interaction
 8. **Admin-aware**: Check `user_has_admin_rights?` for privileged operations
 9. **Testable**: Design steps to work with `FakeSystemAdapter` in tests
-10. **Separate data and behavior**. Data lives in flat config files. Steps encode the behavior which operates with that data.
-11. **Extend where possible, add where necessary**. A lot of times you can just change the config data of an existing step rather than create an entire new step.
+10. **Separate data and behavior**: Declarative machine state belongs in mise or flat config files. Steps encode behavior.
+11. **Extend where possible, add where necessary**: Prefer changing mise or existing config over adding a Step.

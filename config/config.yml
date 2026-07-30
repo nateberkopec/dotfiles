@@ -6,40 +6,6 @@ standard_folders:
 - Documents/Code.nosync/business
 - Documents/Code.nosync/personal
 - Documents/Code.nosync/upstream
-packages:
-  1password: { brew: null, debian: 1password }
-  asdf: { brew: asdf, debian: null }
-  automake: { brew: automake, debian: automake }
-  bash: { brew: bash, debian: bash }
-  bison: { brew: bison, debian: bison }
-  coreutils: { brew: coreutils, debian: coreutils }
-  curl: { brew: curl, debian: curl }
-  docker: { brew: null, debian: docker.io }
-  droid: { brew: null, debian: droid }
-  duti: { brew: duti, debian: null }
-  eza: { brew: eza, debian: eza }
-  fontconfig: { brew: fontconfig, debian: fontconfig }
-  gemini-cli: { brew: gemini-cli, debian: null }
-  git: { brew: git, debian: git }
-  gnupg: { brew: gnupg, debian: gnupg }
-  google-chrome: { brew: null, debian: google-chrome-stable }
-  jemalloc: { brew: jemalloc, debian: libjemalloc-dev }
-  jpeg: { brew: jpeg, debian: libjpeg-dev }
-  libffi: { brew: libffi, debian: libffi-dev }
-  libheif: { brew: libheif, debian: libheif-dev }
-  libmagic: { brew: libmagic, debian: libmagic-dev }
-  libpq: { brew: libpq, debian: libpq-dev }
-  librsvg: { brew: librsvg, debian: librsvg2-dev }
-  libyaml: { brew: libyaml, debian: libyaml-dev }
-  llm: { brew: llm, debian: null }
-  mise: { brew: mise, debian: mise }
-  pinentry-mac: { brew: pinentry-mac, debian: pinentry-tty }
-  pkgconf: { brew: pkgconf, debian: pkgconf }
-  snapd: { brew: null, debian: snapd }
-  thefuck: { brew: thefuck, debian: thefuck }
-  terminal-notifier: { brew: terminal-notifier, debian: null }
-  trash: { brew: trash, debian: trash-cli }
-  ykman: { brew: ykman, debian: yubikey-manager }
 debian_desktop_apps:
   - name: 1password
     package: 1password
@@ -49,39 +15,8 @@ debian_desktop_apps:
     package: google-chrome-stable
     line: "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome-archive-keyring.gpg] http://dl.google.com/linux/chrome/deb/ stable main"
     key_url: https://dl.google.com/linux/linux_signing_key.pub
-debian_sources:
-  - name: gierens
-    repo: http://deb.gierens.de
-    suite: stable
-    components:
-      - main
-    key_url: https://raw.githubusercontent.com/eza-community/eza/main/deb.asc
-  - name: azlux
-    repo: http://packages.azlux.fr/debian/
-    suite: stable
-    components:
-      - main
-    key_url: https://azlux.fr/repo.gpg
-  - name: charm
-    repo: https://repo.charm.sh/apt/
-    suite: "*"
-    components:
-      - "*"
-    key_url: https://repo.charm.sh/apt/gpg.key
-  - name: 1password
-    line: "deb [arch=amd64 signed-by=/usr/share/keyrings/1password-archive-keyring.gpg] https://downloads.1password.com/linux/debian/amd64 stable main"
-    key_url: https://downloads.1password.com/linux/keys/1password.asc
-  - name: google-chrome
-    line: "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome-archive-keyring.gpg] http://dl.google.com/linux/chrome/deb/ stable main"
-    key_url: https://dl.google.com/linux/linux_signing_key.pub
-  - name: mise
-    line: "deb [signed-by=/usr/share/keyrings/mise-archive-keyring.gpg] https://mise.jdx.dev/deb stable main"
-    key_url: https://mise.jdx.dev/gpg-key.pub
 debian_non_apt_packages:
   - droid
-debian_snap_packages: []
-brew:
-  taps: []
 brew_casks:
   - nikitabobko/tap/aerospace
   - 1password

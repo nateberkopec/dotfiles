@@ -10,9 +10,10 @@ Most dotfiles repos just copy files to your home folder. This one does more. It 
 
 When you run `dotf run` it will:
 
-- Bootstrap a minimal environment with Homebrew, Git, and this repository
-- Add `dotf` to your PATH via `~/.local/bin`
-- Run all defined Steps (see `dotf steps`)
+- Bootstrap Homebrew and mise when needed
+- Use `mise bootstrap` to converge tools, system packages, home files, macOS defaults, and LaunchAgents
+- Run one-time migrations for existing machines
+- Run the remaining imperative Ruby Steps (see `dotf steps`)
 
 ## Commands
 
@@ -62,7 +63,7 @@ Managed tools are pinned to explicit versions. `dotf run` converges the machine 
 
 Config should drive data, Steps should drive behavior.
 
-Generated artifacts should not be edited as sources of truth, e.g. we ignore generated `Brewfile`.
+Generated artifacts should not be edited as sources of truth.
 
 We do not store secrets on the system in plaintext.
 
@@ -76,9 +77,14 @@ We don't trust agents, we make sure they do the right thing and lock destructive
 
 ## How It Works
 
-The setup runs in **Steps**. Each Step is a Ruby class that does one thing: install packages, set up Fish, sync config files, etc.
+`dotf run` converges the machine in this order:
 
-Steps can depend on other steps.
+1. Bootstrap Homebrew and mise.
+2. Run `mise bootstrap`.
+3. Run pending migrations.
+4. Run imperative Ruby Steps.
+
+Mise owns declarative state in `files/home/.config/mise/config.toml`: tools, system packages, home files, macOS defaults, and LaunchAgents. Ruby Steps remain for behavior mise cannot express cleanly, such as private Homebrew casks, security protections, and application-specific setup. Steps can depend on other Steps.
 
 ### Available Steps
 

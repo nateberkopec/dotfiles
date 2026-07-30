@@ -8,7 +8,7 @@ Linux support is in progress and currently targets **Ubuntu 22.04 only**.
 ./bin/dotf run
 ```
 
-Packages are defined in `config/config.yml` as a map of package name to `{brew, debian}` entries, with optional `debian_sources` for extra APT repos and `debian_non_apt_packages` for cargo/binary installs.
+APT packages are declared under `[bootstrap.packages]` in `files/home/.config/mise/config.toml`. Desktop applications and non-APT installers remain in `config/config.yml` because they need platform-specific setup.
 
 ## Ubuntu GUI test container
 

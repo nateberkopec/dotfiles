@@ -2,7 +2,7 @@ class Dotfiles::Step::PruneMiseStep < Dotfiles::Step
   DESCRIPTION = "Prunes old mise installs and cache entries after managed tools are installed.".freeze
 
   def self.depends_on
-    [Dotfiles::Step::InstallMiseToolsStep, Dotfiles::Step::InstallPiPackagesStep]
+    [Dotfiles::Step::InstallPiPackagesStep]
   end
 
   def should_run?
