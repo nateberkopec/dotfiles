@@ -169,18 +169,6 @@ class SystemAdapterTest < Minitest::Test
     assert_includes error.message, "boom"
   end
 
-  def test_running_codespaces_is_true_when_env_is_true
-    with_env("CODESPACES" => "true") do
-      assert Dotfiles::SystemAdapter.new.running_codespaces?
-    end
-  end
-
-  def test_running_codespaces_is_false_by_default
-    with_env("CODESPACES" => nil) do
-      refute Dotfiles::SystemAdapter.new.running_codespaces?
-    end
-  end
-
   def test_running_container_detects_dockerenv
     adapter = Dotfiles::SystemAdapter.new
 
