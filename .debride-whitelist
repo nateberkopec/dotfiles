@@ -1,6 +1,5 @@
 # Public API and framework hooks that debride cannot see statically.
 /^on_/
-config=
 down
 install_direct_download
 log_file

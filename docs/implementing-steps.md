@@ -188,7 +188,6 @@ class SyncConfigDirectoryStepTest < Minitest::Test
     @system = FakeSystemAdapter.new
     @step = Dotfiles::Step::SyncConfigDirectoryStep.new(
       debug: false,
-      dotfiles_repo: "https://github.com/user/dotfiles.git",
       dotfiles_dir: "/tmp/dotfiles",
       home: "/tmp/home",
       system: @system

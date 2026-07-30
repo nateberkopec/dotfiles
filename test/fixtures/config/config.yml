@@ -1,6 +1,4 @@
 ---
-dotfiles_repo: https://github.com/test/dotfiles.git
-
 brew_casks:
   - firefox
   - dropbox

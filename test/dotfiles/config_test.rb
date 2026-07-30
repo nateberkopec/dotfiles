@@ -36,22 +36,10 @@ class ConfigTest < Minitest::Test
     assert_empty Dotfiles::Config.new("/nonexistent/dir").brew_casks
   end
 
-  def test_dotfiles_repo_from_config
-    config = Dotfiles::Config.new(@fixtures_dir)
-
-    assert_equal "https://github.com/test/dotfiles.git", config.dotfiles_repo
-  end
-
-  def test_dotfiles_repo_default_fallback
-    config = Dotfiles::Config.new("/nonexistent/dir")
-
-    assert_equal "https://github.com/nateberkopec/dotfiles.git", config.dotfiles_repo
-  end
-
   def test_fetch_returns_config_value
     config = Dotfiles::Config.new(@fixtures_dir)
 
-    assert_equal "https://github.com/test/dotfiles.git", config.fetch("dotfiles_repo")
+    assert_equal ["firefox", "dropbox"], config.fetch("brew_casks")
   end
 
   def test_fetch_returns_default_for_missing_key
@@ -63,7 +51,7 @@ class ConfigTest < Minitest::Test
   def test_bracket_accessor_returns_config_value
     config = Dotfiles::Config.new(@fixtures_dir)
 
-    assert_equal "https://github.com/test/dotfiles.git", config["dotfiles_repo"]
+    assert_equal ["firefox", "dropbox"], config["brew_casks"]
   end
 
   def test_brew_ci_casks_overrides_config
