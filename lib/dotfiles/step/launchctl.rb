@@ -1,29 +1,19 @@
-require "securerandom"
-require "shellwords"
-
 class Dotfiles
   class Step
     module LaunchCtl
       private
 
-      def install_script(script_path, script_content, mode: 0o755)
+      def install_script(script_path, script_content)
         debug "Installing script to #{script_path}..."
         @system.mkdir_p(File.dirname(script_path))
         @system.write_file(script_path, script_content)
-        @system.chmod(mode, script_path)
+        @system.chmod(0o755, script_path)
       end
 
-      def install_plist(plist_path, plist_content, sudo: false)
+      def install_plist(plist_path, plist_content)
         debug "Installing plist to #{plist_path}..."
         @system.mkdir_p(File.dirname(plist_path))
-        if sudo
-          temp_path = File.join("/tmp", "dotfiles-plist-#{SecureRandom.hex(6)}.plist")
-          @system.write_file(temp_path, plist_content)
-          execute(command("install", "-m", "644", temp_path, plist_path), sudo: true)
-          @system.rm_rf(temp_path)
-        else
-          @system.write_file(plist_path, plist_content)
-        end
+        @system.write_file(plist_path, plist_content)
       end
 
       def load_launchagent(plist_path)
@@ -61,14 +51,6 @@ class Dotfiles
 
       def file_installed_with_content?(path, content)
         @system.file_exist?(path) && @system.read_file(path) == content
-      end
-
-      def script_installed?(script_path)
-        @system.file_exist?(script_path)
-      end
-
-      def plist_installed?(plist_path)
-        @system.file_exist?(plist_path)
       end
     end
   end
