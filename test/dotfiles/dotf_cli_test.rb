@@ -41,29 +41,42 @@ class DotfCliTest < Minitest::Test
 
   def test_mise_bootstrap_includes_packages_for_admin_macos
     with_dotf_script do |tmpdir, script_path, _logs_dir|
-      stdout, status, log = mise_bootstrap_result(tmpdir, script_path, admin: true)
+      stdout, stderr, status, log = mise_bootstrap_result(tmpdir, script_path, admin: true)
 
       assert status.success?
       assert_includes stdout, "Converging machine with mise bootstrap"
+      refute_includes stdout, "mise -C"
+      assert_empty stderr
+      assert_equal "mise -C #{tmpdir}/home bootstrap --yes --update --quiet\n", log
+    end
+  end
+
+  def test_mise_bootstrap_shows_output_when_debugging
+    with_dotf_script do |tmpdir, script_path, _logs_dir|
+      stdout, _stderr, status, log = mise_bootstrap_result(tmpdir, script_path, admin: true, debug: true)
+
+      assert status.success?
+      assert_includes stdout, "mise -C"
       assert_equal "mise -C #{tmpdir}/home bootstrap --yes --update\n", log
     end
   end
 
   def test_mise_bootstrap_skips_packages_for_non_admin_macos
     with_dotf_script do |tmpdir, script_path, _logs_dir|
-      _stdout, status, log = mise_bootstrap_result(tmpdir, script_path, admin: false, exit_status: 23)
+      _stdout, stderr, status, log = mise_bootstrap_result(tmpdir, script_path, admin: false, exit_status: 23)
 
       assert_equal 23, status.exitstatus
-      assert_equal "mise -C #{tmpdir}/home bootstrap --yes --update --skip packages\n", log
+      assert_includes stderr, "mise failed"
+      assert_includes log, "mise -C #{tmpdir}/home bootstrap --yes --update --skip packages --quiet\n"
     end
   end
 
   def test_mise_bootstrap_includes_packages_on_debian
     with_dotf_script do |tmpdir, script_path, _logs_dir|
-      _stdout, status, log = mise_bootstrap_result(tmpdir, script_path, admin: false, debian: true)
+      _stdout, _stderr, status, log = mise_bootstrap_result(tmpdir, script_path, admin: false, debian: true)
 
       assert status.success?
-      assert_equal "mise -C #{tmpdir}/home bootstrap --yes --update\n", log
+      assert_equal "mise -C #{tmpdir}/home bootstrap --yes --update --quiet\n", log
     end
   end
 
@@ -165,29 +178,37 @@ class DotfCliTest < Minitest::Test
       FileUtils.chmod("+x", File.join(tmpdir, "bin", "bootstrap"))
       command = run_function_command(script_path, log_path)
 
-      assert system("bash", "-c", command, out: File::NULL)
+      stdout, status = Open3.capture2e("bash", "-c", command)
 
+      assert status.success?
+      refute_includes stdout, "Running migration"
       assert_run_commands(log_path)
     end
   end
 
   private
 
-  def mise_bootstrap_result(tmpdir, script_path, admin:, debian: false, exit_status: 0)
+  def mise_bootstrap_result(tmpdir, script_path, admin:, debian: false, exit_status: 0, debug: false)
     home = File.join(tmpdir, "home")
     log_path = File.join(tmpdir, "mise-bootstrap.log")
     command = <<~BASH
       source #{Shellwords.escape(script_path)}
       export HOME=#{Shellwords.escape(home)} LOG_FILE=#{Shellwords.escape(log_path)}
-      mise() { printf 'mise %s\n' "$*" >&2; return #{exit_status}; }
+      mise() {
+        printf 'mise %s\n' "$*"
+        if [ #{exit_status} -ne 0 ]; then
+          printf 'mise failed\n' >&2
+        fi
+        return #{exit_status}
+      }
       run_mise_bootstrap
     BASH
     platform = debian ? "DOTF_FORCE_DEBIAN" : "DOTF_FORCE_NON_DEBIAN"
-    stdout, _stderr, status = Open3.capture3(
-      {platform => "true", "DOTF_FORCE_ADMIN" => admin.to_s, "PATH" => "/usr/bin:/bin"},
+    stdout, stderr, status = Open3.capture3(
+      {platform => "true", "DOTF_FORCE_ADMIN" => admin.to_s, "DEBUG" => debug.to_s, "PATH" => "/usr/bin:/bin"},
       "bash", "-c", command
     )
-    [stdout, status, File.read(log_path)]
+    [stdout, stderr, status, File.read(log_path)]
   end
 
   def mise_system_packages_manager(script_path, platform_override)
@@ -228,7 +249,10 @@ class DotfCliTest < Minitest::Test
       source #{escaped_script}
       export DOTF_LOCK_DIR=#{Shellwords.escape(File.join(File.dirname(escaped_log), "dotf.lock"))}
       mise() { printf 'mise %s\\n' "$*" >> #{escaped_log}; }
-      ruby() { printf 'ruby %s\\n' "$*" >> #{escaped_log}; }
+      ruby() {
+        printf 'ruby %s\\n' "$*" >> #{escaped_log}
+        [[ "$*" != *MigrationRunner* ]] || echo "Running migration 1: Test"
+      }
       cmd_run
     BASH
   end

@@ -173,8 +173,14 @@ run_mise_bootstrap() {
         args+=(--skip packages)
     fi
 
-    mise "${args[@]}" 2>&1 | tee -a "$LOG_FILE"
-    status="${PIPESTATUS[0]}"
+    if [ "${DEBUG:-false}" = "true" ]; then
+        mise "${args[@]}" 2>&1 | tee -a "$LOG_FILE"
+        status="${PIPESTATUS[0]}"
+    else
+        args+=(--quiet)
+        status=0
+        mise "${args[@]}" >> "$LOG_FILE" 2> >(tee -a "$LOG_FILE" >&2) || status="$?"
+    fi
     return "$status"
 }
 
@@ -220,7 +226,12 @@ cmd_run() {
     ensure_mise_env
 
     cd "$DOTFILES_DIR"
-    ruby -r ./lib/dotfiles.rb -e "Dotfiles::MigrationRunner.new('$LOG_FILE').run_if_existing_machine"
+    local migration_command=(ruby -r ./lib/dotfiles.rb -e "Dotfiles::MigrationRunner.new('$LOG_FILE').run_if_existing_machine")
+    if [ "${DEBUG:-false}" = "true" ]; then
+        "${migration_command[@]}"
+    else
+        "${migration_command[@]}" >> "$LOG_FILE"
+    fi
     ruby -r ./lib/dotfiles.rb -e "Dotfiles::Runner.new('$LOG_FILE').run"
 
     debug "Run complete"
