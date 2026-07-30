@@ -12,8 +12,8 @@ class Dotfiles::Step::ConfigureSpotlightBatteryStep < Dotfiles::Step
 
   def run
     return unless fish_path
-    install_script(script_path, script_content) unless script_installed?(script_path)
-    install_spotlight_launchdaemon unless plist_installed?(launchdaemon_path)
+    install_script(script_path, script_content) unless @system.file_exist?(script_path)
+    install_spotlight_launchdaemon unless @system.file_exist?(launchdaemon_path)
     load_launchdaemon(launchdaemon_path)
   end
 
@@ -22,15 +22,15 @@ class Dotfiles::Step::ConfigureSpotlightBatteryStep < Dotfiles::Step
     return true unless battery_mode_enabled?
 
     add_error("Fish not found for Spotlight battery toggle") unless fish_path
-    add_error("Spotlight battery script not installed at #{script_path}") unless script_installed?(script_path)
-    add_error("LaunchDaemon not installed at #{launchdaemon_path}") unless plist_installed?(launchdaemon_path)
+    add_error("Spotlight battery script not installed at #{script_path}") unless @system.file_exist?(script_path)
+    add_error("LaunchDaemon not installed at #{launchdaemon_path}") unless @system.file_exist?(launchdaemon_path)
     @errors.empty?
   end
 
   private
 
   def battery_toggle_installed?
-    script_installed?(script_path) && plist_installed?(launchdaemon_path)
+    @system.file_exist?(script_path) && @system.file_exist?(launchdaemon_path)
   end
 
   def script_content
