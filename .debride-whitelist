@@ -6,4 +6,3 @@ install_direct_download
 log_file
 print_steps
 run_if_existing_machine
-running_codespaces?

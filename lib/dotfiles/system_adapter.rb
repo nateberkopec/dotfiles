@@ -15,10 +15,6 @@ class Dotfiles
       linux? && File.exist?("/etc/debian_version")
     end
 
-    def running_codespaces?
-      ENV["CODESPACES"] == "true"
-    end
-
     def running_container?
       file_exist?("/.dockerenv") ||
         (file_exist?("/proc/1/cgroup") && read_file("/proc/1/cgroup").include?("docker"))
