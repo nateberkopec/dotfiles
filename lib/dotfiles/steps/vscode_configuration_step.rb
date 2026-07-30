@@ -5,10 +5,6 @@ class Dotfiles::Step::VSCodeConfigurationStep < Dotfiles::Step
     "VS Code Configuration"
   end
 
-  def self.depends_on
-    Dotfiles::Step.system_packages_steps
-  end
-
   def run
     install_vscode_extensions
   end

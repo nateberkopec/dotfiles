@@ -62,10 +62,8 @@ AUBE_SECURITY_SCANNER = "{{env.HOME}}/.config/aube/socket-security-scanner.mjs"
 CARGO_HTTP_TIMEOUT = "5"
 GO_GET_TIMEOUT = "5s"
 
-# Staged for future mise bootstrap activation; the Ruby steps remain the owners.
-# Formulae and APT packages mirror the legacy package matrix. Desktop packages
-# (1password and google-chrome) and droid retain specialized installers; snapd
-# is no longer desired. docker.io stays conditional to preserve other installs.
+# Desktop packages (1password and google-chrome) and droid retain specialized
+# installers. docker.io stays conditional to preserve other installations.
 [bootstrap.packages]
 "brew:asdf" = "latest"
 "brew:automake" = "latest"
@@ -119,9 +117,8 @@ GO_GET_TIMEOUT = "5s"
 "apt:trash-cli" = "latest"
 "apt:yubikey-manager" = "latest"
 
-# Home directory files. The whole-tree copy mirrors files/home into ~;
-# platform-specific files render through mise's template engine; symlink
-# entries recreate the links the repo still checks in as symlink files.
+# The whole-tree copy mirrors files/home into ~. Platform-specific files render
+# through mise's template engine; explicit entries create command/config links.
 [dotfiles]
 "~" = { source = "~/.dotfiles/files/home", mode = "copy" }
 "~/.config/fish/conf.d/platform.fish" = { source = "~/.dotfiles/files/templates/platform.fish", mode = "template" }

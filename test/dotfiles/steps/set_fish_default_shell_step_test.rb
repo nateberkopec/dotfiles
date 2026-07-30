@@ -7,8 +7,8 @@ class SetFishDefaultShellStepTest < Minitest::Test
     @step = create_step(Dotfiles::Step::SetFishDefaultShellStep)
   end
 
-  def test_depends_on_system_packages
-    assert_equal Dotfiles::Step.system_packages_steps, Dotfiles::Step::SetFishDefaultShellStep.depends_on
+  def test_has_no_step_dependencies
+    assert_empty Dotfiles::Step::SetFishDefaultShellStep.depends_on
   end
 
   def test_complete_when_fish_is_default_shell

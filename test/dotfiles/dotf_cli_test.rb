@@ -74,6 +74,8 @@ class DotfCliTest < Minitest::Test
       output_path = File.join(tmpdir, "outdated-output.log")
       FileUtils.mkdir_p(bin_dir)
       %w[mise brew].each { |command| write_command_stub(bin_dir, command) }
+      FileUtils.mkdir_p(File.join(tmpdir, "config"))
+      File.write(File.join(tmpdir, "config", "config.yml"), "brew_casks:\n  - cursor\n")
       FileUtils.mkdir_p(File.join(tmpdir, "files", "home", ".pi", "agent"))
       File.write(File.join(tmpdir, "files", "home", ".pi", "agent", "settings.json"), '{"packages":["npm:pi-ding@0.2.2"]}')
 
@@ -83,10 +85,9 @@ class DotfCliTest < Minitest::Test
       env = {
         "DOTF_FORCE_NON_DEBIAN" => "true",
         "DOTF_FORCE_ADMIN" => "true",
-        "DOTF_MANAGED_BREW_FORMULAE" => "duti",
-        "DOTF_MANAGED_BREW_CASKS" => "cursor",
         "DOTF_BREW_OUTDATED_JSON" => brew_json,
         "DOTF_MISE_OUTDATED_JSON" => mise_json,
+        "DOTF_MISE_PACKAGE_STATUS_JSON" => '{"brew":{"packages":[{"package":"duti"}]}}',
         "DOTF_NPM_VIEW_JSON" => npm_json,
         "DOTF_UPGRADE_LOG" => log_path,
         "HOME" => File.join(tmpdir, "home"),
@@ -110,6 +111,7 @@ class DotfCliTest < Minitest::Test
         "brew shellenv bash", "mise activate bash", "mise outdated --bump --json",
         "mise -C #{tmpdir}/home bootstrap packages upgrade --dry-run",
         "mise exec node@lts -- npm view pi-ding time versions --json",
+        "mise -C #{tmpdir}/home bootstrap packages status --json",
         "HOMEBREW_AUTO_UPDATE_SECS=604800 brew update-if-needed",
         "HOMEBREW_NO_AUTO_UPDATE=1 brew outdated --json=v2"
       ], File.readlines(log_path, chomp: true)

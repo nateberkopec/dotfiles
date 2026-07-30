@@ -1,9 +1,6 @@
 class Dotfiles::Step::InstallDebianDesktopAppsStep < Dotfiles::Step
   DESCRIPTION = "Installs configured Debian desktop applications.".freeze
   debian_only
-  def self.depends_on
-    [Dotfiles::Step::InstallSystemPackagesStep]
-  end
 
   def initialize(source_installer: nil, **kwargs)
     super(**kwargs)
@@ -19,6 +16,8 @@ class Dotfiles::Step::InstallDebianDesktopAppsStep < Dotfiles::Step
     @install_error = nil
     sources_installed = @config.debian_desktop_apps.all? { |app| @source_installer.install(app) }
     return @install_error = "Failed to install a Debian desktop application source" unless sources_installed
+    return unless update_package_index
+
     packages = missing_packages
     return if packages.empty?
     install_command = sudo_command("env", "DEBIAN_FRONTEND=noninteractive", "apt-get", "install", "-y", *packages)
@@ -35,6 +34,15 @@ class Dotfiles::Step::InstallDebianDesktopAppsStep < Dotfiles::Step
   end
 
   private
+
+  def update_package_index
+    update_command = sudo_command("apt-get", "update", "-y")
+    output, status = execute(update_command)
+    return true if status == 0
+
+    @install_error = format_command_error(update_command, status, output)
+    false
+  end
 
   def missing_packages
     @config.debian_desktop_apps.map { |app| app["package"] }.reject { |package| command_succeeds?(command("dpkg", "-s", package)) }

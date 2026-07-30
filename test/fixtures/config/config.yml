@@ -1,14 +1,9 @@
 ---
 dotfiles_repo: https://github.com/test/dotfiles.git
 
-packages:
-  git: { brew: git, debian: git }
-brew:
-  taps:
-    - example/tap
-  casks:
-    - firefox
-    - dropbox
+brew_casks:
+  - firefox
+  - dropbox
 debian_desktop_apps:
   - name: example
     package: example-app
@@ -18,12 +13,6 @@ debian_desktop_apps:
     package: other-app
     line: "deb [signed-by=/usr/share/keyrings/other-archive-keyring.gpg] http://other.invalid/debian stable main"
     key_url: http://other.invalid/key.asc
-debian_sources:
-  - name: example
-    repo: http://example.invalid/debian
-    suite: stable
-    components:
-      - main
 debian_non_apt_packages:
   - starship
 

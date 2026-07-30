@@ -13,6 +13,7 @@ class InstallDebianDesktopAppsStepTest < StepTestCase
     installer = SourceInstaller.new(true, [])
     step(source_installer: installer).run
     assert_equal ["example"], installer.installed.map { |app| app["name"] }
+    assert_executed "sudo apt-get update -y"
     assert_executed "sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y example-app"
   end
 
@@ -23,6 +24,18 @@ class InstallDebianDesktopAppsStepTest < StepTestCase
     current_step.run
     assert_equal ["example"], installer.installed.map { |app| app["name"] }
     assert_includes current_step.errors.tap { current_step.complete? }, "Failed to install a Debian desktop application source"
+    refute_executed "sudo apt-get update -y"
+    refute_executed "sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y example-app"
+  end
+
+  def test_update_failure_stops_package_installation
+    configure_app
+    @fake_system.stub_command("sudo apt-get update -y", "network error", exit_status: 1)
+    current_step = step(source_installer: SourceInstaller.new(true, []))
+
+    current_step.run
+
+    assert_includes current_step.errors.tap { current_step.complete? }.join("\n"), "network error"
     refute_executed "sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y example-app"
   end
 

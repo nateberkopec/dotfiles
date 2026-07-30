@@ -5,10 +5,6 @@ class Dotfiles::Step::ConfigureWallpaperStep < Dotfiles::Step
 
   macos_only
 
-  def self.depends_on
-    [Dotfiles::Step::InstallMiseToolsStep]
-  end
-
   def run
     install_script(script_path, script_content) unless script_current?
     install_plist(launchagent_path, plist_content) unless launchagent_current?

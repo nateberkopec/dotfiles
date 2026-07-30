@@ -3,10 +3,6 @@ require "json"
 class Dotfiles::Step::InstallPiPackagesStep < Dotfiles::Step
   DESCRIPTION = "Installs Pi packages pinned in Pi settings.".freeze
 
-  def self.depends_on
-    [Dotfiles::Step::InstallMiseToolsStep]
-  end
-
   def should_run?
     pi_available? && missing_packages.any?
   end

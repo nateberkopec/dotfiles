@@ -9,10 +9,6 @@ class Dotfiles::Step::InstallDebianGhosttyStep < Dotfiles::Step
     "Ghostty AppImage wrapper"
   end
 
-  def self.depends_on
-    [Dotfiles::Step::InstallMiseToolsStep]
-  end
-
   def should_run?
     return false unless allowed_on_platform?
 

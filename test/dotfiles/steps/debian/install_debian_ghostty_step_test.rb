@@ -11,8 +11,8 @@ class InstallDebianGhosttyStepTest < StepTestCase
     assert_complete
   end
 
-  def test_depends_on_mise_tools
-    assert_includes self.class.step_class.depends_on, Dotfiles::Step::InstallMiseToolsStep
+  def test_has_no_step_dependencies
+    assert_empty self.class.step_class.depends_on
   end
 
   def test_should_run_when_mise_appimage_is_not_wrapped

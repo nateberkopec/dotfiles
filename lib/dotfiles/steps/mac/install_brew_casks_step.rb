@@ -1,17 +1,15 @@
 require "json"
 
+# Mise cannot target the private Homebrew prefix used by non-admin machines,
+# so this step installs declared formulae there in addition to casks.
 class Dotfiles::Step::InstallBrewCasksStep < Dotfiles::Step
-  DESCRIPTION = "Installs Homebrew casks.".freeze
+  DESCRIPTION = "Installs Homebrew casks, plus formulae on non-admin machines.".freeze
 
   macos_only
 
-  def self.depends_on
-    [Dotfiles::Step::UpdateHomebrewStep]
-  end
-
   def initialize(**kwargs)
     super
-    @brewfile_path = File.join(@dotfiles_dir, "Brewfile")
+    @brewfile_path = temp_path("brewfile")
     @packages_installed_status = nil
   end
 
@@ -23,7 +21,8 @@ class Dotfiles::Step::InstallBrewCasksStep < Dotfiles::Step
   end
 
   def run
-    debug "Installing Homebrew casks..."
+    debug "Installing Homebrew packages..."
+    brew_quiet("update")
     install_and_reset
     install_and_reset unless packages_already_installed?
   end
@@ -32,6 +31,7 @@ class Dotfiles::Step::InstallBrewCasksStep < Dotfiles::Step
     super
     return true unless brewfile_needed?
 
+    generate_brewfile
     add_missing_packages_error unless packages_already_installed?
     @packages_installed_status
   end
@@ -41,7 +41,7 @@ class Dotfiles::Step::InstallBrewCasksStep < Dotfiles::Step
   def install_and_reset
     output, exit_status = install_packages
     log_installation_results(output, exit_status)
-    reset_package_status
+    @packages_installed_status = nil
   end
 
   def packages_already_installed?
@@ -50,24 +50,18 @@ class Dotfiles::Step::InstallBrewCasksStep < Dotfiles::Step
     output, status = brew_quiet("bundle", "check", "--file=#{@brewfile_path}", "--no-upgrade")
     @packages_installed_status = status == 0
     @packages_installed_error = output unless @packages_installed_status
-    debug "All Homebrew casks are installed" if @packages_installed_status
     @packages_installed_status
   end
 
-  def reset_package_status
-    @packages_installed_status = nil
-    @packages_installed_error = nil
-  end
-
   def add_missing_packages_error
-    message = "Some Homebrew casks are not installed"
+    message = "Some Homebrew packages are not installed"
     details = @packages_installed_error.to_s.strip
-    message = "#{message}: #{details}" unless details.empty?
-    add_error(message)
+    add_error(details.empty? ? message : "#{message}: #{details}")
   end
 
   def install_packages
-    @system.execute(env_command({"HOMEBREW_NO_AUTO_UPDATE" => "1", "HOMEBREW_NO_ENV_HINTS" => "1", "HOMEBREW_CASK_OPTS" => cask_opts}, "brew", "bundle", "install", "--file=#{@brewfile_path}"))
+    environment = {"HOMEBREW_NO_AUTO_UPDATE" => "1", "HOMEBREW_NO_ENV_HINTS" => "1", "HOMEBREW_CASK_OPTS" => cask_opts}
+    @system.execute(env_command(environment, "brew", "bundle", "install", "--file=#{@brewfile_path}"))
   end
 
   def log_installation_results(output, exit_status)
@@ -78,34 +72,33 @@ class Dotfiles::Step::InstallBrewCasksStep < Dotfiles::Step
   end
 
   def generate_brewfile
-    @system.write_file(@brewfile_path, build_brewfile_content(brew_config))
+    @system.write_file(@brewfile_path, brewfile_content)
   end
 
-  def build_brewfile_content(config)
+  def brewfile_content
     [
-      *(config["taps"] || []).map { |tap| "tap \"#{tap}\"" },
-      *formulae_for_brewfile(config).map { |pkg| "brew \"#{pkg}\"" },
-      *(config["casks"] || []).map { |cask| "cask \"#{cask}\"" }
+      *formulae.map { |package| "brew \"#{package}\"" },
+      *@config.brew_casks.map { |cask| "cask \"#{cask}\"" }
     ].join("\n") + "\n"
   end
 
   def brewfile_needed?
-    (brew_config["taps"] || []).any? || (brew_config["casks"] || []).any? || formulae_for_brewfile(brew_config).any?
+    formulae.any? || @config.brew_casks.any?
   end
 
-  def formulae_for_brewfile(_config)
+  def formulae
     return [] if user_has_admin_rights?
 
+    @formulae ||= fetch_formulae
+  end
+
+  def fetch_formulae
     output, status = execute(command("mise", "-C", @home, "bootstrap", "packages", "status", "--json"))
     return [] unless status == 0
 
     JSON.parse(output).fetch("brew", {}).fetch("packages", []).map { |package| package["package"] }
   rescue JSON::ParserError
     []
-  end
-
-  def brew_config
-    @config.packages&.dig("brew") || {}
   end
 
   def cask_opts

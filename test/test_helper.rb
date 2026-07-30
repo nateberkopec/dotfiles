@@ -12,15 +12,12 @@ require_relative "support/dotf_script_helper"
 %w[
   CI
   NONINTERACTIVE
-  BREW_CI_APPLICATIONS
+  DOTF_ALLOW_HUMAN_ONLY_CHANGES
   BREW_CI_CASKS
   BREW_CI_PACKAGES
-  BREW_CI_TAPS
   DEBIAN_CI_DESKTOP_APPS
   DEBIAN_CI_NON_APT_PACKAGES
   DEBIAN_CI_PACKAGES
-  DEBIAN_CI_SNAP_PACKAGES
-  DEBIAN_CI_SOURCES
   MISE_CI_TOOLS
 ].each { |name| ENV.delete(name) }
 # In tests, we use FakeSystemAdapter to control all system interactions.

@@ -128,10 +128,11 @@ managed_brew_formulae() {
         return 0
     fi
 
-    (
-        cd "$DOTFILES_DIR"
-        ruby -r ./lib/dotfiles.rb -e 'puts Dotfiles::Config.new(ENV.fetch("DOTFILES_DIR")).brew_packages'
-    )
+    mise -C "$HOME" bootstrap packages status --json 2>/dev/null |
+        env -u BUNDLE_GEMFILE -u BUNDLE_BIN_PATH -u RUBYOPT -u GEM_HOME -u GEM_PATH ruby -rjson -e '
+          data = JSON.parse(STDIN.read)
+          puts data.fetch("brew", {}).fetch("packages", []).map { |package| package["package"] }
+        '
 }
 
 managed_brew_casks() {
@@ -140,13 +141,9 @@ managed_brew_casks() {
         return 0
     fi
 
-    (
-        cd "$DOTFILES_DIR"
-        ruby -r ./lib/dotfiles.rb -e '
-          config = Dotfiles::Config.new(ENV.fetch("DOTFILES_DIR"))
-          puts((config.brew_casks + config.applications.map { |app| app["brew_cask"] }).compact.uniq)
-        '
-    )
+    env -u BUNDLE_GEMFILE -u BUNDLE_BIN_PATH -u RUBYOPT -u GEM_HOME -u GEM_PATH \
+        ruby -ryaml -e 'puts YAML.safe_load(File.read(ARGV.fetch(0))).fetch("brew_casks", [])' \
+        "$DOTFILES_DIR/config/config.yml"
 }
 
 is_debian() {

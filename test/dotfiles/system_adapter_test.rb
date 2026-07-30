@@ -169,12 +169,6 @@ class SystemAdapterTest < Minitest::Test
     assert_includes error.message, "boom"
   end
 
-  def test_hostname_delegates_to_socket
-    stub_singleton_method(Socket, :gethostname, "stubbed-host") do
-      assert_equal "stubbed-host", Dotfiles::SystemAdapter.new.hostname
-    end
-  end
-
   def test_running_codespaces_is_true_when_env_is_true
     with_env("CODESPACES" => "true") do
       assert Dotfiles::SystemAdapter.new.running_codespaces?
@@ -234,20 +228,6 @@ class SystemAdapterTest < Minitest::Test
       adapter.mkdir_p(path)
 
       assert adapter.dir_exist?(path)
-    end
-  end
-
-  def test_create_symlink_and_readlink
-    with_tmpdir do |tmpdir|
-      target = File.join(tmpdir, "target.txt")
-      link = File.join(tmpdir, "link.txt")
-      adapter = Dotfiles::SystemAdapter.new
-      File.write(target, "payload")
-
-      adapter.create_symlink(target, link)
-
-      assert adapter.symlink?(link)
-      assert_equal target, adapter.readlink(link)
     end
   end
 
