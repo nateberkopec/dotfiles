@@ -2,10 +2,9 @@ class Dotfiles
   class MigrationRunner
     attr_reader :home
 
-    def initialize(log_file = nil, system: SystemAdapter.new, home: nil, dotfiles_dir: nil, debug: nil)
+    def initialize(log_file = nil, system: SystemAdapter.new, home: nil, dotfiles_dir: nil)
       Dotfiles.log_file = log_file if log_file
       @system = system
-      @debug = debug.nil? ? ENV["DEBUG"] == "true" : debug
       @dotfiles_dir = dotfiles_dir || Dotfiles.determine_dotfiles_dir
       @config = Config.new(@dotfiles_dir, system: system)
       @home = home || @config.home
@@ -65,12 +64,9 @@ class Dotfiles
 
     def migration_params
       {
-        debug: @debug,
-        dotfiles_repo: @config.dotfiles_repo,
         dotfiles_dir: @dotfiles_dir,
         home: @home,
-        system: @system,
-        config: @config
+        system: @system
       }
     end
 

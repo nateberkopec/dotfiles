@@ -55,7 +55,7 @@ class MigrationRunnerTest < Minitest::Test
   private
 
   def build_runner
-    Dotfiles::MigrationRunner.new(nil, system: @fake_system, home: @home, dotfiles_dir: @dotfiles_dir, debug: false)
+    Dotfiles::MigrationRunner.new(nil, system: @fake_system, home: @home, dotfiles_dir: @dotfiles_dir)
   end
 
   def build_migration_class(version)

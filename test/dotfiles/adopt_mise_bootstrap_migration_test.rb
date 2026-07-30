@@ -37,8 +37,6 @@ class AdoptMiseBootstrapMigrationTest < Minitest::Test
 
   def migration
     Dotfiles::Migration::AdoptMiseBootstrap.new(
-      debug: false,
-      dotfiles_repo: "https://github.com/test/dotfiles.git",
       dotfiles_dir: @dotfiles_dir,
       home: @home,
       system: @fake_system

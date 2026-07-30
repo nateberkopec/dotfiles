@@ -30,7 +30,6 @@ class Dotfiles
     def build_step_params
       {
         debug: @debug,
-        dotfiles_repo: @config.dotfiles_repo,
         dotfiles_dir: @config.dotfiles_dir,
         home: @config.home,
         config: @config

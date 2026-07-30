@@ -1,6 +1,5 @@
 # Public API and framework hooks that debride cannot see statically.
 /^on_/
-config=
 down
 log_file
 print_steps

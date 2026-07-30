@@ -1,5 +1,4 @@
 ---
-dotfiles_repo: https://github.com/nateberkopec/dotfiles.git
 standard_folders:
 - Documents/Inbox
 - Documents/Code.nosync

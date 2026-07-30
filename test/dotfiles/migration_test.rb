@@ -128,8 +128,6 @@ class MigrationTest < Minitest::Test
 
   def create_migration(migration_class, **overrides)
     defaults = {
-      debug: false,
-      dotfiles_repo: "https://github.com/test/dotfiles.git",
       dotfiles_dir: @dotfiles_dir,
       home: @home,
       system: @fake_system

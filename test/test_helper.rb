@@ -39,7 +39,6 @@ class Minitest::Test
   def create_step(step_class, **overrides)
     defaults = {
       debug: false,
-      dotfiles_repo: "https://github.com/test/dotfiles.git",
       dotfiles_dir: @dotfiles_dir,
       home: @home,
       system: @fake_system

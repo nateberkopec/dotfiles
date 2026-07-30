@@ -23,9 +23,8 @@ class Dotfiles
       name.gsub(/^Dotfiles::Migration::/, "").gsub(/([A-Z]+)([A-Z][a-z])/, '\\1 \\2').gsub(/([a-z\d])([A-Z])/, '\\1 \\2')
     end
 
-    def initialize(debug:, dotfiles_repo:, dotfiles_dir:, home:, system: SystemAdapter.new, config: nil)
-      @debug, @dotfiles_repo, @dotfiles_dir, @home, @system = debug, dotfiles_repo, dotfiles_dir, home, system
-      @config = config || Config.new(dotfiles_dir, system: system)
+    def initialize(dotfiles_dir:, home:, system: SystemAdapter.new)
+      @dotfiles_dir, @home, @system = dotfiles_dir, home, system
     end
 
     def allowed_on_platform?

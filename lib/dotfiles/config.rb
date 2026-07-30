@@ -3,7 +3,6 @@ require "yaml"
 class Dotfiles
   class Config
     attr_reader :dotfiles_dir
-    attr_writer :config
 
     def initialize(dotfiles_dir, system: SystemAdapter.new)
       @dotfiles_dir = dotfiles_dir
@@ -13,10 +12,6 @@ class Dotfiles
 
     def config
       @config ||= load_config
-    end
-
-    def dotfiles_repo
-      config["dotfiles_repo"] || "https://github.com/nateberkopec/dotfiles.git"
     end
 
     def home
