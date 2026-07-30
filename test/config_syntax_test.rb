@@ -21,6 +21,14 @@ class ConfigSyntaxTest < Minitest::Test
     validate_toml(File.join(ROOT_DIR, ".mise.toml"))
   end
 
+  def test_cloc_uses_its_portable_release_asset
+    config = TomlRB.load_file(File.join(FILES_DIR, "home/.config/mise/config.toml"))
+    cloc = config.fetch("tools").fetch("github:aldanial/cloc")
+
+    assert_equal "cloc-2.10.pl", cloc.fetch("asset_pattern")
+    assert_equal "cloc", cloc.fetch("bin")
+  end
+
   private
 
   def validate_toml(path)
