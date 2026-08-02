@@ -210,7 +210,6 @@ bootstrap_mise() {
         fi
     fi
 
-    configure_mise_ruby_precompiled
     eval "$(mise activate bash)"
 }
 
@@ -218,14 +217,6 @@ seed_global_mise_config() {
     debug "Seeding global mise config from the repo..."
     mkdir -p "$HOME/.config/mise"
     cp "$DOTFILES_ROOT/files/home/.config/mise/config.toml" "$HOME/.config/mise/config.toml"
-}
-
-configure_mise_ruby_precompiled() {
-    # TODO: Remove this once mise 2026.8.0 makes precompiled Rubies the default.
-    # test/bootstrap_test.rb intentionally fails after 2026-08-01 if this remains.
-    debug "Configuring mise to use precompiled Rubies..."
-    export MISE_RUBY_COMPILE=false
-    stdout_quiet_unless_debug mise settings set ruby.compile false
 }
 
 main() {

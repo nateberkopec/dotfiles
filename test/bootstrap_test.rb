@@ -1,12 +1,9 @@
 require "test_helper"
-require "date"
 require_relative "support/bootstrap_script_helper"
 
 # standard:disable Dotfiles/BanFileSystemClasses
 class BootstrapTest < Minitest::Test
   include BootstrapScriptHelper
-
-  MISE_RUBY_COMPILE_WORKAROUND_REMOVE_BY = Date.new(2026, 8, 1)
 
   def test_ensure_dotfiles_checkout_links_repo_when_target_is_missing
     with_bootstrap_stub do |env|
@@ -90,16 +87,6 @@ class BootstrapTest < Minitest::Test
     end
   end
 
-  def test_bootstrap_mise_sets_ruby_compile_false
-    with_bootstrap_stub do |env|
-      write_mise_stub(env)
-      run_bootstrap_mise(env)
-
-      assert_includes logged_mise_commands(env), "mise activate bash"
-      assert_includes logged_mise_commands(env), "mise settings set ruby.compile false"
-    end
-  end
-
   def test_bootstrap_mise_seeds_global_config_before_activation
     with_bootstrap_stub do |env|
       global_config = File.join(env.fetch("HOME"), ".config", "mise", "config.toml")
@@ -112,11 +99,6 @@ class BootstrapTest < Minitest::Test
       expected = File.read(File.expand_path("../files/home/.config/mise/config.toml", __dir__))
       assert_equal expected, File.read(env.fetch("MISE_CONFIG_AT_ACTIVATION_LOG"))
     end
-  end
-
-  def test_mise_ruby_compile_workaround_expires
-    assert Date.today < MISE_RUBY_COMPILE_WORKAROUND_REMOVE_BY,
-      "Remove bootstrap's ruby.compile workaround; mise 2026.8.0 should make this default."
   end
 
   private

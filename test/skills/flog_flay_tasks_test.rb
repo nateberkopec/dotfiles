@@ -38,10 +38,15 @@ class FlogFlayTasksTest < Minitest::Test
         exit ENV.fetch("TOOL_STATUS").to_i
       RUBY
       File.chmod(0o755, bundle)
-      code = "require 'rake'; load File.join(ENV.fetch('ROOT'), 'Rakefile'); Rake::Task[ENV.fetch('TASK')].invoke"
-      env = {"PATH" => "#{dir}:#{ENV.fetch("PATH")}", "ROOT" => ROOT, "TASK" => task,
+      code = <<~RUBY
+        ENV["PATH"] = ENV.fetch("STUB_BIN") + File::PATH_SEPARATOR + ENV.fetch("PATH")
+        require "rake"
+        load File.join(ENV.fetch("ROOT"), "Rakefile")
+        Rake::Task[ENV.fetch("TASK")].invoke
+      RUBY
+      env = {"ROOT" => ROOT, "STUB_BIN" => dir, "TASK" => task,
              "TOOL_OUTPUT" => tool_output, "TOOL_STATUS" => tool_status.to_s}
-      return Open3.capture2e(env, "ruby", "-e", code, chdir: ROOT)
+      return Open3.capture2e(env, RbConfig.ruby, "-e", code, chdir: ROOT)
     end
   end
 end

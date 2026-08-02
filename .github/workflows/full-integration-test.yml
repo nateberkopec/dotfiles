@@ -104,7 +104,7 @@ jobs:
         CI: true
         NONINTERACTIVE: true
         GITHUB_TOKEN: ${{ github.token }}
-        MISE_CI_TOOLS: "gum@0.17.0,github:jdx/aube@1.32.0,npm:@earendil-works/pi-coding-agent@0.82.1,fzf@latest,aqua:fish-shell/fish-shell@4.8.1"
+        MISE_CI_TOOLS: "gum@0.17.0,github:jdx/aube@1.36.0,npm:@earendil-works/pi-coding-agent@0.83.0,fzf@latest,aqua:fish-shell/fish-shell@4.8.1"
         BREW_CI_PACKAGES: "duti"
         BREW_CI_CASKS: ""
         DEBIAN_CI_PACKAGES: "trash-cli"
@@ -202,7 +202,7 @@ jobs:
         CI: true
         NONINTERACTIVE: true
         GITHUB_TOKEN: ${{ github.token }}
-        MISE_CI_TOOLS: "gum@0.17.0,github:jdx/aube@1.32.0,npm:@earendil-works/pi-coding-agent@0.82.1,fzf@latest,aqua:fish-shell/fish-shell@4.8.1"
+        MISE_CI_TOOLS: "gum@0.17.0,github:jdx/aube@1.36.0,npm:@earendil-works/pi-coding-agent@0.83.0,fzf@latest,aqua:fish-shell/fish-shell@4.8.1"
         BREW_CI_PACKAGES: "duti"
         BREW_CI_CASKS: ""
       run: |
