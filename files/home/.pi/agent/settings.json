@@ -5,9 +5,9 @@
   "defaultThinkingLevel": "medium",
   "hideThinkingBlock": false,
   "packages": [
-    "npm:pi-mcp-adapter@2.12.1",
+    "npm:pi-mcp-adapter@2.15.0",
     "npm:pi-ding@0.2.2",
-    "npm:pi-subagents@0.36.0",
+    "npm:pi-subagents@0.37.2",
     "npm:pi-web-providers@3.5.1"
   ],
   "npmCommand": [

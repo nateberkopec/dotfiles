@@ -22,7 +22,7 @@ class TrimMiseConfigTest < Minitest::Test
         experimental = true
       TOML
       env = {
-        "MISE_CI_TOOLS" => "ruby@4.0.6, gh, npm:@earendil-works/pi-coding-agent@0.82.1",
+        "MISE_CI_TOOLS" => "ruby@4.0.6, gh, npm:@earendil-works/pi-coding-agent@0.83.0",
         "BREW_CI_PACKAGES" => "ba\"sh",
         "DEBIAN_CI_PACKAGES" => "curl"
       }
