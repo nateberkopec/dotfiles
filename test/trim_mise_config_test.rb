@@ -18,6 +18,9 @@ class TrimMiseConfigTest < Minitest::Test
         [bootstrap.macos.launchd.agents.yknotify]
         program = "yknotify"
 
+        [bootstrap.macos.launchd.agents.woodblock-wallpaper]
+        program = "wallpaper"
+
         [settings]
         experimental = true
       TOML
