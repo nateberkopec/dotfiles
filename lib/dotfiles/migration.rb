@@ -27,10 +27,6 @@ class Dotfiles
       @dotfiles_dir, @home, @system = dotfiles_dir, home, system
     end
 
-    def allowed_on_platform?
-      platform_requirement_met?(:macos) && platform_requirement_met?(:debian)
-    end
-
     def up
       raise NotImplementedError, "Subclasses must implement #up"
     end
@@ -43,11 +39,6 @@ class Dotfiles
 
     def execute(command, quiet: true)
       @system.execute!(command, quiet: quiet)
-    end
-
-    def platform_requirement_met?(platform)
-      predicate = "#{platform}_only?"
-      !self.class.public_send(predicate) || @system.public_send("#{platform}?")
     end
   end
 end

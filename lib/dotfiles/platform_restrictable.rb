@@ -4,6 +4,10 @@ class Dotfiles
   # predicates. The includer's instances are expected to provide
   # `@system` (responding to #macos?/#debian?) for allowed_on_platform?.
   module PlatformRestrictable
+    def self.extended(base)
+      base.include InstanceMethods
+    end
+
     def macos_only
       @macos_only = true
     end
@@ -18,6 +22,13 @@ class Dotfiles
 
     def debian_only?
       @debian_only || false
+    end
+
+    module InstanceMethods
+      def allowed_on_platform?
+        (!self.class.macos_only? || @system.macos?) &&
+          (!self.class.debian_only? || @system.debian?)
+      end
     end
   end
 end
