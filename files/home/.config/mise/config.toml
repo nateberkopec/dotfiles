@@ -167,6 +167,19 @@ TrackpadTwoFingerDoubleTapGesture = 1
 [bootstrap.macos.defaults."com.apple.spaces"]
 spans-displays = true
 
+[bootstrap.macos.defaults."com.raycast.macos"]
+raycastGlobalHotkey = "Command-49"
+onboarding_setupHotkey = true
+
+[bootstrap.macos.launchd.agents.woodblock-wallpaper]
+program = "~/.local/share/dotfiles/launch-woodblock-wallpaper"
+run_at_load = true
+environment = { PATH = "/usr/bin:/bin" }
+start_calendar_interval = { hour = 5, minute = 0 }
+stdout_path = "~/Library/Logs/woodblock-wallpaper.out.log"
+stderr_path = "~/Library/Logs/woodblock-wallpaper.err.log"
+kickstart = true
+
 [bootstrap.macos.launchd.agents.yknotify]
 program = "~/.local/share/yknotify/yknotify.sh"
 run_at_load = true

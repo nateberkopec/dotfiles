@@ -1,5 +1,5 @@
 class Dotfiles::Step::ConfigureRaycastHotkeyStep < Dotfiles::Step
-  DESCRIPTION = "Configures Raycast as the Command-Space launcher when possible.".freeze
+  DESCRIPTION = "Disables the macOS Spotlight Command-Space hotkey for Raycast.".freeze
 
   macos_only
 
@@ -8,8 +8,7 @@ class Dotfiles::Step::ConfigureRaycastHotkeyStep < Dotfiles::Step
   end
 
   def run
-    debug "Configuring Raycast Command-Space hotkey..."
-    configure_raycast_hotkey
+    debug "Disabling the Spotlight Command-Space hotkey..."
     disable_spotlight_hotkey
     restart_preferences_agents
     add_manual_setup_notice unless complete?
@@ -17,19 +16,12 @@ class Dotfiles::Step::ConfigureRaycastHotkeyStep < Dotfiles::Step
 
   def complete?
     super
-    raycast_configured = raycast_hotkey_configured? && raycast_onboarding_hotkey_configured?
-    spotlight_disabled = spotlight_hotkey_disabled?
-    add_error("Raycast Command-Space hotkey is not configured") unless raycast_configured
-    add_error("Spotlight Command-Space hotkey is still enabled") unless spotlight_disabled
-    raycast_configured && spotlight_disabled
+    disabled = spotlight_hotkey_disabled?
+    add_error("Spotlight Command-Space hotkey is still enabled") unless disabled
+    disabled
   end
 
   private
-
-  def configure_raycast_hotkey
-    execute(command("defaults", "write", raycast_domain, "raycastGlobalHotkey", "-string", "Command-49"))
-    execute(command("defaults", "write", raycast_domain, "onboarding_setupHotkey", "-bool", "true"))
-  end
 
   def disable_spotlight_hotkey
     execute(shell_script(disable_spotlight_script, spotlight_hotkeys_plist))
@@ -37,14 +29,6 @@ class Dotfiles::Step::ConfigureRaycastHotkeyStep < Dotfiles::Step
 
   def restart_preferences_agents
     execute(shell_script("killall cfprefsd 2>/dev/null || true\nkillall SystemUIServer 2>/dev/null || true"))
-  end
-
-  def raycast_hotkey_configured?
-    defaults_read_equals?(command("defaults", "read", raycast_domain, "raycastGlobalHotkey"), "Command-49")
-  end
-
-  def raycast_onboarding_hotkey_configured?
-    defaults_read_equals?(command("defaults", "read", raycast_domain, "onboarding_setupHotkey"), "1")
   end
 
   def spotlight_hotkey_disabled?
@@ -61,7 +45,7 @@ class Dotfiles::Step::ConfigureRaycastHotkeyStep < Dotfiles::Step
 
   def manual_setup_message
     [
-      "Raycast Command-Space automation could not be verified.",
+      "The Spotlight Command-Space hotkey could not be disabled automatically.",
       "",
       "1. System Settings → Keyboard → Keyboard Shortcuts → Spotlight",
       "2. Disable “Show Spotlight search”",
@@ -81,10 +65,6 @@ class Dotfiles::Step::ConfigureRaycastHotkeyStep < Dotfiles::Step
       /usr/libexec/PlistBuddy -c "Set :AppleSymbolicHotKeys:64:enabled false" "$plist" 2>/dev/null || \
         /usr/libexec/PlistBuddy -c "Add :AppleSymbolicHotKeys:64:enabled bool false" "$plist"
     BASH
-  end
-
-  def raycast_domain
-    "com.raycast.macos"
   end
 
   def spotlight_hotkeys_plist

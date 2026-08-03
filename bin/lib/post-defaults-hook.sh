@@ -20,6 +20,7 @@ fi
 
 if [ -f "$drift_marker" ]; then
     rm -f "$drift_marker"
+    killall cfprefsd 2>/dev/null || true
     killall Dock 2>/dev/null || true
     killall Finder 2>/dev/null || true
     restart_ui=true

@@ -1,13 +1,17 @@
 #!/bin/bash
 
 # Post-dotfiles hook for `mise bootstrap` (see [bootstrap.hooks] in
-# files/home/.config/mise/config.toml). Links fish completions that ship
-# inside OrbStack's app bundle — a conditional source mise's [dotfiles]
-# entries can't express (they abort when a source is missing).
+# files/home/.config/mise/config.toml). Removes the legacy wallpaper agent
+# before mise loads its replacement, then links fish completions that ship
+# inside OrbStack's app bundle when available.
 
 set -e
 
 [ "$(uname -s)" = "Darwin" ] || exit 0
+
+legacy_wallpaper_label="com.user.woodblock-wallpaper"
+launchctl bootout "gui/$(id -u)/$legacy_wallpaper_label" 2>/dev/null || true
+rm -f "$HOME/Library/LaunchAgents/$legacy_wallpaper_label.plist"
 
 orbstack_completions="/Applications/OrbStack.app/Contents/Resources/completions/fish"
 [ -d "$orbstack_completions" ] || exit 0
