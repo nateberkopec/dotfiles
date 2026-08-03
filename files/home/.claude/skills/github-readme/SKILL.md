@@ -26,7 +26,7 @@ A good GitHub README should answer, in order:
 5. Add configuration/reference sections only after core onboarding is complete.
 6. Add contributor guidance or link to `CONTRIBUTING.md`.
 7. Run the README audit script and fix failures.
-8. If prose still feels dense, apply the `readability` skill afterward.
+8. If prose still feels dense, revise it for clarity and concision.
 
 ## Suggested section order
 

@@ -6,4 +6,4 @@ source: https://github.com/mattpocock/skills/tree/main/skills/engineering/grill-
 disable-model-invocation: true
 ---
 
-Run a `/grilling` session, using the `/domain-modeling` skill.
+Run a `/grilling` session. As decisions emerge, maintain a glossary of domain terms and record consequential architectural decisions as ADRs.

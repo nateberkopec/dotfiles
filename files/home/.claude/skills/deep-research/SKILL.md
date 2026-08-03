@@ -7,7 +7,7 @@ description: Produce an in-depth, source-grounded research report. Use for broad
 
 Use separate agents for source gathering and final synthesis so each role keeps a clean context. The lead coordinates, interviews, delegates reconnaissance, checks coverage, and validates the final report; it does not perform independent web research.
 
-For a narrow fact or small documentation lookup, use `research` instead.
+For a narrow fact or small documentation lookup, answer directly instead of using this workflow.
 
 ## 1. Define the question
 
