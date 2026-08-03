@@ -29,17 +29,6 @@ function mark_mise_task
             set -g has_test 1
         case lint 'lint:*'
             set -g has_lint 1
-            mark_lint_task "$task_name"
-        case large-files
-            set -g has_large_files 1
-        case complexity
-            set -g has_complexity 1
-        case dead-code
-            set -g has_dead_code 1
-        case flog
-            set -g has_flog 1
-        case flay
-            set -g has_flay 1
         case serve dev
             set -g has_serve_or_dev 1
             if test "$task_name" = "serve"
@@ -48,20 +37,11 @@ function mark_mise_task
         case build
             set -g has_build 1
     end
-end
 
-function mark_lint_task
-    switch "$argv[1]"
-        case lint:large-files
-            set -g has_large_files 1
-        case lint:complexity
-            set -g has_complexity 1
-        case lint:dead-code
-            set -g has_dead_code 1
-        case lint:flog
-            set -g has_flog 1
-        case lint:flay
-            set -g has_flay 1
+    set normalized_task_name (string replace -r '^lint:' '' -- "$task_name")
+    if contains -- "$normalized_task_name" large-files complexity dead-code flog flay
+        set flag_name (string replace -- - _ "$normalized_task_name")
+        set -g has_$flag_name 1
     end
 end
 
