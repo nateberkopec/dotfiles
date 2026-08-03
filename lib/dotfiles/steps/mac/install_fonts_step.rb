@@ -19,15 +19,11 @@ class Dotfiles::Step::InstallFontsStep < Dotfiles::Step
       add_error("Failed to check installed fonts (fc-list command failed)")
       return false
     end
-    report_missing_fonts(installed)
+    missing_fonts(installed).each { |font_path| add_error("Font not installed: #{File.basename(font_path)}") }
     @errors.empty?
   end
 
   private
-
-  def report_missing_fonts(installed)
-    missing_fonts(installed).each { |font_path| add_error("Font not installed: #{File.basename(font_path)}") }
-  end
 
   def missing_fonts(installed)
     font_files.reject { |path| installed.include?(File.basename(path, ".ttf")) }

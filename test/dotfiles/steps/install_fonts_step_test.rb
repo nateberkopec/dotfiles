@@ -49,16 +49,4 @@ class InstallFontsStepTest < StepTestCase
   def stub_font_present(name)
     stub_installed_fonts("#{name}.ttf\n#{name}")
   end
-
-  def with_env(vars)
-    originals = vars.keys.to_h { |k| [k, ENV[k]] }
-    vars.each { |k, v| ENV[k] = v }
-    begin
-      rebuild_step!
-      yield
-    ensure
-      vars.each_key { |k| originals[k].nil? ? ENV.delete(k) : ENV[k] = originals[k] }
-      rebuild_step!
-    end
-  end
 end
