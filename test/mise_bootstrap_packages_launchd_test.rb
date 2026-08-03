@@ -12,6 +12,19 @@ class MiseBootstrapPackagesLaunchdTest < Minitest::Test
     assert_includes config.dig("bootstrap", "hooks", "post-packages"), "docker.io"
   end
 
+  def test_declares_daily_wallpaper_launch_agent
+    agent = config.dig("bootstrap", "macos", "launchd", "agents", "woodblock-wallpaper")
+
+    assert_equal "~/.local/share/dotfiles/launch-woodblock-wallpaper", agent.fetch("program")
+    assert_equal({"PATH" => "/usr/bin:/bin"}, agent.fetch("environment"))
+    refute agent.key?("args")
+    assert_equal true, agent.fetch("run_at_load")
+    assert_equal({"hour" => 5, "minute" => 0}, agent.fetch("start_calendar_interval"))
+    assert_equal true, agent.fetch("kickstart")
+    assert_equal "~/Library/Logs/woodblock-wallpaper.out.log", agent.fetch("stdout_path")
+    assert_equal "~/Library/Logs/woodblock-wallpaper.err.log", agent.fetch("stderr_path")
+  end
+
   def test_declares_yknotify_launch_agent
     agent = config.dig("bootstrap", "macos", "launchd", "agents", "yknotify")
 

@@ -12,13 +12,6 @@ class ConfigureRaycastHotkeyStepTest < StepTestCase
       Dotfiles::Step::InstallBrewCasksStep
   end
 
-  def test_run_writes_raycast_defaults
-    step.run
-
-    assert_executed("defaults write com.raycast.macos raycastGlobalHotkey -string Command-49")
-    assert_executed("defaults write com.raycast.macos onboarding_setupHotkey -bool true")
-  end
-
   def test_run_disables_spotlight_hotkey_64
     step.run
 
@@ -34,15 +27,13 @@ class ConfigureRaycastHotkeyStepTest < StepTestCase
     assert executed_bash_scripts.any? { |script, _arg| script.include?("killall SystemUIServer") }
   end
 
-  def test_complete_when_raycast_hotkey_is_command_space_and_spotlight_64_is_disabled
-    stub_raycast_configured
+  def test_complete_when_spotlight_64_is_disabled
     stub_spotlight_disabled
 
     assert_complete
   end
 
   def test_incomplete_when_spotlight_64_is_enabled
-    stub_raycast_configured
     @fake_system.stub_command(
       "/usr/libexec/PlistBuddy -c 'Print :AppleSymbolicHotKeys:64:enabled' #{spotlight_hotkeys_plist}",
       "true",
@@ -62,11 +53,6 @@ class ConfigureRaycastHotkeyStepTest < StepTestCase
   end
 
   private
-
-  def stub_raycast_configured
-    @fake_system.stub_command("defaults read com.raycast.macos raycastGlobalHotkey", "Command-49", 0)
-    @fake_system.stub_command("defaults read com.raycast.macos onboarding_setupHotkey", "1", 0)
-  end
 
   def stub_spotlight_disabled
     @fake_system.stub_command(

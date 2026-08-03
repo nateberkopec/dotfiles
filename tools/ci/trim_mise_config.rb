@@ -51,4 +51,5 @@ if ENV.key?("BREW_CI_PACKAGES") || ENV.key?("DEBIAN_CI_PACKAGES")
   content = replace_table(content, "[bootstrap.packages]", package_entries)
 end
 content = replace_table(content, "[bootstrap.macos.launchd.agents.yknotify]", nil)
+content = replace_table(content, "[bootstrap.macos.launchd.agents.woodblock-wallpaper]", nil)
 File.write(path, content)

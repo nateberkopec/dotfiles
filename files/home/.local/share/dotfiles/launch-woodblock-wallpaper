@@ -1,0 +1,12 @@
+#!/bin/bash
+
+set -e
+
+suffix="/.local/share/dotfiles/launch-woodblock-wallpaper"
+case "$0" in
+    /*"$suffix") export HOME="${0%"$suffix"}" ;;
+    *) echo "launch-woodblock-wallpaper must run from ~${suffix}" >&2; exit 1 ;;
+esac
+
+export PATH="$HOME/.local/share/mise/shims:/usr/bin:/bin"
+exec "$HOME/.local/bin/set-woodblock-wallpaper" "$@"

@@ -1,6 +1,6 @@
 #!/usr/bin/env fish
 
-set -gx PATH "$HOME/.local/bin" "$HOME/.homebrew/bin" /opt/homebrew/bin /usr/local/bin /usr/bin /bin /usr/sbin /sbin $PATH
+set -gx PATH "$HOME/.local/share/mise/shims" "$HOME/.local/bin" "$HOME/.homebrew/bin" /opt/homebrew/bin /usr/local/bin /usr/bin /bin /usr/sbin /sbin $PATH
 
 set -l private_fish "$HOME/.config/fish/private.fish"
 if test -f "$private_fish"

@@ -141,8 +141,7 @@ class Dotfiles::Step::ConfigureSpotlightBatteryStep < Dotfiles::Step
   end
 
   def battery_volumes
-    disabled = normalize_volumes(spotlight_settings.fetch("disabled_volumes", []))
-    normalize_volumes(spotlight_settings.fetch("battery_volumes", default_battery_volumes)) - disabled
+    normalize_volumes(spotlight_settings.fetch("battery_volumes", default_battery_volumes))
   end
 
   def check_interval_seconds
