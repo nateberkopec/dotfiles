@@ -1,6 +1,6 @@
 ---
 name: improve-codebase-architecture
-description: Scan a codebase for deepening opportunities, present them as a visual HTML report, then grill through whichever one you pick.
+description: Scan a codebase for deepening opportunities, present them as a code-centered HTML report with current and proposed code, then grill through whichever one you pick.
 license: "MIT; copyright Matt Pocock; see ../matt-pocock-skills-LICENSE.txt"
 source: https://github.com/mattpocock/skills/tree/main/skills/engineering/improve-codebase-architecture
 disable-model-invocation: true
@@ -33,18 +33,22 @@ Apply the **deletion test** to anything you suspect is shallow: would deleting i
 
 ### 2. Present candidates as an HTML report
 
-Write a self-contained HTML file to the OS temp directory so nothing lands in the repo. Resolve the temp dir from `$TMPDIR`, falling back to `/tmp` (or `%TEMP%` on Windows), and write to `<tmpdir>/architecture-review-<timestamp>.html` so each run gets a fresh file. Open it for the user — `xdg-open <path>` on Linux, `open <path>` on macOS, `start <path>` on Windows — and tell them the absolute path.
+Write a self-contained HTML file to the OS temp directory so nothing lands in the repo. Resolve the temp dir from `$TMPDIR`, falling back to `/tmp` (or `%TEMP%` on Windows), and write to `<tmpdir>/architecture-review-<timestamp>.html` so each run gets a fresh file. Do not open or present it until the readability pass in step 3 succeeds.
 
-The report uses **Tailwind via CDN** for layout and styling, and **Mermaid via CDN** for diagrams where a graph/flow/sequence reliably communicates the structure. Mix Mermaid with hand-crafted CSS/SVG visuals — use Mermaid when relationships are graph-shaped (call graphs, dependencies, sequences), and hand-built divs/SVG when you want something more editorial (mass diagrams, cross-sections, collapse animations). Each candidate gets a **before/after visualisation**. Be visual.
+The report uses **Tailwind via CDN** for layout and **highlight.js via CDN** for syntax highlighting. It is code-centered: explain each candidate by narrating a concrete refactor and showing real current code beside proposed code. Assign an explicit highlight.js language class to every code block instead of relying on automatic detection. Do not use Mermaid, SVG, architecture diagrams, or generic problem/solution/deletion-test sections.
 
 For each candidate, render a card with:
 
 - **Files** — which files/modules are involved
-- **Problem** — why the current architecture is causing friction
-- **Solution** — plain English description of what would change
-- **Benefits** — explained in terms of locality and leverage, and how tests would improve
-- **Before / After diagram** — side-by-side, custom-drawn, illustrating the shallowness and the deepening
+- **What happens today** — a short narrative grounded in an exact excerpt from the current code
+- **Current code** — a small, representative excerpt copied from the repository and labeled with its file path; use ellipses only when omission is clear
+- **Proposed direction** — a short narrative that names what ownership moves and why
+- **Proposed code** — a concrete sketch using the project's language and names; pseudocode and non-compiling sketches are allowed, but label them `Proposed sketch`
+- **Caller or test change** — when useful, show how a real caller or test becomes smaller or moves to the new interface
+- **Why this is deeper** — a compact explanation in terms of interface, locality, leverage, seam, and test surface
 - **Recommendation strength** — one of `Strong`, `Worth exploring`, `Speculative`, rendered as a badge
+
+Prefer two or three focused code excerpts over a large synthetic rewrite. Proposed code must be specific enough to discuss method ownership, dependencies, and the test surface; avoid placeholder boxes or prose-only abstractions.
 
 End the report with a **Top recommendation** section: which candidate you'd tackle first and why.
 
@@ -52,11 +56,24 @@ End the report with a **Top recommendation** section: which candidate you'd tack
 
 **ADR conflicts**: if a candidate contradicts an existing ADR, only surface it when the friction is real enough to warrant revisiting the ADR. Mark it clearly in the card (e.g. a warning callout: _"contradicts ADR-0007 — but worth reopening because…"_). Don't list every theoretical refactor an ADR forbids.
 
-See [HTML-REPORT.md](HTML-REPORT.md) for the full HTML scaffold, diagram patterns, and styling guidance.
+See [HTML-REPORT.md](HTML-REPORT.md) for the full HTML scaffold, code-presentation patterns, and styling guidance.
 
-Do NOT propose interfaces yet. After the file is written, ask the user: "Which of these would you like to explore?"
+The proposed code is a discussion sketch, not an implementation plan. Do not edit the project.
 
-### 3. Grilling loop
+### 3. Apply a readability pass
+
+Run the `/readability` skill against the finished report before presenting it. The audience is a maintainer choosing which refactor to discuss; their task is to compare current and proposed code quickly.
+
+- Front-load a compact **At a glance** section with the top recommendation and one short bullet per candidate.
+- Keep headings descriptive, paragraphs short, and labels consistent. Preserve exact current-code excerpts during prose edits.
+- Extract the report's user-facing prose to `<tmpdir>/architecture-review-<timestamp>-prose.md`. Exclude code samples, scripts, styles, HTML attributes, file paths, and badge labels; preserve headings and lists.
+- Run the readability skill's bundled `readability_audit.rb` against that prose file with its default grade target of 10.
+- Fix every warning and failed check in both the HTML report and extracted prose, then rerun the audit until every check reports `PASS`. Required architecture and domain terms may remain, but simplify the surrounding sentences rather than skipping a check.
+- Check the rendered HTML for scanning, mobile stacking, code legibility, and working syntax highlighting. Do not treat a passing script as sufficient by itself.
+
+After the pass succeeds, open the HTML file for the user — `xdg-open <path>` on Linux, `open <path>` on macOS, `start <path>` on Windows — tell them the absolute path, briefly summarize the readability changes, and ask: "Which of these would you like to explore?"
+
+### 4. Grilling loop
 
 Once the user picks a candidate, run the `/grilling` skill to walk the design tree with them — constraints, dependencies, the shape of the deepened module, what sits behind the seam, what tests survive.
 
