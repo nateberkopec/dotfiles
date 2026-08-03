@@ -129,12 +129,6 @@ class Dotfiles
       errors.dup
     end
 
-    def allowed_on_platform?
-      return false if self.class.macos_only? && !@system.macos?
-      return false if self.class.debian_only? && !@system.debian?
-      true
-    end
-
     private
 
     def debug(message)
