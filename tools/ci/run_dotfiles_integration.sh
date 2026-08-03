@@ -26,9 +26,8 @@ run_dotfiles() {
 assert_no_steps_ran() {
     local label="$1"
     local log_name="$2"
-    local log_path="$repo_dir/$log_name"
 
-    if grep -F "Running step:" "$log_path"; then
+    if grep -F "Running step:" "$repo_dir/$log_name"; then
         echo "❌ $label was not a no-op when converged"
         return 1
     fi
@@ -45,6 +44,7 @@ find_fish_bin() {
             "$HOME/.homebrew/bin/fish"
             "/opt/homebrew/bin/fish"
             "/usr/local/bin/fish"
+            "fish"
         )
     else
         candidates=("$HOME/.local/bin/fish" "fish")
@@ -61,11 +61,6 @@ find_fish_bin() {
             return 0
         fi
     done
-
-    if command -v fish >/dev/null 2>&1; then
-        command -v fish
-        return 0
-    fi
 
     return 1
 }
