@@ -17,9 +17,7 @@ class Dotfiles::Step::ProtectFilesStep < Dotfiles::Step
   end
 
   def immutable_flag(file)
-    return "uchg" if user_credentials_file?(file)
-
-    "schg"
+    user_credentials_file?(file) ? "uchg" : "schg"
   end
 
   def protect_with_sudo?(file)
@@ -27,9 +25,7 @@ class Dotfiles::Step::ProtectFilesStep < Dotfiles::Step
   end
 
   def protected_file_mode(file)
-    return 0o600 if user_credentials_file?(file)
-
-    nil
+    user_credentials_file?(file) ? 0o600 : nil
   end
 
   def pi_extension_files
