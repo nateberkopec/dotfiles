@@ -158,29 +158,12 @@ class FakeSystemAdapter
 
   def execute(command, quiet: true)
     @operations << [:execute, command, {quiet: quiet}]
-
-    stub = command_stub(command)
-    if stub
-      @exit_statuses << stub[:exit_status]
-      [stub[:output].strip, stub[:exit_status]]
-    else
-      @exit_statuses << 0
-      ["", 0]
-    end
+    command_result(command)
   end
 
   def execute!(command, quiet: true)
     @operations << [:execute!, command, {quiet: quiet}]
-
-    stub = command_stub(command)
-    if stub
-      @exit_statuses << stub[:exit_status]
-      raise "Command failed: #{Dotfiles::Command.display(command)}\nOutput: #{stub[:output]}" unless stub[:exit_status] == 0
-      [stub[:output].strip, stub[:exit_status]]
-    else
-      @exit_statuses << 0
-      ["", 0]
-    end
+    command_result(command, raise_on_failure: true)
   end
 
   def operation_count(operation_name)
@@ -214,6 +197,15 @@ class FakeSystemAdapter
   end
 
   private
+
+  def command_result(command, raise_on_failure: false)
+    stub = command_stub(command) || {output: "", exit_status: 0}
+    @exit_statuses << stub[:exit_status]
+    if raise_on_failure && stub[:exit_status] != 0
+      raise "Command failed: #{Dotfiles::Command.display(command)}\nOutput: #{stub[:output]}"
+    end
+    [stub[:output].strip, stub[:exit_status]]
+  end
 
   def command_stub(command)
     @command_outputs[command] ||
