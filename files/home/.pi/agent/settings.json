@@ -32,6 +32,12 @@
     "agentOverrides": {
       "reviewer": {
         "thinking": "xhigh"
+      },
+      "oracle": {
+        "thinking": "xhigh"
+      },
+      "worker": {
+        "thinking": "medium"
       }
     }
   },
