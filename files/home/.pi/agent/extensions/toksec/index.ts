@@ -1,7 +1,13 @@
 import type { ExtensionAPI, ExtensionContext } from "@mariozechner/pi-coding-agent";
 import { formatStatus } from "./format.ts";
 import { addSample, currentModel, rebuildStats, sameModel, zeroStats } from "./samples.ts";
-import { isDeltaEvent, isFinalAssistantMessage, isOutputEvent, outputTokensFromMessage } from "./stream_events.ts";
+import {
+	charsFromMessage,
+	deltaCharsFromEvent,
+	isFinalAssistantMessage,
+	isOutputEvent,
+	outputTokensFromMessage,
+} from "./stream_events.ts";
 import { CUSTOM_TYPE, STATUS_KEY, type ActiveMeasurement, type AggregateStats, type ModelRef, type ToksecEntry } from "./types.ts";
 
 function updateStatus(ctx: ExtensionContext, stats: AggregateStats): void {
@@ -13,12 +19,14 @@ function createSample(message: unknown, measurement: ActiveMeasurement): ToksecE
 	const firstOutputAt = measurement.firstOutputAt;
 	if (!firstOutputAt) return undefined;
 
+	const observedChars = Math.max(measurement.observedChars, charsFromMessage(message));
+
 	return {
 		version: 1,
 		kind: "sample",
 		provider: measurement.model.provider,
 		modelId: measurement.model.id,
-		outputTokens: outputTokensFromMessage(message, measurement.deltaChars),
+		outputTokens: outputTokensFromMessage(message, observedChars),
 		generationMs: Date.now() - firstOutputAt,
 		ttftMs: firstOutputAt - measurement.requestStartedAt,
 		timestamp: new Date().toISOString(),
@@ -49,7 +57,11 @@ export default function toksecExtension(pi: ExtensionAPI) {
 		const model = currentModel(ctx) ?? selectedModel;
 		if (!model) return;
 
-		active = { model, requestStartedAt: pendingRequestStartedAt ?? Date.now(), deltaChars: 0 };
+		active = {
+			model,
+			requestStartedAt: pendingRequestStartedAt ?? Date.now(),
+			observedChars: 0,
+		};
 		pendingRequestStartedAt = undefined;
 	});
 
@@ -60,9 +72,14 @@ export default function toksecExtension(pi: ExtensionAPI) {
 		if (!isOutputEvent(assistantEvent)) return;
 
 		active.firstOutputAt ??= Date.now();
-		if (isDeltaEvent(assistantEvent) && typeof assistantEvent.delta === "string") {
-			active.deltaChars += assistantEvent.delta.length;
-		}
+
+		// Count the whole assistant payload (text + thinking + tool calls), not just
+		// text deltas. Prefer the running partial message; also accumulate raw deltas
+		// for providers that omit partial content on some events.
+		active.observedChars = Math.max(
+			active.observedChars + deltaCharsFromEvent(assistantEvent),
+			charsFromMessage(event.message),
+		);
 	});
 
 	pi.on("message_end", async (event, ctx) => {
@@ -72,6 +89,13 @@ export default function toksecExtension(pi: ExtensionAPI) {
 
 		if (!isFinalAssistantMessage(event.message)) return updateStatus(ctx, stats);
 		if (!sameModel(measurement.model, selectedModel ?? currentModel(ctx))) return updateStatus(ctx, stats);
+
+		// Non-streaming completions skip message_update; still count the final payload.
+		const finalChars = charsFromMessage(event.message);
+		if (!measurement.firstOutputAt && finalChars > 0) {
+			measurement.firstOutputAt = Date.now();
+			measurement.observedChars = Math.max(measurement.observedChars, finalChars);
+		}
 
 		const sample = createSample(event.message, measurement);
 		if (!sample) return updateStatus(ctx, stats);
