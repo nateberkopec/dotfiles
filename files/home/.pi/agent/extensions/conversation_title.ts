@@ -74,6 +74,7 @@ export default function conversationTitle(pi: ExtensionAPI) {
 	const activeTools = new Map<string, string>();
 	let spinnerTimer: ReturnType<typeof setInterval> | undefined;
 	let completionTimer: ReturnType<typeof setTimeout> | undefined;
+	let restoreTimer: ReturnType<typeof setTimeout> | undefined;
 	let titleRequest: AbortController | undefined;
 
 	const displayTitle = (ctx: ExtensionContext, spinner?: string) => {
@@ -86,8 +87,18 @@ export default function conversationTitle(pi: ExtensionAPI) {
 	const stopTimers = () => {
 		if (spinnerTimer) clearInterval(spinnerTimer);
 		if (completionTimer) clearTimeout(completionTimer);
+		if (restoreTimer) clearTimeout(restoreTimer);
 		spinnerTimer = undefined;
 		completionTimer = undefined;
+		restoreTimer = undefined;
+	};
+
+	const restoreTitleAfterPi = (ctx: ExtensionContext) => {
+		if (restoreTimer) clearTimeout(restoreTimer);
+		restoreTimer = setTimeout(() => {
+			displayTitle(ctx);
+			restoreTimer = undefined;
+		}, 0);
 	};
 
 	const cancelTitleRequest = () => {
@@ -165,10 +176,11 @@ export default function conversationTitle(pi: ExtensionAPI) {
 		}
 		title = stored?.title || pi.getSessionName() || path.basename(ctx.cwd);
 		lastUpdatedAt = stored?.updatedAt || 0;
-		completionTimer = setTimeout(() => {
-			displayTitle(ctx);
-			completionTimer = undefined;
-		}, 0);
+		restoreTitleAfterPi(ctx);
+	});
+
+	pi.on("session_info_changed", (_event, ctx) => {
+		if (ctx.mode === "tui") restoreTitleAfterPi(ctx);
 	});
 
 	pi.on("agent_start", (_event, ctx) => {
