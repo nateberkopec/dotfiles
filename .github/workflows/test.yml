@@ -32,7 +32,11 @@ jobs:
         cache: true
 
     - name: Install Fish
-      run: mise install aqua:fish-shell/fish-shell@4.8.1
+      run: |
+        mise settings experimental=true
+        mise install aqua:fish-shell/fish-shell@4.8.1
+        fish_bin="$(mise x aqua:fish-shell/fish-shell@4.8.1 -- which fish)"
+        echo "$(dirname "$fish_bin")" >> "$GITHUB_PATH"
 
     - name: Run tests
-      run: MISE_EXPERIMENTAL=1 mise x aqua:fish-shell/fish-shell@4.8.1 -- bundle exec rake test
+      run: bundle exec rake test
