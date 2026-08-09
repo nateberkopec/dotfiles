@@ -10,8 +10,7 @@ Most dotfiles repos just copy files to your home folder. This one does more. It 
 
 When you run `dotf run` it will:
 
-- Bootstrap Homebrew and the official mise binary when needed
-- Self-update mise to the newest release at least three days old
+- Bootstrap Homebrew and mise when needed
 - Use `mise bootstrap` to converge tools, system packages, home files, macOS defaults, and LaunchAgents
 - Run one-time migrations for existing machines
 - Run the remaining imperative Ruby Steps (see `dotf steps`)
@@ -80,13 +79,10 @@ We don't trust agents, we make sure they do the right thing and lock destructive
 
 `dotf run` converges the machine in this order:
 
-1. Bootstrap Homebrew and install the official mise binary at `~/.local/bin/mise`.
-2. Self-update mise to the newest release published at least three days ago.
-3. Run `mise bootstrap`.
-4. Run pending migrations.
-5. Run imperative Ruby Steps.
-
-Mise owns and updates its own binary rather than relying on Homebrew or APT. Bootstrap starts from a pinned official release when no mise exists, then upgrades without downgrading an already-newer installation.
+1. Bootstrap Homebrew and mise.
+2. Run `mise bootstrap`.
+3. Run pending migrations.
+4. Run imperative Ruby Steps.
 
 Mise owns declarative state in `files/home/.config/mise/config.toml`: tools, system packages, home files, macOS defaults, and LaunchAgents. Ruby Steps remain for behavior mise cannot express cleanly, such as private Homebrew casks, security protections, and application-specific setup. Steps can depend on other Steps.
 
