@@ -5,61 +5,64 @@ require "json"
 require "open3"
 require "tmpdir"
 
-class SetWoodblockWallpaperTest < Minitest::Test
-  def test_sets_first_wallpaper_from_a_whitelisted_museum
+class WoodblockWallpaperCommandTest < Minitest::Test
+  def test_prints_command_for_first_wallpaper_from_a_whitelisted_museum
     photos = [
       {id: "rejected", user: {username: "moonshadowpress"}},
       {id: "accepted", user: {username: "thewalters"}},
       {id: "also-accepted", user: {username: "artchicago"}}
     ]
 
-    run_wallpaper(photos, "--user", "moonshadowpress") do |result, traces|
-      _stdout, stderr, status = result
+    run_command(photos, "--user", "moonshadowpress") do |result, curl_trace|
+      stdout, stderr, status = result
 
       assert status.success?, stderr
-      assert_equal %w[--plain --id accepted --no-cache], File.readlines(traces.fetch(:splash), chomp: true)
-      assert_equal expected_curl_arguments, File.readlines(traces.fetch(:curl), chomp: true)
+      assert_equal "splash --plain --id accepted --no-cache\n", stdout
+      assert_equal expected_curl_arguments, File.readlines(curl_trace, chomp: true)
     end
   end
 
   def test_rejects_results_without_a_whitelisted_museum
-    run_wallpaper([{id: "rejected", user: {username: "moonshadowpress"}}]) do |result, traces|
-      _stdout, stderr, status = result
+    run_command([{id: "rejected", user: {username: "moonshadowpress"}}]) do |result, _curl_trace|
+      stdout, stderr, status = result
 
       refute status.success?
+      assert_empty stdout
       assert_includes stderr, "No woodblock prints found from whitelisted museum accounts"
-      refute File.exist?(traces.fetch(:splash))
+    end
+  end
+
+  def test_rejects_an_unsafe_photo_id
+    run_command([{id: "accepted; touch /tmp/pwned", user: {username: "thewalters"}}]) do |result, _curl_trace|
+      stdout, stderr, status = result
+
+      refute status.success?
+      assert_empty stdout
+      assert_includes stderr, "Unsplash returned an invalid photo ID"
     end
   end
 
   private
 
-  def run_wallpaper(photos, *arguments)
-    skip "fish is required for wallpaper tests" unless system("fish", "--version", out: File::NULL, err: File::NULL)
-
+  def run_command(photos, *arguments)
     Dir.mktmpdir do |home|
-      bin = File.join(home, ".local/bin")
+      bin = File.join(home, "bin")
       FileUtils.mkdir_p(bin)
       fixture = File.join(home, "photos.json")
       File.write(fixture, JSON.generate(photos))
-      traces = {curl: File.join(home, "curl.trace"), splash: File.join(home, "splash.trace")}
+      curl_trace = File.join(home, "curl.trace")
       write_command(bin, "curl", <<~SH)
         printf '%s\n' "$@" > "$CURL_TRACE"
         cat "$FIXTURE"
       SH
-      write_command(bin, "splash", <<~SH)
-        printf '%s\n' "$@" > "$SPLASH_TRACE"
-      SH
 
       env = {
-        "HOME" => home,
+        "PATH" => "#{bin}:#{ENV.fetch("PATH")}",
         "UNSPLASH_CLIENT_ID" => "client",
-        "UNSPLASH_CLIENT_SECRET" => "secret",
         "FIXTURE" => fixture,
-        "CURL_TRACE" => traces.fetch(:curl),
-        "SPLASH_TRACE" => traces.fetch(:splash)
+        "CURL_TRACE" => curl_trace
       }
-      yield Open3.capture3(env, wallpaper_source, *arguments), traces
+      yield Open3.capture3(env, command_source, *arguments), curl_trace
     end
   end
 
@@ -80,8 +83,8 @@ class SetWoodblockWallpaperTest < Minitest::Test
     ]
   end
 
-  def wallpaper_source
-    File.expand_path("../files/home/.local/bin/set-woodblock-wallpaper", __dir__)
+  def command_source
+    File.expand_path("../files/home/.local/bin/woodblock-wallpaper-command", __dir__)
   end
 end
 # standard:enable Dotfiles/BanFileSystemClasses

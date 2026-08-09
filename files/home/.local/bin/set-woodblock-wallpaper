@@ -14,55 +14,14 @@ for name in UNSPLASH_CLIENT_ID UNSPLASH_CLIENT_SECRET
   end
 end
 
-for name in curl jq splash
+for name in woodblock-wallpaper-command curl splash
   if not command -q $name
     echo "$name command not found; run dotf run to install dependencies" >&2
     exit 1
   end
 end
 
-set -l museum_accounts \
-  artchicago \
-  austriannationallibrary \
-  aucklandmuseum \
-  birminghammuseumstrust \
-  bostonpubliclibrary \
-  britishlibrary \
-  clevelandart \
-  danishlibrary \
-  denverartmuseum \
-  galtmuseum \
-  gofyn \
-  libraryofcongress \
-  mcgilllibrary \
-  metropolitanmuseum \
-  nationalgallery \
-  nationallibraryofaustralia \
-  nationallibrarynorway \
-  natlibraryofscotland \
-  natmus \
-  nhm \
-  nypl \
-  seamuseum \
-  tepapa \
-  thewalters
-
-set -l response (command curl --fail --silent --show-error --get \
-  --data-urlencode "client_id=$UNSPLASH_CLIENT_ID" \
-  --data-urlencode "query=woodblock print" \
-  --data-urlencode "orientation=landscape" \
-  --data-urlencode "count=30" \
-  https://api.unsplash.com/photos/random)
+set -l wallpaper_command (woodblock-wallpaper-command)
 or exit 1
 
-set -l photo_id (printf '%s\n' $response | command jq --raw-output \
-  --arg accounts (string join ' ' $museum_accounts) \
-  'map(select(.user.username as $username | ($accounts | split(" ") | index($username)))) | first | .id // empty')
-or exit 1
-
-if test -z "$photo_id"
-  echo "No woodblock prints found from whitelisted museum accounts" >&2
-  exit 1
-end
-
-command splash --plain --id "$photo_id" --no-cache
+eval $wallpaper_command

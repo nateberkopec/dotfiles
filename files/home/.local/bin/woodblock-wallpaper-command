@@ -1,0 +1,58 @@
+#!/usr/bin/env ruby
+
+require "json"
+require "open3"
+
+MUSEUM_ACCOUNTS = %w[
+  artchicago
+  austriannationallibrary
+  aucklandmuseum
+  birminghammuseumstrust
+  bostonpubliclibrary
+  britishlibrary
+  clevelandart
+  danishlibrary
+  denverartmuseum
+  galtmuseum
+  gofyn
+  libraryofcongress
+  mcgilllibrary
+  metropolitanmuseum
+  nationalgallery
+  nationallibraryofaustralia
+  nationallibrarynorway
+  natlibraryofscotland
+  natmus
+  nhm
+  nypl
+  seamuseum
+  tepapa
+  thewalters
+].freeze
+
+client_id = ENV["UNSPLASH_CLIENT_ID"]
+abort "UNSPLASH_CLIENT_ID must be set" if client_id.nil? || client_id.empty?
+
+response, error, status = Open3.capture3(
+  "curl", "--fail", "--silent", "--show-error", "--get",
+  "--data-urlencode", "client_id=#{client_id}",
+  "--data-urlencode", "query=woodblock print",
+  "--data-urlencode", "orientation=landscape",
+  "--data-urlencode", "count=30",
+  "https://api.unsplash.com/photos/random"
+)
+
+unless status.success?
+  warn error
+  exit status.exitstatus
+end
+
+photo = JSON.parse(response).find do |candidate|
+  MUSEUM_ACCOUNTS.include?(candidate.dig("user", "username"))
+end
+abort "No woodblock prints found from whitelisted museum accounts" unless photo
+
+photo_id = photo.fetch("id")
+abort "Unsplash returned an invalid photo ID" unless photo_id.match?(/\A[A-Za-z0-9_-]+\z/)
+
+puts "splash --plain --id #{photo_id} --no-cache"
