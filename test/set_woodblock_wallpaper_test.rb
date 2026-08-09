@@ -35,6 +35,8 @@ class SetWoodblockWallpaperTest < Minitest::Test
   private
 
   def run_wallpaper(photos, *arguments)
+    skip "fish is required for wallpaper tests" unless system("fish", "--version", out: File::NULL, err: File::NULL)
+
     Dir.mktmpdir do |home|
       bin = File.join(home, ".local/bin")
       FileUtils.mkdir_p(bin)

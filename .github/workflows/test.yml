@@ -35,8 +35,11 @@ jobs:
       run: |
         mise settings experimental=true
         mise install aqua:fish-shell/fish-shell@4.8.1
-        fish_bin="$(mise x aqua:fish-shell/fish-shell@4.8.1 -- which fish)"
-        echo "$(dirname "$fish_bin")" >> "$GITHUB_PATH"
 
     - name: Run tests
       run: bundle exec rake test
+
+    - name: Run wallpaper tests with Fish
+      run: |
+        fish_bin="$(mise x aqua:fish-shell/fish-shell@4.8.1 -- which fish)"
+        PATH="$(dirname "$fish_bin"):$PATH" bundle exec ruby -Itest test/set_woodblock_wallpaper_test.rb
