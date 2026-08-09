@@ -155,20 +155,12 @@ prepare_debian_apt_sources() {
         "deb [signed-by=/usr/share/keyrings/gierens-archive-keyring.gpg] http://deb.gierens.de stable main"
 }
 
-remove_mise_apt_source() {
-    sudo rm -f \
-        /etc/apt/sources.list.d/mise.list \
-        /etc/apt/sources.list.d/mise.sources \
-        /usr/share/keyrings/mise-archive-keyring.gpg
-}
-
 bootstrap_debian_prereqs() {
     if ! is_linux; then
         return 0
     fi
 
     debug "Installing Debian prerequisites..."
-    remove_mise_apt_source
     sudo apt-get update -y
     sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y \
         ca-certificates \
