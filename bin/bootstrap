@@ -22,14 +22,6 @@ debug() {
     fi
 }
 
-brew_quiet() {
-    if [ "${DEBUG:-false}" = "true" ]; then
-        HOMEBREW_NO_AUTO_UPDATE=1 brew "$@"
-    else
-        HOMEBREW_NO_AUTO_UPDATE=1 brew "$@" >/dev/null 2>&1
-    fi
-}
-
 private_homebrew_prefix() {
     printf '%s\n' "$HOME/.homebrew"
 }
@@ -161,8 +153,13 @@ ensure_debian_apt_source() {
 prepare_debian_apt_sources() {
     ensure_debian_apt_source "gierens" "https://raw.githubusercontent.com/eza-community/eza/main/deb.asc" \
         "deb [signed-by=/usr/share/keyrings/gierens-archive-keyring.gpg] http://deb.gierens.de stable main"
-    ensure_debian_apt_source "mise" "https://mise.jdx.dev/gpg-key.pub" \
-        "deb [signed-by=/usr/share/keyrings/mise-archive-keyring.gpg] https://mise.jdx.dev/deb stable main"
+}
+
+remove_mise_apt_source() {
+    sudo rm -f \
+        /etc/apt/sources.list.d/mise.list \
+        /etc/apt/sources.list.d/mise.sources \
+        /usr/share/keyrings/mise-archive-keyring.gpg
 }
 
 bootstrap_debian_prereqs() {
@@ -171,6 +168,7 @@ bootstrap_debian_prereqs() {
     fi
 
     debug "Installing Debian prerequisites..."
+    remove_mise_apt_source
     sudo apt-get update -y
     sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y \
         ca-certificates \
@@ -182,20 +180,48 @@ bootstrap_debian_prereqs() {
     prepare_debian_apt_sources
 }
 
-bootstrap_mise() {
-    if ! command -v mise &> /dev/null; then
-        debug "Installing mise..."
-        if is_macos; then
-            brew_quiet install mise
-            hash -r
-        else
-            curl -fsSL https://mise.jdx.dev/install.sh | sh
-            if [ -d "$HOME/.local/bin" ]; then
-                export PATH="$HOME/.local/bin:$PATH"
-            fi
+MISE_BOOTSTRAP_VERSION="2026.8.0"
+
+mise_version() {
+    "$1" --version 2>/dev/null | awk 'NR == 1 { print $1 }'
+}
+
+mise_install_version() {
+    local version="$MISE_BOOTSTRAP_VERSION"
+    local existing_version
+
+    if command -v mise &> /dev/null; then
+        existing_version="$(mise_version "$(command -v mise)")"
+        if [ -n "$existing_version" ] && dotf_version_is_newer "$existing_version" "$version"; then
+            version="$existing_version"
         fi
+    fi
+    printf '%s\n' "$version"
+}
+
+install_self_managed_mise() {
+    local mise_bin="$HOME/.local/bin/mise"
+    local version
+    version="$(mise_install_version)"
+
+    debug "Installing mise ${version} to ${mise_bin}..."
+    curl -fsSL https://mise.run | MISE_VERSION="$version" MISE_INSTALL_PATH="$mise_bin" sh
+}
+
+bootstrap_mise() {
+    local mise_bin="$HOME/.local/bin/mise"
+
+    if [ ! -x "$mise_bin" ] || ! "$mise_bin" --version >/dev/null 2>&1; then
+        install_self_managed_mise
     else
-        debug "mise already installed"
+        debug "Self-managed mise already installed"
+    fi
+
+    export PATH="$HOME/.local/bin:$PATH"
+    hash -r
+    if ! "$mise_bin" --version >/dev/null 2>&1; then
+        echo "Error: mise installation at ${mise_bin} could not be verified" >&2
+        return 1
     fi
 
     seed_global_mise_config

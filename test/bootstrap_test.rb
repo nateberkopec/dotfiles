@@ -60,30 +60,40 @@ class BootstrapTest < Minitest::Test
     with_bootstrap_stub do |env|
       run_prepare_debian_apt_sources(env)
 
-      expected_urls = [
-        "https://raw.githubusercontent.com/eza-community/eza/main/deb.asc",
-        "https://mise.jdx.dev/gpg-key.pub"
-      ]
-      assert_equal expected_urls, File.readlines(env.fetch("APT_CURL_LOG"), chomp: true)
-      %w[gierens mise].each do |name|
-        assert File.exist?(File.join(env.fetch("DEBIAN_KEYRING_DIR"), "#{name}-archive-keyring.gpg"))
-        assert_equal apt_source_line(name) + "\n", File.read(File.join(env.fetch("DEBIAN_SOURCE_DIR"), "#{name}.list"))
-      end
+      assert_equal ["https://raw.githubusercontent.com/eza-community/eza/main/deb.asc"], File.readlines(env.fetch("APT_CURL_LOG"), chomp: true)
+      assert File.exist?(File.join(env.fetch("DEBIAN_KEYRING_DIR"), "gierens-archive-keyring.gpg"))
+      assert_equal apt_source_line + "\n", File.read(File.join(env.fetch("DEBIAN_SOURCE_DIR"), "gierens.list"))
     end
   end
 
   def test_prepare_debian_apt_sources_preserves_existing_keys_and_sources
     with_bootstrap_stub do |env|
       FileUtils.mkdir_p([env.fetch("DEBIAN_KEYRING_DIR"), env.fetch("DEBIAN_SOURCE_DIR")])
-      %w[gierens mise].each do |name|
-        File.write(File.join(env.fetch("DEBIAN_KEYRING_DIR"), "#{name}-archive-keyring.gpg"), "existing")
-        File.write(File.join(env.fetch("DEBIAN_SOURCE_DIR"), "#{name}.list"), apt_source_line(name) + "\n")
-      end
+      File.write(File.join(env.fetch("DEBIAN_KEYRING_DIR"), "gierens-archive-keyring.gpg"), "existing")
+      File.write(File.join(env.fetch("DEBIAN_SOURCE_DIR"), "gierens.list"), apt_source_line + "\n")
 
       run_prepare_debian_apt_sources(env)
 
       refute File.exist?(env.fetch("APT_CURL_LOG"))
       refute File.exist?(env.fetch("APT_SUDO_LOG"))
+    end
+  end
+
+  def test_bootstrap_mise_installs_the_pinned_version_on_a_fresh_machine
+    with_bootstrap_stub do |env|
+      run_bootstrap_mise(env)
+
+      assert_equal "2026.8.0 #{File.join(env.fetch("HOME"), ".local", "bin", "mise")}", File.read(env.fetch("MISE_INSTALL_LOG")).chomp
+    end
+  end
+
+  def test_bootstrap_mise_preserves_a_newer_package_managed_version
+    with_bootstrap_stub do |env|
+      write_mise_stub(env)
+
+      run_bootstrap_mise(env)
+
+      assert_match(/\A2026\.8\.2 /, File.read(env.fetch("MISE_INSTALL_LOG")))
     end
   end
 
@@ -103,9 +113,8 @@ class BootstrapTest < Minitest::Test
 
   private
 
-  def apt_source_line(name)
-    repo = (name == "gierens") ? "http://deb.gierens.de" : "https://mise.jdx.dev/deb"
-    "deb [signed-by=/usr/share/keyrings/#{name}-archive-keyring.gpg] #{repo} stable main"
+  def apt_source_line
+    "deb [signed-by=/usr/share/keyrings/gierens-archive-keyring.gpg] http://deb.gierens.de stable main"
   end
 
   def homebrew_installer_scenarios

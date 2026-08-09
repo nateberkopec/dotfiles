@@ -24,6 +24,7 @@ module BootstrapScriptHelper
       "HOMEBREW_CONFIGURED_BREW_LOG" => File.join(tmpdir, "configured-brew"),
       "MISE_COMMAND_LOG" => File.join(tmpdir, "mise-commands"),
       "MISE_CONFIG_AT_ACTIVATION_LOG" => File.join(tmpdir, "mise-config-at-activation"),
+      "MISE_INSTALL_LOG" => File.join(tmpdir, "mise-install"),
       "DEBIAN_KEYRING_DIR" => File.join(tmpdir, "keyrings"),
       "DEBIAN_SOURCE_DIR" => File.join(tmpdir, "sources"),
       "APT_CURL_LOG" => File.join(tmpdir, "apt-curl"),
@@ -34,12 +35,30 @@ module BootstrapScriptHelper
   def write_curl_stub(bin_dir)
     File.write(File.join(bin_dir, "curl"), <<~'BASH')
       #!/bin/bash
-      cat <<'INSTALLER'
+      if [[ "$*" == *https://mise.run* ]]; then
+        cat <<'INSTALLER'
+      printf '%s\n' "$MISE_VERSION $MISE_INSTALL_PATH" > "$MISE_INSTALL_LOG"
+      mkdir -p "$(dirname "$MISE_INSTALL_PATH")"
+      printf '%s\n' "$MISE_VERSION" > "$MISE_INSTALL_PATH.version"
+      cat > "$MISE_INSTALL_PATH" <<'MISE'
+      #!/bin/bash
+      if [ "${1:-}" = "--version" ]; then
+        cat "$0.version"
+      elif [ "$*" = "activate bash" ]; then
+        cat "$HOME/.config/mise/config.toml" > "$MISE_CONFIG_AT_ACTIVATION_LOG"
+      fi
+      printf '%s\n' "mise $*" >> "$MISE_COMMAND_LOG"
+      MISE
+      chmod +x "$MISE_INSTALL_PATH"
+      INSTALLER
+      else
+        cat <<'INSTALLER'
       printf '%s\n' "${NONINTERACTIVE-__unset__}" > "$HOMEBREW_INSTALL_ENV_LOG"
       mkdir -p "$(dirname "$HOMEBREW_INSTALLED_BREW")"
       printf '#!/bin/bash\n' > "$HOMEBREW_INSTALLED_BREW"
       chmod +x "$HOMEBREW_INSTALLED_BREW"
       INSTALLER
+      fi
     BASH
     FileUtils.chmod("+x", File.join(bin_dir, "curl"))
   end
@@ -49,7 +68,9 @@ module BootstrapScriptHelper
     File.write(File.join(bin_dir, "mise"), <<~'BASH')
       #!/bin/bash
       printf '%s\n' "mise $*" >> "$MISE_COMMAND_LOG"
-      if [ "$*" = "activate bash" ]; then
+      if [ "${1:-}" = "--version" ]; then
+        printf '%s\n' "${MISE_STUB_VERSION:-2026.8.2}"
+      elif [ "$*" = "activate bash" ]; then
         cat "$HOME/.config/mise/config.toml" > "$MISE_CONFIG_AT_ACTIVATION_LOG"
       fi
     BASH
