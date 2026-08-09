@@ -62,7 +62,7 @@ run = "bundle exec rake flay"
 
 [tasks."lint:skills"]
 description = "Validate Claude skills"
-sources = ["files/home/.claude/skills/**", "tools/lint_agent_skills.rb"]
+sources = ["files/home/.claude/skills/**", "tools/agent_skill_lint.rb", "tools/agent_skill_lint/**/*.rb", "tools/lint_agent_skills.rb"]
 run = "ruby tools/lint_agent_skills.rb"
 
 [tasks.lint]
