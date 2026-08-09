@@ -103,6 +103,7 @@ jobs:
         DEBUG: true
         CI: true
         NONINTERACTIVE: true
+        AUBE_DISABLE_TARBALL_STREAM: "1"
         GITHUB_TOKEN: ${{ github.token }}
         MISE_CI_TOOLS: "gum@0.17.0,github:jdx/aube@1.36.0,npm:@earendil-works/pi-coding-agent@0.83.0,fzf@latest,aqua:fish-shell/fish-shell@4.8.1"
         BREW_CI_PACKAGES: "duti"
@@ -201,6 +202,7 @@ jobs:
         DEBUG: true
         CI: true
         NONINTERACTIVE: true
+        AUBE_DISABLE_TARBALL_STREAM: "1"
         GITHUB_TOKEN: ${{ github.token }}
         MISE_CI_TOOLS: "gum@0.17.0,github:jdx/aube@1.36.0,npm:@earendil-works/pi-coding-agent@0.83.0,fzf@latest,aqua:fish-shell/fish-shell@4.8.1"
         BREW_CI_PACKAGES: "duti"
@@ -218,6 +220,7 @@ jobs:
           DEBUG="${DEBUG}" \
           CI="${CI}" \
           NONINTERACTIVE="${NONINTERACTIVE}" \
+          AUBE_DISABLE_TARBALL_STREAM="${AUBE_DISABLE_TARBALL_STREAM}" \
           GITHUB_TOKEN="${GITHUB_TOKEN}" \
           MISE_CI_TOOLS="${MISE_CI_TOOLS}" \
           BREW_CI_PACKAGES="${BREW_CI_PACKAGES}" \
