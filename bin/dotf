@@ -164,6 +164,30 @@ mise_packages_supported() {
     is_debian || user_has_admin_rights
 }
 
+MISE_SELF_UPDATE_MINIMUM_RELEASE_AGE="3d"
+
+mise_version() {
+    mise --version 2>/dev/null | awk 'NR == 1 { print $1 }'
+}
+
+update_mise() {
+    announce "Updating mise"
+
+    local current_version target_version
+    current_version="$(mise_version)"
+    target_version="$(mise latest github:jdx/mise --minimum-release-age "$MISE_SELF_UPDATE_MINIMUM_RELEASE_AGE")"
+    if [ -z "$current_version" ] || [ -z "$target_version" ]; then
+        echo "Error: could not resolve mise versions for self-update" >&2
+        return 1
+    fi
+
+    if dotf_version_is_newer "$target_version" "$current_version"; then
+        mise self-update --yes --no-plugins "$target_version"
+    else
+        debug "mise ${current_version} is at or ahead of delayed target ${target_version}"
+    fi
+}
+
 run_mise_bootstrap() {
     announce "Converging machine with mise bootstrap"
 
@@ -222,6 +246,7 @@ cmd_run() {
     "$SCRIPT_DIR/bootstrap"
     ensure_homebrew_env
     ensure_mise_env
+    update_mise
     run_mise_bootstrap
     ensure_mise_env
 

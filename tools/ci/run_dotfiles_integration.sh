@@ -23,6 +23,20 @@ run_dotfiles() {
     ./bin/dotf run 2>&1 | tee "$repo_dir/$log_name"
 }
 
+assert_self_managed_mise() {
+    local expected="$HOME/.local/bin/mise"
+    export PATH="$HOME/.local/bin:$PATH"
+    local actual
+    actual="$(command -v mise)"
+    if [ "$actual" != "$expected" ]; then
+        echo "❌ mise resolved to $actual instead of $expected"
+        return 1
+    fi
+
+    "$expected" self-update --yes --no-plugins "$("$expected" --version | awk 'NR == 1 { print $1 }')"
+    echo "✅ mise is self-managed at $expected"
+}
+
 assert_no_steps_ran() {
     local label="$1"
     local log_name="$2"
@@ -85,6 +99,7 @@ check_fish() {
 trim_mise_config
 check_ci_packages "Pre-run" assert_not_installed
 run_dotfiles output.log
+assert_self_managed_mise
 check_ci_packages "Post-run" assert_installed
 run_dotfiles output-second.log
 assert_no_steps_ran "Second dotf run" output-second.log

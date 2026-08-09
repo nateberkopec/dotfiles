@@ -27,3 +27,23 @@ stdout_quiet_unless_debug() {
         "$@" >/dev/null
     fi
 }
+
+# Return success when the first numeric dotted version is newer than the second.
+dotf_version_is_newer() {
+    local candidate="${1#v}"
+    local current="${2#v}"
+    local candidate_parts current_parts index candidate_part current_part
+
+    IFS=. read -r -a candidate_parts <<< "$candidate"
+    IFS=. read -r -a current_parts <<< "$current"
+    for index in 0 1 2; do
+        candidate_part="${candidate_parts[$index]:-0}"
+        current_part="${current_parts[$index]:-0}"
+        if ((10#$candidate_part > 10#$current_part)); then
+            return 0
+        elif ((10#$candidate_part < 10#$current_part)); then
+            return 1
+        fi
+    done
+    return 1
+}

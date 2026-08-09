@@ -4,6 +4,7 @@ class MigrationRunnerTest < Minitest::Test
   def setup
     super
     @original_migrations = Dotfiles::Migration.class_variable_get(:@@migrations).dup
+    Dotfiles::Migration.class_variable_set(:@@migrations, [])
   end
 
   def teardown

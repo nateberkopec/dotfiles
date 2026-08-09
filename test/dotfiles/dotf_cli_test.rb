@@ -39,6 +39,29 @@ class DotfCliTest < Minitest::Test
     end
   end
 
+  def test_mise_self_update_uses_the_three_day_delayed_release
+    with_dotf_script do |tmpdir, script_path, _logs_dir|
+      commands = mise_update_commands(tmpdir, script_path, current: "2026.8.0", target: "2026.8.1")
+
+      assert_equal [
+        "mise --version",
+        "mise latest github:jdx/mise --minimum-release-age 3d",
+        "mise self-update --yes --no-plugins 2026.8.1"
+      ], commands
+    end
+  end
+
+  def test_mise_self_update_does_not_downgrade
+    with_dotf_script do |tmpdir, script_path, _logs_dir|
+      commands = mise_update_commands(tmpdir, script_path, current: "2026.10.0", target: "2026.9.9")
+
+      assert_equal [
+        "mise --version",
+        "mise latest github:jdx/mise --minimum-release-age 3d"
+      ], commands
+    end
+  end
+
   def test_mise_bootstrap_includes_packages_for_admin_macos
     with_dotf_script do |tmpdir, script_path, _logs_dir|
       stdout, stderr, status, log = mise_bootstrap_result(tmpdir, script_path, admin: true)
@@ -188,6 +211,22 @@ class DotfCliTest < Minitest::Test
 
   private
 
+  def mise_update_commands(tmpdir, script_path, current:, target:)
+    log_path = File.join(tmpdir, "mise-update.log")
+    command = <<~BASH
+      source #{Shellwords.escape(script_path)}
+      export LOG_FILE=#{Shellwords.escape(File.join(tmpdir, "dotf.log"))}
+      mise() {
+        printf 'mise %s\n' "$*" >> #{Shellwords.escape(log_path)}
+        [ "$*" != "--version" ] || printf '%s\n' #{Shellwords.escape(current)}
+        [ "${1:-}" != "latest" ] || printf '%s\n' #{Shellwords.escape(target)}
+      }
+      update_mise
+    BASH
+    assert system("bash", "-c", command, out: File::NULL)
+    File.readlines(log_path, chomp: true)
+  end
+
   def mise_bootstrap_result(tmpdir, script_path, admin:, debian: false, exit_status: 0, debug: false)
     home = File.join(tmpdir, "home")
     log_path = File.join(tmpdir, "mise-bootstrap.log")
@@ -228,11 +267,14 @@ class DotfCliTest < Minitest::Test
     commands = File.readlines(log_path, chomp: true)
     assert_equal "bootstrap", commands[0]
     assert_equal "mise activate bash", commands[1]
-    assert_match(/\Amise -C .+ bootstrap --yes --update/, commands[2])
-    assert_equal "mise activate bash", commands[3]
-    assert_match(/\Aruby -r \.\/lib\/dotfiles\.rb -e Dotfiles::MigrationRunner\.new\('.+'\)\.run_if_existing_machine\z/, commands[4])
-    assert_match(/\Aruby -r \.\/lib\/dotfiles\.rb -e Dotfiles::Runner\.new\('.+'\)\.run\z/, commands[5])
-    assert_equal 6, commands.size
+    assert_equal "mise --version", commands[2]
+    assert_equal "mise latest github:jdx/mise --minimum-release-age 3d", commands[3]
+    assert_equal "mise self-update --yes --no-plugins 2026.8.1", commands[4]
+    assert_match(/\Amise -C .+ bootstrap --yes --update/, commands[5])
+    assert_equal "mise activate bash", commands[6]
+    assert_match(/\Aruby -r \.\/lib\/dotfiles\.rb -e Dotfiles::MigrationRunner\.new\('.+'\)\.run_if_existing_machine\z/, commands[7])
+    assert_match(/\Aruby -r \.\/lib\/dotfiles\.rb -e Dotfiles::Runner\.new\('.+'\)\.run\z/, commands[8])
+    assert_equal 9, commands.size
   end
 
   def bootstrap_stub(log_path)
@@ -248,7 +290,11 @@ class DotfCliTest < Minitest::Test
     <<~BASH
       source #{escaped_script}
       export DOTF_LOCK_DIR=#{Shellwords.escape(File.join(File.dirname(escaped_log), "dotf.lock"))}
-      mise() { printf 'mise %s\\n' "$*" >> #{escaped_log}; }
+      mise() {
+        printf 'mise %s\\n' "$*" >> #{escaped_log}
+        [ "$*" != "--version" ] || printf '%s\\n' 2026.8.0
+        [ "${1:-}" != "latest" ] || printf '%s\\n' 2026.8.1
+      }
       ruby() {
         printf 'ruby %s\\n' "$*" >> #{escaped_log}
         [[ "$*" != *MigrationRunner* ]] || echo "Running migration 1: Test"
