@@ -11,7 +11,8 @@ export type ActiveMeasurement = {
 	model: ModelRef;
 	requestStartedAt: number;
 	firstOutputAt?: number;
-	deltaChars: number;
+	/** Observed assistant output chars across text, thinking, and tool calls. */
+	observedChars: number;
 };
 
 export type AggregateStats = {
