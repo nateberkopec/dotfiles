@@ -25,5 +25,14 @@ jobs:
         ruby-version: 'ruby'
         bundler-cache: true
 
+    - name: Install mise
+      uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
+      with:
+        install: false
+        cache: true
+
+    - name: Install Fish
+      run: mise use --global aqua:fish-shell/fish-shell@4.8.1
+
     - name: Run tests
       run: bundle exec rake test
