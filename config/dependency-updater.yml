@@ -4,7 +4,6 @@ minimum_release_age_days: 3
 # These are notification baselines only. dotf enforces cask presence and never
 # downgrades self-updating applications to these versions.
 observed_casks:
-  nikitabobko/tap/aerospace: "0.21.3-Beta"
   1password: "8.12.33"
   cursor: "3.16.17,6b2afae0257df2bb5e1835f15165dc2f0de056b2"
   discord: "0.0.408"
