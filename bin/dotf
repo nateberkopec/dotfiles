@@ -182,7 +182,8 @@ update_mise() {
     fi
 
     if dotf_version_is_newer "$target_version" "$current_version"; then
-        mise self-update --yes --no-plugins "$target_version"
+        mise self-update --yes --no-plugins "$target_version" ||
+            echo "Warning: mise self-update to ${target_version} failed; continuing with ${current_version}" >&2
     else
         debug "mise ${current_version} is at or ahead of delayed target ${target_version}"
     fi

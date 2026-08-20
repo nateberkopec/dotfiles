@@ -62,6 +62,26 @@ class DotfCliTest < Minitest::Test
     end
   end
 
+  def test_mise_self_update_failure_is_non_fatal
+    with_dotf_script do |tmpdir, script_path, _logs_dir|
+      _stdout, stderr, status, commands = mise_update_result(
+        tmpdir,
+        script_path,
+        current: "2026.8.0",
+        target: "2026.8.7",
+        self_update_status: 1
+      )
+
+      assert status.success?
+      assert_includes stderr, "Warning: mise self-update to 2026.8.7 failed; continuing with 2026.8.0"
+      assert_equal [
+        "mise --version",
+        "mise latest github:jdx/mise --minimum-release-age 3d",
+        "mise self-update --yes --no-plugins 2026.8.7"
+      ], commands
+    end
+  end
+
   def test_mise_bootstrap_includes_packages_for_admin_macos
     with_dotf_script do |tmpdir, script_path, _logs_dir|
       stdout, stderr, status, log = mise_bootstrap_result(tmpdir, script_path, admin: true)
@@ -212,6 +232,12 @@ class DotfCliTest < Minitest::Test
   private
 
   def mise_update_commands(tmpdir, script_path, current:, target:)
+    _stdout, _stderr, status, commands = mise_update_result(tmpdir, script_path, current: current, target: target)
+    assert status.success?
+    commands
+  end
+
+  def mise_update_result(tmpdir, script_path, current:, target:, self_update_status: 0)
     log_path = File.join(tmpdir, "mise-update.log")
     command = <<~BASH
       source #{Shellwords.escape(script_path)}
@@ -220,11 +246,12 @@ class DotfCliTest < Minitest::Test
         printf 'mise %s\n' "$*" >> #{Shellwords.escape(log_path)}
         [ "$*" != "--version" ] || printf '%s\n' #{Shellwords.escape(current)}
         [ "${1:-}" != "latest" ] || printf '%s\n' #{Shellwords.escape(target)}
+        [ "${1:-}" != "self-update" ] || return #{self_update_status}
       }
       update_mise
     BASH
-    assert system("bash", "-c", command, out: File::NULL)
-    File.readlines(log_path, chomp: true)
+    stdout, stderr, status = Open3.capture3("bash", "-c", command)
+    [stdout, stderr, status, File.readlines(log_path, chomp: true)]
   end
 
   def mise_bootstrap_result(tmpdir, script_path, admin:, debian: false, exit_status: 0, debug: false)
