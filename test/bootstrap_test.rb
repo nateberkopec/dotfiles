@@ -56,40 +56,17 @@ class BootstrapTest < Minitest::Test
     end
   end
 
-  def test_prepare_debian_apt_sources_installs_missing_keys_and_sources
-    with_bootstrap_stub do |env|
-      run_prepare_debian_apt_sources(env)
-
-      assert_equal ["https://raw.githubusercontent.com/eza-community/eza/main/deb.asc"], File.readlines(env.fetch("APT_CURL_LOG"), chomp: true)
-      assert File.exist?(File.join(env.fetch("DEBIAN_KEYRING_DIR"), "gierens-archive-keyring.gpg"))
-      assert_equal apt_source_line + "\n", File.read(File.join(env.fetch("DEBIAN_SOURCE_DIR"), "gierens.list"))
-    end
-  end
-
-  def test_prepare_debian_apt_sources_preserves_existing_keys_and_sources
-    with_bootstrap_stub do |env|
-      FileUtils.mkdir_p([env.fetch("DEBIAN_KEYRING_DIR"), env.fetch("DEBIAN_SOURCE_DIR")])
-      File.write(File.join(env.fetch("DEBIAN_KEYRING_DIR"), "gierens-archive-keyring.gpg"), "existing")
-      File.write(File.join(env.fetch("DEBIAN_SOURCE_DIR"), "gierens.list"), apt_source_line + "\n")
-
-      run_prepare_debian_apt_sources(env)
-
-      refute File.exist?(env.fetch("APT_CURL_LOG"))
-      refute File.exist?(env.fetch("APT_SUDO_LOG"))
-    end
-  end
-
   def test_bootstrap_mise_installs_the_pinned_version_on_a_fresh_machine
     with_bootstrap_stub do |env|
       run_bootstrap_mise(env)
 
-      assert_equal "2026.8.0 #{File.join(env.fetch("HOME"), ".local", "bin", "mise")}", File.read(env.fetch("MISE_INSTALL_LOG")).chomp
+      assert_equal "2026.8.2 #{File.join(env.fetch("HOME"), ".local", "bin", "mise")}", File.read(env.fetch("MISE_INSTALL_LOG")).chomp
     end
   end
 
-  def test_bootstrap_mise_preserves_a_newer_package_managed_version
+  def test_bootstrap_mise_replaces_an_unpinned_self_managed_version
     with_bootstrap_stub do |env|
-      write_mise_stub(env)
+      write_self_managed_mise_stub(env, "2026.8.9")
 
       run_bootstrap_mise(env)
 
@@ -108,14 +85,11 @@ class BootstrapTest < Minitest::Test
 
       expected = File.read(File.expand_path("../files/home/.config/mise/config.toml", __dir__))
       assert_equal expected, File.read(env.fetch("MISE_CONFIG_AT_ACTIVATION_LOG"))
+      assert File.exist?(File.join(env.fetch("HOME"), ".config", "mise", "mise.lock"))
     end
   end
 
   private
-
-  def apt_source_line
-    "deb [signed-by=/usr/share/keyrings/gierens-archive-keyring.gpg] http://deb.gierens.de stable main"
-  end
 
   def homebrew_installer_scenarios
     [

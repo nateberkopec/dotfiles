@@ -1,0 +1,93 @@
+name: Dependency Software Factory
+
+on:
+  schedule:
+    - cron: "17 11 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: dependency-software-factory
+  cancel-in-progress: false
+
+jobs:
+  start-copilot-batch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Ensure updater label exists
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh label create dependency-update \
+            --color 5319e7 \
+            --description "One dependency software-factory batch" \
+            --force
+
+      - name: Find an unfinished batch
+        id: existing
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          url="$(gh issue list \
+            --state open \
+            --label dependency-update \
+            --limit 1 \
+            --json url \
+            --jq '.[0].url // empty')"
+          printf 'url=%s\n' "$url" >> "$GITHUB_OUTPUT"
+
+      - name: Reuse the unfinished batch
+        if: steps.existing.outputs.url != ''
+        env:
+          ISSUE_URL: ${{ steps.existing.outputs.url }}
+        run: |
+          printf 'An updater batch is already open: %s\n' "$ISSUE_URL" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Create one issue and assign it to Copilot
+        if: steps.existing.outputs.url == ''
+        env:
+          GH_TOKEN: ${{ secrets.COPILOT_ASSIGNMENT_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
+          SERVER_URL: ${{ github.server_url }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "COPILOT_ASSIGNMENT_TOKEN is required; see README.md." >&2
+            exit 1
+          fi
+
+          run_url="${SERVER_URL}/${REPOSITORY}/actions/runs/${RUN_ID}"
+          body="$(mktemp)"
+          cp .github/dependency-updater.md "$body"
+          printf '\n---\n\nFactory run: %s\n' "$run_url" >> "$body"
+
+          payload="$(jq -n \
+            --arg title "Dependency update $(date -u +%Y-%m-%d)" \
+            --rawfile body "$body" \
+            --arg repository "$REPOSITORY" \
+            '{
+              title: $title,
+              body: $body,
+              labels: ["dependency-update"],
+              assignees: ["copilot-swe-agent[bot]"],
+              agent_assignment: {
+                target_repo: $repository,
+                base_branch: "main",
+                custom_instructions: "Follow .github/dependency-updater.md. Open one pull request for this entire issue and close this issue from its body."
+              }
+            }')"
+
+          issue_url="$(gh api \
+            --method POST \
+            -H 'Accept: application/vnd.github+json' \
+            -H 'X-GitHub-Api-Version: 2022-11-28' \
+            "repos/${REPOSITORY}/issues" \
+            --input - <<< "$payload" \
+            --jq .html_url)"
+          printf 'Started Copilot dependency batch: %s\n' "$issue_url" >> "$GITHUB_STEP_SUMMARY"

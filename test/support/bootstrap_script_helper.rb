@@ -24,11 +24,7 @@ module BootstrapScriptHelper
       "HOMEBREW_CONFIGURED_BREW_LOG" => File.join(tmpdir, "configured-brew"),
       "MISE_COMMAND_LOG" => File.join(tmpdir, "mise-commands"),
       "MISE_CONFIG_AT_ACTIVATION_LOG" => File.join(tmpdir, "mise-config-at-activation"),
-      "MISE_INSTALL_LOG" => File.join(tmpdir, "mise-install"),
-      "DEBIAN_KEYRING_DIR" => File.join(tmpdir, "keyrings"),
-      "DEBIAN_SOURCE_DIR" => File.join(tmpdir, "sources"),
-      "APT_CURL_LOG" => File.join(tmpdir, "apt-curl"),
-      "APT_SUDO_LOG" => File.join(tmpdir, "apt-sudo")
+      "MISE_INSTALL_LOG" => File.join(tmpdir, "mise-install")
     }
   end
 
@@ -64,17 +60,26 @@ module BootstrapScriptHelper
   end
 
   def write_mise_stub(env)
-    bin_dir = env.fetch("PATH").split(":").first
-    File.write(File.join(bin_dir, "mise"), <<~'BASH')
+    write_mise_command(File.join(env.fetch("PATH").split(":").first, "mise"))
+  end
+
+  def write_self_managed_mise_stub(env, version)
+    path = File.join(env.fetch("HOME"), ".local", "bin", "mise")
+    write_mise_command(path, version)
+  end
+
+  def write_mise_command(path, version = nil)
+    FileUtils.mkdir_p(File.dirname(path))
+    File.write(path, <<~BASH)
       #!/bin/bash
-      printf '%s\n' "mise $*" >> "$MISE_COMMAND_LOG"
+      printf '%s\\n' "mise $*" >> "$MISE_COMMAND_LOG"
       if [ "${1:-}" = "--version" ]; then
-        printf '%s\n' "${MISE_STUB_VERSION:-2026.8.2}"
+        printf '%s\\n' "${MISE_STUB_VERSION:-#{version || "2026.8.2"}}"
       elif [ "$*" = "activate bash" ]; then
         cat "$HOME/.config/mise/config.toml" > "$MISE_CONFIG_AT_ACTIVATION_LOG"
       fi
     BASH
-    FileUtils.chmod("+x", File.join(bin_dir, "mise"))
+    FileUtils.chmod("+x", path)
   end
 
   def run_ensure_dotfiles_checkout(env)
@@ -101,16 +106,6 @@ module BootstrapScriptHelper
 
   def run_bootstrap_mise(env)
     run_bootstrap_commands(env, nil, "bootstrap_mise")
-  end
-
-  def run_prepare_debian_apt_sources(env)
-    FileUtils.mkdir_p([env.fetch("DEBIAN_KEYRING_DIR"), env.fetch("DEBIAN_SOURCE_DIR")])
-    run_bootstrap_commands(env, nil, <<~'BASH')
-      sudo() { printf '%s\n' "$*" >> "$APT_SUDO_LOG"; "$@"; }
-      curl() { printf '%s\n' "$2" >> "$APT_CURL_LOG"; printf 'key' > "$4"; }
-      gpg() { cp "$4" "$3"; }
-      prepare_debian_apt_sources
-    BASH
   end
 
   def run_bootstrap_commands(env, terminal, script, no_terminal: false)

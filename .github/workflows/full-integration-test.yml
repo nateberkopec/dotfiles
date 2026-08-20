@@ -105,7 +105,7 @@ jobs:
         NONINTERACTIVE: true
         AUBE_DISABLE_TARBALL_STREAM: "1"
         GITHUB_TOKEN: ${{ github.token }}
-        MISE_CI_TOOLS: "gum@0.17.0,github:jdx/aube@1.36.0,npm:@earendil-works/pi-coding-agent@0.83.0,fzf@latest,aqua:fish-shell/fish-shell@4.8.1"
+        MISE_CI_TOOLS: "gum@0.17.0,github:jdx/aube@1.36.0,npm:@earendil-works/pi-coding-agent@0.83.0,fzf@0.74.1,aqua:fish-shell/fish-shell@4.8.1"
         BREW_CI_PACKAGES: "duti"
         BREW_CI_CASKS: ""
         DEBIAN_CI_PACKAGES: "trash-cli"
@@ -183,7 +183,6 @@ jobs:
         set -euo pipefail
 
         username="dotfiles-ci"
-        home_dir="/Users/${username}"
 
         sudo -H -u "${username}" bash <<'BASH'
         set -euo pipefail
@@ -204,7 +203,7 @@ jobs:
         NONINTERACTIVE: true
         AUBE_DISABLE_TARBALL_STREAM: "1"
         GITHUB_TOKEN: ${{ github.token }}
-        MISE_CI_TOOLS: "gum@0.17.0,github:jdx/aube@1.36.0,npm:@earendil-works/pi-coding-agent@0.83.0,fzf@latest,aqua:fish-shell/fish-shell@4.8.1"
+        MISE_CI_TOOLS: "gum@0.17.0,github:jdx/aube@1.36.0,npm:@earendil-works/pi-coding-agent@0.83.0,fzf@0.74.1,aqua:fish-shell/fish-shell@4.8.1"
         BREW_CI_PACKAGES: "duti"
         BREW_CI_CASKS: ""
       run: |

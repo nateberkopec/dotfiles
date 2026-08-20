@@ -164,35 +164,10 @@ mise_packages_supported() {
     is_debian || user_has_admin_rights
 }
 
-MISE_SELF_UPDATE_MINIMUM_RELEASE_AGE="3d"
-
-mise_version() {
-    mise --version 2>/dev/null | awk 'NR == 1 { print $1 }'
-}
-
-update_mise() {
-    announce "Updating mise"
-
-    local current_version target_version
-    current_version="$(mise_version)"
-    target_version="$(mise latest github:jdx/mise --minimum-release-age "$MISE_SELF_UPDATE_MINIMUM_RELEASE_AGE")"
-    if [ -z "$current_version" ] || [ -z "$target_version" ]; then
-        echo "Error: could not resolve mise versions for self-update" >&2
-        return 1
-    fi
-
-    if dotf_version_is_newer "$target_version" "$current_version"; then
-        mise self-update --yes --no-plugins "$target_version" ||
-            echo "Warning: mise self-update to ${target_version} failed; continuing with ${current_version}" >&2
-    else
-        debug "mise ${current_version} is at or ahead of delayed target ${target_version}"
-    fi
-}
-
 run_mise_bootstrap() {
     announce "Converging machine with mise bootstrap"
 
-    local args=(-C "$HOME" bootstrap --yes --update)
+    local args=(-C "$HOME" bootstrap --yes --locked)
     local status
     if ! mise_packages_supported; then
         args+=(--skip packages)
@@ -247,7 +222,6 @@ cmd_run() {
     "$SCRIPT_DIR/bootstrap"
     ensure_homebrew_env
     ensure_mise_env
-    update_mise
     run_mise_bootstrap
     ensure_mise_env
 
@@ -340,7 +314,7 @@ report_pi_package_outdated() {
         ' "$settings_path" | while IFS=$'\t' read -r package current; do
             latest="$(
                 unset BUNDLE_GEMFILE BUNDLE_BIN_PATH RUBYOPT GEM_HOME GEM_PATH 2>/dev/null || true
-                mise exec node@lts -- npm view "$package" time versions --json 2>/dev/null | env DOTF_CURRENT_VERSION="$current" ruby -rjson -rtime -e '
+                mise exec node -- npm view "$package" time versions --json 2>/dev/null | env DOTF_CURRENT_VERSION="$current" ruby -rjson -rtime -e '
                   begin
                     data = JSON.parse(STDIN.read)
                   rescue JSON::ParserError
@@ -448,7 +422,7 @@ write_outdated_pi_prompt() {
             []
           end
 
-          puts "Update the pinned package versions in this dotfiles repository to the latest versions allowed by configured constraints."
+          puts "Prepare one dependency update PR for every eligible candidate found by this run."
           puts
           if rows.empty?
             puts "No managed package updates were found by this dotf outdated run."
@@ -463,7 +437,11 @@ write_outdated_pi_prompt() {
             end
           end
           puts
-          puts "Update files/home/.config/mise/config.toml, files/home/.pi/agent/settings.json, and any other pinned package-manager files as needed, run the relevant tests, then open a GitHub PR."
+          puts "For every candidate, lead with security impact. Then answer: What is in this upgrade for Nate? Cite concrete changes relevant to this repository and its workflows; generic improvements are not enough. State when no personally relevant benefit was found, plus compatibility risks and an upgrade-or-decline recommendation."
+          puts
+          puts "Update exact pins and native lockfiles, including files/home/.config/mise/mise.lock. Homebrew casks are observed self-updating applications: report useful or security-relevant releases, but never add downgrade enforcement. Do not manage macOS versions. Run the relevant tests, then open one GitHub PR for this entire run."
+          puts
+          puts "On that PR, follow @copilot instructions such as: Snooze mise, ruby and libpq until next minor; the rest are good; merge when ready. Remove snoozed changes from the PR and record each exact wake boundary in config/dependency-updater.yml so later runs do not propose it prematurely."
         '
     ) > "$prompt_path"
 

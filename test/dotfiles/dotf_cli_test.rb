@@ -39,49 +39,6 @@ class DotfCliTest < Minitest::Test
     end
   end
 
-  def test_mise_self_update_uses_the_three_day_delayed_release
-    with_dotf_script do |tmpdir, script_path, _logs_dir|
-      commands = mise_update_commands(tmpdir, script_path, current: "2026.8.0", target: "2026.8.1")
-
-      assert_equal [
-        "mise --version",
-        "mise latest github:jdx/mise --minimum-release-age 3d",
-        "mise self-update --yes --no-plugins 2026.8.1"
-      ], commands
-    end
-  end
-
-  def test_mise_self_update_does_not_downgrade
-    with_dotf_script do |tmpdir, script_path, _logs_dir|
-      commands = mise_update_commands(tmpdir, script_path, current: "2026.10.0", target: "2026.9.9")
-
-      assert_equal [
-        "mise --version",
-        "mise latest github:jdx/mise --minimum-release-age 3d"
-      ], commands
-    end
-  end
-
-  def test_mise_self_update_failure_is_non_fatal
-    with_dotf_script do |tmpdir, script_path, _logs_dir|
-      _stdout, stderr, status, commands = mise_update_result(
-        tmpdir,
-        script_path,
-        current: "2026.8.0",
-        target: "2026.8.7",
-        self_update_status: 1
-      )
-
-      assert status.success?
-      assert_includes stderr, "Warning: mise self-update to 2026.8.7 failed; continuing with 2026.8.0"
-      assert_equal [
-        "mise --version",
-        "mise latest github:jdx/mise --minimum-release-age 3d",
-        "mise self-update --yes --no-plugins 2026.8.7"
-      ], commands
-    end
-  end
-
   def test_mise_bootstrap_includes_packages_for_admin_macos
     with_dotf_script do |tmpdir, script_path, _logs_dir|
       stdout, stderr, status, log = mise_bootstrap_result(tmpdir, script_path, admin: true)
@@ -90,7 +47,7 @@ class DotfCliTest < Minitest::Test
       assert_includes stdout, "Converging machine with mise bootstrap"
       refute_includes stdout, "mise -C"
       assert_empty stderr
-      assert_equal "mise -C #{tmpdir}/home bootstrap --yes --update --quiet\n", log
+      assert_equal "mise -C #{tmpdir}/home bootstrap --yes --locked --quiet\n", log
     end
   end
 
@@ -100,7 +57,7 @@ class DotfCliTest < Minitest::Test
 
       assert status.success?
       assert_includes stdout, "mise -C"
-      assert_equal "mise -C #{tmpdir}/home bootstrap --yes --update\n", log
+      assert_equal "mise -C #{tmpdir}/home bootstrap --yes --locked\n", log
     end
   end
 
@@ -110,7 +67,7 @@ class DotfCliTest < Minitest::Test
 
       assert_equal 23, status.exitstatus
       assert_includes stderr, "mise failed"
-      assert_includes log, "mise -C #{tmpdir}/home bootstrap --yes --update --skip packages --quiet\n"
+      assert_includes log, "mise -C #{tmpdir}/home bootstrap --yes --locked --skip packages --quiet\n"
     end
   end
 
@@ -119,7 +76,7 @@ class DotfCliTest < Minitest::Test
       _stdout, _stderr, status, log = mise_bootstrap_result(tmpdir, script_path, admin: false, debian: true)
 
       assert status.success?
-      assert_equal "mise -C #{tmpdir}/home bootstrap --yes --update --quiet\n", log
+      assert_equal "mise -C #{tmpdir}/home bootstrap --yes --locked --quiet\n", log
     end
   end
 
@@ -156,7 +113,9 @@ class DotfCliTest < Minitest::Test
       prompt_paths = Dir.glob(File.join(tmpdir, "tmp", "pi-upgrade-prompt-*.md"))
       assert_equal 1, prompt_paths.size
       prompt = File.read(prompt_paths.first)
-      assert_includes prompt, "Update the pinned package versions"
+      assert_includes prompt, "Prepare one dependency update PR"
+      assert_includes prompt, "What is in this upgrade for Nate?"
+      assert_includes prompt, "Snooze mise, ruby and libpq until next minor"
       assert_includes prompt, "| mise | ruby | 4.0.5 | 4.0.6 |"
       assert_includes prompt, "| pi package | pi-ding | 0.2.2 | 0.2.3 |"
       assert_includes prompt, "| brew | duti | 1.0 | 1.1 |"
@@ -166,7 +125,7 @@ class DotfCliTest < Minitest::Test
       assert_equal [
         "brew shellenv bash", "mise activate bash", "mise outdated --bump --json",
         "mise -C #{tmpdir}/home bootstrap packages upgrade --dry-run",
-        "mise exec node@lts -- npm view pi-ding time versions --json",
+        "mise exec node -- npm view pi-ding time versions --json",
         "mise -C #{tmpdir}/home bootstrap packages status --json",
         "HOMEBREW_AUTO_UPDATE_SECS=604800 brew update-if-needed",
         "HOMEBREW_NO_AUTO_UPDATE=1 brew outdated --json=v2"
@@ -231,29 +190,6 @@ class DotfCliTest < Minitest::Test
 
   private
 
-  def mise_update_commands(tmpdir, script_path, current:, target:)
-    _stdout, _stderr, status, commands = mise_update_result(tmpdir, script_path, current: current, target: target)
-    assert status.success?
-    commands
-  end
-
-  def mise_update_result(tmpdir, script_path, current:, target:, self_update_status: 0)
-    log_path = File.join(tmpdir, "mise-update.log")
-    command = <<~BASH
-      source #{Shellwords.escape(script_path)}
-      export LOG_FILE=#{Shellwords.escape(File.join(tmpdir, "dotf.log"))}
-      mise() {
-        printf 'mise %s\n' "$*" >> #{Shellwords.escape(log_path)}
-        [ "$*" != "--version" ] || printf '%s\n' #{Shellwords.escape(current)}
-        [ "${1:-}" != "latest" ] || printf '%s\n' #{Shellwords.escape(target)}
-        [ "${1:-}" != "self-update" ] || return #{self_update_status}
-      }
-      update_mise
-    BASH
-    stdout, stderr, status = Open3.capture3("bash", "-c", command)
-    [stdout, stderr, status, File.readlines(log_path, chomp: true)]
-  end
-
   def mise_bootstrap_result(tmpdir, script_path, admin:, debian: false, exit_status: 0, debug: false)
     home = File.join(tmpdir, "home")
     log_path = File.join(tmpdir, "mise-bootstrap.log")
@@ -294,14 +230,11 @@ class DotfCliTest < Minitest::Test
     commands = File.readlines(log_path, chomp: true)
     assert_equal "bootstrap", commands[0]
     assert_equal "mise activate bash", commands[1]
-    assert_equal "mise --version", commands[2]
-    assert_equal "mise latest github:jdx/mise --minimum-release-age 3d", commands[3]
-    assert_equal "mise self-update --yes --no-plugins 2026.8.1", commands[4]
-    assert_match(/\Amise -C .+ bootstrap --yes --update/, commands[5])
-    assert_equal "mise activate bash", commands[6]
-    assert_match(/\Aruby -r \.\/lib\/dotfiles\.rb -e Dotfiles::MigrationRunner\.new\('.+'\)\.run_if_existing_machine\z/, commands[7])
-    assert_match(/\Aruby -r \.\/lib\/dotfiles\.rb -e Dotfiles::Runner\.new\('.+'\)\.run\z/, commands[8])
-    assert_equal 9, commands.size
+    assert_match(/\Amise -C .+ bootstrap --yes --locked/, commands[2])
+    assert_equal "mise activate bash", commands[3]
+    assert_match(/\Aruby -r \.\/lib\/dotfiles\.rb -e Dotfiles::MigrationRunner\.new\('.+'\)\.run_if_existing_machine\z/, commands[4])
+    assert_match(/\Aruby -r \.\/lib\/dotfiles\.rb -e Dotfiles::Runner\.new\('.+'\)\.run\z/, commands[5])
+    assert_equal 6, commands.size
   end
 
   def bootstrap_stub(log_path)
@@ -319,8 +252,6 @@ class DotfCliTest < Minitest::Test
       export DOTF_LOCK_DIR=#{Shellwords.escape(File.join(File.dirname(escaped_log), "dotf.lock"))}
       mise() {
         printf 'mise %s\\n' "$*" >> #{escaped_log}
-        [ "$*" != "--version" ] || printf '%s\\n' 2026.8.0
-        [ "${1:-}" != "latest" ] || printf '%s\\n' 2026.8.1
       }
       ruby() {
         printf 'ruby %s\\n' "$*" >> #{escaped_log}

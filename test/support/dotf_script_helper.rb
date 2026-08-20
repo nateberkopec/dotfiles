@@ -64,7 +64,7 @@ module DotfScriptHelper
           printf '%s\n' '{}'
         fi
       fi
-      if [ "#{command}" = "mise" ] && [ "${1:-}" = "exec" ] && [ "${2:-}" = "node@lts" ] && [ "${3:-}" = "--" ] && [ "${4:-}" = "npm" ] && [ "${5:-}" = "view" ] && [ "${7:-}" = "time" ] && [ "${8:-}" = "versions" ] && [ "${9:-}" = "--json" ]; then
+      if [ "#{command}" = "mise" ] && [ "${1:-}" = "exec" ] && [ "${2:-}" = "node" ] && [ "${3:-}" = "--" ] && [ "${4:-}" = "npm" ] && [ "${5:-}" = "view" ] && [ "${7:-}" = "time" ] && [ "${8:-}" = "versions" ] && [ "${9:-}" = "--json" ]; then
         if [ -n "${DOTF_NPM_VIEW_JSON+x}" ]; then
           printf '%s\n' "$DOTF_NPM_VIEW_JSON"
         else
