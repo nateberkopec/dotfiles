@@ -1,6 +1,57 @@
 [general]
 updateChecksEnabled = false
 
+[appearance]
+mode = "automatic"
+
+[borders]
+enabled = true
+width = 1.0
+
+[gaps]
+size = 4.0
+
+[gaps.outer]
+bottom = 0.0
+left = 0.0
+right = 0.0
+top = 0.0
+
+[hiddenBar]
+enabled = true
+hiddenBundleIDs = []
+rehideIntervalSeconds = 5.0
+
+[mouseWarp]
+constrainToArrangement = false
+enabled = true
+margin = 1
+
+[statusBar]
+showAppNames = false
+showWorkspaceName = false
+useWorkspaceId = false
+
+[workspaceBar]
+backgroundOpacity = 0.1
+deduplicateAppIcons = false
+enabled = true
+excludedBundleIDs = []
+height = 24.0
+hideEmptyWorkspaces = false
+notchActiveZoneWidth = 180.0
+notchMode = "moveBelowMenuBar"
+position = "overlappingMenuBar"
+reserveLayoutSpace = false
+revealHoldMilliseconds = 200.0
+revealModifier = "off"
+showFloatingWindows = false
+showLabels = true
+systemStatsButton = false
+windowLevel = "popup"
+xOffset = 0.0
+yOffset = 0.0
+
 [[hotkeys]]
 binding = "Option+Tab"
 id = "workspaceBackAndForth"
