@@ -1,6 +1,6 @@
 # Prepare the dependency update batch
 
-Open one pull request for all eligible dependency updates in this run. The PR must close this issue. If there are no eligible candidates, comment with the checks performed, close the issue, and do not open an empty PR.
+Use the pull request created for this task for all eligible dependency updates in this run. Apply the `dependency-update` label. If there are no eligible candidates, summarize the checks performed and close the empty pull request.
 
 ## Discover candidates
 
@@ -37,7 +37,7 @@ Use direct source links. Do not invent relevance when no personally useful benef
 
 Update exact pins and native lockfiles. Regenerate `files/home/.config/mise/mise.lock` for both `linux-x64` and `macos-arm64`. Never replace exact runtime pins with `latest`, ranges, or prefixes. Run the applicable tests and summarize evidence in the PR.
 
-Keep one PR for the entire run. Do not split candidates into separate issues or PRs.
+Keep one PR for the entire run. Do not split candidates into separate tasks or PRs.
 
 ## Follow-up conversation on the PR
 
