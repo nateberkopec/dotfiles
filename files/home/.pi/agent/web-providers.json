@@ -8,7 +8,7 @@
   "providers": {
     "exa": {
       "credentials": {
-        "api": "!op --account thespeedshop read 'op://Employee/Pi Web Providers/EXA_API_KEY'"
+        "api": "EXA_API_KEY"
       }
     },
     "perplexity": {
