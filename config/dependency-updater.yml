@@ -1,0 +1,29 @@
+---
+minimum_release_age_days: 3
+
+# These are notification baselines only. dotf enforces cask presence and never
+# downgrades self-updating applications to these versions.
+observed_casks:
+  nikitabobko/tap/aerospace: "0.21.3-Beta"
+  1password: "8.12.33"
+  cursor: "3.16.17,6b2afae0257df2bb5e1835f15165dc2f0de056b2"
+  discord: "0.0.408"
+  droid: "0.197.0"
+  dropbox: "264.4.3421"
+  ghostty: "1.3.1"
+  github: "3.6.4-28955b81"
+  jordanbaird-ice: "0.11.12"
+  orbstack: "2.2.3,20963"
+  raycast: "1.104.24"
+  slack: "4.51.185"
+  steam: "6.0"
+  tailscale-app: "1.102.2"
+  telegram: "12.9,282555"
+  thebrowsercompany-dia: "1.44.1,85212"
+  visual-studio-code: "1.133.0"
+  whatsapp: "26.32.19"
+  zoom: "7.1.5.84650"
+
+# Copilot records declined candidates here while revising the batch PR.
+# A security advisory always wakes a snooze early.
+snoozes: {}

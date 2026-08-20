@@ -5,6 +5,7 @@
 private.fish
 .env
 mise.lock
+!files/home/.config/mise/mise.lock
 mise.local.lock
 logs/
 .rubocop_cache/
@@ -13,4 +14,5 @@ logs/
 !files/home/.bundle/config
 vendor/bundle/
 files/home/.pi/agent/auth.json
+files/home/.local/state/
 tmp/

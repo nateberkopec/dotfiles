@@ -19,8 +19,7 @@ When you run `dotf run` it will:
 
 | Command | What it does |
 |---------|--------------|
-| `dotf run` | Converge this host, including installing missing managed packages and applying safe local upgrades/pruning. Safe to run many times. |
-| `dotf outdated` | Show available upgrades for pinned mise tools, pinned Pi packages/extensions, and managed Homebrew packages, then write a Pi upgrade prompt under `tmp/`. |
+| `dotf run` | Converge this host to committed tool pins and locks, then apply safe local cleanup. Safe to run many times. |
 | `dotf steps` | List every setup step with its class name and description. |
 | `dotf help` | Show help |
 
@@ -57,7 +56,11 @@ Supported platforms:
 
 In general, because `mise` is crossplatform, if we can do it with `mise`, we should do it with `mise`.
 
-Managed tools are pinned to explicit versions. `dotf run` converges the machine to those pins and handles safe local cleanup; `dotf outdated` reports newer pins to review and prints the `pi "$(cat tmp/pi-upgrade-prompt-...)"` command to start an update PR.
+Managed tools are pinned to explicit versions. `dotf run` consumes the committed mise version and multi-platform `mise.lock`; it never selects upgrades. Self-updating Homebrew casks are presence-managed and observed, never downgraded. macOS itself remains independently latest-seeking and is not part of dependency locking.
+
+The scheduled Dependency Software Factory owns upgrade discovery. It creates one issue for an entire run and assigns it to GitHub Copilot, which researches one batch PR. Every candidate must lead with security and answer “what's in it for me?” with concrete personal relevance. Follow-up `@copilot` PR comments can approve the batch selectively and record exact snooze wake boundaries in `config/dependency-updater.yml`.
+
+The workflow requires an Actions secret named `COPILOT_ASSIGNMENT_TOKEN`. Use a fine-grained personal access token with read access to metadata and read/write access to Actions, Contents, Issues, and Pull requests, as required by GitHub's Copilot issue-assignment API.
 
 `dotf run` aggressively overwrites existing user state. This repo is the source of truth.
 

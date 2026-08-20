@@ -13,7 +13,7 @@
   "npmCommand": [
     "mise",
     "exec",
-    "node@lts",
+    "node",
     "--",
     "npm"
   ],

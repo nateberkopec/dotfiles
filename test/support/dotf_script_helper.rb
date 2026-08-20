@@ -26,57 +26,6 @@ module DotfScriptHelper
     File.write(File.join(logs_dir, "other.log"), "keep")
   end
 
-  def write_command_stub(bin_dir, command)
-    path = File.join(bin_dir, command)
-    File.write(path, <<~BASH)
-      #!/bin/bash
-      env_prefix=()
-      for var in HOMEBREW_AUTO_UPDATE_SECS HOMEBREW_NO_AUTO_UPDATE MISE_EXPERIMENTAL; do
-        if [ -n "${!var+x}" ]; then
-          env_prefix+=("$var=${!var}")
-        fi
-      done
-      if [ ${#env_prefix[@]} -gt 0 ]; then
-        printf '%s ' "${env_prefix[@]}" >> "$DOTF_UPGRADE_LOG"
-      fi
-      printf '%s %s\n' "#{command}" "$*" >> "$DOTF_UPGRADE_LOG"
-      if [ "#{command}" = "brew" ] && [ "$*" = "outdated --formula --quiet" ]; then
-        printf '%s\n' "${DOTF_BREW_OUTDATED_FORMULAE:-}" | tr ',' '\n' | awk '{$1=$1}; NF'
-      fi
-      if [ "#{command}" = "brew" ] && [ "$*" = "outdated --json=v2" ]; then
-        if [ -n "${DOTF_BREW_OUTDATED_JSON+x}" ]; then
-          printf '%s\n' "$DOTF_BREW_OUTDATED_JSON"
-        else
-          printf '%s\n' '{"formulae":[],"casks":[]}'
-        fi
-      fi
-      if [ "#{command}" = "mise" ] && { [ "$*" = "outdated --json" ] || [ "$*" = "outdated --bump --json" ]; }; then
-        if [ -n "${DOTF_MISE_OUTDATED_JSON+x}" ]; then
-          printf '%s\n' "$DOTF_MISE_OUTDATED_JSON"
-        else
-          printf '%s\n' '{}'
-        fi
-      fi
-      if [ "#{command}" = "mise" ] && [ "${4:-}" = "packages" ] && [ "${5:-}" = "status" ]; then
-        if [ -n "${DOTF_MISE_PACKAGE_STATUS_JSON+x}" ]; then
-          printf '%s\n' "$DOTF_MISE_PACKAGE_STATUS_JSON"
-        else
-          printf '%s\n' '{}'
-        fi
-      fi
-      if [ "#{command}" = "mise" ] && [ "${1:-}" = "exec" ] && [ "${2:-}" = "node@lts" ] && [ "${3:-}" = "--" ] && [ "${4:-}" = "npm" ] && [ "${5:-}" = "view" ] && [ "${7:-}" = "time" ] && [ "${8:-}" = "versions" ] && [ "${9:-}" = "--json" ]; then
-        if [ -n "${DOTF_NPM_VIEW_JSON+x}" ]; then
-          printf '%s\n' "$DOTF_NPM_VIEW_JSON"
-        else
-          package="$6"
-          version="$(printf '%s\n' "${DOTF_NPM_LATEST:-}" | tr ',' '\n' | awk -F= -v package="$package" '$1 == package { print $2 }')"
-          printf '{"versions":["%s"],"time":{"%s":"2000-01-01T00:00:00.000Z"}}\n' "$version" "$version"
-        fi
-      fi
-    BASH
-    FileUtils.chmod("+x", path)
-  end
-
   def source_script_and_init_logging(script_path, log_file_record)
     command = [
       "source #{Shellwords.escape(script_path)}",

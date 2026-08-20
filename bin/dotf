@@ -19,7 +19,6 @@ export DOTFILES_DIR
 source "$SCRIPT_DIR/lib/dotf-common.sh"
 LOGS_DIR="$DOTFILES_DIR/logs"
 LOG_RETENTION=30
-HOMEBREW_AUTO_UPDATE_SECS="${DOTF_HOMEBREW_AUTO_UPDATE_SECS:-604800}"
 
 rotate_logs() {
     local retention="${1:-$LOG_RETENTION}"
@@ -40,7 +39,6 @@ rotate_logs() {
 
 DOTF_COMMANDS=(
     $'run\tSet up development environment from scratch'
-    $'outdated\tShow managed package updates and write a Pi PR prompt'
     $'migrate\tRun one-time migrations for existing machines'
     $'steps\tList every setup step with its class name and description'
     $'help\tShow this help message'
@@ -78,22 +76,6 @@ announce() {
     fi
 }
 
-warn() {
-    if command -v gum &> /dev/null; then
-        gum style --foreground 214 "$1"
-    else
-        echo "$1"
-    fi
-}
-
-render_tsv_table() {
-    if command -v gum &> /dev/null; then
-        gum table --separator $'\t' --border rounded --print
-    else
-        cat
-    fi
-}
-
 ensure_homebrew_env() {
     if [ -x "$HOME/.homebrew/bin/brew" ]; then
         eval "$("$HOME/.homebrew/bin/brew" shellenv bash)"
@@ -122,30 +104,6 @@ ensure_mise_env() {
     fi
 }
 
-managed_brew_formulae() {
-    if [ -n "${DOTF_MANAGED_BREW_FORMULAE:-}" ]; then
-        printf '%s\n' "$DOTF_MANAGED_BREW_FORMULAE" | tr ',' '\n' | awk '{$1=$1}; NF'
-        return 0
-    fi
-
-    mise -C "$HOME" bootstrap packages status --json 2>/dev/null |
-        env -u BUNDLE_GEMFILE -u BUNDLE_BIN_PATH -u RUBYOPT -u GEM_HOME -u GEM_PATH ruby -rjson -e '
-          data = JSON.parse(STDIN.read)
-          puts data.fetch("brew", {}).fetch("packages", []).map { |package| package["package"] }
-        '
-}
-
-managed_brew_casks() {
-    if [ -n "${DOTF_MANAGED_BREW_CASKS:-}" ]; then
-        printf '%s\n' "$DOTF_MANAGED_BREW_CASKS" | tr ',' '\n' | awk '{$1=$1}; NF'
-        return 0
-    fi
-
-    env -u BUNDLE_GEMFILE -u BUNDLE_BIN_PATH -u RUBYOPT -u GEM_HOME -u GEM_PATH \
-        ruby -ryaml -e 'puts YAML.safe_load(File.read(ARGV.fetch(0))).fetch("brew_casks", [])' \
-        "$DOTFILES_DIR/config/config.yml"
-}
-
 is_debian() {
     [ "${DOTF_FORCE_NON_DEBIAN:-false}" = "true" ] && return 1
     [ "${DOTF_FORCE_DEBIAN:-false}" = "true" ] || [ -f /etc/debian_version ]
@@ -164,35 +122,10 @@ mise_packages_supported() {
     is_debian || user_has_admin_rights
 }
 
-MISE_SELF_UPDATE_MINIMUM_RELEASE_AGE="3d"
-
-mise_version() {
-    mise --version 2>/dev/null | awk 'NR == 1 { print $1 }'
-}
-
-update_mise() {
-    announce "Updating mise"
-
-    local current_version target_version
-    current_version="$(mise_version)"
-    target_version="$(mise latest github:jdx/mise --minimum-release-age "$MISE_SELF_UPDATE_MINIMUM_RELEASE_AGE")"
-    if [ -z "$current_version" ] || [ -z "$target_version" ]; then
-        echo "Error: could not resolve mise versions for self-update" >&2
-        return 1
-    fi
-
-    if dotf_version_is_newer "$target_version" "$current_version"; then
-        mise self-update --yes --no-plugins "$target_version" ||
-            echo "Warning: mise self-update to ${target_version} failed; continuing with ${current_version}" >&2
-    else
-        debug "mise ${current_version} is at or ahead of delayed target ${target_version}"
-    fi
-}
-
 run_mise_bootstrap() {
     announce "Converging machine with mise bootstrap"
 
-    local args=(-C "$HOME" bootstrap --yes --update)
+    local args=(-C "$HOME" bootstrap --yes --locked)
     local status
     if ! mise_packages_supported; then
         args+=(--skip packages)
@@ -247,7 +180,6 @@ cmd_run() {
     "$SCRIPT_DIR/bootstrap"
     ensure_homebrew_env
     ensure_mise_env
-    update_mise
     run_mise_bootstrap
     ensure_mise_env
 
@@ -261,244 +193,6 @@ cmd_run() {
     ruby -r ./lib/dotfiles.rb -e "Dotfiles::Runner.new('$LOG_FILE').run"
 
     debug "Run complete"
-}
-
-report_mise_outdated() {
-    announce "Checking mise tools"
-    if ! command -v mise &> /dev/null; then
-        warn "Skipping mise (mise not found on PATH)"
-        return 0
-    fi
-
-    local output
-    output="$(
-        unset BUNDLE_GEMFILE BUNDLE_BIN_PATH RUBYOPT GEM_HOME GEM_PATH 2>/dev/null || true
-        mise outdated --bump --json 2>/dev/null | ruby -rjson -e '
-          begin
-            tools = JSON.parse(STDIN.read)
-          rescue JSON::ParserError
-            tools = {}
-          end
-          rows = []
-          tools.each do |name, tool|
-            current = tool["current"].to_s
-            latest = tool["latest"].to_s
-            next if current.empty? || latest.empty? || current == latest
-            rows << [name, current, latest]
-          end
-
-          if rows.empty?
-            puts "mise tools are up to date"
-          else
-            if ENV["DOTF_OUTDATED_ROWS_PATH"]
-              File.open(ENV.fetch("DOTF_OUTDATED_ROWS_PATH"), "a") do |file|
-                rows.each { |row| file.puts((["mise"] + row).join("\t")) }
-              end
-            end
-            puts "tool\tcurrent\tlatest"
-            rows.each { |row| puts row.join("\t") }
-          end
-        '
-    )"
-    if [[ "$output" == $'tool\tcurrent\tlatest'* ]]; then
-        printf '%s\n' "$output" | render_tsv_table
-    else
-        printf '%s\n' "$output"
-    fi
-}
-
-report_mise_packages_outdated() {
-    announce "Checking mise-managed system packages"
-    mise_packages_supported || return 0
-    mise -C "$HOME" bootstrap packages upgrade --dry-run || warn "Skipping system packages (mise dry-run failed)"
-}
-
-report_pi_package_outdated() {
-    announce "Checking Pi packages"
-
-    local settings_path="$DOTFILES_DIR/files/home/.pi/agent/settings.json"
-    if [ ! -f "$settings_path" ]; then
-        warn "Skipping Pi packages (settings not found)"
-        return 0
-    fi
-
-    if ! command -v mise &> /dev/null; then
-        warn "Skipping Pi packages (mise not found on PATH)"
-        return 0
-    fi
-
-    local output
-    output="$(
-        unset BUNDLE_GEMFILE BUNDLE_BIN_PATH RUBYOPT GEM_HOME GEM_PATH 2>/dev/null || true
-        ruby -rjson -e '
-          settings = JSON.parse(File.read(ARGV.fetch(0)))
-          settings.fetch("packages", []).grep(/^npm:/).each do |source|
-            match = source.match(/\Anpm:(.+)@([^@]+)\z/)
-            next unless match
-            puts [match[1], match[2]].join("\t")
-          end
-        ' "$settings_path" | while IFS=$'\t' read -r package current; do
-            latest="$(
-                unset BUNDLE_GEMFILE BUNDLE_BIN_PATH RUBYOPT GEM_HOME GEM_PATH 2>/dev/null || true
-                mise exec node@lts -- npm view "$package" time versions --json 2>/dev/null | env DOTF_CURRENT_VERSION="$current" ruby -rjson -rtime -e '
-                  begin
-                    data = JSON.parse(STDIN.read)
-                  rescue JSON::ParserError
-                    data = {}
-                  end
-
-                  current = ENV.fetch("DOTF_CURRENT_VERSION")
-                  cutoff = Time.now - (3 * 24 * 60 * 60)
-                  versions = Array(data["versions"])
-                  times = data.fetch("time", {})
-                  latest = versions.reverse.find do |version|
-                    published_at = times[version]
-                    published_at && Time.parse(published_at) <= cutoff
-                  rescue ArgumentError
-                    false
-                  end
-                  current_index = versions.index(current)
-                  latest_index = versions.index(latest)
-                  puts latest if latest && (!current_index || !latest_index || latest_index > current_index)
-                '
-            )"
-            [ -n "$latest" ] || continue
-            printf 'pi package\t%s\t%s\t%s\n' "$package" "$current" "$latest"
-        done | ruby -e '
-          rows = STDIN.read.lines.map(&:chomp).reject(&:empty?)
-          if rows.empty?
-            puts "Pi packages are up to date"
-          else
-            if ENV["DOTF_OUTDATED_ROWS_PATH"]
-              File.open(ENV.fetch("DOTF_OUTDATED_ROWS_PATH"), "a") do |file|
-                rows.each { |row| file.puts(row) }
-              end
-            end
-            puts "manager\tpackage\tcurrent\tlatest"
-            puts rows
-          end
-        '
-    )"
-
-    if [[ "$output" == $'manager\tpackage\tcurrent\tlatest'* ]]; then
-        printf '%s\n' "$output" | render_tsv_table
-    else
-        printf '%s\n' "$output"
-    fi
-}
-
-report_brew_outdated() {
-    command -v brew &> /dev/null || return 0
-
-    local managed_formulae managed_casks
-    managed_formulae="$(managed_brew_formulae | paste -sd, -)"
-    managed_casks="$(managed_brew_casks | paste -sd, -)"
-
-    announce "Checking Homebrew formulae and casks"
-    env HOMEBREW_AUTO_UPDATE_SECS="$HOMEBREW_AUTO_UPDATE_SECS" brew update-if-needed
-    local output
-    output="$(
-        unset BUNDLE_GEMFILE BUNDLE_BIN_PATH RUBYOPT GEM_HOME GEM_PATH 2>/dev/null || true
-        env HOMEBREW_NO_AUTO_UPDATE=1 brew outdated --json=v2 | env DOTF_MANAGED_FORMULAE="$managed_formulae" DOTF_MANAGED_CASKS="$managed_casks" ruby -rjson -e '
-          managed_formulae = ENV.fetch("DOTF_MANAGED_FORMULAE", "").split(",")
-          managed_casks = ENV.fetch("DOTF_MANAGED_CASKS", "").split(",")
-          data = JSON.parse(STDIN.read)
-          rows = []
-          data.fetch("formulae", []).each do |formula|
-            name = formula["name"]
-            next unless managed_formulae.include?(name)
-            rows << ["brew", name, Array(formula["installed_versions"]).join(", "), formula["current_version"]]
-          end
-          data.fetch("casks", []).each do |cask|
-            name = cask["name"] || cask["token"]
-            next unless managed_casks.include?(name)
-            rows << ["brew cask", name, Array(cask["installed_versions"]).join(", "), cask["current_version"]]
-          end
-          if rows.empty?
-            puts "Homebrew packages are up to date"
-          else
-            if ENV["DOTF_OUTDATED_ROWS_PATH"]
-              File.open(ENV.fetch("DOTF_OUTDATED_ROWS_PATH"), "a") do |file|
-                rows.each { |row| file.puts(row.join("\t")) }
-              end
-            end
-            puts "manager\tpackage\tcurrent\tlatest"
-            rows.each { |row| puts row.join("\t") }
-          end
-        '
-    )"
-    if [[ "$output" == $'manager\tpackage\tcurrent\tlatest'* ]]; then
-        printf '%s\n' "$output" | render_tsv_table
-    else
-        printf '%s\n' "$output"
-    fi
-}
-
-write_outdated_pi_prompt() {
-    local prompt_dir="$DOTFILES_DIR/tmp"
-    local prompt_path="$prompt_dir/pi-upgrade-prompt-$(dotf_date '%Y-%m-%d_%H-%M-%S').md"
-
-    mkdir -p "$prompt_dir"
-    (
-        unset BUNDLE_GEMFILE BUNDLE_BIN_PATH RUBYOPT GEM_HOME GEM_PATH 2>/dev/null || true
-        ruby -e '
-          rows = if ENV["DOTF_OUTDATED_ROWS_PATH"] && File.exist?(ENV.fetch("DOTF_OUTDATED_ROWS_PATH"))
-            File.readlines(ENV.fetch("DOTF_OUTDATED_ROWS_PATH"), chomp: true).reject(&:empty?)
-          else
-            []
-          end
-
-          puts "Update the pinned package versions in this dotfiles repository to the latest versions allowed by configured constraints."
-          puts
-          if rows.empty?
-            puts "No managed package updates were found by this dotf outdated run."
-          else
-            puts "Upgrade these managed packages:"
-            puts
-            puts "| Manager | Package | Current | Latest |"
-            puts "| --- | --- | --- | --- |"
-            rows.each do |row|
-              manager, package, current, latest = row.split("\t", 4)
-              puts "| #{manager} | #{package} | #{current} | #{latest} |"
-            end
-          end
-          puts
-          puts "Update files/home/.config/mise/config.toml, files/home/.pi/agent/settings.json, and any other pinned package-manager files as needed, run the relevant tests, then open a GitHub PR."
-        '
-    ) > "$prompt_path"
-
-    warn "Wrote Pi upgrade prompt to $prompt_path"
-    warn "You can run: pi \"\$(cat \"$prompt_path\")\""
-}
-
-cmd_outdated() {
-    if [ $# -gt 0 ]; then
-        echo "Error: dotf outdated does not accept options"
-        return 1
-    fi
-
-    init_logging
-    debug "Starting dotf outdated command"
-    is_debian || ensure_homebrew_env
-    ensure_mise_env
-
-    mkdir -p "$DOTFILES_DIR/tmp"
-    local outdated_rows_path="$DOTFILES_DIR/tmp/outdated-updates-$$.tsv"
-    : > "$outdated_rows_path"
-    export DOTF_OUTDATED_ROWS_PATH="$outdated_rows_path"
-
-    report_mise_outdated
-    report_mise_packages_outdated
-    report_pi_package_outdated
-    if ! is_debian; then
-        report_brew_outdated
-    fi
-
-    write_outdated_pi_prompt
-    rm -f "$outdated_rows_path"
-    unset DOTF_OUTDATED_ROWS_PATH
-
-    debug "Outdated check complete"
 }
 
 cmd_migrate() {
@@ -546,7 +240,6 @@ Logging:
 
 Examples:
   dotf run                              # Initial setup
-  dotf outdated                         # Show update candidates and write a Pi PR prompt
   dotf migrate                          # Run pending migrations on this machine
   DEBUG=true dotf run                   # Run with debug output to console
 EOF
@@ -563,10 +256,6 @@ main() {
     case "$1" in
         run)
             cmd_run
-            ;;
-        outdated)
-            shift
-            cmd_outdated "$@"
             ;;
         migrate)
             cmd_migrate

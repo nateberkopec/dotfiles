@@ -128,33 +128,6 @@ bootstrap_homebrew() {
     configure_homebrew_shellenv "$brew_bin"
 }
 
-ensure_debian_apt_source() {
-    local name="$1"
-    local key_url="$2"
-    local source_line="$3"
-    local keyring_dir="${DEBIAN_KEYRING_DIR:-/usr/share/keyrings}"
-    local source_dir="${DEBIAN_SOURCE_DIR:-/etc/apt/sources.list.d}"
-    local keyring_path="$keyring_dir/${name}-archive-keyring.gpg"
-    local source_path="$source_dir/${name}.list"
-
-    if [ ! -f "$keyring_path" ]; then
-        local key_file
-        key_file="$(mktemp)"
-        curl -fsSL "$key_url" -o "$key_file"
-        sudo gpg --dearmor -o "$keyring_path" "$key_file"
-        rm -f "$key_file"
-    fi
-
-    if ! grep -Fxq "$source_line" "$source_path" 2>/dev/null; then
-        printf '%s\n' "$source_line" | sudo tee "$source_path" >/dev/null
-    fi
-}
-
-prepare_debian_apt_sources() {
-    ensure_debian_apt_source "gierens" "https://raw.githubusercontent.com/eza-community/eza/main/deb.asc" \
-        "deb [signed-by=/usr/share/keyrings/gierens-archive-keyring.gpg] http://deb.gierens.de stable main"
-}
-
 bootstrap_debian_prereqs() {
     if ! is_linux; then
         return 0
@@ -169,26 +142,14 @@ bootstrap_debian_prereqs() {
         gnupg \
         unzip \
         xz-utils
-    prepare_debian_apt_sources
-}
-
-MISE_BOOTSTRAP_VERSION="2026.8.0"
-
-mise_version() {
-    "$1" --version 2>/dev/null | awk 'NR == 1 { print $1 }'
 }
 
 mise_install_version() {
-    local version="$MISE_BOOTSTRAP_VERSION"
-    local existing_version
+    tr -d '[:space:]' < "$DOTFILES_ROOT/config/mise.version"
+}
 
-    if command -v mise &> /dev/null; then
-        existing_version="$(mise_version "$(command -v mise)")"
-        if [ -n "$existing_version" ] && dotf_version_is_newer "$existing_version" "$version"; then
-            version="$existing_version"
-        fi
-    fi
-    printf '%s\n' "$version"
+mise_version() {
+    "$1" --version 2>/dev/null | awk 'NR == 1 { print $1 }'
 }
 
 install_self_managed_mise() {
@@ -203,10 +164,10 @@ install_self_managed_mise() {
 bootstrap_mise() {
     local mise_bin="$HOME/.local/bin/mise"
 
-    if [ ! -x "$mise_bin" ] || ! "$mise_bin" --version >/dev/null 2>&1; then
+    if [ "$(mise_version "$mise_bin")" != "$(mise_install_version)" ]; then
         install_self_managed_mise
     else
-        debug "Self-managed mise already installed"
+        debug "Pinned mise already installed"
     fi
 
     export PATH="$HOME/.local/bin:$PATH"
@@ -235,6 +196,7 @@ seed_global_mise_config() {
     debug "Seeding global mise config from the repo..."
     mkdir -p "$HOME/.config/mise"
     cp "$DOTFILES_ROOT/files/home/.config/mise/config.toml" "$HOME/.config/mise/config.toml"
+    cp "$DOTFILES_ROOT/files/home/.config/mise/mise.lock" "$HOME/.config/mise/mise.lock"
 }
 
 main() {

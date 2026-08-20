@@ -1,5 +1,10 @@
 class Dotfiles
   class Migration
+    HOMEBREW_ENV = {
+      "HOMEBREW_NO_AUTO_UPDATE" => "1",
+      "HOMEBREW_NO_ENV_HINTS" => "1"
+    }.freeze
+
     @@migrations = []
 
     extend Dotfiles::PlatformRestrictable
@@ -39,6 +44,25 @@ class Dotfiles
 
     def execute(command, quiet: true)
       @system.execute!(command, quiet: quiet)
+    end
+
+    def remove_homebrew_formula(name)
+      return unless command_exists?("brew")
+      return unless command_succeeds?(homebrew_command("list", "--formula", name))
+
+      execute(homebrew_command("uninstall", name))
+    end
+
+    def remove_apt_package(name, files: [])
+      return unless @system.debian?
+
+      execute(command("sudo", "apt-get", "remove", "--yes", name)) if command_succeeds?(command("dpkg-query", "--show", name))
+      existing_files = files.select { |path| @system.file_exist?(path) }
+      execute(shell_script('sudo rm -f "$@"', *existing_files)) unless existing_files.empty?
+    end
+
+    def homebrew_command(*args)
+      env_command(HOMEBREW_ENV, "brew", *args)
     end
   end
 end
