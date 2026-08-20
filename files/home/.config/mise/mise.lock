@@ -187,6 +187,18 @@ checksum = "sha256:76260fb34f4ee622ff0a66b857e5954aa49c7e343a92e57a1ec4a760618c9
 url = "https://github.com/git-lfs/git-lfs/releases/download/v3.7.1/git-lfs-darwin-arm64-v3.7.1.zip"
 url_api = "https://api.github.com/repos/git-lfs/git-lfs/releases/assets/305262593"
 
+[[tools."github:BarutSRB/OmniWM"]]
+version = "0.6.2"
+backend = "github:BarutSRB/OmniWM"
+
+[tools."github:BarutSRB/OmniWM".options]
+asset_pattern = "OmniWM-v{version}.zip"
+
+[tools."github:BarutSRB/OmniWM"."platforms.macos-arm64"]
+checksum = "sha256:232bf91debeea589465bf1230b9afc78f76edb383a9fad36f1d07d6f9ed4deb4"
+url = "https://github.com/BarutSRB/OmniWM/releases/download/v0.6.2/OmniWM-v0.6.2.zip"
+url_api = "https://api.github.com/repos/BarutSRB/OmniWM/releases/assets/514881462"
+
 [[tools."github:aldanial/cloc"]]
 version = "2.10"
 backend = "github:aldanial/cloc"

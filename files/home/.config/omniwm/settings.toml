@@ -1,0 +1,78 @@
+[general]
+updateChecksEnabled = false
+
+[[hotkeys]]
+binding = "Option+Tab"
+id = "workspaceBackAndForth"
+
+[[hotkeys]]
+binding = "Option+Right Bracket"
+id = "switchWorkspace.next"
+
+[[hotkeys]]
+binding = "Option+Left Bracket"
+id = "switchWorkspace.previous"
+
+[[hotkeys]]
+binding = "Option+H"
+id = "focus.left"
+
+[[hotkeys]]
+binding = "Option+J"
+id = "focus.down"
+
+[[hotkeys]]
+binding = "Option+K"
+id = "focus.up"
+
+[[hotkeys]]
+binding = "Option+L"
+id = "focus.right"
+
+[[hotkeys]]
+binding = "Control+Option+Tab"
+id = "focusPrevious"
+
+[[hotkeys]]
+binding = "Option+Shift+Left Bracket"
+id = "moveWindowToWorkspaceUp"
+
+[[hotkeys]]
+binding = "Option+Shift+Right Bracket"
+id = "moveWindowToWorkspaceDown"
+
+[[hotkeys]]
+binding = "Option+Shift+H"
+id = "move.left"
+
+[[hotkeys]]
+binding = "Option+Shift+J"
+id = "move.down"
+
+[[hotkeys]]
+binding = "Option+Shift+K"
+id = "move.up"
+
+[[hotkeys]]
+binding = "Option+Shift+L"
+id = "move.right"
+
+[[hotkeys]]
+binding = "Hyper+F"
+id = "moveWindowToMonitor.left"
+
+[[hotkeys]]
+binding = "Hyper+G"
+id = "moveWindowToMonitor.right"
+
+[[hotkeys]]
+binding = "Option+Equal"
+id = "cycleSizeForward"
+
+[[hotkeys]]
+binding = "Option+Minus"
+id = "cycleSizeBackward"
+
+[[hotkeys]]
+binding = "Hyper+L"
+id = "toggleWorkspaceLayout"

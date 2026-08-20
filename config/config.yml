@@ -17,7 +17,6 @@ debian_desktop_apps:
 debian_non_apt_packages:
   - droid
 brew_casks:
-  - nikitabobko/tap/aerospace
   - 1password
   - cursor
   - discord

@@ -1,0 +1,20 @@
+#!/bin/bash
+
+set -eu
+
+mise_bin="$HOME/.local/bin/mise"
+for _ in {1..300}; do
+  install_dir="$($mise_bin where github:BarutSRB/OmniWM 2>/dev/null || true)"
+  app="$install_dir/OmniWM.app"
+
+  if [[ -d "$app" ]]; then
+    /usr/sbin/dot_clean -m "$app"
+    /usr/bin/codesign --verify --deep --strict "$app"
+    exec /usr/bin/open "$app"
+  fi
+
+  sleep 1
+done
+
+echo "OmniWM was not installed by mise within five minutes" >&2
+exit 1

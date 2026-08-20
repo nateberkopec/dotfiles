@@ -18,6 +18,7 @@ hk = "1.53.0"
 "github:aldanial/cloc" = { version = "2.10", asset_pattern = "cloc-2.10.pl", bin = "cloc" }
 "github:pkgforge-dev/ghostty-appimage[bin=ghostty]" = { version = "1.3.1", os = ["linux"] }
 "github:nateberkopec/print-label" = "0.1.2"
+"github:BarutSRB/OmniWM" = { version = "0.6.2", asset_pattern = "OmniWM-v{{version}}.zip", bin_path = "OmniWM.app/Contents/MacOS", os = ["macos"], arch = ["arm64"] }
 watchexec = "2.5.1"
 fnox = "1.31.1"
 bat = "0.26.1"
@@ -162,7 +163,7 @@ TrackpadCornerSecondaryClick = 0
 TrackpadTwoFingerDoubleTapGesture = 1
 
 [bootstrap.macos.defaults."com.apple.spaces"]
-spans-displays = true
+spans-displays = false
 
 [bootstrap.macos.defaults."com.raycast.macos"]
 raycastGlobalHotkey = "Command-49"
@@ -183,6 +184,12 @@ run_at_load = true
 keep_alive = true
 stdout_path = "/tmp/yknotify.out"
 stderr_path = "/tmp/yknotify.err"
+
+[bootstrap.macos.launchd.agents.omniwm]
+program = "~/.local/share/dotfiles/launch-omniwm"
+run_at_load = true
+stdout_path = "~/Library/Logs/omniwm-launcher.out.log"
+stderr_path = "~/Library/Logs/omniwm-launcher.err.log"
 
 [bootstrap.hooks]
 pre-dotfiles = 'bash "$HOME/.dotfiles/bin/lib/unprotect-managed-files.sh"'
