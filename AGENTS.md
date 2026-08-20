@@ -7,7 +7,7 @@ I make changes to this repository exclusively through GitHub pull requests. Push
 ## CI
 
 - CI usually takes about 10 minutes to finish running.
-- Do not use `[ci skip]`, `[skip ci]`, or similar commit-message skip markers in this repository. They leave required PR checks without successful statuses, so the PR gets stuck instead of merging.
+- Never use `[ci skip]`, `[skip ci]`, or similar commit-message skip markers in this repository, including for docs-only changes. GitHub skips required workflows entirely, leaving their checks without successful statuses and the PR stuck.
 - Docs-only changes use the repository's explicit skip mechanisms instead:
   - The integration workflow detects changes limited to `docs/*`, `README.md`, or `AGENTS.md` and skips the integration test steps while still reporting successful required checks.
   - Local `hk`/mise hooks use task `sources` to skip unchanged checks before commit. CI lint and unit-test workflows still run on PRs.
