@@ -6,28 +6,43 @@ Accepted
 
 ## Context
 
-`dotf run` previously selected a delayed mise release and refreshed package-manager metadata while converging a host. Runtime upgrade discovery made committed configuration an incomplete source of truth and mixed machine setup with dependency review.
+`dotf run` previously found mise updates while it configured a computer. It also refreshed package-manager data.
 
-GUI casks complicate exact convergence because their vendors and built-in updaters own the installed application version. macOS operating-system releases are intentionally always taken when available.
+As a result, the committed files did not fully define the required state. The command combined computer configuration with dependency review.
 
-Dependency decisions also need more than a newer version number. Security is always relevant; other changes justify an update only when they provide a concrete benefit to these workflows.
+Vendors can update GUI applications without Homebrew. Therefore, `dotf` cannot reliably enforce cask versions.
+
+`dotf` does not control the macOS version. The user installs each macOS update when it becomes available.
+
+A new version number is not a sufficient reason for an update. Security changes are always important. Other changes are important only when they give a clear benefit to these workflows.
 
 ## Decision
 
-`dotf run` consumes committed state only. It installs the exact mise version in `config/mise.version`, runs `mise bootstrap --locked`, and uses the committed multi-platform lock at `files/home/.config/mise/mise.lock`. Upgrade discovery happens outside convergence.
+`dotf run` uses only committed state. It does not find or select updates.
 
-Prefer mise over Homebrew or APT for command-line tools. Homebrew remains for host integration formulae and GUI casks that mise cannot reasonably own.
+The command installs the mise version specified in `config/mise.version`. It runs `mise bootstrap --locked`. It uses the lock file at `files/home/.config/mise/mise.lock`.
 
-Self-updating casks are presence-managed. Their versions in `config/dependency-updater.yml` are notification baselines, not installation targets, and `dotf run` never downgrades them. macOS version management is excluded; the existing latest-available update Step remains independent.
+A separate dependency factory finds and reviews updates.
 
-A daily GitHub Actions workflow creates at most one open dependency-update issue and assigns it to GitHub Copilot. Copilot opens one batch PR, leads each candidate analysis with security, and answers “what's in it for me?” using primary sources and repository-specific relevance.
+Use mise for command-line tools when mise can install them. Use Homebrew for integration formulae and GUI casks that mise cannot install.
 
-Selective decisions happen through `@copilot` comments on that PR. Declined candidates are removed from the batch and recorded with explicit wake versions in `config/dependency-updater.yml`. A security advisory wakes a snooze early.
+`dotf` installs a cask only when the cask is not present. The versions in `config/dependency-updater.yml` are notification baselines. They are not installation targets. `dotf` never downgrades a cask.
+
+The dependency factory does not manage macOS versions. The existing macOS update Step continues to find the latest available update.
+
+A daily GitHub Actions workflow keeps a maximum of one dependency-update issue open. The workflow assigns the issue to GitHub Copilot.
+
+Copilot opens one pull request for all update candidates. For each candidate, Copilot reports security information first. Copilot then explains the benefit to this repository and its workflows. Copilot uses primary sources for this report.
+
+The user makes update decisions in `@copilot` comments on the pull request. Copilot removes declined candidates from the pull request. Copilot records an explicit wake version in `config/dependency-updater.yml`.
+
+The factory ignores a snooze when a new security advisory appears.
 
 ## Consequences
 
-- Running dotfiles cannot unexpectedly select a new tool release.
-- Native locks and exact pins are reviewed in pull requests.
-- Dependency notifications are batched rather than emitted per package.
-- Casks remain observable without fighting application self-updaters.
-- The Copilot assignment workflow requires a user token stored as `COPILOT_ASSIGNMENT_TOKEN` because GitHub's issue-assignment API does not accept the workflow's server token.
+- `dotf run` cannot select an unexpected tool release.
+- Pull requests contain all changes to exact pins and native lock files.
+- One report contains all dependency notifications for a factory run.
+- Application self-updaters do not conflict with cask management.
+- The workflow needs a user token in `COPILOT_ASSIGNMENT_TOKEN`.
+- The GitHub workflow token cannot assign an issue to Copilot.
