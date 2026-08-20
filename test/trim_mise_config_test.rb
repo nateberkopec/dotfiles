@@ -21,6 +21,9 @@ class TrimMiseConfigTest < Minitest::Test
         [bootstrap.macos.launchd.agents.woodblock-wallpaper]
         program = "wallpaper"
 
+        [bootstrap.macos.launchd.agents.omniwm]
+        program = "omniwm"
+
         [settings]
         experimental = true
       TOML
