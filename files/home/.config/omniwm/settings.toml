@@ -127,3 +127,15 @@ id = "cycleSizeBackward"
 [[hotkeys]]
 binding = "Hyper+L"
 id = "toggleWorkspaceLayout"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "toggleFullscreen"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "setContainerPrimarySpan.decrease10Percent"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "setContainerPrimarySpan.increase10Percent"
