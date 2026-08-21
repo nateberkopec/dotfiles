@@ -41,9 +41,9 @@ Keep one PR for the entire run. Do not split candidates into separate tasks or P
 
 ## Follow-up conversation on the PR
 
-Nate will make batch decisions in ordinary `@copilot` PR comments, for example:
+Nate will make batch decisions with the Codex-backed `/dependency-update` command in PR comments, for example:
 
-> @copilot Snooze mise, ruby and libpq until next minor; the rest are good; merge when ready.
+> /dependency-update Snooze mise, ruby and libpq until next minor; the rest are good.
 
 When asked to snooze dependencies:
 
@@ -53,6 +53,6 @@ When asked to snooze dependencies:
 - explain the interpretation in a reply;
 - regenerate affected locks and rerun validation;
 - retain the approved updates in this same PR;
-- enable auto-merge when requested and permitted, otherwise say what manual action remains.
+- report what manual action remains without merging the PR.
 
 Never let a snooze suppress a newly disclosed security advisory.

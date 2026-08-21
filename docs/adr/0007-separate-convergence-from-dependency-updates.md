@@ -30,11 +30,11 @@ Use mise for command-line tools when mise can install them. Use Homebrew for int
 
 The dependency factory does not manage macOS versions. The existing macOS update Step continues to find the latest available update.
 
-A daily GitHub Actions workflow keeps a maximum of one unfinished dependency-update task or pull request. The workflow starts GitHub Copilot through the Agent Tasks API and tells it to open a pull request directly.
+A daily GitHub Agentic Workflow keeps a maximum of one unfinished dependency-update pull request. The workflow runs OpenAI Codex and tells it to open a pull request directly.
 
-Copilot uses one pull request for all update candidates. For each candidate, Copilot reports security information first. Copilot then explains the benefit to this repository and its workflows. Copilot uses primary sources for this report.
+Codex uses one pull request for all update candidates. For each candidate, Codex reports security information first. Codex then explains the benefit to this repository and its workflows. Codex uses primary sources for this report.
 
-The user makes update decisions in `@copilot` comments on the pull request. Copilot removes declined candidates from the pull request. Copilot records an explicit wake version in `config/dependency-updater.yml`.
+The user makes update decisions with `/dependency-update` comments on the pull request. The Codex workflow removes declined candidates from the pull request and records an explicit wake version in `config/dependency-updater.yml`.
 
 The factory ignores a snooze when a new security advisory appears.
 
@@ -44,5 +44,5 @@ The factory ignores a snooze when a new security advisory appears.
 - Pull requests contain all changes to exact pins and native lock files.
 - One report contains all dependency notifications for a factory run.
 - Application self-updaters do not conflict with cask management.
-- The workflow needs a user token with read/write Agent tasks permission in `COPILOT_ASSIGNMENT_TOKEN`.
-- GitHub's Agent Tasks API is in public preview.
+- The workflows need an OpenAI API key in `OPENAI_API_KEY` or `CODEX_API_KEY`.
+- GitHub Agentic Workflows is in public preview.
