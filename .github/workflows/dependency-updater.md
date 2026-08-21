@@ -1,7 +1,7 @@
 ---
 on:
   schedule:
-    - cron: "17 11 * * *"
+    - cron: "0 18 * * 0" # Monday 03:00 JST
   workflow_dispatch:
   slash_command:
     name: dependency-update
@@ -14,6 +14,7 @@ permissions:
   pull-requests: read
 
 engine: codex
+model: gpt-5.6-sol?effort=medium
 
 tools:
   edit:
@@ -25,6 +26,10 @@ network:
   allowed: [defaults, github, linux-distros, node, ruby]
 
 safe-outputs:
+  threat-detection:
+    engine:
+      id: codex
+      model: gpt-5.6-luna?effort=max
   create-pull-request:
     labels: [dependency-update]
     base-branch: main

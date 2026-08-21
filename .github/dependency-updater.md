@@ -13,7 +13,7 @@ Read the repository's existing manifests and native lockfiles. Check every manag
 - Homebrew formulae used for host integration;
 - observed Homebrew casks in `config/dependency-updater.yml`.
 
-Only consider releases at least `minimum_release_age_days` old. Ignore macOS operating-system releases completely; `UpdateMacOSStep` remains independently latest-seeking.
+Only update to releases at least `minimum_release_age_days` old. Still inspect newer releases for security fixes: the age gate must never hide a known vulnerability or security-relevant correctness issue. Call out each gated security fix prominently, link its primary advisory or release notes, state when it clears the gate, and explain whether Nate uses the affected feature. Ignore macOS operating-system releases completely; `UpdateMacOSStep` remains independently latest-seeking.
 
 Casks are self-updating external software. Update their observation baseline when accepted, but do not make `dotf run` install, downgrade, or otherwise enforce a cask version.
 
@@ -31,7 +31,23 @@ For every dependency, state:
 4. **Cost and risk:** breaking changes, regressions, migrations, compatibility concerns, and reasons to wait.
 5. **Recommendation:** upgrade or decline. “General fixes and improvements” is not a benefit.
 
-Use direct source links. Do not invent relevance when no personally useful benefit is evident.
+Use direct primary-source links. Do not invent relevance when no personally useful benefit is evident. A security issue remains worth reporting even when Nate does not use the affected feature; say that plainly.
+
+## Format the report
+
+Use an updates table with exactly these columns:
+
+| Tool | Old | New | Security | Why |
+|------|-----|-----|----------|-----|
+
+Set `Security` to `true` when the candidate fixes a known vulnerability, advisory, or security-relevant correctness issue; otherwise set it to `false`. Link the concrete text in every `Why` cell to the primary changelog, release notes, or advisory used for that assessment.
+
+Use a skipped-candidates table with exactly these columns:
+
+| Tool | Candidate | Security | Reason |
+|------|-----------|----------|--------|
+
+Apply the same `Security` rule and include primary-source links in every `Reason`. Any security fix blocked by the release-age gate must also appear prominently in the opening security section, with its impact, personal relevance, publication time, and gate-clear time.
 
 ## Make and validate the batch
 
