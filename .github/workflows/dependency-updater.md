@@ -3,12 +3,24 @@ on:
   schedule:
     - cron: "0 18 * * 0" # Monday 03:00 JST
   workflow_dispatch:
+  workflow_run:
+    workflows: [Integration Tests, Lint, Unit Tests]
+    types: [completed]
+    branches: ["dependency-update-*"]
   slash_command:
     name: dependency-update
     events: [pull_request_comment]
   roles: [admin]
 
+if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'failure'
+
+concurrency:
+  group: dependency-factory-${{ github.event.workflow_run.head_branch || github.event.issue.number || github.run_id }}
+  cancel-in-progress: false
+  queue: max
+
 permissions:
+  actions: read
   contents: read
   issues: read
   pull-requests: read
@@ -24,6 +36,8 @@ model: gpt-5.6-sol
 tools:
   edit:
   bash: [":*"]
+  github:
+    toolsets: [default, actions]
   web-fetch:
   web-search:
 
@@ -56,9 +70,20 @@ safe-outputs:
 
 # Dependency Software Factory
 
-The matched slash command is `${{ needs.activation.outputs.slash_command }}`.
+The triggering event is `${{ github.event_name }}`. The matched slash command is `${{ needs.activation.outputs.slash_command }}`.
 
-If it is `dependency-update`, handle this command on the triggering dependency-update pull request:
+If the event is `workflow_run`:
+
+1. Inspect failed run `${{ github.event.workflow_run.id }}` and its job logs.
+2. Find its associated open pull request. Continue only if it has the `dependency-update` label.
+3. Confirm that `${{ github.event.workflow_run.head_sha }}` is still the pull request head. Do nothing if a newer commit has superseded the failure.
+4. Diagnose the root cause. Make the smallest complete fix on the same pull request branch.
+5. Regenerate affected locks, run the applicable validation, and push the fix.
+6. Inspect all required checks before finishing.
+
+Never ask Nate to review the pull request while a check is pending or failed. A later failed build will invoke this workflow again. Never merge the pull request or create another one.
+
+If the matched slash command is `dependency-update`, handle this command on the triggering dependency-update pull request:
 
 > ${{ steps.sanitized.outputs.text }}
 
