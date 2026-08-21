@@ -34,11 +34,11 @@ safe-outputs:
   threat-detection:
     engine:
       id: codex
-      model: gpt-5.6-sol
+      model: gpt-5.6-luna
       # gh-aw 0.86.2 omits the separator before detection args; keep the leading space.
       args:
         - " -c"
-        - model_reasoning_effort="medium"
+        - model_reasoning_effort="max"
   create-pull-request:
     labels: [dependency-update]
     base-branch: main
