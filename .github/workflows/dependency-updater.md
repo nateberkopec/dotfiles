@@ -54,6 +54,7 @@ safe-outputs:
         - " -c"
         - model_reasoning_effort="medium"
   create-pull-request:
+    github-token: ${{ secrets.DEPENDENCY_FACTORY_PAT }}
     labels: [dependency-update]
     base-branch: main
     draft: false
@@ -61,6 +62,7 @@ safe-outputs:
     if-no-changes: ignore
     protected-files: allowed
   push-to-pull-request-branch:
+    github-token: ${{ secrets.DEPENDENCY_FACTORY_PAT }}
     required-labels: [dependency-update]
     if-no-changes: ignore
     protected-files: allowed
