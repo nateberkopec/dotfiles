@@ -1,7 +1,7 @@
 ---
 on:
   schedule:
-    - cron: "17 11 * * *"
+    - cron: "0 18 * * 0" # Monday 03:00 JST
   workflow_dispatch:
   slash_command:
     name: dependency-update
