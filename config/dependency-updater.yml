@@ -20,7 +20,7 @@ observed_casks:
   telegram: "12.9,282555"
   thebrowsercompany-dia: "1.44.1,85212"
   visual-studio-code: "1.133.0"
-  whatsapp: "26.32.19"
+  whatsapp: "26.33.12"
   zoom: "7.1.5.84650"
 
 # Copilot records declined candidates here while revising the batch PR.

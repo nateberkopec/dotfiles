@@ -74,7 +74,7 @@ module BootstrapScriptHelper
       #!/bin/bash
       printf '%s\\n' "mise $*" >> "$MISE_COMMAND_LOG"
       if [ "${1:-}" = "--version" ]; then
-        printf '%s\\n' "${MISE_STUB_VERSION:-#{version || "2026.8.2"}}"
+        printf '%s\\n' "${MISE_STUB_VERSION:-#{version || "2026.8.8"}}"
       elif [ "$*" = "activate bash" ]; then
         cat "$HOME/.config/mise/config.toml" > "$MISE_CONFIG_AT_ACTIVATION_LOG"
       fi

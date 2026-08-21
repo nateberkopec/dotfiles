@@ -60,7 +60,7 @@ class BootstrapTest < Minitest::Test
     with_bootstrap_stub do |env|
       run_bootstrap_mise(env)
 
-      assert_equal "2026.8.2 #{File.join(env.fetch("HOME"), ".local", "bin", "mise")}", File.read(env.fetch("MISE_INSTALL_LOG")).chomp
+      assert_equal "2026.8.8 #{File.join(env.fetch("HOME"), ".local", "bin", "mise")}", File.read(env.fetch("MISE_INSTALL_LOG")).chomp
     end
   end
 
@@ -70,7 +70,7 @@ class BootstrapTest < Minitest::Test
 
       run_bootstrap_mise(env)
 
-      assert_match(/\A2026\.8\.2 /, File.read(env.fetch("MISE_INSTALL_LOG")))
+      assert_match(/\A2026\.8\.8 /, File.read(env.fetch("MISE_INSTALL_LOG")))
     end
   end
 
