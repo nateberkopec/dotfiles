@@ -23,6 +23,6 @@ observed_casks:
   whatsapp: "26.32.19"
   zoom: "7.1.5.84650"
 
-# Copilot records declined candidates here while revising the batch PR.
+# Codex records declined candidates here while revising the batch PR.
 # A security advisory always wakes a snooze early.
 snoozes: {}

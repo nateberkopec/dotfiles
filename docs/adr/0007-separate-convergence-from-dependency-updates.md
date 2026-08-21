@@ -26,11 +26,11 @@ A separate dependency factory finds and reviews updates.
 
 Use mise for command-line tools when mise can install them. Use Homebrew for integration formulae and GUI casks that mise cannot install.
 
-`dotf` installs a cask only when the cask is not present. The versions in `config/dependency-updater.yml` are notification baselines. They are not installation targets. `dotf` never downgrades a cask.
+`dotf` installs a cask only when the cask is not present. The versions in `config/dependency-updater.yml` are observation baselines. They are not installation targets. `dotf` never downgrades a cask. The dependency factory omits cask version changes because the repository cannot enforce them.
 
 The dependency factory does not manage macOS versions. The existing macOS update Step continues to find the latest available update.
 
-A daily GitHub Agentic Workflow keeps a maximum of one unfinished dependency-update pull request. The workflow runs OpenAI Codex and tells it to open a pull request directly.
+A weekly GitHub Agentic Workflow keeps a maximum of one unfinished dependency-update pull request. The workflow runs OpenAI Codex and tells it to open a pull request directly. A failed required build invokes Codex again. Codex fixes the pull request before asking the user to review it.
 
 Codex uses one pull request for all update candidates. For each candidate, Codex reports security information first. Codex then explains the benefit to this repository and its workflows. Codex uses primary sources for this report.
 
@@ -42,7 +42,8 @@ The factory ignores a snooze when a new security advisory appears.
 
 - `dotf run` cannot select an unexpected tool release.
 - Pull requests contain all changes to exact pins and native lock files.
-- One report contains all dependency notifications for a factory run.
-- Application self-updaters do not conflict with cask management.
+- One report contains all enforceable dependency updates for a factory run.
+- Observation-only application versions do not add noise to the report.
+- Failed builds return to Codex before the user reviews the pull request.
 - The workflows need an OpenAI API key in `OPENAI_API_KEY` or `CODEX_API_KEY`.
 - GitHub Agentic Workflows is in public preview.
