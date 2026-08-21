@@ -13,8 +13,13 @@ permissions:
   issues: read
   pull-requests: read
 
-engine: codex
-model: gpt-5.6-sol?effort=medium
+engine:
+  id: codex
+  args:
+    - -c
+    - model_reasoning_effort="medium"
+# gh-aw-firewall 0.27.44 misresolves model names with query parameters.
+model: gpt-5.6-sol
 
 tools:
   edit:
@@ -29,7 +34,11 @@ safe-outputs:
   threat-detection:
     engine:
       id: codex
-      model: gpt-5.6-luna?effort=max
+      model: gpt-5.6-sol
+      # gh-aw 0.86.2 omits the separator before detection args; keep the leading space.
+      args:
+        - " -c"
+        - model_reasoning_effort="medium"
   create-pull-request:
     labels: [dependency-update]
     base-branch: main
