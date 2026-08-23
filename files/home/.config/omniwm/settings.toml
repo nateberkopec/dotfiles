@@ -17,6 +17,21 @@ left = 0.0
 right = 0.0
 top = 0.0
 
+[niri]
+visibleContainerCount = 2
+
+[[monitorNiriOverrides]]
+id = "3AE883DE-B85C-48F3-838C-45CE7841BB03"
+monitorName = "DELL G3223Q"
+monitorDisplayUUID = "E165D445-477D-4D2D-95E0-500E9940FE59"
+visibleContainerCount = 3
+
+[[monitorNiriOverrides]]
+id = "288ABB9D-D8C5-42A0-9147-1E19174FAA4F"
+monitorName = "Built-in Retina Display"
+monitorDisplayUUID = "37D8832A-2D66-02CA-B9F7-8F30A301B230"
+visibleContainerCount = 2
+
 [hiddenBar]
 enabled = true
 hiddenBundleIDs = []
