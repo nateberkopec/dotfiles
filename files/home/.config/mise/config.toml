@@ -1,48 +1,48 @@
 # Managed by dotfiles. This file is the source of truth for machine-wide mise tools.
 [tools]
 ruby = "4.0.6"
-node = "26.5.0"
-"github:jdx/aube" = "1.36.0"
-go = "1.26.4"
-rust = "1.96.1"
-hk = "1.53.0"
-"cargo:broot" = "1.57.0"
-"cargo:difftastic" = "0.69.0"
+node = "26.7.0"
+"github:jdx/aube" = "1.41.0"
+go = "1.27.0"
+rust = "1.97.1"
+hk = "1.56.0"
+"cargo:broot" = "1.58.0"
+"cargo:difftastic" = "0.70.0"
 "cargo:starship" = "1.26.0"
 "gem:try-cli" = "1.9.3"
-"npm:@openai/codex" = { version = "0.146.0", depends = ["github:jdx/aube"] }
+"npm:@openai/codex" = { version = "0.148.0", depends = ["github:jdx/aube"] }
 "npm:sfw" = { version = "2.0.6", depends = ["github:jdx/aube"] }
-"npm:@earendil-works/pi-coding-agent" = { version = "0.83.0", depends = ["github:jdx/aube"], minimum_release_age = "0d", aube_args = "--deny-build=@google/genai --deny-build=protobufjs" }
-"go:github.com/mikefarah/yq/v4" = "4.53.3"
+"npm:@earendil-works/pi-coding-agent" = { version = "0.84.2", depends = ["github:jdx/aube"], minimum_release_age = "0d", aube_args = "--deny-build=@google/genai --deny-build=protobufjs" }
+"go:github.com/mikefarah/yq/v4" = "4.53.4"
 "go:github.com/noperator/yknotify" = "0.0.0-20260324103239-0c773bdadedb"
 "github:aldanial/cloc" = { version = "2.10", asset_pattern = "cloc-2.10.pl", bin = "cloc" }
 "github:pkgforge-dev/ghostty-appimage[bin=ghostty]" = { version = "1.3.1", os = ["linux"] }
 "github:nateberkopec/print-label" = "0.1.2"
 "github:BarutSRB/OmniWM" = { version = "0.6.2", asset_pattern = "OmniWM-v{{version}}.zip", bin_path = "OmniWM.app/Contents/MacOS", os = ["macos"], arch = ["arm64"] }
 watchexec = "2.5.1"
-fnox = "1.31.1"
+fnox = "1.33.1"
 bat = "0.26.1"
 eza = "0.23.5"
-cmake = "4.3.3"
+cmake = "4.4.2"
 fd = "10.4.2"
-fzf = "0.74.1"
+fzf = "0.74.3"
 "aqua:fish-shell/fish-shell" = "4.8.1"
-gh = "2.96.0"
+gh = "2.97.0"
 git-lfs = "3.7.1"
 gum = "0.17.0"
 jq = "1.8.2"
-lazygit = "0.63.0"
+lazygit = "0.64.1"
 ripgrep = "15.2.0"
 shellcheck = "0.11.0"
 tmux = "3.7b"
 zoxide = "0.10.0"
 pkl = "0.32.1"
-claude = "2.1.220"
+claude = "2.1.237"
 gitleaks = "8.30.1"
-"1password-cli" = "2.38.1"
-acli = "1.3.22-stable"
-heroku = { version = "11.8.1", depends = ["github:jdx/aube"], aube_args = "--deny-build=cpu-features --deny-build=protobufjs --deny-build=ssh2 --deny-build=yarn" }
-"aqua:planetscale/cli" = "0.307.0"
+"1password-cli" = "2.39.0"
+acli = "1.3.29-stable"
+heroku = { version = "11.10.0", depends = ["github:jdx/aube"], aube_args = "--deny-build=cpu-features --deny-build=protobufjs --deny-build=ssh2 --deny-build=yarn" }
+"aqua:planetscale/cli" = "0.322.0"
 "github:rawnly/splash-cli" = "4.1.7"
 "github:fabro-sh/fabro" = "0.254.0"
 
