@@ -63,12 +63,16 @@ network:
     - rust
     - acli.atlassian.com
     - api.osv.dev
+    - appupdates.agilebits.com
+    - blog.rustlang.org
     - cache.agilebits.com
     - cmake.org
+    - developer.atlassian.com
     - dl.google.com
     - formulae.brew.sh
     - mise-versions.jdx.dev
     - mise.run
+    - support.1password.com
     - tmaproduction.blob.core.windows.net
     - tuf-repo-cdn.sigstore.dev
     - www.ruby-lang.org
