@@ -10,6 +10,8 @@ class TrimMiseConfigTest < Minitest::Test
         [tools]
         ruby = "4.0.6"
         node = "26.5.0"
+        gh = "2.96.0"
+        "npm:@earendil-works/pi-coding-agent" = { version = "0.83.0", aube_args = "--deny-build=@google/genai --deny-build=protobufjs" }
 
         [bootstrap.packages]
         "brew:git" = "latest"
@@ -28,7 +30,7 @@ class TrimMiseConfigTest < Minitest::Test
         experimental = true
       TOML
       env = {
-        "MISE_CI_TOOLS" => "ruby@4.0.6, gh, npm:@earendil-works/pi-coding-agent@0.83.0",
+        "MISE_CI_TOOLS" => "ruby,gh,npm:@earendil-works/pi-coding-agent",
         "BREW_CI_PACKAGES" => "ba\"sh",
         "DEBIAN_CI_PACKAGES" => "curl"
       }
@@ -36,8 +38,8 @@ class TrimMiseConfigTest < Minitest::Test
 
       rendered = File.read(path)
       TomlRB.parse(rendered)
-      assert_includes rendered, "\"ruby\" = \"4.0.6\""
-      assert_includes rendered, "\"gh\" = \"latest\""
+      assert_includes rendered, 'ruby = "4.0.6"'
+      assert_includes rendered, 'gh = "2.96.0"'
       assert_includes rendered, "--deny-build=@google/genai --deny-build=protobufjs"
       assert_includes rendered, "\"brew:ba\\\"sh\" = \"latest\""
       assert_includes rendered, "\"apt:curl\" = \"latest\""

@@ -74,12 +74,16 @@ module BootstrapScriptHelper
       #!/bin/bash
       printf '%s\\n' "mise $*" >> "$MISE_COMMAND_LOG"
       if [ "${1:-}" = "--version" ]; then
-        printf '%s\\n' "${MISE_STUB_VERSION:-#{version || "2026.8.2"}}"
+        printf '%s\\n' "${MISE_STUB_VERSION:-#{version || mise_version}}"
       elif [ "$*" = "activate bash" ]; then
         cat "$HOME/.config/mise/config.toml" > "$MISE_CONFIG_AT_ACTIVATION_LOG"
       fi
     BASH
     FileUtils.chmod("+x", path)
+  end
+
+  def mise_version
+    File.read(File.expand_path("../../config/mise.version", __dir__)).strip
   end
 
   def run_ensure_dotfiles_checkout(env)

@@ -25,7 +25,7 @@ class ConfigSyntaxTest < Minitest::Test
     config = TomlRB.load_file(File.join(FILES_DIR, "home/.config/mise/config.toml"))
     cloc = config.fetch("tools").fetch("github:aldanial/cloc")
 
-    assert_equal "cloc-2.10.pl", cloc.fetch("asset_pattern")
+    assert_equal "cloc-{{version}}.pl", cloc.fetch("asset_pattern")
     assert_equal "cloc", cloc.fetch("bin")
   end
 

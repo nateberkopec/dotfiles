@@ -57,7 +57,11 @@ Include each release that is eligible for this batch but blocked by a configured
 
 ## Make and validate the batch
 
-Update exact pins and native lockfiles. Regenerate `files/home/.config/mise/mise.lock` for both `linux-x64` and `macos-arm64`. Never replace exact runtime pins with `latest`, ranges, or prefixes. Run the applicable tests and summarize evidence in the PR. Diagnose and fix every failed required GitHub check on this same pull request when the failure workflow invokes you again. Never ask Nate to review the pull request while a required check is pending or failed.
+Update exact pins and regenerate native lockfiles; never hand-edit generated entries. New transitive dependencies are allowed only when the native resolver creates them. Regenerate `files/home/.config/mise/mise.lock` for both `linux-x64` and `macos-arm64`. Never replace exact runtime pins with `latest`, ranges, or prefixes.
+
+Snooze an update and call out the required manual work if it changes a source repository or download host, loses checksum or provenance verification, adds install or build behavior, needs any code, test, or workflow change, or cannot pass required checks with mechanical pin and lock changes alone. Remove the update and regenerate its locks before reporting it.
+
+Run the applicable tests and summarize evidence in the PR. Diagnose every failed required GitHub check when the failure workflow invokes you again, subject to the mechanical-change boundary above. Never ask Nate to review the pull request while a required check is pending or failed.
 
 Keep one PR for the entire run. Do not split candidates into separate tasks or PRs.
 

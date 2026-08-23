@@ -15,7 +15,7 @@ hk = "1.53.0"
 "npm:@earendil-works/pi-coding-agent" = { version = "0.83.0", depends = ["github:jdx/aube"], minimum_release_age = "0d", aube_args = "--deny-build=@google/genai --deny-build=protobufjs" }
 "go:github.com/mikefarah/yq/v4" = "4.53.3"
 "go:github.com/noperator/yknotify" = "0.0.0-20260324103239-0c773bdadedb"
-"github:aldanial/cloc" = { version = "2.10", asset_pattern = "cloc-2.10.pl", bin = "cloc" }
+"github:aldanial/cloc" = { version = "2.10", asset_pattern = "cloc-{{version}}.pl", bin = "cloc" }
 "github:pkgforge-dev/ghostty-appimage[bin=ghostty]" = { version = "1.3.1", os = ["linux"] }
 "github:nateberkopec/print-label" = "0.1.2"
 "github:BarutSRB/OmniWM" = { version = "0.6.2", asset_pattern = "OmniWM-v{{version}}.zip", bin_path = "OmniWM.app/Contents/MacOS", os = ["macos"], arch = ["arm64"] }
