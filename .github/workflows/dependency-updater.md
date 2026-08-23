@@ -32,11 +32,14 @@ engine:
     - model_reasoning_effort="medium"
 # gh-aw-firewall 0.27.44 misresolves model names with query parameters.
 model: gpt-5.6-sol
+max-ai-credits: 800
+max-daily-ai-credits: 1200
 
 tools:
   edit:
   bash: [":*"]
   github:
+    mode: gh-proxy
     toolsets: [default, actions]
   web-fetch:
   web-search:
@@ -71,6 +74,12 @@ safe-outputs:
 ---
 
 # Dependency Software Factory
+
+Keep the run budget-safe:
+
+- Use deterministic shell commands for candidate discovery. Batch requests and filter every remote response with `jq` before it reaches context.
+- Never print full version histories, release objects, asset lists, changelogs, or successful validation logs. Save raw responses and logs under `/tmp/gh-aw/agent`, then read only targeted excerpts smaller than 20 KB.
+- Create and reuse one compact evidence file. Never fetch the same release twice. Research release notes only for candidates that pass the pin, age, and snooze gates.
 
 The triggering event is `${{ github.event_name }}`. The matched slash command is `${{ needs.activation.outputs.slash_command }}`.
 
