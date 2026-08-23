@@ -11,9 +11,6 @@ debian_desktop_apps:
     package: other-app
     line: "deb [signed-by=/usr/share/keyrings/other-archive-keyring.gpg] http://other.invalid/debian stable main"
     key_url: http://other.invalid/key.asc
-debian_non_apt_packages:
-  - starship
-
 config_directory_items:
   - fish/config.fish
   - fish/functions/
