@@ -10,16 +10,6 @@ url = "https://cache.agilebits.com/dist/1P/op2/pkg/v2.39.0/op_linux_amd64_v2.39.
 [tools.1password-cli."platforms.macos-arm64"]
 url = "https://cache.agilebits.com/dist/1P/op2/pkg/v2.39.0/op_darwin_arm64_v2.39.0.zip"
 
-[[tools.acli]]
-version = "1.3.29-stable"
-backend = "aqua:atlassian.com/acli"
-
-[tools.acli."platforms.linux-x64"]
-url = "https://acli.atlassian.com/linux/1.3.29-stable/acli_1.3.29-stable_linux_amd64.tar.gz"
-
-[tools.acli."platforms.macos-arm64"]
-url = "https://acli.atlassian.com/darwin/1.3.29-stable/acli_1.3.29-stable_darwin_arm64.tar.gz"
-
 [[tools."aqua:fish-shell/fish-shell"]]
 version = "4.8.1"
 backend = "aqua:fish-shell/fish-shell"
@@ -33,20 +23,6 @@ url_api = "https://api.github.com/repos/fish-shell/fish-shell/releases/assets/47
 checksum = "sha256:b196c2f9635486320ff9179c5c5aae9b0109234513c96b0ab0683e7349a404ac"
 url = "https://github.com/fish-shell/fish-shell/releases/download/4.8.1/fish-4.8.1.pkg"
 url_api = "https://api.github.com/repos/fish-shell/fish-shell/releases/assets/476044372"
-
-[[tools."aqua:planetscale/cli"]]
-version = "0.323.0"
-backend = "aqua:planetscale/cli"
-
-[tools."aqua:planetscale/cli"."platforms.linux-x64"]
-checksum = "sha256:5b856fa2400fcddfa0572f920ec84777d68be7f69cb056bd89f31b255b597b71"
-url = "https://github.com/planetscale/cli/releases/download/v0.323.0/pscale_0.323.0_linux_amd64.tar.gz"
-url_api = "https://api.github.com/repos/planetscale/cli/releases/assets/522579413"
-
-[tools."aqua:planetscale/cli"."platforms.macos-arm64"]
-checksum = "sha256:af78f3431808b95b3bd4a4b37cfd7351d1a6deb9f34a44c5c8bbf1519eca1466"
-url = "https://github.com/planetscale/cli/releases/download/v0.323.0/pscale_0.323.0_macOS_arm64.tar.gz"
-url_api = "https://api.github.com/repos/planetscale/cli/releases/assets/522579437"
 
 [[tools.bat]]
 version = "0.26.1"
@@ -215,23 +191,6 @@ url_api = "https://api.github.com/repos/AlDanial/cloc/releases/assets/466555197"
 checksum = "sha256:bf59272455172108072a0a106379f7509fd4349bdcfd85203bac038ccd286d83"
 url = "https://github.com/AlDanial/cloc/releases/download/v2.10/cloc-2.10.pl"
 url_api = "https://api.github.com/repos/AlDanial/cloc/releases/assets/466555197"
-
-[[tools."github:fabro-sh/fabro"]]
-version = "0.254.0"
-backend = "github:fabro-sh/fabro"
-
-[tools."github:fabro-sh/fabro"."platforms.linux-x64"]
-checksum = "sha256:ccfa12394fd928c3194fd9af04daa9417989b9e3f9cb37d71a5df63f3143e787"
-url = "https://github.com/fabro-sh/fabro/releases/download/v0.254.0/fabro-x86_64-unknown-linux-gnu.tar.gz"
-url_api = "https://api.github.com/repos/fabro-sh/fabro/releases/assets/438318061"
-provenance = "github-attestations"
-
-[tools."github:fabro-sh/fabro"."platforms.macos-arm64"]
-checksum = "sha256:cc77fad7a34ceefb4d2ee1e7f56a4f3fb1aeaf993069437e6a309ddcf9f53f10"
-url = "https://github.com/fabro-sh/fabro/releases/download/v0.254.0/fabro-aarch64-apple-darwin.tar.gz"
-url_api = "https://api.github.com/repos/fabro-sh/fabro/releases/assets/438318052"
-provenance = "github-attestations"
-provenance_verified = true
 
 [[tools."github:jdx/aube"]]
 version = "1.36.0"

@@ -6,12 +6,6 @@ class ConfigCiOverridesTest < Minitest::Test
     @fixtures_dir = File.expand_path("../fixtures", __dir__)
   end
 
-  def test_ci_empty_override_disables_non_apt_installer
-    with_env("DEBIAN_CI_NON_APT_PACKAGES" => "") do
-      assert_empty Dotfiles::Config.new(@fixtures_dir).debian_non_apt_packages
-    end
-  end
-
   def test_debian_ci_desktop_apps_filters_by_name
     with_env("DEBIAN_CI_DESKTOP_APPS" => "other") do
       config = Dotfiles::Config.new(@fixtures_dir)

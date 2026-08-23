@@ -48,7 +48,6 @@ brew_cask_installed() {
     "$brew_bin" list --cask "$1" >/dev/null 2>&1
 }
 debian_package_installed() { dpkg -s "$1" >/dev/null 2>&1; }
-non_apt_package_installed() { command -v "$1" >/dev/null 2>&1 || dpkg -s "$1" >/dev/null 2>&1; }
 mise_tool_installed() {
     local mise_bin
     mise_bin="$(find_mise_bin)" || return 1
@@ -82,7 +81,6 @@ check_ci_packages() {
         check_env_packages "Homebrew cask" BREW_CI_CASKS brew_cask_installed "$assert_function"
     elif [ "$(uname -s)" = "Linux" ]; then
         check_env_packages "Debian package" DEBIAN_CI_PACKAGES debian_package_installed "$assert_function"
-        check_env_packages "Debian non-APT package" DEBIAN_CI_NON_APT_PACKAGES non_apt_package_installed "$assert_function"
     fi
     check_env_packages "mise tool" MISE_CI_TOOLS mise_tool_installed "$assert_function"
     echo "✅ $phase package checks passed"

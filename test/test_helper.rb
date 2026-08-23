@@ -16,7 +16,6 @@ require_relative "support/dotf_script_helper"
   BREW_CI_CASKS
   BREW_CI_PACKAGES
   DEBIAN_CI_DESKTOP_APPS
-  DEBIAN_CI_NON_APT_PACKAGES
   DEBIAN_CI_PACKAGES
   MISE_CI_TOOLS
 ].each { |name| ENV.delete(name) }

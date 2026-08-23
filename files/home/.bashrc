@@ -82,7 +82,6 @@ fi
 if [[ $- == *i* ]]; then
   alias be='bundle exec'
   alias cc='claude --allow-dangerously-skip-permissions'
-  alias oc='droid'
   alias cat='bat'
   alias ls='eza'
   alias ll='eza -la'

@@ -110,7 +110,6 @@ jobs:
         BREW_CI_CASKS: ""
         DEBIAN_CI_PACKAGES: "trash-cli"
         DEBIAN_CI_DESKTOP_APPS: ""
-        DEBIAN_CI_NON_APT_PACKAGES: ""
       run: bash tools/ci/run_dotfiles_integration.sh "${GITHUB_WORKSPACE}"
 
     - name: Upload logs

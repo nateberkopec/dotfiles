@@ -7,7 +7,6 @@ observed_casks:
   1password: "8.12.33"
   cursor: "3.16.17,6b2afae0257df2bb5e1835f15165dc2f0de056b2"
   discord: "0.0.408"
-  droid: "0.197.0"
   dropbox: "264.4.3421"
   ghostty: "1.3.1"
   github: "3.6.4-28955b81"

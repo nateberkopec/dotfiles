@@ -16,16 +16,6 @@ class ConfigTest < Minitest::Test
     assert_empty Dotfiles::Config.new("/nonexistent/dir").debian_desktop_apps
   end
 
-  def test_loads_debian_non_apt_packages_from_yaml
-    config = Dotfiles::Config.new(@fixtures_dir)
-
-    assert_equal ["starship"], config.debian_non_apt_packages
-  end
-
-  def test_debian_non_apt_packages_default_to_empty
-    assert_empty Dotfiles::Config.new("/nonexistent/dir").debian_non_apt_packages
-  end
-
   def test_loads_brew_casks_from_yaml
     config = Dotfiles::Config.new(@fixtures_dir)
 

@@ -31,11 +31,6 @@ class Dotfiles
       select_named(apps, env_csv("DEBIAN_CI_DESKTOP_APPS"))
     end
 
-    def debian_non_apt_packages
-      packages = env_csv("DEBIAN_CI_NON_APT_PACKAGES") || config.fetch("debian_non_apt_packages", [])
-      packages.map(&:to_s)
-    end
-
     def brew_casks
       env_csv("BREW_CI_CASKS") || config.fetch("brew_casks", [])
     end

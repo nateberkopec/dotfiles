@@ -3,20 +3,14 @@ class Dotfiles::Migration::MigrateBrewTapsToMise < Dotfiles::Migration
 
   MISE_TOOLS = [
     "1password-cli@2.35.0",
-    "acli@1.3.22-stable",
     "heroku@11.8.1",
-    "aqua:planetscale/cli@0.307.0",
-    "github:rawnly/splash-cli@4.1.7",
-    "github:fabro-sh/fabro@0.254.0"
+    "github:rawnly/splash-cli@4.1.7"
   ].freeze
 
   BREW_FORMULAE = %w[
     1password-cli
-    acli
     heroku
-    pscale
     splash-cli
-    fabro-nightly
   ].freeze
 
   BREW_CASKS = %w[
@@ -27,13 +21,9 @@ class Dotfiles::Migration::MigrateBrewTapsToMise < Dotfiles::Migration
 
   BREW_TAPS = %w[
     1password/tap
-    atlassian/acli
-    fabro-sh/tap
     heroku/brew
     mattt/tap
-    planetscale/tap
     rawnly/tap
-    steipete/tap
   ].freeze
 
   macos_only

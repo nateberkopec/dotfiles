@@ -63,7 +63,6 @@ abbr be "bundle exec"
 abbr bp "bundle-private"
 abbr bpi "bundle-private install"
 abbr cc "claude --allow-dangerously-skip-permissions"
-alias oc droid
 alias cat bat
 alias ls eza
 alias ll "eza -la"
