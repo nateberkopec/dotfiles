@@ -44,7 +44,25 @@ tools:
   web-search:
 
 network:
-  allowed: [defaults, github, linux-distros, node, ruby]
+  allowed:
+    - defaults
+    - github
+    - go
+    - linux-distros
+    - node
+    - ruby
+    - rust
+    - acli.atlassian.com
+    - api.osv.dev
+    - cache.agilebits.com
+    - cmake.org
+    - dl.google.com
+    - formulae.brew.sh
+    - mise-versions.jdx.dev
+    - mise.run
+    - tmaproduction.blob.core.windows.net
+    - tuf-repo-cdn.sigstore.dev
+    - www.ruby-lang.org
 
 safe-outputs:
   threat-detection:
@@ -76,10 +94,10 @@ safe-outputs:
 
 Keep the run context compact:
 
-- Use deterministic shell commands for candidate discovery. Batch requests and filter every remote response with `jq` before it reaches context.
-- Never print full version histories, release objects, asset lists, changelogs, or successful validation logs. Save raw responses and logs under `/tmp/gh-aw/agent`, then read only targeted excerpts smaller than 20 KB.
-- Create and reuse one compact evidence file. Never fetch the same release twice. Research release notes only for candidates that pass the pin, age, and snooze gates.
-- Use only letters, digits, dots, underscores, and hyphens in temporary filenames. Replace characters such as `:` and `/` with hyphens so artifact upload remains valid.
+- Discover candidates with batched shell commands and filter remote data with `jq` before it reaches context.
+- Keep raw responses and logs under `/tmp/gh-aw/agent`. Read excerpts smaller than 20 KB, reuse one evidence file, and fetch each release once and only after it passes the gates.
+- Use only `[A-Za-z0-9._-]` in temporary filenames so artifact upload remains valid.
+- On a network error, inspect denials with `awk '$8 ~ /TCP_DENIED/ {sub(/:443$/, "", $3); print $3}' /tmp/gh-aw/sandbox/firewall/logs/access.log | sort | uniq -c | sort -nr`. A listed host is blocked for this run; do not retry it.
 
 The triggering event is `${{ github.event_name }}`. The matched slash command is `${{ needs.activation.outputs.slash_command }}`.
 
