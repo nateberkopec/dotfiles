@@ -12,7 +12,16 @@ on:
     events: [pull_request_comment]
   roles: [admin]
 
-if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'failure'
+checkout:
+  fetch: ["dependency-update-*"]
+  fetch-depth: 0
+
+if: >
+  github.event_name != 'workflow_run' ||
+  (github.event.workflow_run.conclusion == 'failure' &&
+  github.event.workflow_run.event == 'pull_request' &&
+  github.event.workflow_run.head_repository.full_name == github.repository &&
+  github.event.workflow_run.pull_requests[0].number)
 
 concurrency:
   group: dependency-factory-${{ github.event.workflow_run.head_branch || github.event.issue.number || github.run_id }}
@@ -80,11 +89,23 @@ safe-outputs:
     draft: false
     fallback-as-issue: false
     if-no-changes: ignore
+    allowed-files: &dependency-files
+      - .mise.toml
+      - Gemfile.lock
+      - config/config.yml
+      - config/dependency-updater.yml
+      - config/mise.version
+      - files/home/.config/mise/config.toml
+      - files/home/.config/mise/mise.lock
+      - files/home/.pi/agent/settings.json
     protected-files: allowed
   push-to-pull-request-branch:
     github-token: ${{ secrets.DEPENDENCY_FACTORY_PAT }}
+    target: "${{ github.event.workflow_run.pull_requests[0].number || github.event.issue.number || 'triggering' }}"
     required-labels: [dependency-update]
+    fallback-as-pull-request: false
     if-no-changes: ignore
+    allowed-files: *dependency-files
     protected-files: allowed
   add-comment:
     required-labels: [dependency-update]
@@ -104,11 +125,10 @@ The triggering event is `${{ github.event_name }}`. The matched slash command is
 If the event is `workflow_run`:
 
 1. Inspect failed run `${{ github.event.workflow_run.id }}` and its job logs.
-2. Find its associated open pull request. Continue only if it has the `dependency-update` label.
-3. Confirm that `${{ github.event.workflow_run.head_sha }}` is still the pull request head. Do nothing if a newer commit has superseded the failure.
-4. Diagnose the root cause. Make the smallest complete fix on the same pull request branch.
-5. Regenerate affected locks, run the applicable validation, and push the fix.
-6. Inspect all required checks before finishing.
+2. Work only on the associated pull request. Confirm its label and that `${{ github.event.workflow_run.head_sha }}` is still its head.
+3. Diagnose the root cause. Push only mechanical pin, lock, or snooze changes allowed by this workflow.
+4. If repair requires any other file or behavioral change, remove and snooze the responsible update, regenerate locks, and explain the required manual adaptation in the PR.
+5. Run applicable validation and inspect every required check before finishing.
 
 Never ask Nate to review the pull request while a check is pending or failed. A later failed build will invoke this workflow again. Never merge the pull request or create another one.
 

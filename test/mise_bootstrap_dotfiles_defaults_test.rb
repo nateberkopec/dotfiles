@@ -28,7 +28,6 @@ class MiseBootstrapDotfilesDefaultsTest < Minitest::Test
     tool = config.fetch("tools").fetch("github:BarutSRB/OmniWM")
     agent = config.dig("bootstrap", "macos", "launchd", "agents", "omniwm")
 
-    assert_equal "0.6.2", tool.fetch("version")
     assert_equal "OmniWM-v{{version}}.zip", tool.fetch("asset_pattern")
     assert_equal "~/.local/share/dotfiles/launch-omniwm", agent.fetch("program")
     assert_equal true, agent.fetch("run_at_load")

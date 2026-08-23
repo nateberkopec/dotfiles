@@ -27,16 +27,17 @@ def replace_table(content, header, entries)
   end.join
 end
 
-def tool_entries
-  csv("MISE_CI_TOOLS").map do |spec|
-    name, separator, version = spec.rpartition("@")
-    name, version = spec, "latest" if separator.empty?
-    if name == "npm:@earendil-works/pi-coding-agent"
-      %(#{toml_string(name)} = { version = #{toml_string(version)}, depends = ["github:jdx/aube"], aube_args = "--deny-build=@google/genai --deny-build=protobufjs" })
-    else
-      %(#{toml_string(name)} = #{toml_string(version)})
-    end
-  end
+def tool_name(line)
+  match = line.match(/\A(?:"([^"]+)"|([^=\s]+))\s*=/)
+  match && (match[1] || match[2])
+end
+
+def tool_entries(content)
+  names = csv("MISE_CI_TOOLS")
+  entries = content[/^\[tools\]\n(.*?)(?=^\[|\z)/m].lines.filter { |line| names.include?(tool_name(line)) }
+  unknown = names - entries.map { |line| tool_name(line) }
+  abort "Unknown MISE_CI_TOOLS: #{unknown}" unless unknown.empty?
+  entries.map(&:chomp)
 end
 
 def package_entries
@@ -46,7 +47,7 @@ end
 
 path = ARGV.fetch(0, CONFIG_PATH)
 content = File.read(path)
-content = replace_table(content, "[tools]", tool_entries) if ENV.key?("MISE_CI_TOOLS")
+content = replace_table(content, "[tools]", tool_entries(content)) if ENV.key?("MISE_CI_TOOLS")
 if ENV.key?("BREW_CI_PACKAGES") || ENV.key?("DEBIAN_CI_PACKAGES")
   content = replace_table(content, "[bootstrap.packages]", package_entries)
 end

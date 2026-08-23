@@ -60,17 +60,17 @@ class BootstrapTest < Minitest::Test
     with_bootstrap_stub do |env|
       run_bootstrap_mise(env)
 
-      assert_equal "2026.8.2 #{File.join(env.fetch("HOME"), ".local", "bin", "mise")}", File.read(env.fetch("MISE_INSTALL_LOG")).chomp
+      assert_equal "#{mise_version} #{File.join(env.fetch("HOME"), ".local", "bin", "mise")}", File.read(env.fetch("MISE_INSTALL_LOG")).chomp
     end
   end
 
   def test_bootstrap_mise_replaces_an_unpinned_self_managed_version
     with_bootstrap_stub do |env|
-      write_self_managed_mise_stub(env, "2026.8.9")
+      write_self_managed_mise_stub(env, "0.0.0")
 
       run_bootstrap_mise(env)
 
-      assert_match(/\A2026\.8\.2 /, File.read(env.fetch("MISE_INSTALL_LOG")))
+      assert_match(/\A#{Regexp.escape(mise_version)} /, File.read(env.fetch("MISE_INSTALL_LOG")))
     end
   end
 

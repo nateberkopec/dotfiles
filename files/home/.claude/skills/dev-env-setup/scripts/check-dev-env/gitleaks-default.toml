@@ -9,6 +9,7 @@ useDefault = true
 description = "vendored or generated directories that aren't part of the project's source"
 paths = [
   '''(^|/)\.bundle/(ruby|cache|gems|extensions|plugin|plugins|vendor)/''',
+  '''(^|/)\.pi-subagents/''',
   '''(^|/)vendor/bundle/''',
   '''(^|/)vendor/cache/''',
   '''(^|/)\.gem/''',
