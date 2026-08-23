@@ -25,4 +25,7 @@ observed_casks:
 
 # Codex records declined candidates here while revising the batch PR.
 # A security advisory always wakes a snooze early.
-snoozes: {}
+snoozes:
+  standard:
+    candidate: "1.56.0"
+    wake_at: "1.57.0"
