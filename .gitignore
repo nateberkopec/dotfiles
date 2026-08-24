@@ -14,5 +14,6 @@ logs/
 !files/home/.bundle/config
 vendor/bundle/
 files/home/.pi/agent/auth.json
+files/home/.claude/skills/.system/
 files/home/.local/state/
 tmp/
