@@ -125,6 +125,17 @@ class DotfCliTest < Minitest::Test
       assert status.success?
       refute_includes stdout, "Running migration"
       assert_run_commands(log_path)
+      assert_equal "test-sha\n", File.read(File.join(tmpdir, "state", "dotfiles", "last-run-sha"))
+    end
+  end
+
+  def test_record_successful_run_does_nothing_outside_a_git_checkout
+    with_dotf_script do |tmpdir, script_path, _logs_dir|
+      state_home = File.join(tmpdir, "state")
+      command = "source #{Shellwords.escape(script_path)}; record_successful_run"
+
+      assert system({"XDG_STATE_HOME" => state_home}, "bash", "-c", command)
+      refute Dir.exist?(File.join(state_home, "dotfiles"))
     end
   end
 
@@ -189,7 +200,12 @@ class DotfCliTest < Minitest::Test
     escaped_log = Shellwords.escape(log_path)
     <<~BASH
       source #{escaped_script}
+      export HOME=#{Shellwords.escape(File.join(File.dirname(escaped_log), "home"))}
+      export XDG_STATE_HOME=#{Shellwords.escape(File.join(File.dirname(escaped_log), "state"))}
       export DOTF_LOCK_DIR=#{Shellwords.escape(File.join(File.dirname(escaped_log), "dotf.lock"))}
+      git() {
+        printf 'test-sha\n'
+      }
       mise() {
         printf 'mise %s\\n' "$*" >> #{escaped_log}
       }

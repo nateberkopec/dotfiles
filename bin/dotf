@@ -173,6 +173,17 @@ release_dotf_lock() {
     rm -rf "$DOTF_LOCK_DIR" 2>/dev/null || true
 }
 
+record_successful_run() {
+    local state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/dotfiles"
+    local applied_sha
+    applied_sha="$(git -C "$DOTFILES_DIR" rev-parse HEAD 2>/dev/null)" || return 0
+
+    mkdir -p "$state_dir"
+    printf '%s\n' "$applied_sha" > "$state_dir/last-run-sha.tmp"
+    mv "$state_dir/last-run-sha.tmp" "$state_dir/last-run-sha"
+    rm -f "$state_dir/needs-run"
+}
+
 cmd_run() {
     acquire_dotf_lock
     init_logging
@@ -191,6 +202,7 @@ cmd_run() {
         "${migration_command[@]}" >> "$LOG_FILE"
     fi
     ruby -r ./lib/dotfiles.rb -e "Dotfiles::Runner.new('$LOG_FILE').run"
+    record_successful_run
 
     debug "Run complete"
 }
