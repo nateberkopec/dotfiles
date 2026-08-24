@@ -180,7 +180,7 @@ version = "2.10"
 backend = "github:aldanial/cloc"
 
 [tools."github:aldanial/cloc".options]
-asset_pattern = "cloc-2.10.pl"
+asset_pattern = "cloc-{version}.pl"
 
 [tools."github:aldanial/cloc"."platforms.linux-x64"]
 checksum = "sha256:bf59272455172108072a0a106379f7509fd4349bdcfd85203bac038ccd286d83"
