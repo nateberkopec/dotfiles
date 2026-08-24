@@ -109,8 +109,9 @@ if [[ -x /opt/homebrew/bin/mosh-server ]]; then
   alias mosh-mbp="mosh --server='SHELL=/opt/homebrew/bin/fish /opt/homebrew/bin/mosh-server' nateberkopec@MBP-Server.local"
 fi
 
-if command -v try >/dev/null 2>&1; then
-  eval "$(SHELL="$(command -v bash)" try init "$HOME/src/tries")"
+if try_bin="$(command -v try)"; then
+  eval "$(SHELL="$(command -v bash)" "$try_bin" init "$HOME/src/tries")"
+  unset try_bin
 fi
 
 if command -v starship >/dev/null 2>&1; then

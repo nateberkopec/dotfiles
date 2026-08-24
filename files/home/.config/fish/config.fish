@@ -99,8 +99,8 @@ if test -f ~/.config/fish/private.fish
   source ~/.config/fish/private.fish
 end
 
-if command -q try
-  env SHELL=(status fish-path) try init ~/src/tries | source
+if set -l try_bin (command -s try)
+  env SHELL=(status fish-path) "$try_bin" init ~/src/tries | source
 end
 
 # starship prompt
