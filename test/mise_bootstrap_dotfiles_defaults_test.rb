@@ -36,7 +36,6 @@ class MiseBootstrapDotfilesDefaultsTest < Minitest::Test
   def test_wires_drift_hooks
     hooks = config.dig("bootstrap", "hooks")
 
-    assert_includes hooks.fetch("pre-dotfiles"), "unprotect-managed-files.sh"
     assert_includes hooks.fetch("post-dotfiles"), "post-dotfiles-hook.sh"
     assert_includes hooks.fetch("pre-defaults"), "pre-defaults-hook.sh"
     assert_includes hooks.fetch("post-defaults"), "post-defaults-hook.sh"

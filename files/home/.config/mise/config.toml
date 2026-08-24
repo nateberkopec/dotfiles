@@ -188,7 +188,6 @@ stdout_path = "~/Library/Logs/omniwm-launcher.out.log"
 stderr_path = "~/Library/Logs/omniwm-launcher.err.log"
 
 [bootstrap.hooks]
-pre-dotfiles = 'bash "$HOME/.dotfiles/bin/lib/unprotect-managed-files.sh"'
 post-dotfiles = 'bash "$HOME/.dotfiles/bin/lib/post-dotfiles-hook.sh"'
 pre-defaults = 'bash "$HOME/.dotfiles/bin/lib/pre-defaults-hook.sh"'
 post-defaults = 'bash "$HOME/.dotfiles/bin/lib/post-defaults-hook.sh"'
