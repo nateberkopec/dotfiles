@@ -7,13 +7,13 @@ class Dotfiles::Step::ConfigureSpotlightBatteryStep < Dotfiles::Step
   macos_only
 
   def should_run?
-    battery_mode_enabled? && !battery_toggle_installed?
+    battery_mode_enabled? && !battery_toggle_current?
   end
 
   def run
     return unless fish_path
-    install_script(script_path, script_content) unless @system.file_exist?(script_path)
-    install_spotlight_launchdaemon unless @system.file_exist?(launchdaemon_path)
+    install_script(script_path, script_content) unless script_current?
+    install_spotlight_launchdaemon unless launchdaemon_current?
     load_launchdaemon(launchdaemon_path)
   end
 
@@ -22,15 +22,27 @@ class Dotfiles::Step::ConfigureSpotlightBatteryStep < Dotfiles::Step
     return true unless battery_mode_enabled?
 
     add_error("Fish not found for Spotlight battery toggle") unless fish_path
-    add_error("Spotlight battery script not installed at #{script_path}") unless @system.file_exist?(script_path)
-    add_error("LaunchDaemon not installed at #{launchdaemon_path}") unless @system.file_exist?(launchdaemon_path)
+    add_error("Spotlight battery script is missing or stale at #{script_path}") unless script_current?
+    add_error("LaunchDaemon is missing or stale at #{launchdaemon_path}") unless launchdaemon_current?
     @errors.empty?
   end
 
   private
 
-  def battery_toggle_installed?
-    @system.file_exist?(script_path) && @system.file_exist?(launchdaemon_path)
+  def battery_toggle_current?
+    script_current? && launchdaemon_current?
+  end
+
+  def script_current?
+    current_file?(script_path, script_content)
+  end
+
+  def launchdaemon_current?
+    current_file?(launchdaemon_path, plist_content)
+  end
+
+  def current_file?(path, content)
+    @system.file_exist?(path) && @system.read_file(path) == content
   end
 
   def script_content
@@ -43,10 +55,11 @@ class Dotfiles::Step::ConfigureSpotlightBatteryStep < Dotfiles::Step
       end
 
       set -l power_line (/usr/bin/pmset -g batt | head -n 1)
+      set -l desired
       if string match -q "*Battery Power*" -- $power_line
-        set -l desired off
+        set desired off
       else if string match -q "*AC Power*" -- $power_line
-        set -l desired on
+        set desired on
       else
         exit 0
       end
