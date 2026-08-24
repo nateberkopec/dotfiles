@@ -210,18 +210,18 @@ provenance = "github-attestations"
 provenance_verified = true
 
 [[tools."github:nateberkopec/print-label"]]
-version = "0.1.2"
+version = "0.3.0"
 backend = "github:nateberkopec/print-label"
 
 [tools."github:nateberkopec/print-label"."platforms.linux-x64"]
-checksum = "sha256:33695b4bf77ff5b035bf56bfb137f848e26ecac7e50befd606606a77a8f6d8d0"
-url = "https://github.com/nateberkopec/print-label/releases/download/v0.1.2/print-label_Linux_x86_64.tar.gz"
-url_api = "https://api.github.com/repos/nateberkopec/print-label/releases/assets/416960684"
+checksum = "sha256:feb8a2d6ad68ffff285c45ea4518d26db5a765783aa11d3f7dd18505f3eda6aa"
+url = "https://github.com/nateberkopec/print-label/releases/download/v0.3.0/print-label_Linux_x86_64.tar.gz"
+url_api = "https://api.github.com/repos/nateberkopec/print-label/releases/assets/527362130"
 
 [tools."github:nateberkopec/print-label"."platforms.macos-arm64"]
-checksum = "sha256:dd94288187faee1b081cd7277553a75ef9f623005d250e4b76dbee3f119338e2"
-url = "https://github.com/nateberkopec/print-label/releases/download/v0.1.2/print-label_Darwin_arm64.tar.gz"
-url_api = "https://api.github.com/repos/nateberkopec/print-label/releases/assets/416960686"
+checksum = "sha256:11fe031ce73480e0503d56e3fc3b25f357d26afdbacc689c66fc999759cf1050"
+url = "https://github.com/nateberkopec/print-label/releases/download/v0.3.0/print-label_Darwin_arm64.tar.gz"
+url_api = "https://api.github.com/repos/nateberkopec/print-label/releases/assets/527362120"
 
 [[tools."github:pkgforge-dev/ghostty-appimage"]]
 version = "1.3.1"
