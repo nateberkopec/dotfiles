@@ -1,0 +1,64 @@
+#!/usr/bin/env fish
+
+set -l root "$HOME/.dotfiles/files/home/.claude/skills"
+set -l archive (mktemp -t sfactory-skills.XXXXXX)
+set -l output (mktemp -t sfactory-skills-output.XXXXXX)
+set -l errors (mktemp -t sfactory-skills-errors.XXXXXX)
+
+function cleanup --on-event fish_exit
+    rm -f "$archive" "$output" "$errors"
+end
+
+for command in gum jq ssh tar
+    command -q $command; or begin
+        echo "Missing required command: $command" >&2
+        exit 1
+    end
+end
+
+test -d "$root"; or begin
+    echo "Skill directory not found: $root" >&2
+    exit 1
+end
+
+set -l skills
+for directory in $root/*
+    if test -d "$directory"; and test -f "$directory/SKILL.md"
+        set -a skills "./"(basename "$directory")
+    end
+end
+
+set -l tar_options
+if test (uname) = Darwin
+    set -a tar_options --no-xattrs
+end
+if test (count $skills) -gt 0
+    env COPYFILE_DISABLE=1 tar $tar_options -czf "$archive" -C "$root" -- $skills; or exit 1
+else
+    env COPYFILE_DISABLE=1 tar $tar_options -czf "$archive" -T /dev/null; or exit 1
+end
+
+set -l sync_command 'cat "$argv[1]" | ssh sfactory sudo sfactory skills sync --owner dotfiles > "$argv[2]" 2> "$argv[3]"'
+if test -t 1
+    gum spin --title "Syncing skills to sfactory" -- fish -c "$sync_command" "$archive" "$output" "$errors"
+else
+    fish -c "$sync_command" "$archive" "$output" "$errors"
+end
+set -l sync_status $status
+if test $sync_status -ne 0
+    if test -t 1
+        gum style --foreground 196 (string collect < "$errors")
+    else
+        cat "$errors" >&2
+    end
+    exit $sync_status
+end
+
+if test -t 1
+    gum style --bold --foreground 42 "Skills synced to BB"
+    jq -r 'to_entries[] | select(.value | length > 0) | [.key, (.value | join(", "))] | @tsv' "$output" |
+        gum table --print --columns "change,skills" --separator (printf '\t')
+else
+    echo "Skills synced to BB"
+    jq -r 'to_entries[] | select(.value | length > 0) | "\(.key): \(.value | join(", "))"' "$output"
+end

@@ -78,6 +78,10 @@ run = "bundle exec rake test"
 description = "Run dotfiles setup on the current machine"
 run = "./bin/dotf run"
 
+[tasks.sync-bb-skills]
+description = "Mirror user skills to the BB server"
+run = "./bin/sync-bb-skills"
+
 [tasks.build]
 description = "Build the Ubuntu 22.04 test container"
 run = "docker build --platform linux/amd64 -f tools/ubuntu-22.04/Dockerfile -t dotfiles-ubuntu-22.04 ."
