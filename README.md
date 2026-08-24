@@ -22,6 +22,7 @@ When you run `dotf run` it will:
 | `dotf run` | Converge this host to committed tool pins and locks, then apply safe local cleanup. Safe to run many times. |
 | `dotf steps` | List every setup step with its class name and description. |
 | `dotf help` | Show help |
+| `mise run sync-bb-skills` | Mirror user-owned Claude skills to BB on `sfactory`; preserve BB-owned skills and remove deleted dotfiles-managed skills. |
 
 ## Installation
 
