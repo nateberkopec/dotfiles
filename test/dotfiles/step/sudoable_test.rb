@@ -1,13 +1,12 @@
 require "test_helper"
 
 class SudoableTest < StepTestCase
-  step_class Dotfiles::Step::ProtectFilesStep
+  step_class Dotfiles::Step::SetFishDefaultShellStep
 
   def setup
     super
     @fake_system.stub_macos
-    @file = step.send(:pi_extension_files).first
-    @fake_system.stub_file_content(@file, "extension content")
+    @fake_system.stub_file_content("/usr/bin/fish", "fish")
   end
 
   def test_skips_admin_warning_when_sudo_credentials_are_cached

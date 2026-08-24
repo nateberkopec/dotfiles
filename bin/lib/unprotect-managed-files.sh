@@ -1,9 +1,7 @@
 #!/bin/bash
 
-# Pre-dotfiles hook for `mise bootstrap` (see [bootstrap.hooks] in
-# files/home/.config/mise/config.toml). The Protect Files / Protect Git Hooks
-# steps mark some managed files immutable; strip the flags before mise's
-# dotfiles phase copies them. The protect steps re-apply the flags afterwards.
+# Clear immutable flags left by older dotfiles versions before mise updates
+# these managed files. This remains safe to run after the legacy flags are gone.
 
 set -e
 
