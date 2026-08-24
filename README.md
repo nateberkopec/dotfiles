@@ -72,7 +72,7 @@ There is a GTD-style `~/Documents/Inbox`, which several Steps interact with.
 
 I'm constantly using LLM agents in YOLO mode on my system, so basically I've installed the equivalent of a North Korean rootkit that's running all the time and my system needs to not leave lying around any sharp objects or passwords. See .gem/credentials as an example of the mitigations I take as a result.
 
-We don't trust agents, we make sure they do the right thing and lock destructive/bad actions behind human authentication (immutable flags, 1password).
+We don't trust agents, so destructive actions and secret access require human authentication through tools such as sudo and 1Password.
 
 ## How It Works
 
@@ -83,7 +83,7 @@ We don't trust agents, we make sure they do the right thing and lock destructive
 3. Run pending migrations.
 4. Run imperative Ruby Steps.
 
-Mise owns declarative state in `files/home/.config/mise/config.toml`: tools, system packages, home files, macOS defaults, and LaunchAgents. Ruby Steps remain for behavior mise cannot express cleanly, such as private Homebrew casks, security protections, and application-specific setup. Steps can depend on other Steps.
+Mise owns declarative state in `files/home/.config/mise/config.toml`: tools, system packages, home files, macOS defaults, and LaunchAgents. Ruby Steps remain for behavior mise cannot express cleanly, such as private Homebrew casks and application-specific setup. Steps can depend on other Steps.
 
 ### Available Steps
 
