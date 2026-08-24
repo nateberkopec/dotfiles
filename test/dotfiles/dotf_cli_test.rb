@@ -129,6 +129,16 @@ class DotfCliTest < Minitest::Test
     end
   end
 
+  def test_record_successful_run_does_nothing_outside_a_git_checkout
+    with_dotf_script do |tmpdir, script_path, _logs_dir|
+      state_home = File.join(tmpdir, "state")
+      command = "source #{Shellwords.escape(script_path)}; record_successful_run"
+
+      assert system({"XDG_STATE_HOME" => state_home}, "bash", "-c", command)
+      refute Dir.exist?(File.join(state_home, "dotfiles"))
+    end
+  end
+
   private
 
   def mise_bootstrap_result(tmpdir, script_path, admin:, debian: false, exit_status: 0, debug: false)

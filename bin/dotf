@@ -175,9 +175,11 @@ release_dotf_lock() {
 
 record_successful_run() {
     local state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/dotfiles"
+    local applied_sha
+    applied_sha="$(git -C "$DOTFILES_DIR" rev-parse HEAD 2>/dev/null)" || return 0
 
     mkdir -p "$state_dir"
-    git -C "$DOTFILES_DIR" rev-parse HEAD > "$state_dir/last-run-sha.tmp"
+    printf '%s\n' "$applied_sha" > "$state_dir/last-run-sha.tmp"
     mv "$state_dir/last-run-sha.tmp" "$state_dir/last-run-sha"
     rm -f "$state_dir/needs-run"
 }

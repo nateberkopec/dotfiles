@@ -6,6 +6,10 @@ require "tmpdir"
 class DotfUpdateNoticeTest < Minitest::Test
   FUNCTION_PATH = File.expand_path("../../files/home/.config/fish/functions/__dotf_refresh_update_notice.fish", __dir__)
 
+  def setup
+    skip "Fish is not installed" unless system("fish", "--version", out: File::NULL)
+  end
+
   def test_marks_dotfiles_when_origin_main_advanced_since_last_run
     with_repositories do |tmpdir, source, checkout, initial_sha|
       commit_and_push(source, "new change")
