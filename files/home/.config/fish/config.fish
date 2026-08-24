@@ -9,6 +9,22 @@ ulimit -S -n 4000
 set -g fish_greeting
 
 function fish_greeting
+    set -l state_home "$HOME/.local/state"
+    set -q XDG_STATE_HOME; and set state_home "$XDG_STATE_HOME"
+
+    if test -e "$state_home/dotfiles/needs-run"
+        set -l message 'Dotfiles changed on origin/main.'
+        set -l update_command 'cd ~/.dotfiles && git switch main && git pull --ff-only && dotf run'
+        if command -q gum
+            printf '%s\n%s\n' "$message" "$update_command" | gum style --bold --foreground 214
+        else
+            printf '%s\n%s\n' "$message" "$update_command"
+        end
+    end
+
+    command fish --no-config --command __dotf_refresh_update_notice >/dev/null 2>&1 &
+    disown $last_pid 2>/dev/null
+    return 0
 end
 
 set -x LANG en_US.UTF-8
