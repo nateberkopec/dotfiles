@@ -109,34 +109,8 @@ if [[ -x /opt/homebrew/bin/mosh-server ]]; then
   alias mosh-mbp="mosh --server='SHELL=/opt/homebrew/bin/fish /opt/homebrew/bin/mosh-server' nateberkopec@MBP-Server.local"
 fi
 
-# try-cli wrapper (avoid evaling Cancelled output)
-__try_rb="$(command ls -1t "$HOME/.local/share/mise/installs/gem-try-cli"/*/libexec/gems/try-cli-*/try.rb 2>/dev/null | head -n 1)"
-__try_path="$HOME/src/tries"
-
-if [[ -n "$__try_rb" ]]; then
-  try() {
-    local out try_status
-    local warning="# if you can read this, you didn't launch try from an alias. run try --help."
-
-    out="$(env SHELL="$(command -v bash)" command /usr/bin/env ruby "$__try_rb" exec --path "$__try_path" "$@" 2>/dev/tty)"
-    try_status=$?
-
-    if [[ $try_status -eq 0 ]]; then
-      if [[ "$out" == *"$warning"* ]]; then
-        eval "$out"
-      elif [[ -n "$out" ]]; then
-        printf '%s\n' "$out"
-      fi
-    elif [[ -n "$out" ]]; then
-      printf '%s\n' "$out"
-    fi
-
-    return $try_status
-  }
-elif command -v try >/dev/null 2>&1; then
-  try() {
-    command try "$@"
-  }
+if command -v try >/dev/null 2>&1; then
+  eval "$(SHELL="$(command -v bash)" try init "$HOME/src/tries")"
 fi
 
 if command -v starship >/dev/null 2>&1; then

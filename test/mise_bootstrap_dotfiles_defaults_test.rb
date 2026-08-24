@@ -24,6 +24,15 @@ class MiseBootstrapDotfilesDefaultsTest < Minitest::Test
     assert_equal true, defaults.dig("com.raycast.macos", "onboarding_setupHotkey")
   end
 
+  def test_installs_native_try_release_assets
+    tool = config.fetch("tools").fetch("github:nateberkopec/try")
+
+    assert_equal "1.10.1", tool.fetch("version")
+    assert_equal "try", tool.fetch("bin")
+    assert_equal "try-v1.10.1-linux-x64.tar.gz", tool.dig("platforms", "linux-x64", "asset_pattern")
+    assert_equal "try-v1.10.1-macos-arm64.tar.gz", tool.dig("platforms", "macos-arm64", "asset_pattern")
+  end
+
   def test_installs_and_starts_omniwm
     tool = config.fetch("tools").fetch("github:BarutSRB/OmniWM")
     agent = config.dig("bootstrap", "macos", "launchd", "agents", "omniwm")

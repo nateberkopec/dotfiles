@@ -99,28 +99,8 @@ if test -f ~/.config/fish/private.fish
   source ~/.config/fish/private.fish
 end
 
-# try-cli wrapper (avoid evaling Cancelled output)
-set -g __try_path "$HOME/src/tries"
-function try
-  set -l try_rb (command ls -1t "$HOME/.local/share/mise/installs/gem-try-cli"/*/libexec/gems/try-cli-*/try.rb 2>/dev/null | head -n 1)
-
-  if test -n "$try_rb"
-    set -l out (env SHELL=(status fish-path) command /usr/bin/env ruby "$try_rb" exec --path "$__try_path" $argv 2>/dev/tty | string collect)
-    set -l try_status $status
-    set -l warning "# if you can read this, you didn't launch try from an alias. run try --help."
-
-    if test $try_status -eq 0
-      if string match -q "*$warning*" -- $out
-        eval $out
-      else if test -n "$out"
-        echo $out
-      end
-    else if test -n "$out"
-      echo $out
-    end
-  else
-    command try $argv
-  end
+if command -q try
+  env SHELL=(status fish-path) try init ~/src/tries | source
 end
 
 # starship prompt
