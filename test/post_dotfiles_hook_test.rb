@@ -15,6 +15,7 @@ class PostDotfilesHookTest < Minitest::Test
       FileUtils.mkdir_p([File.dirname(plist), bin])
       File.write(plist, "legacy")
       write_command(bin, "uname", "echo Darwin")
+      write_command(bin, "mise", "exit 0")
       write_command(bin, "launchctl", 'echo "$*" >> "$TRACE"')
 
       _stdout, stderr, status = Open3.capture3(

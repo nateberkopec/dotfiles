@@ -40,6 +40,14 @@ class MiseBootstrapPackagesLaunchdTest < Minitest::Test
 
     assert_match(/\A\d+\.\d+\.\d+\z/, tools.fetch("ruby"))
     assert_match(/\A\d+\.\d+\.\d+\z/, tools.fetch("gum"))
+    assert_match(/\A\d+\.\d+\.\d+\z/, tools.fetch("pipx:playwright"))
+  end
+
+  def test_preinstalls_playwright_headless_shell
+    hook_path = File.expand_path("../bin/lib/post-dotfiles-hook.sh", __dir__)
+    hook = Dotfiles::SystemAdapter.new.read_file(hook_path)
+
+    assert_includes hook, "mise exec -- playwright install chromium-headless-shell"
   end
 
   private

@@ -7,6 +7,10 @@
 
 set -e
 
+# Keep the browser revision aligned with mise's pinned Playwright CLI. The
+# installer is a no-op when the matching browser is already cached.
+mise exec -- playwright install chromium-headless-shell
+
 [ "$(uname -s)" = "Darwin" ] || exit 0
 
 legacy_wallpaper_label="com.user.woodblock-wallpaper"
