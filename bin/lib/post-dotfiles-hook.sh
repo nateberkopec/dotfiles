@@ -7,8 +7,10 @@
 
 set -e
 
-# Keep the browser revision aligned with mise's pinned Playwright CLI. The
-# installer is a no-op when the matching browser is already cached.
+# The new config is copied after bootstrap's tool-install phase, so install
+# Playwright here before using it. These commands are no-ops once current.
+mise install pipx
+mise install pipx:playwright
 mise exec -- playwright install chromium-headless-shell
 
 [ "$(uname -s)" = "Darwin" ] || exit 0

@@ -40,7 +40,9 @@ class MiseBootstrapPackagesLaunchdTest < Minitest::Test
 
     assert_match(/\A\d+\.\d+\.\d+\z/, tools.fetch("ruby"))
     assert_match(/\A\d+\.\d+\.\d+\z/, tools.fetch("gum"))
-    assert_match(/\A\d+\.\d+\.\d+\z/, tools.fetch("pipx:playwright"))
+    assert_match(/\A\d+\.\d+\.\d+\z/, tools.fetch("pipx"))
+    assert_match(/\A\d+\.\d+\.\d+\z/, tools.dig("pipx:playwright", "version"))
+    assert_equal ["pipx"], tools.dig("pipx:playwright", "depends")
   end
 
   def test_preinstalls_playwright_headless_shell
