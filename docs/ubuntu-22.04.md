@@ -8,7 +8,7 @@ Linux support is in progress and currently targets **Ubuntu 22.04 only**.
 ./bin/dotf run
 ```
 
-APT packages are declared under `[bootstrap.packages]` in `files/home/.config/mise/config.toml`. Desktop applications and non-APT installers remain in `config/config.yml` because they need platform-specific setup.
+APT packages are declared under `[bootstrap.packages]` in `files/home/.config/mise/config.toml`. Desktop applications remain in `config/config.yml` because they need platform-specific setup.
 
 ## Ubuntu GUI test container
 
