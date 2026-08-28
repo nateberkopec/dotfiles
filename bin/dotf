@@ -123,8 +123,6 @@ mise_packages_supported() {
 }
 
 run_mise_bootstrap() {
-    announce "Converging machine with mise bootstrap"
-
     local args=(-C "$HOME" bootstrap --yes --locked)
     local status
     if ! mise_packages_supported; then
