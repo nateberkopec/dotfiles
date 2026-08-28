@@ -31,7 +31,7 @@ hooks {
         check = "mise run lint:skills"
       }
       ["test"] {
-        check = "mise run test"
+        check = "unset $(git rev-parse --local-env-vars); mise run test"
       }
     }
   }

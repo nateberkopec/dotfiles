@@ -87,13 +87,6 @@ class FakeSystemAdapter
     entry.is_a?(Hash) && entry.key?(:symlink)
   end
 
-  def readlink(path)
-    @operations << [:readlink, path]
-    entry = @filesystem[File.expand_path(path)]
-    raise Errno::EINVAL, path unless entry.is_a?(Hash) && entry.key?(:symlink)
-    entry[:symlink]
-  end
-
   def read_file(path)
     @operations << [:read_file, path]
     @filesystem[File.expand_path(path)] || raise(Errno::ENOENT, path)
@@ -118,13 +111,6 @@ class FakeSystemAdapter
     @filesystem[dest_path] = @filesystem[src_path]
   end
 
-  def cp_r(src, dest)
-    @operations << [:cp_r, src, dest]
-    src_path = File.expand_path(src)
-    dest_path = File.expand_path(dest)
-    @filesystem[dest_path] = @filesystem[src_path]
-  end
-
   def rm_rf(paths)
     paths = [paths] unless paths.is_a?(Array)
     paths.each do |path|
@@ -143,11 +129,6 @@ class FakeSystemAdapter
     @operations << [:glob, pattern, flags]
     fnmatch_flags = File::FNM_PATHNAME | File::FNM_EXTGLOB | flags
     @filesystem.keys.select { |k| File.fnmatch?(pattern, k, fnmatch_flags) }
-  end
-
-  def chdir(path)
-    @operations << [:chdir, path]
-    yield if block_given?
   end
 
   def readlines(path)
