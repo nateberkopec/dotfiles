@@ -232,21 +232,6 @@ class SystemAdapterTest < Minitest::Test
     end
   end
 
-  def test_cp_r_copies_directories_recursively
-    with_tmpdir do |tmpdir|
-      source = File.join(tmpdir, "source")
-      destination = File.join(tmpdir, "destination")
-      nested = File.join(source, "nested")
-      adapter = Dotfiles::SystemAdapter.new
-      FileUtils.mkdir_p(nested)
-      File.write(File.join(nested, "file.txt"), "copied recursively")
-
-      adapter.cp_r(source, destination)
-
-      assert_equal "copied recursively", File.read(File.join(destination, "nested", "file.txt"))
-    end
-  end
-
   def test_rm_rf_removes_files_and_directories
     with_tmpdir do |tmpdir|
       directory = File.join(tmpdir, "remove-me")
@@ -286,18 +271,6 @@ class SystemAdapterTest < Minitest::Test
       matches = adapter.glob(File.join(tmpdir, "**", "*.rb")).sort
 
       assert_equal [first, second].sort, matches
-    end
-  end
-
-  def test_chdir_runs_block_in_requested_directory
-    with_tmpdir do |tmpdir|
-      adapter = Dotfiles::SystemAdapter.new
-      original_dir = Dir.pwd
-
-      seen_dir = adapter.chdir(tmpdir) { Dir.pwd }
-
-      assert_equal File.realpath(tmpdir), File.realpath(seen_dir)
-      assert_equal original_dir, Dir.pwd
     end
   end
 

@@ -32,10 +32,6 @@ class Dotfiles
       File.symlink?(path)
     end
 
-    def readlink(path)
-      File.readlink(path)
-    end
-
     def read_file(path)
       File.read(path)
     end
@@ -52,10 +48,6 @@ class Dotfiles
       FileUtils.cp(src, dest)
     end
 
-    def cp_r(src, dest)
-      FileUtils.cp_r(src, dest)
-    end
-
     def rm_rf(path)
       FileUtils.rm_rf(path)
     end
@@ -66,10 +58,6 @@ class Dotfiles
 
     def glob(pattern, flags = 0)
       Dir.glob(pattern, flags)
-    end
-
-    def chdir(path, &block)
-      Dir.chdir(path, &block)
     end
 
     def readlines(path)
