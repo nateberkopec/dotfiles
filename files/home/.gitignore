@@ -15,6 +15,5 @@ vendor/bundle/
 node_modules/
 .checkouts/
 .pi/agents/
-.pi/todos/
 .pi-subagents/
 
