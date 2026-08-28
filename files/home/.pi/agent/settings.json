@@ -6,6 +6,7 @@
   "hideThinkingBlock": false,
   "packages": [
     "npm:pi-mcp-adapter@2.15.0",
+    "npm:@narumitw/pi-btw@0.55.1",
     "npm:pi-ding@0.2.2",
     "npm:pi-subagents@0.37.2",
     "npm:pi-web-providers@3.5.1"
