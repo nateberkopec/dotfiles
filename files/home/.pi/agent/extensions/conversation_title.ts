@@ -125,7 +125,7 @@ export default function conversationTitle(pi: ExtensionAPI) {
 						role: "user",
 						content: [{
 							type: "text",
-							text: "Write a specific 2-6 word terminal tab title for the current focus of this conversation. Output only the title.\n\n" + source,
+							text: "Write a specific 2-6 word terminal tab title describing the outcome this conversation is trying to accomplish. Phrase as GTD-style action beginning with a verb. Output only the title.\n\n" + source,
 						}],
 						timestamp: Date.now(),
 					}],
