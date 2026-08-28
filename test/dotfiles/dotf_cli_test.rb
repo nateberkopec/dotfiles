@@ -44,8 +44,7 @@ class DotfCliTest < Minitest::Test
       stdout, stderr, status, log = mise_bootstrap_result(tmpdir, script_path, admin: true)
 
       assert status.success?
-      assert_includes stdout, "Converging machine with mise bootstrap"
-      refute_includes stdout, "mise -C"
+      assert_empty stdout
       assert_empty stderr
       assert_equal "mise -C #{tmpdir}/home bootstrap --yes --locked --quiet\n", log
     end
