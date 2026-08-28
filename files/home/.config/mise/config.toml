@@ -11,6 +11,8 @@ hk = "1.56.0"
 "cargo:starship" = "1.26.0"
 "npm:@openai/codex" = { version = "0.149.0", depends = ["github:jdx/aube"] }
 "npm:sfw" = { version = "2.0.6", depends = ["github:jdx/aube"] }
+pipx = "1.16.7"
+"pipx:playwright" = { version = "1.62.0", depends = ["pipx"] }
 "npm:@earendil-works/pi-coding-agent" = { version = "0.84.2", depends = ["github:jdx/aube"], minimum_release_age = "0d", aube_args = "--deny-build=@google/genai --deny-build=protobufjs" }
 "go:github.com/mikefarah/yq/v4" = "4.53.6"
 "go:github.com/noperator/yknotify" = "0.0.0-20260324103239-0c773bdadedb"

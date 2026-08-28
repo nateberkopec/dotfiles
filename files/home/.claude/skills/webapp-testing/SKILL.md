@@ -6,6 +6,31 @@ license: Complete terms in LICENSE.txt
 
 # Web Application Testing
 
+## Discover Playwright before installing anything
+
+Check the executable first:
+
+```bash
+command -v playwright && playwright --version
+```
+
+Use that executable for supported commands such as `playwright screenshot`. Do not use `npx playwright`, pin an arbitrary Playwright version, or install browsers when the executable is already available. The managed CLI has a matching Chromium headless shell preinstalled in Playwright's standard browser cache.
+
+For custom automation, first test whether the active Python can import Playwright:
+
+```bash
+python3 -c 'import playwright'
+```
+
+If it cannot, use the Python interpreter beside the resolved managed CLI instead of installing another copy:
+
+```bash
+PLAYWRIGHT_PYTHON="$(dirname "$(realpath "$(command -v playwright)")")/python"
+"$PLAYWRIGHT_PYTHON" your_automation.py
+```
+
+Only install Playwright after `command -v playwright` fails. Do not treat a failed Python or Node import as proof that the CLI is unavailable.
+
 To test local web applications, write native Python Playwright scripts.
 
 **Helper Scripts Available**:
