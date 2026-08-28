@@ -32,11 +32,7 @@ class PostDotfilesHookTest < Minitest::Test
       assert status.success?, stderr
       refute File.exist?(plist)
       assert_equal "bootout gui/#{Process.uid}/com.user.woodblock-wallpaper\n", File.read(launchctl_trace)
-      assert_equal <<~TRACE, File.read(mise_trace)
-        install pipx
-        install pipx:playwright
-        exec -- playwright install chromium-headless-shell
-      TRACE
+      assert_equal "exec -- playwright install chromium-headless-shell\n", File.read(mise_trace)
     end
   end
 
