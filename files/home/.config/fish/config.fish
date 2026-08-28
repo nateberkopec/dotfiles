@@ -22,7 +22,7 @@ function fish_greeting
         end
     end
 
-    command fish --no-config --command __dotf_refresh_update_notice >/dev/null 2>&1 &
+    command fish --no-config --command 'source "$__fish_config_dir/functions/__dotf_refresh_update_notice.fish"; __dotf_refresh_update_notice' >/dev/null 2>&1 &
     disown $last_pid 2>/dev/null
     return 0
 end
