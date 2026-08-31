@@ -27,7 +27,7 @@
   "enabledModels": [
     "openai-codex/gpt-5.6-sol:medium",
     "openai-codex/gpt-5.6-terra:xhigh",
-    "fireworks/glm-5p2-priority"
+    "fireworks/accounts/fireworks/routers/glm-5p2-fast-us"
   ],
   "subagents": {
     "agentOverrides": {
