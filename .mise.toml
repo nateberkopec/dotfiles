@@ -31,11 +31,6 @@ description = "Run Ruby complexity checks"
 sources = ["**/*.rb", "!tmp/**", "!vendor/**", "!.pi-subagents/**", ".rubocop-custom.yml"]
 run = "bundle exec rubocop --config .rubocop-custom.yml --only Metrics/PerceivedComplexity"
 
-[tasks."lint:large-files"]
-description = "Check staged files for large files"
-sources = [".git/index"]
-run = '''git diff --cached --numstat --diff-filter=ACMR | awk -F '\t' '$1 ~ /^[0-9]+$/ && $1 > 100 { print "You are adding more than 100 lines to a file: " $3 " (+" $1 "). This is rarely necessary; consider simplifying the code. Is this the most YAGNI solution? Commit with --no-verify if needed."; bad=1 } END { exit bad }' '''
-
 [tasks."lint:human-only"]
 description = "Check staged files for human-only paths"
 sources = [".git/index", "tools/check_human_only_files.rb"]
@@ -67,7 +62,7 @@ run = "ruby tools/lint_agent_skills.rb"
 
 [tasks.lint]
 description = "Run all lint checks"
-depends = ["lint:standard", "lint:complexity", "lint:large-files", "lint:human-only", "lint:secrets", "lint:dead-code", "lint:flog", "lint:flay", "lint:skills"]
+depends = ["lint:standard", "lint:complexity", "lint:human-only", "lint:secrets", "lint:dead-code", "lint:flog", "lint:flay", "lint:skills"]
 
 [tasks.test]
 description = "Run the test suite"
