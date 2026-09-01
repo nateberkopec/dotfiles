@@ -53,12 +53,36 @@ steps:
         --jq '[.[] | select(.pull_request != null) | {number, url: .pull_request.html_url, title}]' \
         > /tmp/gh-aw/agent/open-dependency-update-prs.json
       cat /tmp/gh-aw/agent/open-dependency-update-prs.json
+  - name: Set up Ruby
+    uses: ruby/setup-ruby@4c56a21280b36d862b5fc31348f463d60bdc55d5 # v1.301.0
+    with:
+      ruby-version: 'ruby'
+      bundler-cache: true
+  - name: Install mise
+    uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
+    with:
+      install: false
+      cache: true
+      experimental: true
+  - name: Discover dependency candidates
+    env:
+      GITHUB_TOKEN: ${{ github.token }}
+    run: bundle exec ruby tools/ci/dependency_candidates.rb /tmp/gh-aw/agent/dependency-candidates.json
 
 post-steps:
   - name: Require a pull request outcome
     run: |
       jq -e '[.items[] | select(.type == "create_pull_request" or .type == "push_to_pull_request_branch" or .type == "add_comment")] | length > 0' /tmp/gh-aw/agent_output.json > /dev/null \
         || { echo "::error::The agent finished without creating, updating, or commenting on a dependency-update pull request."; exit 1; }
+  - name: Verify the dependency report
+    run: |
+      body=$(jq -r '[.items[] | select(.type == "create_pull_request")][0].body // empty' /tmp/gh-aw/agent_output.json)
+      if [ -z "$body" ]; then
+        echo "No pull request in the agent output; nothing to verify"
+        exit 0
+      fi
+      printf '%s\n' "$body" > /tmp/gh-aw/agent/pr-body.md
+      bundle exec ruby tools/ci/check_dependency_report.rb /tmp/gh-aw/agent/dependency-candidates.json /tmp/gh-aw/agent/pr-body.md "$GITHUB_SHA"
 
 tools:
   edit:
@@ -136,7 +160,7 @@ safe-outputs:
 
 Keep the run context compact:
 
-- Discover candidates with batched shell commands and filter remote data with `jq` before it reaches context.
+- Candidates are already discovered in `/tmp/gh-aw/agent/dependency-candidates.json`. Do not enumerate manifests or query registries for versions; spend the run on release notes and judgment.
 - Keep raw responses and logs under `/tmp/gh-aw/agent`. Read excerpts smaller than 20 KB, reuse one evidence file, and fetch each release once and only after it passes the gates.
 - Use only `[A-Za-z0-9._-]` in temporary filenames so artifact upload remains valid.
 - `gh pr list` and `gh issue list` fail with `malformed version` in this sandbox when given search filters such as `--label`, `--author`, `--assignee`, `--search`, or `--draft`. Use `gh api`, or unfiltered `--json` output piped to `jq`, instead.
