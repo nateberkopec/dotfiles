@@ -2,14 +2,13 @@ function check_mise_tasks
     collect_mise_task_flags
     report_standard_mise_tasks
     check_long_mise_run_blocks
-    check_large_file_tooling
     detect_ruby_project
     check_ruby_mise_tasks
     check_mise_modern_features
 end
 
 function collect_mise_task_flags
-    for flag in test lint large_files complexity dead_code flog flay serve_or_dev serve_task build
+    for flag in test lint complexity dead_code flog flay serve_or_dev serve_task build
         set -g has_$flag 0
     end
 
@@ -39,7 +38,7 @@ function mark_mise_task
     end
 
     set normalized_task_name (string replace -r '^lint:' '' -- "$task_name")
-    if contains -- "$normalized_task_name" large-files complexity dead-code flog flay
+    if contains -- "$normalized_task_name" complexity dead-code flog flay
         set flag_name (string replace -- - _ "$normalized_task_name")
         set -g has_$flag_name 1
     end

@@ -19,9 +19,6 @@ hooks {
       ["lint"] {
         check = "mise run lint:standard"
       }
-      ["large-files"] {
-        check = "mise run lint:large-files"
-      }
       ["secrets"] {
         check = "mise run lint:secrets"
       }

@@ -45,7 +45,3 @@ function check_long_mise_run_blocks
     set long_run_list (string join ", " $long_run_tasks)
     check_fail "mise task run blocks <= 10 lines" "Move long task run blocks to separate scripts, e.g. bin/<task> or scripts/<task>, and have mise call the script: $long_run_list"
 end
-
-function check_large_file_tooling
-    report_flag has_large_files "mise task: lint:large-files" check_fail "Add a self-contained [tasks.\"lint:large-files\"] section that checks files with more than 100 staged additions."
-end

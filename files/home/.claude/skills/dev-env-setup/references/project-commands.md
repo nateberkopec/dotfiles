@@ -56,17 +56,3 @@ Acceptable remediations for a slow test task are:
 - add or use a `test:fast` task that still covers 100% of the app's unit-level coverage;
 - keep the warning if neither approach can get the task under 10 seconds.
 
-### 7. Large File Check
-
-Pre-commit must include a large-file check so commits do not casually add too many lines to one file.
-
-Add a dedicated mise task named `lint:large-files` that checks staged files:
-
-```toml
-[tasks."lint:large-files"]
-description = "Check staged files for large files"
-sources = [".git/index"]
-run = '''git diff --cached --numstat --diff-filter=ACMR | awk -F '\t' '$1 ~ /^[0-9]+$/ && $1 > 100 { print "You are adding more than 100 lines to a file: " $3 " (+" $1 "). This is rarely necessary; consider simplifying the code. Is this the most YAGNI solution? Commit with --no-verify if needed."; bad=1 } END { exit bad }' '''
-```
-
-Keep this check self-contained in the mise task. It fails when a commit stages more than 100 added lines in any added, copied, modified, or renamed file. Existing files over 100 lines are fine unless the current staged change adds more than 100 lines to that file. There is no project script or override environment variable; use the normal `--no-verify` escape hatch if needed.

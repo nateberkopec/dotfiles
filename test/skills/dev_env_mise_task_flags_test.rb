@@ -11,7 +11,7 @@ class DevEnvMiseTaskFlagsTest < Minitest::Test
   end
 
   def test_allowlisted_families_pass_in_bare_and_lint_forms
-    families = %w[large-files complexity dead-code flog flay]
+    families = %w[complexity dead-code flog flay]
 
     ["", "lint:"].each do |prefix|
       output = run_checker(families.map { |family| "#{prefix}#{family}" })
@@ -21,10 +21,10 @@ class DevEnvMiseTaskFlagsTest < Minitest::Test
   end
 
   def test_generic_lint_and_unrelated_tasks_do_not_enable_family_checks
-    families = %w[large-files complexity dead-code flog flay]
+    families = %w[complexity dead-code flog flay]
 
     %w[lint lint:flog-extra].each do |lint_task|
-      output = run_checker([lint_task, "docs", "large_files"])
+      output = run_checker([lint_task, "docs"])
 
       assert_report output, "PASS", "mise task: lint"
       families.each { |family| assert_report output, "FAIL", "mise task: lint:#{family}" }

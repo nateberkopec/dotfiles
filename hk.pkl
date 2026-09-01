@@ -9,9 +9,6 @@ hooks {
       ["complexity"] {
         check = "mise run lint:complexity"
       }
-      ["large-files"] {
-        check = "mise run lint:large-files"
-      }
       ["human-only"] {
         check = "mise run lint:human-only"
       }

@@ -21,7 +21,6 @@ function check_hk_precommit
     end
 
     report_flag has_precommit_lint "pre-commit: lint step" check_fail "Add a lint step to pre-commit in hk config. Use: check = \"mise run lint\""
-    report_flag has_precommit_large_files "pre-commit: large-files step" check_fail "Add a pre-commit step to hk config. Use: check = \"mise run lint:large-files\""
 
     if test $is_ruby_project -eq 1
         report_flag has_precommit_complexity "pre-commit: complexity step" check_fail "Add a pre-commit step to hk config. Use: check = \"mise run lint:complexity\""
@@ -34,7 +33,7 @@ function check_hk_precommit
 end
 
 function collect_hk_flags
-    for flag in lint large_files complexity dead_code flog flay test
+    for flag in lint complexity dead_code flog flay test
         set -g has_precommit_$flag 0
     end
 
@@ -44,7 +43,6 @@ function collect_hk_flags
 
     set hk_contents (cat "$hk_file")
     set_hk_flag has_precommit_lint '(lint|standard|eslint|rubocop|clippy|ruff|biome)' "$hk_contents"
-    set_hk_flag has_precommit_large_files 'mise run lint:large-files' "$hk_contents"
     set_hk_flag has_precommit_complexity 'mise run lint:complexity' "$hk_contents"
     set_hk_flag has_precommit_dead_code 'mise run lint:dead-code' "$hk_contents"
     set_hk_flag has_precommit_flog 'mise run lint:flog' "$hk_contents"

@@ -24,7 +24,7 @@ Never read or store plaintext credentials. Use fnox/1Password runtime references
 Read only the branch needed:
 
 - For mise and environment configuration, read [references/mise-and-hooks.md](references/mise-and-hooks.md).
-- For the standard task set, read [references/standard-tasks.md](references/standard-tasks.md); for aliases, serve behavior, test runtime, and large-file checks, read [references/project-commands.md](references/project-commands.md); for hooks, read [references/hk-hooks.md](references/hk-hooks.md).
+- For the standard task set, read [references/standard-tasks.md](references/standard-tasks.md); for aliases, serve behavior, and test runtime, read [references/project-commands.md](references/project-commands.md); for hooks, read [references/hk-hooks.md](references/hk-hooks.md).
 - For gitleaks, baselines, secret handling, and GitHub Actions, read [references/security-and-ci.md](references/security-and-ci.md). Baseline generation must use `--redact=75`; confirm the report contains no recovered values before committing it.
 - For Ruby dependencies, Standard, complexity, dead-code, flog, flay, and Bundler preparation, read [references/ruby-projects.md](references/ruby-projects.md).
 

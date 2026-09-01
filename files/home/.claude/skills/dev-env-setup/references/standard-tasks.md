@@ -22,7 +22,6 @@ For lint and test tasks, add `sources` so mise can skip unchanged checks during 
 | `lint:complexity` | `["**/*.rb", ".rubocop-custom.yml"]` |
 | `lint:dead-code` | `["**/*.rb", "**/*.rake", "bin/*", "Rakefile", ".debride-whitelist", "tools/check_dead_code.rb"]` |
 | `lint:flog` / `lint:flay` | `["**/*.rb", "Rakefile"]` |
-| `lint:large-files` | `[".git/index"]` so staging changes rerun the check |
 
 Example mise tasks section:
 
@@ -34,17 +33,12 @@ run = "bundle exec rake test"
 
 [tasks.lint]
 description = "Run all lint checks"
-depends = ["lint:standard", "lint:large-files", "lint:secrets", "lint:complexity", "lint:dead-code", "lint:flog", "lint:flay"]
+depends = ["lint:standard", "lint:secrets", "lint:complexity", "lint:dead-code", "lint:flog", "lint:flay"]
 
 [tasks."lint:standard"]
 description = "Run standardrb"
 sources = ["**/*.rb", ".standard.yml"]
 run = "bundle exec standardrb"
-
-[tasks."lint:large-files"]
-description = "Check staged files for large files"
-sources = [".git/index"]
-run = '''git diff --cached --numstat --diff-filter=ACMR | awk -F '\t' '$1 ~ /^[0-9]+$/ && $1 > 100 { print "You are adding more than 100 lines to a file: " $3 " (+" $1 "). This is rarely necessary; consider simplifying the code. Is this the most YAGNI solution? Commit with --no-verify if needed."; bad=1 } END { exit bad }' '''
 
 [tasks."lint:complexity"]
 description = "Run Ruby complexity checks"
