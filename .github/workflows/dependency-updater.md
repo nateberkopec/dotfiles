@@ -43,6 +43,12 @@ engine:
 model: gpt-5.6-luna
 timeout-minutes: 60
 
+post-steps:
+  - name: Require a pull request outcome
+    run: |
+      jq -e '[.items[] | select(.type == "create_pull_request" or .type == "push_to_pull_request_branch" or .type == "add_comment")] | length > 0' /tmp/gh-aw/agent_output.json > /dev/null \
+        || { echo "::error::The agent finished without creating, updating, or commenting on a dependency-update pull request."; exit 1; }
+
 tools:
   edit:
   bash: [":*"]
@@ -110,7 +116,9 @@ safe-outputs:
     allowed-files: *dependency-files
     protected-files: allowed
   add-comment:
+    target: "*"
     required-labels: [dependency-update]
+  noop: false
 ---
 
 # Dependency Software Factory
@@ -140,4 +148,6 @@ If the matched slash command is `dependency-update`, handle this command on the 
 
 Read `.github/dependency-updater.md` and the complete pull request before acting. Apply the requested batch decisions to the pull request branch, regenerate affected locks, and run the applicable validation. Push all resulting changes to the triggering pull request. Then comment with the decisions applied, your interpretation of any wake boundaries, validation evidence, and any manual action that remains. Never merge the pull request or create another one.
 
-Otherwise, first check for an open pull request with the `dependency-update` label. If one exists, report its URL and make no changes. If none exists, follow `.github/dependency-updater.md` exactly and make all eligible dependency updates in one pull request.
+Otherwise, first check for an open pull request with the `dependency-update` label. If one exists, add a comment on it that links this run and says this batch was skipped because the pull request is still open, and make no changes. If none exists, follow `.github/dependency-updater.md` exactly and make all eligible dependency updates in one pull request.
+
+There is no `noop` tool. Every run must end with a pull request created, a branch pushed, or a comment added. If you cannot finish for any reason, call `report_incomplete` with the reason. That fails the run and opens an issue for Nate.
