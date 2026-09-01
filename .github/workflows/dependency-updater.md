@@ -43,6 +43,17 @@ engine:
 model: gpt-5.6-luna
 timeout-minutes: 60
 
+steps:
+  - name: Find open dependency-update pull requests
+    env:
+      GH_TOKEN: ${{ github.token }}
+    run: |
+      mkdir -p /tmp/gh-aw/agent
+      gh api "repos/${GITHUB_REPOSITORY}/issues?state=open&labels=dependency-update&per_page=100" \
+        --jq '[.[] | select(.pull_request != null) | {number, url: .pull_request.html_url, title}]' \
+        > /tmp/gh-aw/agent/open-dependency-update-prs.json
+      cat /tmp/gh-aw/agent/open-dependency-update-prs.json
+
 post-steps:
   - name: Require a pull request outcome
     run: |
@@ -128,6 +139,7 @@ Keep the run context compact:
 - Discover candidates with batched shell commands and filter remote data with `jq` before it reaches context.
 - Keep raw responses and logs under `/tmp/gh-aw/agent`. Read excerpts smaller than 20 KB, reuse one evidence file, and fetch each release once and only after it passes the gates.
 - Use only `[A-Za-z0-9._-]` in temporary filenames so artifact upload remains valid.
+- `gh pr list` and `gh issue list` fail with `malformed version` in this sandbox when given search filters such as `--label`, `--author`, `--assignee`, `--search`, or `--draft`. Use `gh api`, or unfiltered `--json` output piped to `jq`, instead.
 - On a network error, inspect denials with `awk '$8 ~ /TCP_DENIED/ {sub(/:443$/, "", $3); print $3}' /tmp/gh-aw/sandbox/firewall/logs/access.log | sort | uniq -c | sort -nr`. A listed host is blocked for this run; do not retry it.
 
 The triggering event is `${{ github.event_name }}`. The matched slash command is `${{ needs.activation.outputs.slash_command }}`.
@@ -148,6 +160,6 @@ If the matched slash command is `dependency-update`, handle this command on the 
 
 Read `.github/dependency-updater.md` and the complete pull request before acting. Apply the requested batch decisions to the pull request branch, regenerate affected locks, and run the applicable validation. Push all resulting changes to the triggering pull request. Then comment with the decisions applied, your interpretation of any wake boundaries, validation evidence, and any manual action that remains. Never merge the pull request or create another one.
 
-Otherwise, first check for an open pull request with the `dependency-update` label. If one exists, add a comment on it that links this run and says this batch was skipped because the pull request is still open, and make no changes. If none exists, follow `.github/dependency-updater.md` exactly and make all eligible dependency updates in one pull request.
+Otherwise, read `/tmp/gh-aw/agent/open-dependency-update-prs.json`. It was written before you started and lists the open pull requests with the `dependency-update` label. If it is not empty, add a comment on that pull request that links this run and says this batch was skipped because the pull request is still open, and make no changes. If it is empty, follow `.github/dependency-updater.md` exactly and make all eligible dependency updates in one pull request.
 
 There is no `noop` tool. Every run must end with a pull request created, a branch pushed, or a comment added. If you cannot finish for any reason, call `report_incomplete` with the reason. That fails the run and opens an issue for Nate.
