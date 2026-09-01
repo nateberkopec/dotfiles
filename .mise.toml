@@ -7,7 +7,7 @@ BUNDLE_PATH = "vendor/bundle"
 dfr = "./bin/dotf run"
 
 [tools]
-hk = "1.56.0"
+hk = "1.56.1"
 
 [deps.bundler]
 auto = true
