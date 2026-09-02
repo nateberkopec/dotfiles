@@ -82,6 +82,7 @@ post-steps:
         exit 0
       fi
       printf '%s\n' "$body" > /tmp/gh-aw/agent/pr-body.md
+      bundle install
       bundle exec ruby tools/ci/check_dependency_report.rb /tmp/gh-aw/agent/dependency-candidates.json /tmp/gh-aw/agent/pr-body.md "$GITHUB_SHA"
 
 tools:
