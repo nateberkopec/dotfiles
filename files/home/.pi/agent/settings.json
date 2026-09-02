@@ -5,11 +5,11 @@
   "defaultThinkingLevel": "medium",
   "hideThinkingBlock": false,
   "packages": [
-    "npm:pi-mcp-adapter@2.15.0",
-    "npm:@narumitw/pi-btw@0.55.1",
+    "npm:pi-mcp-adapter@2.31.0",
+    "npm:@narumitw/pi-btw@0.56.0",
     "git:github.com/nijaru/pi-fast-mode@85c8b67a4a3f823e33ab0217a55f37d15e6e6eca",
     "npm:pi-ding@0.2.2",
-    "npm:pi-subagents@0.37.2",
+    "npm:pi-subagents@0.59.0",
     "npm:pi-web-providers@3.5.1"
   ],
   "npmCommand": [
