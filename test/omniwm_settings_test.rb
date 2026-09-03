@@ -1,7 +1,8 @@
 require "test_helper"
-require "toml-rb"
 
 class OmniWMSettingsTest < Minitest::Test
+  include OmniWMSettingsHelper
+
   def test_assigns_only_the_intentional_hotkeys
     assert_equal expected_hotkeys, hotkeys.reject { |_, binding| binding == "Unassigned" }
   end
@@ -19,10 +20,6 @@ class OmniWMSettingsTest < Minitest::Test
   end
 
   private
-
-  def settings
-    @settings ||= TomlRB.load_file(settings_path)
-  end
 
   def hotkeys
     @hotkeys ||= settings.fetch("hotkeys").to_h do |hotkey|
@@ -80,9 +77,5 @@ class OmniWMSettingsTest < Minitest::Test
     settings.fetch("monitorNiriOverrides").to_h do |monitor|
       [monitor.fetch("monitorName"), monitor.fetch("visibleContainerCount")]
     end
-  end
-
-  def settings_path
-    File.expand_path("../files/home/.config/omniwm/settings.toml", __dir__)
   end
 end

@@ -8,6 +8,7 @@ require_relative "support/system_assertions"
 require_relative "support/config_fixture_helper"
 require_relative "support/step_test_case"
 require_relative "support/dotf_script_helper"
+require_relative "support/omniwm_settings_helper"
 
 %w[
   CI
