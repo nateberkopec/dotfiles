@@ -145,6 +145,8 @@ NSBrowserColumnAnimationSpeedMultiplier = 0
 ReduceMotionEnabled = 1
 
 [bootstrap.macos.defaults."com.apple.dock"]
+autohide = true
+orientation = "left"
 autohide-time-modifier = 0
 autohide-delay = 0
 springboard-show-duration = 0
