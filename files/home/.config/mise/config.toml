@@ -2,18 +2,18 @@
 [tools]
 ruby = "4.0.6"
 node = "26.8.1"
-"github:jdx/aube" = "1.36.0"
+"github:aubepkg/aube" = "2.2.4"
 go = "1.27.0"
 rust = "1.98.0"
 hk = "1.56.1"
 "cargo:broot" = "1.59.0"
 "cargo:difftastic" = "0.70.0"
 "cargo:starship" = "1.26.0"
-"npm:@openai/codex" = { version = "0.151.0", depends = ["github:jdx/aube"] }
-"npm:sfw" = { version = "2.0.6", depends = ["github:jdx/aube"] }
+"npm:@openai/codex" = { version = "0.151.0", depends = ["github:aubepkg/aube"] }
+"npm:sfw" = { version = "2.0.6", depends = ["github:aubepkg/aube"] }
 pipx = "1.16.7"
 "pipx:playwright" = { version = "1.62.0", depends = ["pipx"] }
-"npm:@earendil-works/pi-coding-agent" = { version = "0.84.4", depends = ["github:jdx/aube"], minimum_release_age = "0d", aube_args = "--deny-build=@google/genai --deny-build=protobufjs" }
+"npm:@earendil-works/pi-coding-agent" = { version = "0.84.4", depends = ["github:aubepkg/aube"], minimum_release_age = "0d", aube_args = "--deny-build=@google/genai --deny-build=protobufjs" }
 "go:github.com/mikefarah/yq/v4" = "4.53.6"
 "go:github.com/noperator/yknotify" = "0.0.0-20260324103239-0c773bdadedb"
 "github:aldanial/cloc" = { version = "2.10", asset_pattern = "cloc-{{version}}.pl", bin = "cloc" }
@@ -41,7 +41,7 @@ pkl = "0.32.1"
 claude = "2.1.220"
 gitleaks = "8.30.1"
 "1password-cli" = "2.39.0"
-heroku = { version = "11.10.0", depends = ["github:jdx/aube"], aube_args = "--deny-build=cpu-features --deny-build=protobufjs --deny-build=ssh2 --deny-build=yarn" }
+heroku = { version = "11.10.0", depends = ["github:aubepkg/aube"], aube_args = "--deny-build=cpu-features --deny-build=protobufjs --deny-build=ssh2 --deny-build=yarn" }
 "github:rawnly/splash-cli" = "4.1.7"
 
 [tools."github:nateberkopec/try"]

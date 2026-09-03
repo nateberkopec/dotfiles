@@ -188,22 +188,19 @@ checksum = "sha256:bf59272455172108072a0a106379f7509fd4349bdcfd85203bac038ccd286
 url = "https://github.com/AlDanial/cloc/releases/download/v2.10/cloc-2.10.pl"
 url_api = "https://api.github.com/repos/AlDanial/cloc/releases/assets/466555197"
 
-[[tools."github:jdx/aube"]]
-version = "1.36.0"
-backend = "github:jdx/aube"
+[[tools."github:aubepkg/aube"]]
+version = "2.2.4"
+backend = "github:aubepkg/aube"
 
-[tools."github:jdx/aube"."platforms.linux-x64"]
-checksum = "sha256:0eb721d9ff37e24bf035f9a7cb62107593f59bd740393b2eee5b36a50e7759fb"
-url = "https://github.com/jdx/aube/releases/download/v1.36.0/aube-v1.36.0-x86_64-unknown-linux-gnu.tar.gz"
-url_api = "https://api.github.com/repos/jdx/aube/releases/assets/494405804"
-provenance = "github-attestations"
+[tools."github:aubepkg/aube"."platforms.linux-x64"]
+checksum = "sha256:20b8fda0f9f471500ee64814880bd84c1bc402ee7f6dece39bfae25cc93aa1d8"
+url = "https://github.com/aubepkg/aube/releases/download/v2.2.4/aube-v2.2.4-x86_64-unknown-linux-gnu.tar.gz"
+url_api = "https://api.github.com/repos/aubepkg/aube/releases/assets/538149375"
 
-[tools."github:jdx/aube"."platforms.macos-arm64"]
-checksum = "sha256:b169f6e78b081595ca738b105ba6a23d0cf87b499b7eca812203cc1615e0e5fe"
-url = "https://github.com/jdx/aube/releases/download/v1.36.0/aube-v1.36.0-aarch64-apple-darwin.tar.gz"
-url_api = "https://api.github.com/repos/jdx/aube/releases/assets/494475875"
-provenance = "github-attestations"
-provenance_verified = true
+[tools."github:aubepkg/aube"."platforms.macos-arm64"]
+checksum = "sha256:aa3f6e8e319c8d9c92393e797cd5576229eacc0740e8cf2b34d4c65bb1e61708"
+url = "https://github.com/aubepkg/aube/releases/download/v2.2.4/aube-v2.2.4-aarch64-apple-darwin.tar.gz"
+url_api = "https://api.github.com/repos/aubepkg/aube/releases/assets/538155490"
 
 [[tools."github:nateberkopec/print-label"]]
 version = "0.3.0"

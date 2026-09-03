@@ -51,7 +51,7 @@ class MigrationTest < Minitest::Test
 
     migration.up
 
-    assert_executed!("MISE_NPM_PACKAGE_MANAGER=aube mise --cd #{@home} x github:jdx/aube -- mise --cd #{@home} install --yes heroku")
+    assert_executed!("MISE_NPM_PACKAGE_MANAGER=aube mise --cd #{@home} x github:aubepkg/aube -- mise --cd #{@home} install --yes heroku")
   end
 
   def test_hk_hook_migration_skips_absent_legacy_config

@@ -1,7 +1,7 @@
 class Dotfiles::Migration::ReinstallNpmMiseToolsWithAube < Dotfiles::Migration
   VERSION = 202605310002
 
-  AUBE_TOOL = "github:jdx/aube"
+  AUBE_TOOL = "github:aubepkg/aube"
 
   MISE_TOOLS = [
     "npm:@openai/codex",
