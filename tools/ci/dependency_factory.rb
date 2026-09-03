@@ -1,5 +1,5 @@
 require "time"
-%w[versions sources manifests candidates changed_pins report report_checks rubric_checks].each do |name|
+%w[versions sources manifests candidates changed_pins report report_checks rubric_checks lock_provenance].each do |name|
   require_relative "dependency_factory/#{name}"
 end
 

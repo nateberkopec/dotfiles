@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+require_relative "dependency_factory"
 %w[json toml-rb uri yaml].each { |library| require library }
 EXACT_VERSION = /\A\d[\w.+-]*\z/
 FUZZY_VERSION = /(?:\A|[.-])(?:latest|lts|x)(?:\z|[.-])/i
@@ -40,6 +41,8 @@ def mise_lock(content)
         checksum = platform["checksum"]
         abort "Dependency checksums must use SHA-256" if checksum && !checksum.match?(/\Asha256:[0-9a-f]{64}\z/)
         platform["checksum"] = "CHECKSUM" if checksum
+        # The Lock Provenance workflow verifies provenance natively per platform; only losing it is unsafe.
+        %w[provenance provenance_verified].each { |key| platform.delete(key) }
       end
     end
   end
@@ -76,4 +79,9 @@ def normalized(path, content)
 end
 paths.each do |path|
   abort "Dependency update made unsafe changes to #{path}" unless normalized(path, `git show #{base}:#{path}`) == normalized(path, File.read(path))
+end
+lock = "files/home/.config/mise/mise.lock"
+if paths.include?(lock)
+  lost = DependencyFactory::LockProvenance.new(File.read(lock)).lost_since(DependencyFactory::LockProvenance.new(`git show #{base}:#{lock}`))
+  abort "Dependency update lost provenance for #{lost.join(", ")}" unless lost.empty?
 end

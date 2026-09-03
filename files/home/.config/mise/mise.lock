@@ -29,9 +29,9 @@ version = "0.26.1"
 backend = "aqua:sharkdp/bat"
 
 [tools.bat."platforms.linux-x64"]
-checksum = "sha256:0dcd8ac79732c0d5b136f11f4ee00e581440e16a44eab5b3105b611bbf2cf191"
-url = "https://github.com/sharkdp/bat/releases/download/v0.26.1/bat-v0.26.1-x86_64-unknown-linux-musl.tar.gz"
-url_api = "https://api.github.com/repos/sharkdp/bat/releases/assets/323549429"
+checksum = "sha256:726f04c8f576a7fd18b7634f1bbf2f915c43494c1c0f013baa3287edb0d5a2a3"
+url = "https://github.com/sharkdp/bat/releases/download/v0.26.1/bat-v0.26.1-x86_64-unknown-linux-gnu.tar.gz"
+url_api = "https://api.github.com/repos/sharkdp/bat/releases/assets/323549181"
 
 [tools.bat."platforms.macos-arm64"]
 checksum = "sha256:e30beff26779c9bf60bb541e1d79046250cb74378f2757f8eb250afddb19e114"
@@ -55,10 +55,14 @@ version = "2.1.220"
 backend = "aqua:anthropics/claude-code"
 
 [tools.claude."platforms.linux-x64"]
-url = "https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases/2.1.220/linux-x64/claude"
+checksum = "sha256:e69e7f72d784c243bcc377a578ad9ff8e65ae14da672fbbf9f2ba7bf47eca7ec"
+url = "https://github.com/anthropics/claude-code/releases/download/v2.1.220/claude-linux-x64.tar.gz"
+url_api = "https://api.github.com/repos/anthropics/claude-code/releases/assets/488921660"
 
 [tools.claude."platforms.macos-arm64"]
-url = "https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases/2.1.220/darwin-arm64/claude"
+checksum = "sha256:1c895d3d7a97cc1ebd457a2f64ba20212476de82468e4a3fc142beeee270e55e"
+url = "https://github.com/anthropics/claude-code/releases/download/v2.1.220/claude-darwin-arm64.tar.gz"
+url_api = "https://api.github.com/repos/anthropics/claude-code/releases/assets/488921610"
 
 [[tools.cmake]]
 version = "4.4.3"
@@ -107,6 +111,7 @@ checksum = "sha256:f87808cb1b5db2382daf244ced84f342ab01352654df2f50faa1cd1565941
 url = "https://github.com/jdx/fnox/releases/download/v1.31.1/fnox-x86_64-unknown-linux-gnu.tar.gz"
 url_api = "https://api.github.com/repos/jdx/fnox/releases/assets/488427453"
 provenance = "github-attestations"
+provenance_verified = true
 
 [tools.fnox."platforms.macos-arm64"]
 checksum = "sha256:8426d9a2b7fc3a82d73d1a5fb7831d749d195ac811efb598dfbd96222d52c293"
@@ -165,6 +170,11 @@ backend = "github:BarutSRB/OmniWM"
 
 [tools."github:BarutSRB/OmniWM".options]
 asset_pattern = "OmniWM-v{version}.zip"
+
+[tools."github:BarutSRB/OmniWM"."platforms.linux-x64"]
+checksum = "sha256:9b2bf54d20d67f536270032e0625176c06c6e03b8897ddf025558d948339e5e7"
+url = "https://github.com/BarutSRB/OmniWM/releases/download/v0.6.4/OmniWM-v0.6.4.zip"
+url_api = "https://api.github.com/repos/BarutSRB/OmniWM/releases/assets/534379797"
 
 [tools."github:BarutSRB/OmniWM"."platforms.macos-arm64"]
 checksum = "sha256:9b2bf54d20d67f536270032e0625176c06c6e03b8897ddf025558d948339e5e7"
@@ -228,6 +238,7 @@ checksum = "sha256:fbfedd763d1009746402969b4557a1c5767aaa3548e9deba9b8ffd8c8a8fe
 url = "https://github.com/nateberkopec/try/releases/download/v1.10.1/try-v1.10.1-linux-x64.tar.gz"
 url_api = "https://api.github.com/repos/nateberkopec/try/releases/assets/527398560"
 provenance = "github-attestations"
+provenance_verified = true
 
 [[tools."github:nateberkopec/try"]]
 version = "1.10.1"
