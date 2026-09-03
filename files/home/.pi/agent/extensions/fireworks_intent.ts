@@ -11,7 +11,7 @@ import {
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
 const FIREWORKS_PROVIDER = "fireworks";
-const FIREWORKS_BASE_URL = "https://api.fireworks.ai/inference/v1";
+const FIREWORKS_BASE_URL = "https://us.api.fireworks.ai/inference/v1";
 const KIMI_K3_US = "accounts/fireworks/routers/kimi-k3-us";
 const GLM_5P2_FAST_US = "accounts/fireworks/routers/glm-5p2-fast-us";
 const US_ONLY_MODELS = new Set([KIMI_K3_US, GLM_5P2_FAST_US]);
