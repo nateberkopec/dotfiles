@@ -2,6 +2,19 @@
   "providers": {
     "openrouter": {
       "baseUrl": "https://us.openrouter.ai/api/v1"
+    },
+    "google-vertex": {
+      "baseUrl": "https://aiplatform.us.rep.googleapis.com",
+      "models": [
+        {
+          "id": "gemini-3.8-flash",
+          "name": "Gemini 3.8 Flash (Vertex US)",
+          "reasoning": true,
+          "input": ["text", "image"],
+          "contextWindow": 1048576,
+          "maxTokens": 65536
+        }
+      ]
     }
   }
 }
