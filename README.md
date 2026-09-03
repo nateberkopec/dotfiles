@@ -56,7 +56,7 @@ Supported platforms:
 
 In general, because `mise` is crossplatform, if we can do it with `mise`, we should do it with `mise`.
 
-Managed tools are pinned to explicit versions. `dotf run` consumes the committed mise version and multi-platform `mise.lock`; it never selects upgrades. Self-updating Homebrew casks are presence-managed and observed, never downgraded. macOS itself remains independently latest-seeking and is not part of dependency locking.
+Managed tools are pinned to explicit versions. `dotf run` consumes the committed mise version and multi-platform `mise.lock`; it never selects upgrades. The Lock Provenance workflow regenerates each platform's lock entries on its native runner, so `provenance_verified` is only ever set by the platform that verified it. Self-updating Homebrew casks are presence-managed and observed, never downgraded. macOS itself remains independently latest-seeking and is not part of dependency locking.
 
 `dotf run` aggressively overwrites existing user state. This repo is the source of truth.
 
