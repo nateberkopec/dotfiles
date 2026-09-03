@@ -17,6 +17,8 @@ class MiseBootstrapDotfilesDefaultsTest < Minitest::Test
 
     assert_equal 0, defaults.dig("NSGlobalDomain", "NSAutomaticWindowAnimationsEnabled")
     assert_equal 2.0, defaults.dig("NSGlobalDomain", "com.apple.mouse.scaling")
+    assert_equal true, defaults.dig("com.apple.dock", "autohide")
+    assert_equal "left", defaults.dig("com.apple.dock", "orientation")
     assert_equal "scale", defaults.dig("com.apple.dock", "mineffect")
     assert_equal 1, defaults.dig("com.apple.AppleMultitouchTrackpad", "TrackpadRightClick")
     assert_equal false, defaults.dig("com.apple.spaces", "spans-displays")
