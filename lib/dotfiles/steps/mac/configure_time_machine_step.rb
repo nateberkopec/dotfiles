@@ -95,7 +95,7 @@ class Dotfiles::Step::ConfigureTimeMachineStep < Dotfiles::Step
   end
 
   def skip_paths
-    @skip_paths ||= defaults_read("SkipPaths").to_s
+    defaults_read("SkipPaths").to_s
   end
 
   def defaults_bool(value)

@@ -56,6 +56,18 @@ class ConfigureTimeMachineStepTest < StepTestCase
     assert_incomplete
   end
 
+  def test_complete_after_run_adds_missing_exclusions
+    @fake_system.stub_macos
+    write_time_machine_config
+    stub_time_machine_defaults(skip_paths: [expanded_exclusions.first])
+
+    assert_should_run
+    step.run
+    stub_time_machine_defaults
+
+    assert_complete
+  end
+
   private
 
   def write_time_machine_config(overrides = {})
