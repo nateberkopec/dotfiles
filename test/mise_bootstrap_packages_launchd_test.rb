@@ -12,6 +12,16 @@ class MiseBootstrapPackagesLaunchdTest < Minitest::Test
     assert_includes config.dig("bootstrap", "hooks", "post-packages"), "docker.io"
   end
 
+  def test_declares_daily_time_machine_launch_agent
+    agent = config.dig("bootstrap", "macos", "launchd", "agents", "time-machine-backup")
+
+    assert_equal "~/.local/share/dotfiles/run-time-machine-backup.fish", agent.fetch("program")
+    assert_equal({"PATH" => "{{env.HOME}}/.local/share/mise/shims:/usr/bin:/bin"}, agent.fetch("environment"))
+    assert_equal({"hour" => 5, "minute" => 15}, agent.fetch("start_calendar_interval"))
+    assert_equal "~/Library/Logs/time-machine-backup.out.log", agent.fetch("stdout_path")
+    assert_equal "~/Library/Logs/time-machine-backup.err.log", agent.fetch("stderr_path")
+  end
+
   def test_declares_daily_wallpaper_launch_agent
     agent = config.dig("bootstrap", "macos", "launchd", "agents", "woodblock-wallpaper")
 

@@ -51,7 +51,7 @@ content = replace_table(content, "[tools]", tool_entries(content)) if ENV.key?("
 if ENV.key?("BREW_CI_PACKAGES") || ENV.key?("DEBIAN_CI_PACKAGES")
   content = replace_table(content, "[bootstrap.packages]", package_entries)
 end
-%w[yknotify woodblock-wallpaper omniwm].each do |agent|
+%w[yknotify woodblock-wallpaper omniwm time-machine-backup].each do |agent|
   content = replace_table(content, "[bootstrap.macos.launchd.agents.#{agent}]", nil)
 end
 File.write(path, content)

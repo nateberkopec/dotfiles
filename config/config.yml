@@ -41,7 +41,8 @@ spotlight_settings:
 time_machine_settings:
   auto_backup: true
   auto_backup_interval_seconds: 86400
-  requires_ac_power: false
+  requires_ac_power: true
+  wake_time: "05:15:00"
   exclusions:
   - "~/Documents/Code.nosync"
   - "~/.bun/install/cache"
