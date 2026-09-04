@@ -44,7 +44,8 @@ time_machine_settings:
   requires_ac_power: false
   exclusions:
   - "~/Documents/Code.nosync"
-  - "~/.cache/huggingface"
+  - "~/.bun/install/cache"
+  - "~/.cache"
   - "~/.npm"
   - "~/Library/pnpm"
   - "~/.local/share/mise"
