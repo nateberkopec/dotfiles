@@ -12,6 +12,10 @@ class MiseBootstrapDotfilesDefaultsTest < Minitest::Test
     assert_equal "copy", dotfiles.fetch("~/.local/share/yknotify/yknotify.sh").fetch("mode")
   end
 
+  def test_exports_noninteractive_bash_safety_setup
+    assert_equal "{{env.HOME}}/.config/bash/safety.bash", config.fetch("env").fetch("BASH_ENV")
+  end
+
   def test_declares_existing_fixed_macos_defaults
     defaults = config.dig("bootstrap", "macos", "defaults")
 

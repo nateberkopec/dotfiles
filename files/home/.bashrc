@@ -56,6 +56,11 @@ if command -v mise >/dev/null 2>&1; then
   export PATH
 fi
 
+if [[ -f "$HOME/.config/bash/safety.bash" ]]; then
+  # shellcheck source=/dev/null
+  source "$HOME/.config/bash/safety.bash"
+fi
+
 _apply_mise_network_status() {
   if [[ -f /tmp/mise_network_status ]]; then
     if [[ "$(</tmp/mise_network_status)" == "offline" ]]; then
