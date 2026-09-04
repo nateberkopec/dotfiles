@@ -10,6 +10,8 @@ mise.local.lock
 logs/
 .rubocop_cache/
 .bundle/
+.claude/settings.local.json
+.claude/worktrees/
 !files/home/.bundle/
 !files/home/.bundle/config
 vendor/bundle/
