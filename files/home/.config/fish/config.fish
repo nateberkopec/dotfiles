@@ -63,6 +63,7 @@ if command -v mise >/dev/null 2>&1
   mise hook-env -s fish | source
   if command -q aube
     aube activate fish | source
+    set -gx PATH $AUBE_SHIM_DIR (string match -v -- $AUBE_SHIM_DIR $PATH)
   end
 
   function __mise_refresh_on_cd --on-variable PWD
