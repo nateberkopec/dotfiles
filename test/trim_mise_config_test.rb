@@ -26,6 +26,9 @@ class TrimMiseConfigTest < Minitest::Test
         [bootstrap.macos.launchd.agents.omniwm]
         program = "omniwm"
 
+        [bootstrap.macos.launchd.agents.time-machine-backup]
+        program = "time-machine-backup"
+
         [settings]
         experimental = true
       TOML
