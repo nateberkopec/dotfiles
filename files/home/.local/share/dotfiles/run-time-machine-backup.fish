@@ -12,28 +12,19 @@ end
 
 set -l timeout_seconds 43200
 set -l deadline (math (/bin/date +%s) + $timeout_seconds)
-set -l stop_reason ""
 
 /usr/bin/tmutil startbackup --auto --block &
 set -l backup_pid $last_pid
-/usr/bin/caffeinate -s -t $timeout_seconds -w $backup_pid &
+/usr/bin/caffeinate -i -t $timeout_seconds -w $backup_pid &
 set -l caffeinate_pid $last_pid
 
 while /bin/kill -0 $backup_pid 2>/dev/null
-    if not on_ac_power
-        set stop_reason "Mac switched to battery power"
-        break
-    end
     if test (/bin/date +%s) -ge $deadline
-        set stop_reason "12-hour timeout reached"
+        echo "Stopping Time Machine backup: 12-hour timeout reached"
+        /usr/bin/tmutil stopbackup
         break
     end
     /bin/sleep 60
-end
-
-if test -n "$stop_reason"; and /bin/kill -0 $backup_pid 2>/dev/null
-    echo "Stopping Time Machine backup: $stop_reason"
-    /usr/bin/tmutil stopbackup
 end
 
 wait $backup_pid
