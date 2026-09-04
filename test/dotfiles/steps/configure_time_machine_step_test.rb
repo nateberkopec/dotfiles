@@ -10,7 +10,7 @@ class ConfigureTimeMachineStepTest < StepTestCase
 
     assert_executed(["sudo", "defaults", "write", time_machine_domain, "AutoBackup", "-bool", "true"], quiet: false)
     assert_executed(["sudo", "defaults", "write", time_machine_domain, "AutoBackupInterval", "-int", "86400"], quiet: false)
-    assert_executed(["sudo", "defaults", "write", time_machine_domain, "RequiresACPower", "-bool", "false"], quiet: false)
+    assert_executed(["sudo", "defaults", "write", time_machine_domain, "RequiresACPower", "-bool", "true"], quiet: false)
     assert_executed(["sudo", "tmutil", "addexclusion", "-p", *expanded_exclusions], quiet: false)
   end
 
@@ -49,6 +49,13 @@ class ConfigureTimeMachineStepTest < StepTestCase
     assert_incomplete
   end
 
+  def test_incomplete_when_ac_power_requirement_differs
+    write_time_machine_config
+    stub_time_machine_defaults(overrides: {"RequiresACPower" => "0"})
+
+    assert_incomplete
+  end
+
   def test_incomplete_when_exclusion_missing
     write_time_machine_config
     stub_time_machine_defaults(skip_paths: [expanded_exclusions.first])
@@ -74,7 +81,7 @@ class ConfigureTimeMachineStepTest < StepTestCase
     settings = {
       "auto_backup" => true,
       "auto_backup_interval_seconds" => 86_400,
-      "requires_ac_power" => false,
+      "requires_ac_power" => true,
       "exclusions" => exclusions
     }.merge(overrides)
     write_config("time_machine", "time_machine_settings" => settings)
@@ -84,7 +91,7 @@ class ConfigureTimeMachineStepTest < StepTestCase
     defaults = {
       "AutoBackup" => "1",
       "AutoBackupInterval" => "86400",
-      "RequiresACPower" => "0",
+      "RequiresACPower" => "1",
       "SkipPaths" => defaults_array(skip_paths)
     }.merge(overrides)
 
