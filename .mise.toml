@@ -23,12 +23,12 @@ run = "mise deps"
 
 [tasks."lint:standard"]
 description = "Run standardrb"
-sources = ["**/*.rb", "!tmp/**", "!vendor/**", "!.pi-subagents/**", ".standard.yml"]
+sources = ["**/*.rb", "!tmp/**", "!vendor/**", "!.claude/worktrees/**", "!.pi-subagents/**", ".standard.yml"]
 run = "bundle exec standardrb"
 
 [tasks."lint:complexity"]
 description = "Run Ruby complexity checks"
-sources = ["**/*.rb", "!tmp/**", "!vendor/**", "!.pi-subagents/**", ".rubocop-custom.yml"]
+sources = ["**/*.rb", "!tmp/**", "!vendor/**", "!.claude/worktrees/**", "!.pi-subagents/**", ".rubocop-custom.yml"]
 run = "bundle exec rubocop --config .rubocop-custom.yml --only Metrics/PerceivedComplexity"
 
 [tasks."lint:human-only"]
@@ -42,17 +42,17 @@ run = "gitleaks dir --redact=75 --no-banner --no-color --max-target-megabytes 5 
 
 [tasks."lint:dead-code"]
 description = "Check for dead Ruby methods"
-sources = ["**/*.rb", "**/*.rake", "!tmp/**", "!vendor/**", "!.pi-subagents/**", "bin/*", "Rakefile", ".debride-whitelist", "files/home/.claude/skills/dev-env-setup/scripts/check_dead_code.rb"]
+sources = ["**/*.rb", "**/*.rake", "!tmp/**", "!vendor/**", "!.claude/worktrees/**", "!.pi-subagents/**", "bin/*", "Rakefile", ".debride-whitelist", "files/home/.claude/skills/dev-env-setup/scripts/check_dead_code.rb"]
 run = "ruby files/home/.claude/skills/dev-env-setup/scripts/check_dead_code.rb"
 
 [tasks."lint:flog"]
 description = "Run flog complexity checks"
-sources = ["**/*.rb", "!tmp/**", "!vendor/**", "!.pi-subagents/**", "Rakefile"]
+sources = ["**/*.rb", "!tmp/**", "!vendor/**", "!.claude/worktrees/**", "!.pi-subagents/**", "Rakefile"]
 run = "bundle exec rake flog"
 
 [tasks."lint:flay"]
 description = "Run flay duplication checks"
-sources = ["**/*.rb", "!tmp/**", "!vendor/**", "!.pi-subagents/**", "Rakefile"]
+sources = ["**/*.rb", "!tmp/**", "!vendor/**", "!.claude/worktrees/**", "!.pi-subagents/**", "Rakefile"]
 run = "bundle exec rake flay"
 
 [tasks."lint:skills"]
@@ -66,7 +66,7 @@ depends = ["lint:standard", "lint:complexity", "lint:human-only", "lint:secrets"
 
 [tasks.test]
 description = "Run the test suite"
-sources = ["**/*.rb", "!tmp/**", "!vendor/**", "!.pi-subagents/**", "test/**/*", "lib/**/*"]
+sources = ["**/*.rb", "!tmp/**", "!vendor/**", "!.claude/worktrees/**", "!.pi-subagents/**", "test/**/*", "lib/**/*"]
 run = "bundle exec rake test"
 
 [tasks.dev]
