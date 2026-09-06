@@ -25,5 +25,6 @@ jobs:
         ruby-version: 'ruby'
         bundler-cache: true
 
-    - name: Run tests
+    - name: Run tests with managed Bash startup
+      timeout-minutes: 5
       run: bundle exec rake test

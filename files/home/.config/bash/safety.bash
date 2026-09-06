@@ -2,8 +2,9 @@
 
 export MISE_SHELL=bash
 
+# Bash-backed startup tools must not recursively reload this file.
 if command -v mise >/dev/null 2>&1; then
-  eval "$(mise hook-env -s bash)"
+  eval "$(BASH_ENV='' mise hook-env -s bash)"
 fi
 
 _path_force_prepend() {
@@ -20,7 +21,7 @@ _path_force_prepend() {
 }
 
 if command -v aube >/dev/null 2>&1; then
-  eval "$(aube activate bash)"
+  eval "$(BASH_ENV='' aube activate bash)"
   _path_force_prepend "$AUBE_SHIM_DIR"
 fi
 unset -f _path_force_prepend

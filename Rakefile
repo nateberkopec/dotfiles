@@ -4,13 +4,21 @@ require "standard/rake"
 
 FLOG_THRESHOLD = (ENV["FLOG_THRESHOLD"] || 25).to_i
 FLAY_THRESHOLD = (ENV["FLAY_THRESHOLD"] || 10).to_i
+ENV["BASH_ENV"] = File.expand_path("files/home/.config/bash/safety.bash", __dir__)
 
 task default: [:test, :standard, :flog, :flay]
+
+Rake::TestTask.new("test:bash_safety") do |t|
+  t.libs << "test"
+  t.test_files = FileList["test/bash/safety_environment_test.rb"]
+end
 
 Rake::TestTask.new(:test) do |t|
   t.libs << "test"
   t.test_files = FileList["test/**/*_test.rb"]
 end
+# Run the bounded startup check before the suite can launch other Bash processes.
+Rake::Task[:test].enhance(["test:bash_safety"])
 
 desc "Run flog"
 task :flog do

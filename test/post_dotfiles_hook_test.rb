@@ -16,7 +16,7 @@ class PostDotfilesHookTest < Minitest::Test
       FileUtils.mkdir_p([File.dirname(plist), bin])
       File.write(plist, "legacy")
       write_command(bin, "uname", "echo Darwin")
-      write_command(bin, "mise", 'echo "$*" >> "$MISE_TRACE"')
+      write_command(bin, "mise", '[ "$*" = "hook-env -s bash" ] || echo "$*" >> "$MISE_TRACE"')
       write_command(bin, "launchctl", 'echo "$*" >> "$LAUNCHCTL_TRACE"')
 
       _stdout, stderr, status = Open3.capture3(
