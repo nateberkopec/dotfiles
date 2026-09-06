@@ -1,6 +1,7 @@
 # Managed by dotfiles. This file is the source of truth for machine-wide mise tools.
 [tools]
 ruby = "4.0.6"
+python = "3.14.7"
 node = "26.8.1"
 "github:aubepkg/aube" = "2.2.4"
 go = "1.27.1"

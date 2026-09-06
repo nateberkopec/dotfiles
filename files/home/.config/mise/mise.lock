@@ -440,6 +440,20 @@ checksum = "sha256:563eb51c9a20b16a3625464ed745c675ed9750381f2126722696a0d7cac1d
 url = "https://github.com/apple/pkl/releases/download/0.32.1/pkl-macos-aarch64"
 url_api = "https://api.github.com/repos/apple/pkl/releases/assets/487426570"
 
+[[tools.python]]
+version = "3.14.7"
+backend = "core:python"
+
+[tools.python."platforms.linux-x64"]
+checksum = "sha256:3959f92825141e04adf44982d3a83ee57af0877e893b0796e04c1468749d9b04"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260901/cpython-3.14.7+20260901-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz"
+provenance = "github-attestations"
+
+[tools.python."platforms.macos-arm64"]
+checksum = "sha256:4632cb1a6edad9e73d3c81b6d2e69131637d995173e3e85005df14102b0592ba"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260901/cpython-3.14.7+20260901-aarch64-apple-darwin-install_only_stripped.tar.gz"
+provenance = "github-attestations"
+
 [[tools.ripgrep]]
 version = "15.2.0"
 backend = "aqua:BurntSushi/ripgrep"
