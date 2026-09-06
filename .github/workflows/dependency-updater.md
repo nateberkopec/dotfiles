@@ -58,10 +58,11 @@ model: gpt-5.6-sol
 max-ai-credits: 200
 timeout-minutes: 45
 
-steps:
+pre-agent-steps:
   - name: Queue a forbidden comment without invoking the model
     run: |
-      mkdir -p /tmp/gh-aw/agent
+      export GH_AW_SAFE_OUTPUTS="$RUNNER_TEMP/gh-aw/safeoutputs/outputs.jsonl"
+      mkdir -p /tmp/gh-aw/agent "$(dirname "$GH_AW_SAFE_OUTPUTS")"
       printf '%s\n' '{"type":"noop","message":"Deterministic publication gate probe; no model required"}' '{"type":"add_comment","item_number":654,"body":"Gate probe: THIS COMMENT MUST NOT PUBLISH.\n<!-- stripped marker -->\n<details><summary>Decision evidence</summary>\n\n```json dependency-decisions\n{\"outcome\":\"researched\",\"decisions\":[{\"name\":\"npm:@scope/example\"}]}\n```\n</details>"}' >> "$GH_AW_SAFE_OUTPUTS"
 
 jobs:
