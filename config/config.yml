@@ -16,7 +16,6 @@ debian_desktop_apps:
     key_url: https://dl.google.com/linux/linux_signing_key.pub
 brew_casks:
   - 1password
-  - cursor
   - discord
   - dropbox
   - ghostty
