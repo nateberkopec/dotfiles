@@ -36,7 +36,7 @@ module DependencyFactory
     def security
       bullets("Attention").filter_map do |line|
         match = line.match(/\A- Security: `(.+) ([^` ]+)`:/)
-        [match[1], match[2], line] if match
+        [self.class.value(match[1]), match[2], line] if match
       end
     end
 

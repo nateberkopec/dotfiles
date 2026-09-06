@@ -64,16 +64,23 @@ class DependencyFactoryReportChecksTest < Minitest::Test
     assert_includes errors(text: body.sub("| gh | [2.99.0]", "| unrelated | [2.99.0]")), "unrelated 2.99.0: not a skipped candidate"
   end
 
+  def test_scoped_package_tables_and_security_tolerate_safe_output_mentions
+    name = "npm:@openai/codex"
+    text = body.gsub("| gh |", "| npm:`@openai/codex` |")
+    text += "\n## Attention\n- Security: `npm:`@openai/codex` 2.98.0`: [Fix.](https://example.test/2.98.0) \"Stops exposing forwarded ports.\"\n"
+    assert_empty errors(text: text, changes: {name => ["2.97.0", "2.98.0"]}, name: name)
+  end
+
   private
 
   def changes
     {"gh" => ["2.97.0", "2.98.0"]}
   end
 
-  def errors(text: body, changes: self.changes, snoozes: {}, notes: nil)
-    candidate = {"name" => "gh", "kind" => "mise", "current" => "2.97.0", "eligible" => "2.98.0", "latest" => "2.99.0", "published" => {"2.98.0" => "2026-08-20T00:00:00Z", "2.99.0" => "2026-09-01T00:00:00Z"}}
+  def errors(text: body, changes: self.changes, snoozes: {}, notes: nil, name: "gh")
+    candidate = {"name" => name, "kind" => "mise", "current" => "2.97.0", "eligible" => "2.98.0", "latest" => "2.99.0", "published" => {"2.98.0" => "2026-08-20T00:00:00Z", "2.99.0" => "2026-09-01T00:00:00Z"}}
     data = {"generated_at" => "2026-09-01T22:00:00Z", "minimum_release_age_days" => 3, "candidates" => [candidate]}
-    notes ||= {"packages" => {"gh" => [{"version" => "2.98.0", "url" => "https://example.test/2.98.0", "text" => "Stops exposing forwarded ports."}]}}
+    notes ||= {"packages" => {name => [{"version" => "2.98.0", "url" => "https://example.test/2.98.0", "text" => "Stops exposing forwarded ports."}]}}
     DependencyFactory::ReportChecks.new(candidates: data, report: DependencyFactory::Report.new(text), changes: changes, snoozes: snoozes, notes: notes).errors
   end
 

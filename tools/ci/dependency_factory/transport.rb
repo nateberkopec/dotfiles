@@ -2,7 +2,7 @@ module DependencyFactory
   module Transport
     module_function
 
-    # gh-aw's bundle transport names and ref format (compiler v0.86.2).
+    # gh-aw's bundle transport names and ref format (compiler v0.88.2).
     def errors(item, directory:, root: Dir.pwd, repo: ENV["GITHUB_REPOSITORY"])
       branch = item["branch"]
       return ["Publishing requires a branch"] if branch.to_s.empty?
