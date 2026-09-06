@@ -25,9 +25,9 @@
     "path": "/System/Library/Sounds/Glass.aiff"
   },
   "enabledModels": [
+    "openai-codex/gpt-6-astra:low",
     "openai-codex/gpt-5.6-sol:medium",
-    "openai-codex/gpt-5.6-terra:xhigh",
-    "fireworks/accounts/fireworks/routers/glm-5p2-fast-us"
+    "openai-codex/gpt-5.6-luna:xhigh"
   ],
   "subagents": {
     "agentOverrides": {
