@@ -119,22 +119,12 @@ jobs:
         GITHUB_TOKEN: ${{ github.token }}
       run: bash tools/ci/lock_native_platform.sh macos-arm64
 
-    - name: Bind native evidence to the verified revision
-      if: needs.detect-changes.outputs.lock_changed == 'true'
-      env:
-        SOURCE_SHA: ${{ needs.detect-changes.outputs.head_sha }}
-      run: |
-        jq -n --arg source "$SOURCE_SHA" --arg workflow "$GITHUB_WORKFLOW_SHA" --arg run "$GITHUB_RUN_ID" \
-          '{source_sha: $source, workflow_sha: $workflow, run_id: $run}' > native-lock-evidence.json
-
     - name: Upload combined native lock evidence
       if: needs.detect-changes.outputs.lock_changed == 'true'
       uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
       with:
-        name: native-lock-evidence
-        path: |
-          files/home/.config/mise/mise.lock
-          native-lock-evidence.json
+        name: native-lock-${{ needs.detect-changes.outputs.head_sha }}
+        path: files/home/.config/mise/mise.lock
 
     - name: Verify provenance against the committed lock
       if: needs.detect-changes.outputs.lock_changed == 'true'
