@@ -2,111 +2,62 @@ require "test_helper"
 require_relative "../../tools/ci/dependency_factory"
 
 class DependencyFactoryReportChecksTest < Minitest::Test
-  def test_complete_report_passes
+  def test_complete_decisions_pass_without_prescribed_prose
     assert_empty errors
+    assert_empty errors(prose: "## Whatever is useful\nAn explanation, not a table.\n")
   end
 
-  def test_empty_report_explains_the_required_format
-    assert_includes errors(text: ""), "Start with Release notes, Updates, and Skipped candidates in that order"
+  def test_malformed_and_duplicate_ledgers_fail_closed
+    ["", "[]", "null", "{", '{"decisions":{},"outcome":"ready"}'].each do |json|
+      refute_empty DependencyFactory::Report.new("<!-- dependency-decisions\n#{json}\n-->").errors
+    end
+    assert_includes errors(rows: rows + [rows.first]), "Duplicate decisions"
   end
 
-  def test_missing_candidates_and_reasons_are_rejected
-    assert_includes errors(text: body.sub(skipped, "")), "gh 2.99.0: missing from Skipped candidates"
-    assert_includes errors(text: body.sub("Wait until 2026-09-04T00:00:00Z", "")), "Skipped candidates: every cell must be filled"
-    assert_includes errors(text: body.sub("2026-09-04T00:00:00Z", "tomorrow")), "gh 2.99.0: Reason must include 2026-09-04T00:00:00Z"
+  def test_missing_or_invented_decisions_are_rejected
+    assert_includes errors(rows: rows.drop(1)), "gh 2.98.0: missing decision"
+    assert_includes errors(rows: rows + [rows.first.merge("version" => "3.0.0")]), "gh 3.0.0: not a candidate"
   end
 
-  def test_report_matches_actual_changes_and_rejects_missing_publication_dates
-    assert_includes errors(changes: {}), "gh: New must match the diff"
-    assert_includes errors(changes: changes.merge("jq" => ["1.8.0", "1.9.0"])), "jq: changed without an Updates row"
+  def test_decisions_match_diff_and_eligible_publication
+    assert_includes errors(changes: {}), "gh 2.98.0: decision disagrees with diff"
+    assert_includes errors(changes: {"gh" => ["2.97.0", "2.99.0"]}), "gh: 2.99.0 outside eligible range"
     assert_includes errors(changes: {"gh" => ["2.97.0", "2.97.1"]}), "gh: 2.97.1 has no eligible publication date"
+    assert_includes errors(changes: {"gh" => ["2.96.0", "2.98.0"]}), "gh: old pin disagrees with baseline"
   end
 
-  def test_gated_updates_are_rejected
-    assert_includes errors(changes: {"gh" => ["2.97.0", "2.99.0"]}), "gh: 2.99.0 must be newer than 2.97.0 and no newer than 2.98.0"
+  def test_lock_batch_cannot_hide_unknown_or_new_transitive_gems
+    assert_includes errors(changes: {"Gemfile.lock" => ["changed", "changed"], "new-gem" => [nil, "1.0"]}), "new-gem: changed but not a candidate; refresh discovery"
   end
 
-  def test_snoozes_need_a_reason_and_block_updates
-    snoozes = {"gh" => {"candidate" => "2.98.0", "wake_at" => "3.0.0"}}
+  def test_security_requires_collected_source_and_exact_quote
+    security = rows.first.merge("security" => true, "quote" => "Stops exposing forwarded ports.")
+    assert_empty errors(rows: [security, rows.last])
+    assert_includes errors(rows: [security.merge("quote" => "Invented claim about secrets"), rows.last]), "gh 2.98.0: security requires an exact collected quote"
+    assert_includes errors(rows: [security.merge("source" => "https://evil.test/security/advisories/fake"), rows.last]), "gh 2.98.0: source is not collected evidence"
+  end
+
+  def test_snooze_requires_verified_advisory_and_never_bypasses_age_gate
+    snoozes = {"gh" => {"candidate" => "2.98.0", "wake_at" => "3.0.0", "reason" => "Wait for regression fix"}}
     assert_includes errors(snoozes: snoozes), "gh: snoozed until 3.0.0"
-    assert_includes errors(snoozes: snoozes), "gh 2.99.0: Reason must include 3.0.0"
-    assert_empty errors(snoozes: {"gh" => {"candidate" => "2.97.1", "wake_at" => "2.98.0"}})
-  end
-
-  def test_sourced_security_advisory_wakes_a_snooze
-    text = body + "\n## Attention\n\n- Security: `gh 2.98.0`: [Fixes forwarded ports.](https://github.com/cli/cli/security/advisories/GHSA-example)\n"
-    assert_empty errors(text: text, snoozes: {"gh" => {"candidate" => "2.98.0", "wake_at" => "3.0.0"}})
-  end
-
-  def test_security_quotes_must_come_from_collected_notes
-    text = body + "\n## Attention\n\n- Security: `gh 2.98.0`: [Fixes forwarded ports.](https://example.test/2.98.0) Upstream: \"Stops exposing forwarded ports.\"\n"
-    assert_empty errors(text: text)
-    assert_includes errors(text: text.sub("Stops exposing", "Invented claim about")), "gh 2.98.0: Security needs an advisory link or a linked quote from collected notes"
-  end
-
-  def test_highlights_must_come_from_an_upgraded_range
-    assert_includes errors(text: body.sub("[Try worktrees!](https://example.test/2.98.0)", "[Try worktrees!](https://example.test/2.99.0)")), "Release notes: each highlight must link only to notes in an upgraded version range"
-    assert_empty errors(text: body.sub("- [Try worktrees!](https://example.test/2.98.0)", "Routine updates only; no noteworthy changes."))
-    assert_includes errors(text: body.sub("- [Try worktrees!](https://example.test/2.98.0)", "- [Try worktrees!](https://example.test/2.98.0)\n" * 6)), "Release notes needs up to five linked highlights, or a short no-highlights explanation"
-  end
-
-  def test_unavailable_notes_cannot_supply_a_highlight
-    notes = {"packages" => {"gh" => [{"version" => "2.98.0", "url" => "https://example.test/2.98.0", "error" => "Notes unavailable"}]}}
-    assert_includes errors(notes: notes), "Release notes: each highlight must link only to notes in an upgraded version range"
-  end
-
-  def test_security_bullets_need_an_explicit_package_and_version
-    assert_includes errors(text: body + "\n## Attention\n- Security: fixes something.\n"), "Security bullets must identify `tool version`"
-  end
-
-  def test_unknown_sections_and_candidates_are_rejected
-    assert_includes errors(text: body + "\n## Research\nUnnecessary prose.\n"), "Unexpected section: Research"
-    assert_includes errors(text: body.sub("| gh | [2.99.0]", "| unrelated | [2.99.0]")), "unrelated 2.99.0: not a skipped candidate"
-  end
-
-  def test_scoped_package_tables_and_security_tolerate_safe_output_mentions
-    name = "npm:@openai/codex"
-    text = body.gsub("| gh |", "| npm:`@openai/codex` |")
-    text += "\n## Attention\n- Security: `npm:`@openai/codex` 2.98.0`: [Fix.](https://example.test/2.98.0) \"Stops exposing forwarded ports.\"\n"
-    assert_empty errors(text: text, changes: {name => ["2.97.0", "2.98.0"]}, name: name)
+    security = rows.first.merge("security" => true, "quote" => "Stops exposing forwarded ports.", "source" => "https://example.test/security/advisories/gh")
+    assert_empty errors(rows: [security, rows.last], snoozes: snoozes, source: security["source"])
   end
 
   private
 
-  def changes
-    {"gh" => ["2.97.0", "2.98.0"]}
+  def rows
+    %w[2.98.0 2.99.0].map do |version|
+      {"name" => "gh", "version" => version, "action" => (version == "2.98.0") ? "update" : "defer",
+       "reason" => "Useful fix or wait for the age gate", "source" => "https://example.test/#{version}", "security" => false}
+    end
   end
 
-  def errors(text: body, changes: self.changes, snoozes: {}, notes: nil, name: "gh")
-    candidate = {"name" => name, "kind" => "mise", "current" => "2.97.0", "eligible" => "2.98.0", "latest" => "2.99.0", "published" => {"2.98.0" => "2026-08-20T00:00:00Z", "2.99.0" => "2026-09-01T00:00:00Z"}}
+  def errors(rows: self.rows, changes: {"gh" => ["2.97.0", "2.98.0"]}, snoozes: {}, prose: "", source: "https://example.test/2.98.0")
+    candidate = {"name" => "gh", "kind" => "mise", "current" => "2.97.0", "eligible" => "2.98.0", "latest" => "2.99.0", "source" => "https://example.test/2.99.0", "published" => {"2.98.0" => "2026-08-20T00:00:00Z", "2.99.0" => "2026-09-01T00:00:00Z"}}
     data = {"generated_at" => "2026-09-01T22:00:00Z", "minimum_release_age_days" => 3, "candidates" => [candidate]}
-    notes ||= {"packages" => {name => [{"version" => "2.98.0", "url" => "https://example.test/2.98.0", "text" => "Stops exposing forwarded ports."}]}}
+    notes = {"packages" => {"gh" => [{"version" => "2.98.0", "url" => source, "text" => "Stops exposing forwarded ports."}]}}
+    text = "#{prose}<!-- dependency-decisions\n#{JSON.generate("outcome" => "ready", "decisions" => rows)}\n-->"
     DependencyFactory::ReportChecks.new(candidates: data, report: DependencyFactory::Report.new(text), changes: changes, snoozes: snoozes, notes: notes).errors
-  end
-
-  def skipped
-    "| gh | [2.99.0](https://example.test/2.99.0) | Wait until 2026-09-04T00:00:00Z |"
-  end
-
-  def body
-    <<~MARKDOWN
-      ## Release notes
-
-      - [Try worktrees!](https://example.test/2.98.0)
-
-      ## Updates
-
-      | Tool | Old | New |
-      |------|-----|-----|
-      | gh | 2.97.0 | [2.98.0](https://example.test/2.98.0) |
-
-      ## Skipped candidates
-
-      | Tool | Candidate | Reason |
-      |------|-----------|--------|
-      #{skipped}
-
-      Validation: tests passed.
-    MARKDOWN
   end
 end

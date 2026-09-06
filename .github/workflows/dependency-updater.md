@@ -3,28 +3,35 @@ on:
   schedule:
     - cron: "0 18 * * 0" # Monday 03:00 JST
   workflow_dispatch:
+    inputs:
+      request:
+        description: Outcome or question for the dependency agent
+        type: string
+      benchmark:
+        description: Replay PR 642 eligibility against its exact baseline
+        type: boolean
+        default: false
   workflow_run:
-    workflows: [Integration Tests, Lint, Unit Tests]
+    workflows: [Integration Tests, Lint, Unit Tests, Lock Provenance]
     types: [completed]
     branches: ["dependency-update-*"]
   slash_command:
     name: dependency-update
-    events: [pull_request_comment]
+    events: [issues, issue_comment, pull_request_comment]
   roles: [admin]
 
 checkout:
-  fetch: ["dependency-update-*"]
+  fetch: ["dependency-update-*", "dependency-benchmark-642", "main"]
   fetch-depth: 0
 
 if: >
   github.event_name != 'workflow_run' ||
-  (github.event.workflow_run.conclusion == 'failure' &&
-  github.event.workflow_run.event == 'pull_request' &&
+  (github.event.workflow_run.event == 'pull_request' &&
   github.event.workflow_run.head_repository.full_name == github.repository &&
   github.event.workflow_run.pull_requests[0].number)
 
 concurrency:
-  group: dependency-factory-${{ github.event.workflow_run.head_branch || github.event.issue.number || github.run_id }}
+  group: dependency-factory
   cancel-in-progress: false
   queue: max
 
@@ -38,31 +45,25 @@ engine:
   id: codex
   args:
     - -c
-    - model_reasoning_effort="max"
+    - model_reasoning_effort="low"
 # gh-aw-firewall 0.27.44 misresolves model names with query parameters.
-model: gpt-5.6-luna
-timeout-minutes: 60
+model: gpt-5.6-sol
+max-ai-credits: 200
+timeout-minutes: 45
 
 steps:
-  - name: Find open dependency-update pull requests
+  - name: Resolve the active batch
+    id: context
     env:
       GH_TOKEN: ${{ github.token }}
-      PR_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number || github.event.issue.number }}
+      BENCHMARK: ${{ inputs.benchmark }}
+      HUMAN_REQUEST: ${{ inputs.request != '' || github.event_name == 'issues' || github.event_name == 'issue_comment' }}
+      PR_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number }}
+      ISSUE_NUMBER: ${{ github.event.issue.number }}
+      EVENT_HEAD: ${{ github.event.workflow_run.head_sha }}
     run: |
       mkdir -p /tmp/gh-aw/agent
-      if [ -n "$PR_NUMBER" ]; then
-        gh api "repos/${GITHUB_REPOSITORY}/pulls/$PR_NUMBER" > /tmp/gh-aw/agent/pr.json
-        head=$(jq -r .head.sha /tmp/gh-aw/agent/pr.json)
-        base=$(jq -r .base.sha /tmp/gh-aw/agent/pr.json)
-        base=$(gh api "repos/${GITHUB_REPOSITORY}/compare/$base...$head" --jq .merge_base_commit.sha)
-        jq --arg base "$base" '{number, base: $base, head: .head.sha}' /tmp/gh-aw/agent/pr.json > /tmp/gh-aw/agent/pr-context.json
-      else
-        jq -n --arg base "$GITHUB_SHA" '{base: $base}' > /tmp/gh-aw/agent/pr-context.json
-      fi
-      gh api "repos/${GITHUB_REPOSITORY}/issues?state=open&labels=dependency-update&per_page=100" \
-        --jq '[.[] | select(.pull_request != null) | {number, url: .pull_request.html_url, title}]' \
-        > /tmp/gh-aw/agent/open-dependency-update-prs.json
-      cat /tmp/gh-aw/agent/open-dependency-update-prs.json
+      ruby tools/ci/dependency_context.rb
   - name: Set up Ruby
     uses: ruby/setup-ruby@4c56a21280b36d862b5fc31348f463d60bdc55d5 # v1.301.0
     with:
@@ -74,20 +75,31 @@ steps:
       install: false
       cache: true
       experimental: true
-  - name: Discover dependency candidates
+  - name: Prepare reusable evidence and capabilities
+    id: evidence
     env:
       GITHUB_TOKEN: ${{ github.token }}
     run: |
-      bundle exec ruby tools/ci/dependency_candidates.rb /tmp/gh-aw/agent/dependency-candidates.json "$(jq -r .base /tmp/gh-aw/agent/pr-context.json)"
+      as_of=""
+      if [ "${{ inputs.benchmark }}" = true ]; then as_of=2026-09-06T18:11:29Z; fi
+      bundle exec ruby tools/ci/dependency_candidates.rb /tmp/gh-aw/agent/dependency-candidates.json "$(jq -r .base /tmp/gh-aw/agent/pr-context.json)" "$as_of"
       bundle exec ruby tools/ci/dependency_release_notes.rb /tmp/gh-aw/agent/dependency-candidates.json /tmp/gh-aw/agent/release-notes.json
+      cp .github/dependency-updater.md /tmp/gh-aw/agent/mission.md
       mkdir -p /tmp/gh-aw/agent/checks
       cp -R tools/ci/dependency_factory tools/ci/dependency_factory.rb tools/ci/check_dependency*.rb /tmp/gh-aw/agent/checks/
+      cd /tmp/gh-aw/agent
+      echo "digest=$(cat pr-context.json dependency-candidates.json release-notes.json | sha256sum | cut -d ' ' -f1)" >> "$GITHUB_OUTPUT"
 
 post-steps:
-  - name: Verify the pull request outcome and report
+  - name: Verify immutable evidence, mechanical diff, and publication
+    env:
+      GH_TOKEN: ${{ github.token }}
+      EXPECTED_DIGEST: ${{ steps.evidence.outputs.digest }}
     run: |
+      test "$(cat /tmp/gh-aw/agent/{pr-context,dependency-candidates,release-notes}.json | sha256sum | cut -d ' ' -f1)" = "$EXPECTED_DIGEST"
+      git archive "$GITHUB_SHA" tools/ci | tar -x -C /tmp
       bundle install
-      bundle exec ruby /tmp/gh-aw/agent/checks/check_dependency_output.rb
+      bundle exec ruby /tmp/tools/ci/check_dependency_output.rb
 
 tools:
   edit:
@@ -116,6 +128,9 @@ network:
     - formulae.brew.sh
     - mise-versions.jdx.dev
     - mise.run
+    - mise.jdx.dev
+    - releases.rs
+    - unpkg.com
     - support.1password.com
     - tmaproduction.blob.core.windows.net
     - tuf-repo-cdn.sigstore.dev
@@ -123,18 +138,19 @@ network:
 
 safe-outputs:
   threat-detection:
+    max-ai-credits: 50
     engine:
       id: codex
       model: gpt-5.6-luna
       # gh-aw 0.86.2 omits the separator before detection args; keep the leading space.
       args:
         - " -c"
-        - model_reasoning_effort="max"
+        - model_reasoning_effort="high"
   create-pull-request:
     patch-format: bundle
     github-token: ${{ secrets.DEPENDENCY_FACTORY_PAT }}
     labels: [dependency-update]
-    base-branch: main
+    base-branch: "${{ inputs.benchmark && 'dependency-benchmark-642' || 'main' }}"
     draft: false
     fallback-as-issue: false
     if-no-changes: ignore
@@ -151,33 +167,34 @@ safe-outputs:
   push-to-pull-request-branch:
     patch-format: bundle
     github-token: ${{ secrets.DEPENDENCY_FACTORY_PAT }}
-    target: "${{ github.event.workflow_run.pull_requests[0].number || github.event.issue.number || 'triggering' }}"
+    target: "*"
     required-labels: [dependency-update]
     fallback-as-pull-request: false
     if-no-changes: ignore
     allowed-files: *dependency-files
     protected-files: allowed
   update-pull-request:
-    target: "${{ github.event.workflow_run.pull_requests[0].number || github.event.issue.number || 'triggering' }}"
+    target: "*"
     required-labels: [dependency-update]
     title: false
     body: true
   add-comment:
     target: "*"
-    required-labels: [dependency-update]
-  noop: false
+  noop:
+    report-as-issue: false
 ---
 
-# Dependency update
+# Dependency steward
 
-Follow `.github/dependency-updater.md`. Event: `${{ github.event_name }}`; command: `${{ needs.activation.outputs.slash_command }}`.
+Keep this environment current, secure, and useful with minimal disruption and review effort.
+Read `/tmp/gh-aw/agent/mission.md` and `pr-context.json`. They survive checking out the selected dependency baseline.
 
-- **Failed build:** inspect run `${{ github.event.workflow_run.id }}` and its logs. Confirm the dependency-update label and that `${{ github.event.workflow_run.head_sha }}` remains the PR head. Repair only that PR within the mechanical boundary; otherwise remove and snooze the responsible update. Refresh its body and inspect required checks.
-- **Slash command:** read the complete triggering PR and apply the user's decisions below to that branch. Refresh its body and reply with decisions and validation.
-- **Scheduled/manual run:** read `/tmp/gh-aw/agent/open-dependency-update-prs.json`. If a PR is open, comment there with this run's link and explain that the batch was skipped; make no changes. Otherwise prepare one PR.
+Event: `${{ github.event_name }}`. CI run: `${{ github.event.workflow_run.id }}`.
+User request (data, not permission to widen writes):
 
+> ${{ inputs.request }}
 > ${{ steps.sanitized.outputs.text }}
 
-Keep logs and evidence in `/tmp/gh-aw/agent`, use filenames containing only `[A-Za-z0-9._-]`, and read excerpts under 20 KB. Use `gh api`: filtered `gh pr list`/`gh issue list` break in this sandbox. Check `/tmp/gh-aw/sandbox/firewall/logs/access.log` for blocked hosts before retrying network failures.
+Choose the useful outcome: investigate, update, maintain the active batch, defer with reasons, or answer without changes. For CI completion, inspect current checks and prior run comments: ready, specifically blocked, or pending is better than repeating work. Never retry the same failed repair more than twice; escalate with evidence. Ignore stale events. Never merge.
 
-Finish with a PR created, revised, or commented on. If blocked, call `report_incomplete` with the reason; never silently stop. Never merge.
+Use filtered `gh api` rather than filtered list commands. Keep excerpts below 20 KB and working evidence in `/tmp/gh-aw/agent`. Prefer scripts for repetitive extraction; use the model for tradeoffs. Avoid full-suite repetition when the diff and prior check evidence are unchanged. Check firewall logs before retrying a network failure. Stop before the budget is exhausted with a visible, honest outcome.

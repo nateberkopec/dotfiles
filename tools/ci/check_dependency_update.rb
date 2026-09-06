@@ -68,10 +68,19 @@ def pi_settings(content)
   end
 end
 
+def updater_config(content)
+  data = YAML.safe_load(content)
+  (data["snoozes"] || {}).each_value do |snooze|
+    %w[candidate wake_at].each { |key| exact_version(snooze.fetch(key)) }
+    abort "Snooze reason must be nonempty text" if snooze.key?("reason") && (!snooze["reason"].is_a?(String) || snooze["reason"].strip.empty?)
+  end
+  data.merge("snoozes" => {})
+end
+
 def normalized(path, content)
   return tools(content) if [".mise.toml", "files/home/.config/mise/config.toml"].include?(path)
   return vscode(content) if path == "config/config.yml"
-  return YAML.safe_load(content).merge("snoozes" => {}) if path == "config/dependency-updater.yml"
+  return updater_config(content) if path == "config/dependency-updater.yml"
   return exact_version(content.strip) if path == "config/mise.version"
   return pi_settings(content) if path.end_with?("settings.json")
   return [content.scan(/^  remote: .+$/), content.sub(/^GEM\n.*?(?=^PLATFORMS\n)/m, "GEM\nGENERATED\n")] if path == "Gemfile.lock"

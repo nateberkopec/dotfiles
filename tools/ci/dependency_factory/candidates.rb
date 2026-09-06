@@ -32,7 +32,7 @@ module DependencyFactory
     end
 
     def candidate(pin)
-      releases = releases_for(pin)
+      releases = releases_for(pin).select { |release| !release["created_at"] || Versions.released_by?(release, @now) }
       eligible = newest_after(Versions.eligible(releases, @cutoff), pin.current)
       latest = newest_after(Versions.latest(releases), eligible)
       return if latest == pin.current

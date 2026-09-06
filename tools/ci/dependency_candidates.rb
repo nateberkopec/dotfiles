@@ -13,7 +13,8 @@ pins = DependencyFactory::Manifests::PATHS.flat_map do |path|
   content = base ? DependencyFactory::Sources.capture({}, "git", "-C", root, "show", "#{base}:#{path}") : File.read(File.join(root, path))
   DependencyFactory::Manifests.pins(path, content)
 end
-result = DependencyFactory::Candidates.new(sources: DependencyFactory::Sources.new, days: days).build(pins)
+now = ARGV[2].to_s.empty? ? Time.now : Time.iso8601(ARGV[2])
+result = DependencyFactory::Candidates.new(sources: DependencyFactory::Sources.new, days: days, now: now).build(pins)
 FileUtils.mkdir_p(File.dirname(output))
 File.write(output, JSON.pretty_generate(result))
 result["candidates"].each do |candidate|

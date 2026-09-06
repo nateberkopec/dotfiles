@@ -10,6 +10,12 @@ candidates = JSON.parse(File.read(candidates_path))
 report = DependencyFactory::Report.new(File.read(report_path))
 changes = DependencyFactory::ChangedPins.new(base: base, root: Dir.pwd).changes
 snoozes = YAML.safe_load_file(DependencyFactory::CONFIG_PATH).fetch("snoozes", nil) || {}
+context_path = File.join(File.dirname(candidates_path), "pr-context.json")
+context = File.exist?(context_path) ? JSON.parse(File.read(context_path)) : {}
+unless context["human_request"]
+  original = YAML.safe_load(DependencyFactory::Sources.capture({}, "git", "show", "#{base}:#{DependencyFactory::CONFIG_PATH}")).fetch("snoozes", nil) || {}
+  abort "Only an explicit human request may change existing snooze memory" unless original.all? { |name, decision| snoozes[name] == decision }
+end
 notes = JSON.parse(File.read(notes_path))
 errors = DependencyFactory::ReportChecks.new(candidates: candidates, report: report, changes: changes, snoozes: snoozes, notes: notes).errors
 errors.each { |error| warn "✗ #{error}" }
