@@ -86,6 +86,9 @@ steps:
       cp .github/dependency-updater.md /tmp/gh-aw/agent/mission.md
       mkdir -p /tmp/gh-aw/agent/checks
       cp -R tools/ci/dependency_factory tools/ci/dependency_factory.rb tools/ci/check_dependency*.rb /tmp/gh-aw/agent/checks/
+      cp tools/ci/dependency_ruby.sh Gemfile Gemfile.lock /tmp/gh-aw/agent/checks/
+      ruby -rrbconfig -e 'puts File.dirname(RbConfig.ruby)' > /tmp/gh-aw/agent/checks/ruby-bin
+      printf '%s\n' "$PWD/vendor/bundle" > /tmp/gh-aw/agent/checks/bundle-path
       cd /tmp/gh-aw/agent
       echo "digest=$(cat pr-context.json dependency-candidates.json release-notes.json | sha256sum | cut -d ' ' -f1)" >> "$GITHUB_OUTPUT"
 
