@@ -43,8 +43,7 @@ permissions:
   issues: read
   pull-requests: read
 
-env:
-  GH_AW_CODEX_MAX_REBUILD_FACTOR: "60"
+env: {GH_AW_CODEX_MAX_REBUILD_FACTOR: "60"}
 
 engine:
   id: codex
@@ -91,12 +90,9 @@ steps:
       echo "digest=$(cat pr-context.json dependency-candidates.json release-notes.json | sha256sum | cut -d ' ' -f1)" >> "$GITHUB_OUTPUT"
 
 jobs:
-  safe_outputs:
-    if: &validated needs.agent.result == 'success'
-  detection:
-    if: *validated
-  conclusion:
-    if: *validated
+  safe_outputs: {if: &validated "needs.agent.result == 'success'"}
+  detection: {if: *validated}
+  conclusion: {if: *validated}
 
 post-steps:
   - name: Verify immutable evidence, mechanical diff, and publication
@@ -114,16 +110,13 @@ post-steps:
       echo "validated=true" >> "$GITHUB_OUTPUT"
   - name: Require completed validation even when an earlier step was skipped
     if: always()
-    env:
-      VALIDATED: ${{ steps.validate.outputs.validated }}
+    env: {VALIDATED: "${{ steps.validate.outputs.validated }}"}
     run: test "$VALIDATED" = true
 
 tools:
   edit:
   bash: [":*"]
-  github:
-    mode: gh-proxy
-    toolsets: [default, actions]
+  github: {mode: gh-proxy, toolsets: [default, actions]}
   web-fetch:
   web-search:
 
@@ -193,10 +186,8 @@ safe-outputs:
     required-labels: [dependency-update]
     title: false
     body: true
-  add-comment:
-    target: "*"
-  noop:
-    report-as-issue: false
+  add-comment: {target: "*"}
+  noop: {report-as-issue: false}
 ---
 
 Follow `/tmp/gh-aw/agent/mission.md`. Event: `${{ github.event_name }}`; CI run: `${{ github.event.workflow_run.id }}`.
