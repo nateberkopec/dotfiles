@@ -20,13 +20,16 @@ Do not change source repositories/download hosts, remove checksums/provenance, a
 
 Write a short, natural report: worthwhile changes tied to checked-in usage, important security or compatibility caveats, grouped waits with wake dates, and actual validation status. Prefer a few useful highlights over an essay for every pin. Do not call an ordinary correctness fix a security vulnerability without evidence. Explain absent evidence honestly. Suggested length: under 500 visible words; no mandatory headings or tables.
 
-Bind factual decisions to the exact published body with one compact HTML comment:
+Bind factual decisions to the exact published body with one collapsible JSON block (HTML comments are stripped by gh-aw):
 
-```text
-<!-- dependency-decisions
+````text
+<details><summary>Decision evidence</summary>
+
+```json dependency-decisions
 {"outcome":"ready","decisions":[{"name":"gh","version":"2.98.0","action":"update","reason":"Useful fix for our CLI","source":"https://github.com/cli/cli/releases/tag/v2.98.0","security":false}]}
--->
 ```
+</details>
+````
 
 Use canonical names, one decision per eligible/latest version newer than current, plus any selected intermediate version. Use individual gems, not a synthetic lock row. `action` is `update` or `defer`; `outcome` is `ready`, `blocked`, `deferred`, or `researched`. Sources must match collected notes or candidate sources. Use `security: "unknown"` for unavailable evidence. A null source is allowed only for deferral when the collector also has none. Affirmative security claims additionally need `quote`: at least 20 exact characters from those notes. Generate repetitive JSON with a script, not token-by-token. The ledger is inspectable evidence, not a replacement for readable prose.
 

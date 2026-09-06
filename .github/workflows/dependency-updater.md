@@ -90,8 +90,17 @@ steps:
       cd /tmp/gh-aw/agent
       echo "digest=$(cat pr-context.json dependency-candidates.json release-notes.json | sha256sum | cut -d ' ' -f1)" >> "$GITHUB_OUTPUT"
 
+jobs:
+  safe_outputs:
+    if: &validated needs.agent.result == 'success'
+  detection:
+    if: *validated
+  conclusion:
+    if: *validated
+
 post-steps:
   - name: Verify immutable evidence, mechanical diff, and publication
+    id: validate
     env:
       GH_TOKEN: ${{ github.token }}
       EXPECTED_DIGEST: ${{ steps.evidence.outputs.digest }}
@@ -102,6 +111,12 @@ post-steps:
       export BUNDLE_GEMFILE=/tmp/Gemfile BUNDLE_PATH="$GITHUB_WORKSPACE/vendor/bundle"
       bundle install
       bundle exec ruby /tmp/tools/ci/check_dependency_output.rb
+      echo "validated=true" >> "$GITHUB_OUTPUT"
+  - name: Require completed validation even when an earlier step was skipped
+    if: always()
+    env:
+      VALIDATED: ${{ steps.validate.outputs.validated }}
+    run: test "$VALIDATED" = true
 
 tools:
   edit:

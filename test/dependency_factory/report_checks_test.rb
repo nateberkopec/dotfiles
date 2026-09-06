@@ -9,7 +9,7 @@ class DependencyFactoryReportChecksTest < Minitest::Test
 
   def test_malformed_and_duplicate_ledgers_fail_closed
     ["", "[]", "null", "{", '{"decisions":{},"outcome":"ready"}'].each do |json|
-      refute_empty DependencyFactory::Report.new("<!-- dependency-decisions\n#{json}\n-->").errors
+      refute_empty DependencyFactory::Report.new("```json dependency-decisions\n#{json}\n```").errors
     end
     assert_includes errors(rows: rows + [rows.first]), "Duplicate decisions"
   end
@@ -82,7 +82,7 @@ class DependencyFactoryReportChecksTest < Minitest::Test
     candidate = {"name" => "gh", "kind" => "mise", "current" => "2.97.0", "eligible" => "2.98.0", "latest" => "2.99.0", "source" => candidate_source, "published" => {"2.98.0" => "2026-08-20T00:00:00Z", "2.99.0" => "2026-09-01T00:00:00Z"}}
     data = {"generated_at" => "2026-09-01T22:00:00Z", "minimum_release_age_days" => 3, "candidates" => [candidate]}
     notes = {"packages" => {"gh" => [{"version" => "2.98.0", "url" => source, "text" => "Stops exposing forwarded ports."}, {"version" => "2.99.0", "url" => "https://example.test/2.99.0"}]}}
-    text = "#{prose}<!-- dependency-decisions\n#{JSON.generate("outcome" => "ready", "decisions" => rows)}\n-->"
+    text = "#{prose}```json dependency-decisions\n#{JSON.generate("outcome" => "ready", "decisions" => rows)}\n```"
     DependencyFactory::ReportChecks.new(candidates: data, report: DependencyFactory::Report.new(text), changes: changes, snoozes: snoozes, notes: notes, original_snoozes: original_snoozes).errors
   end
 end

@@ -3,7 +3,7 @@ require "json"
 module DependencyFactory
   # The ledger is the factual part of a report; prose has no prescribed layout.
   class Report
-    MARKER = /<!-- dependency-decisions\n(.*?)\n-->/m
+    MARKER = /^```json dependency-decisions\n(.*?)\n```$/m
 
     def initialize(body)
       matches = body.scan(MARKER)
