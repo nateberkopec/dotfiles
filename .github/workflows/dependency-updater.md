@@ -4,6 +4,11 @@ on:
     - cron: "0 18 * * 0" # Monday 03:00 JST
   workflow_dispatch:
     inputs:
+      probe:
+        description: Negative publication-gate scenario
+        type: choice
+        default: failed
+        options: [failed, skipped, missing]
       request:
         description: Outcome or question for the dependency agent
         type: string
@@ -54,41 +59,10 @@ max-ai-credits: 200
 timeout-minutes: 45
 
 steps:
-  - name: Resolve the active batch
-    env:
-      GH_TOKEN: ${{ github.token }}
-      BENCHMARK: ${{ inputs.benchmark }}
-      PR_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number }}
-      ISSUE_NUMBER: ${{ github.event.issue.number }}
-      EVENT_HEAD: ${{ github.event.workflow_run.head_sha }}
+  - name: Queue a forbidden comment without invoking the model
     run: |
       mkdir -p /tmp/gh-aw/agent
-      ruby tools/ci/dependency_context.rb
-  - name: Set up Ruby
-    uses: ruby/setup-ruby@4c56a21280b36d862b5fc31348f463d60bdc55d5 # v1.301.0
-    with:
-      ruby-version: 'ruby'
-      bundler-cache: true
-  - name: Install mise
-    uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
-    with:
-      install: false
-      cache: true
-      experimental: true
-  - name: Prepare reusable evidence and capabilities
-    id: evidence
-    env:
-      GITHUB_TOKEN: ${{ github.token }}
-    run: |
-      as_of=""
-      if [ "${{ inputs.benchmark }}" = true ]; then as_of=2026-09-06T18:11:29Z; fi
-      bundle exec ruby tools/ci/dependency_candidates.rb /tmp/gh-aw/agent/dependency-candidates.json "$(jq -r .base /tmp/gh-aw/agent/pr-context.json)" "$as_of"
-      bundle exec ruby tools/ci/dependency_release_notes.rb /tmp/gh-aw/agent/dependency-candidates.json /tmp/gh-aw/agent/release-notes.json
-      cp .github/dependency-updater.md /tmp/gh-aw/agent/mission.md
-      mkdir -p /tmp/gh-aw/agent/checks
-      cp -R tools/ci/dependency_factory tools/ci/dependency_factory.rb tools/ci/check_dependency*.rb /tmp/gh-aw/agent/checks/
-      cd /tmp/gh-aw/agent
-      echo "digest=$(cat pr-context.json dependency-candidates.json release-notes.json | sha256sum | cut -d ' ' -f1)" >> "$GITHUB_OUTPUT"
+      printf '%s\n' '{"type":"noop","message":"Deterministic publication gate probe; no model required"}' '{"type":"add_comment","item_number":654,"body":"Gate probe: THIS COMMENT MUST NOT PUBLISH.\n<!-- stripped marker -->\n<details><summary>Decision evidence</summary>\n\n```json dependency-decisions\n{\"outcome\":\"researched\",\"decisions\":[{\"name\":\"npm:@scope/example\"}]}\n```\n</details>"}' >> "$GH_AW_SAFE_OUTPUTS"
 
 jobs:
   safe_outputs:
@@ -99,19 +73,21 @@ jobs:
     if: *validated
 
 post-steps:
-  - name: Verify immutable evidence, mechanical diff, and publication
+  - name: Inject failed, skipped, or missing validation and check real sanitization
     id: validate
+    if: inputs.probe != 'skipped'
     env:
-      GH_TOKEN: ${{ github.token }}
-      EXPECTED_DIGEST: ${{ steps.evidence.outputs.digest }}
-      GIT_NO_REPLACE_OBJECTS: "1"
+      PROBE: ${{ inputs.probe }}
     run: |
-      test "$(cat /tmp/gh-aw/agent/{pr-context,dependency-candidates,release-notes}.json | sha256sum | cut -d ' ' -f1)" = "$EXPECTED_DIGEST"
-      git archive "$GITHUB_SHA" tools/ci Gemfile Gemfile.lock | tar -x -C /tmp
-      export BUNDLE_GEMFILE=/tmp/Gemfile BUNDLE_PATH="$GITHUB_WORKSPACE/vendor/bundle"
-      bundle install
-      bundle exec ruby /tmp/tools/ci/check_dependency_output.rb
-      echo "validated=true" >> "$GITHUB_OUTPUT"
+      node - <<'JS'
+      const fs = require('fs');
+      const items = JSON.parse(fs.readFileSync('/tmp/gh-aw/agent_output.json', 'utf8')).items;
+      const body = items.find(item => item.type === 'add_comment').body;
+      if (body.includes('stripped marker') || !body.includes('```json dependency-decisions') || !body.includes('npm:@scope/example')) throw new Error('Serialized sanitizer regression');
+      console.log('Actual serialized body retained fenced JSON and stripped HTML comment');
+      JS
+      test "$PROBE" != failed
+
   - name: Require completed validation even when an earlier step was skipped
     if: always()
     env:

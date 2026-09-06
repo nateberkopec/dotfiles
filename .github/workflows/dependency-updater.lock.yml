@@ -1,5 +1,5 @@
-# gh-aw-metadata: {"schema_version":"v4","frontmatter_hash":"22894afcf63e53a81ab167a7241e8a731887d575e8563d8a5d4fae57a19d3b8c","body_hash":"8147c2f22a29fd112390f924026be1a615469c6b882f91ead52f95d0784ed063","compiler_version":"v0.88.2","strict":true,"agent_id":"codex","agent_model":"gpt-5.6-sol","detection_agent_id":"codex","detection_agent_model":"gpt-5.6-luna","engine_versions":{"codex":"0.150.1"}}
-# gh-aw-manifest: {"version":1,"secrets":["CODEX_API_KEY","COPILOT_GITHUB_TOKEN","DEPENDENCY_FACTORY_PAT","GH_AW_CI_TRIGGER_TOKEN","GH_AW_DEFAULT_OTLP_HEADERS","GH_AW_GITHUB_MCP_SERVER_TOKEN","GH_AW_GITHUB_TOKEN","GITHUB_TOKEN","OPENAI_API_KEY"],"actions":[{"repo":"actions/cache/restore","sha":"55cc8345863c7cc4c66a329aec7e433d2d1c52a9","version":"v6.1.0"},{"repo":"actions/cache/save","sha":"55cc8345863c7cc4c66a329aec7e433d2d1c52a9","version":"v6.1.0"},{"repo":"actions/checkout","sha":"3d3c42e5aac5ba805825da76410c181273ba90b1","version":"v7.0.1"},{"repo":"actions/download-artifact","sha":"3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c","version":"v8.0.1"},{"repo":"actions/github-script","sha":"3a2844b7e9c422d3c10d287c895573f7108da1b3","version":"v9.0.0"},{"repo":"actions/setup-node","sha":"820762786026740c76f36085b0efc47a31fe5020","version":"v7.0.0"},{"repo":"actions/upload-artifact","sha":"043fb46d1a93c77aae656e7c1c64a875d1fc6a0a","version":"v7.0.1"},{"repo":"github/gh-aw-actions/setup","sha":"9271a1804551c0dc4fb0085a97979950aa2f8489","version":"v0.88.2"},{"repo":"jdx/mise-action","sha":"1648a7812b9aeae629881980618f079932869151","version":"1648a7812b9aeae629881980618f079932869151"},{"repo":"ruby/setup-ruby","sha":"4c56a21280b36d862b5fc31348f463d60bdc55d5","version":"4c56a21280b36d862b5fc31348f463d60bdc55d5"}],"containers":[{"image":"ghcr.io/github/gh-aw-firewall/agent:0.28.12","digest":"sha256:390051be4ed1847f774fd8980b61d3a3523574c0175d00c3fc7cdf2002a88202","pinned_image":"ghcr.io/github/gh-aw-firewall/agent:0.28.12@sha256:390051be4ed1847f774fd8980b61d3a3523574c0175d00c3fc7cdf2002a88202"},{"image":"ghcr.io/github/gh-aw-firewall/api-proxy:0.28.12","digest":"sha256:d7d533d87c80d87ff91ac0e21e9299055c3beedff1536262b97ed700fb065a32","pinned_image":"ghcr.io/github/gh-aw-firewall/api-proxy:0.28.12@sha256:d7d533d87c80d87ff91ac0e21e9299055c3beedff1536262b97ed700fb065a32"},{"image":"ghcr.io/github/gh-aw-firewall/cli-proxy:0.28.12","digest":"sha256:5250629d48eaedfedf2e948785228e8da29eec2a83cbab58ea0751c14a7b021d","pinned_image":"ghcr.io/github/gh-aw-firewall/cli-proxy:0.28.12@sha256:5250629d48eaedfedf2e948785228e8da29eec2a83cbab58ea0751c14a7b021d"},{"image":"ghcr.io/github/gh-aw-firewall/squid:0.28.12","digest":"sha256:52c34aca98d2a6833c329f1505912a6949c4fda16618c010c979bd59ea99254f","pinned_image":"ghcr.io/github/gh-aw-firewall/squid:0.28.12@sha256:52c34aca98d2a6833c329f1505912a6949c4fda16618c010c979bd59ea99254f"},{"image":"ghcr.io/github/gh-aw-mcpg:v0.4.15","digest":"sha256:60cd97533e93d8e7be36b979c0f08a70846189bda6190f28bbd6d427bc0d9b6e","pinned_image":"ghcr.io/github/gh-aw-mcpg:v0.4.15@sha256:60cd97533e93d8e7be36b979c0f08a70846189bda6190f28bbd6d427bc0d9b6e"},{"image":"ghcr.io/github/gh-aw-node","digest":"sha256:bac2192f6374d6262116399b34fc5e143d576f82719e90a18261cae7480f4d4e","pinned_image":"ghcr.io/github/gh-aw-node@sha256:bac2192f6374d6262116399b34fc5e143d576f82719e90a18261cae7480f4d4e"},{"image":"ghcr.io/github/github-mcp-server:v1.11.0","digest":"sha256:fbec75de11c255213fa08d80fb166abe73d851fff631c51c0079872967720699","pinned_image":"ghcr.io/github/github-mcp-server:v1.11.0@sha256:fbec75de11c255213fa08d80fb166abe73d851fff631c51c0079872967720699"}],"mcp_servers":[{"name":"safeoutputs","tools":["add_comment","create_pull_request","missing_data","missing_tool","noop","push_to_pull_request_branch","update_pull_request"]}]}
+# gh-aw-metadata: {"schema_version":"v4","frontmatter_hash":"552951f7f1d86a57c23a63ee66d2fc1ba0206e5479538c4a98b0e01d098c5c13","body_hash":"8147c2f22a29fd112390f924026be1a615469c6b882f91ead52f95d0784ed063","compiler_version":"v0.88.2","strict":true,"agent_id":"codex","agent_model":"gpt-5.6-sol","detection_agent_id":"codex","detection_agent_model":"gpt-5.6-luna","engine_versions":{"codex":"0.150.1"}}
+# gh-aw-manifest: {"version":1,"secrets":["CODEX_API_KEY","COPILOT_GITHUB_TOKEN","DEPENDENCY_FACTORY_PAT","GH_AW_CI_TRIGGER_TOKEN","GH_AW_DEFAULT_OTLP_HEADERS","GH_AW_GITHUB_MCP_SERVER_TOKEN","GH_AW_GITHUB_TOKEN","GITHUB_TOKEN","OPENAI_API_KEY"],"actions":[{"repo":"actions/cache/restore","sha":"55cc8345863c7cc4c66a329aec7e433d2d1c52a9","version":"v6.1.0"},{"repo":"actions/cache/save","sha":"55cc8345863c7cc4c66a329aec7e433d2d1c52a9","version":"v6.1.0"},{"repo":"actions/checkout","sha":"3d3c42e5aac5ba805825da76410c181273ba90b1","version":"v7.0.1"},{"repo":"actions/download-artifact","sha":"3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c","version":"v8.0.1"},{"repo":"actions/github-script","sha":"3a2844b7e9c422d3c10d287c895573f7108da1b3","version":"v9.0.0"},{"repo":"actions/setup-node","sha":"820762786026740c76f36085b0efc47a31fe5020","version":"v7.0.0"},{"repo":"actions/upload-artifact","sha":"043fb46d1a93c77aae656e7c1c64a875d1fc6a0a","version":"v7.0.1"},{"repo":"github/gh-aw-actions/setup","sha":"9271a1804551c0dc4fb0085a97979950aa2f8489","version":"v0.88.2"}],"containers":[{"image":"ghcr.io/github/gh-aw-firewall/agent:0.28.12","digest":"sha256:390051be4ed1847f774fd8980b61d3a3523574c0175d00c3fc7cdf2002a88202","pinned_image":"ghcr.io/github/gh-aw-firewall/agent:0.28.12@sha256:390051be4ed1847f774fd8980b61d3a3523574c0175d00c3fc7cdf2002a88202"},{"image":"ghcr.io/github/gh-aw-firewall/api-proxy:0.28.12","digest":"sha256:d7d533d87c80d87ff91ac0e21e9299055c3beedff1536262b97ed700fb065a32","pinned_image":"ghcr.io/github/gh-aw-firewall/api-proxy:0.28.12@sha256:d7d533d87c80d87ff91ac0e21e9299055c3beedff1536262b97ed700fb065a32"},{"image":"ghcr.io/github/gh-aw-firewall/cli-proxy:0.28.12","digest":"sha256:5250629d48eaedfedf2e948785228e8da29eec2a83cbab58ea0751c14a7b021d","pinned_image":"ghcr.io/github/gh-aw-firewall/cli-proxy:0.28.12@sha256:5250629d48eaedfedf2e948785228e8da29eec2a83cbab58ea0751c14a7b021d"},{"image":"ghcr.io/github/gh-aw-firewall/squid:0.28.12","digest":"sha256:52c34aca98d2a6833c329f1505912a6949c4fda16618c010c979bd59ea99254f","pinned_image":"ghcr.io/github/gh-aw-firewall/squid:0.28.12@sha256:52c34aca98d2a6833c329f1505912a6949c4fda16618c010c979bd59ea99254f"},{"image":"ghcr.io/github/gh-aw-mcpg:v0.4.15","digest":"sha256:60cd97533e93d8e7be36b979c0f08a70846189bda6190f28bbd6d427bc0d9b6e","pinned_image":"ghcr.io/github/gh-aw-mcpg:v0.4.15@sha256:60cd97533e93d8e7be36b979c0f08a70846189bda6190f28bbd6d427bc0d9b6e"},{"image":"ghcr.io/github/gh-aw-node","digest":"sha256:bac2192f6374d6262116399b34fc5e143d576f82719e90a18261cae7480f4d4e","pinned_image":"ghcr.io/github/gh-aw-node@sha256:bac2192f6374d6262116399b34fc5e143d576f82719e90a18261cae7480f4d4e"},{"image":"ghcr.io/github/github-mcp-server:v1.11.0","digest":"sha256:fbec75de11c255213fa08d80fb166abe73d851fff631c51c0079872967720699","pinned_image":"ghcr.io/github/github-mcp-server:v1.11.0@sha256:fbec75de11c255213fa08d80fb166abe73d851fff631c51c0079872967720699"}],"mcp_servers":[{"name":"safeoutputs","tools":["add_comment","create_pull_request","missing_data","missing_tool","noop","push_to_pull_request_branch","update_pull_request"]}]}
 # This file was automatically generated by gh-aw (v0.88.2). DO NOT EDIT. To debug this workflow, load the skill at https://github.com/github/gh-aw/blob/main/debug.md
 #
 #    ___                   _   _
@@ -48,8 +48,6 @@
 #   - actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
 #   - actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
 #   - github/gh-aw-actions/setup@9271a1804551c0dc4fb0085a97979950aa2f8489 # v0.88.2
-#   - jdx/mise-action@1648a7812b9aeae629881980618f079932869151
-#   - ruby/setup-ruby@4c56a21280b36d862b5fc31348f463d60bdc55d5
 #
 # Container images used:
 #   - ghcr.io/github/gh-aw-firewall/agent:0.28.12@sha256:390051be4ed1847f774fd8980b61d3a3523574c0175d00c3fc7cdf2002a88202
@@ -86,6 +84,14 @@ on:
         default: false
         description: Replay PR 642 eligibility against its exact baseline
         type: boolean
+      probe:
+        default: failed
+        description: Negative publication-gate scenario
+        options:
+          - failed
+          - skipped
+          - missing
+        type: choice
       request:
         description: Outcome or question for the dependency agent
         type: string
@@ -554,42 +560,8 @@ jobs:
         with:
           name: activation
           path: /tmp/gh-aw
-      - env:
-          BENCHMARK: ${{ inputs.benchmark }}
-          EVENT_HEAD: ${{ github.event.workflow_run.head_sha }}
-          GH_TOKEN: ${{ github.token }}
-          ISSUE_NUMBER: ${{ github.event.issue.number }}
-          PR_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number }}
-        name: Resolve the active batch
-        run: |
-          mkdir -p /tmp/gh-aw/agent
-          ruby tools/ci/dependency_context.rb
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@4c56a21280b36d862b5fc31348f463d60bdc55d5
-        with:
-          bundler-cache: true
-          ruby-version: ruby
-      - name: Install mise
-        uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151
-        with:
-          cache: true
-          experimental: true
-          install: false
-      - env:
-          GH_AW_INPUTS_BENCHMARK: ${{ inputs.benchmark }}
-          GITHUB_TOKEN: ${{ github.token }}
-        id: evidence
-        name: Prepare reusable evidence and capabilities
-        run: |-
-          as_of=""
-          if [ "$GH_AW_INPUTS_BENCHMARK" = true ]; then as_of=2026-09-06T18:11:29Z; fi
-          bundle exec ruby tools/ci/dependency_candidates.rb /tmp/gh-aw/agent/dependency-candidates.json "$(jq -r .base /tmp/gh-aw/agent/pr-context.json)" "$as_of"
-          bundle exec ruby tools/ci/dependency_release_notes.rb /tmp/gh-aw/agent/dependency-candidates.json /tmp/gh-aw/agent/release-notes.json
-          cp .github/dependency-updater.md /tmp/gh-aw/agent/mission.md
-          mkdir -p /tmp/gh-aw/agent/checks
-          cp -R tools/ci/dependency_factory tools/ci/dependency_factory.rb tools/ci/check_dependency*.rb /tmp/gh-aw/agent/checks/
-          cd /tmp/gh-aw/agent
-          echo "digest=$(cat pr-context.json dependency-candidates.json release-notes.json | sha256sum | cut -d ' ' -f1)" >> "$GITHUB_OUTPUT"
+      - name: Queue a forbidden comment without invoking the model
+        run: "mkdir -p /tmp/gh-aw/agent\nprintf '%s\\n' '{\"type\":\"noop\",\"message\":\"Deterministic publication gate probe; no model required\"}' '{\"type\":\"add_comment\",\"item_number\":654,\"body\":\"Gate probe: THIS COMMENT MUST NOT PUBLISH.\\n<!-- stripped marker -->\\n<details><summary>Decision evidence</summary>\\n\\n```json dependency-decisions\\n{\\\"outcome\\\":\\\"researched\\\",\\\"decisions\\\":[{\\\"name\\\":\\\"npm:@scope/example\\\"}]}\\n```\\n</details>\"}' >> \"$GH_AW_SAFE_OUTPUTS\""
 
       - name: Configure Git credentials
         env:
@@ -1346,18 +1318,11 @@ jobs:
             echo '{"items":[]}' > /tmp/gh-aw/agent_output.json
           fi
       - env:
-          EXPECTED_DIGEST: ${{ steps.evidence.outputs.digest }}
-          GH_TOKEN: ${{ github.token }}
-          GIT_NO_REPLACE_OBJECTS: "1"
+          PROBE: ${{ inputs.probe }}
         id: validate
-        name: Verify immutable evidence, mechanical diff, and publication
-        run: |
-          test "$(cat /tmp/gh-aw/agent/{pr-context,dependency-candidates,release-notes}.json | sha256sum | cut -d ' ' -f1)" = "$EXPECTED_DIGEST"
-          git archive "$GITHUB_SHA" tools/ci Gemfile Gemfile.lock | tar -x -C /tmp
-          export BUNDLE_GEMFILE=/tmp/Gemfile BUNDLE_PATH="$GITHUB_WORKSPACE/vendor/bundle"
-          bundle install
-          bundle exec ruby /tmp/tools/ci/check_dependency_output.rb
-          echo "validated=true" >> "$GITHUB_OUTPUT"
+        if: inputs.probe != 'skipped'
+        name: Inject failed, skipped, or missing validation and check real sanitization
+        run: "node - <<'JS'\nconst fs = require('fs');\nconst items = JSON.parse(fs.readFileSync('/tmp/gh-aw/agent_output.json', 'utf8')).items;\nconst body = items.find(item => item.type === 'add_comment').body;\nif (body.includes('stripped marker') || !body.includes('```json dependency-decisions') || !body.includes('npm:@scope/example')) throw new Error('Serialized sanitizer regression');\nconsole.log('Actual serialized body retained fenced JSON and stripped HTML comment');\nJS\ntest \"$PROBE\" != failed\n"
       - env:
           VALIDATED: ${{ steps.validate.outputs.validated }}
         if: always()
