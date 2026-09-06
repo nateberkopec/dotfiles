@@ -41,13 +41,15 @@ permissions:
   issues: read
   pull-requests: read
 
+env:
+  GH_AW_CODEX_MAX_REBUILD_FACTOR: "60"
+
 engine:
   id: codex
   args:
     - -c
-    - model_reasoning_effort="high"
-# gh-aw-firewall 0.27.44 misresolves model names with query parameters.
-model: gpt-5.6-luna
+    - model_reasoning_effort="low"
+model: gpt-5.6-sol
 max-ai-credits: 200
 timeout-minutes: 45
 
@@ -56,7 +58,6 @@ steps:
     env:
       GH_TOKEN: ${{ github.token }}
       BENCHMARK: ${{ inputs.benchmark }}
-      HUMAN_REQUEST: ${{ inputs.request != '' || github.event_name == 'issues' || github.event_name == 'issue_comment' }}
       PR_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number }}
       ISSUE_NUMBER: ${{ github.event.issue.number }}
       EVENT_HEAD: ${{ github.event.workflow_run.head_sha }}
