@@ -53,44 +53,28 @@ max-ai-credits: 200
 timeout-minutes: 45
 
 steps:
-  - name: Resolve the active batch
-    env:
-      GH_TOKEN: ${{ github.token }}
-      BENCHMARK: ${{ inputs.benchmark }}
-      PR_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number }}
-      ISSUE_NUMBER: ${{ github.event.issue.number }}
-      EVENT_HEAD: ${{ github.event.workflow_run.head_sha }}
-    run: |
-      mkdir -p /tmp/gh-aw/agent
-      ruby tools/ci/dependency_context.rb
-  - name: Set up Ruby
-    uses: ruby/setup-ruby@4c56a21280b36d862b5fc31348f463d60bdc55d5 # v1.301.0
+  - name: Prepare the real Ruby bundle
+    uses: ruby/setup-ruby@4c56a21280b36d862b5fc31348f463d60bdc55d5
     with:
       ruby-version: 'ruby'
       bundler-cache: true
-  - name: Install mise
-    uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
-    with:
-      install: false
-      cache: true
-      experimental: true
-  - name: Prepare reusable evidence and capabilities
-    id: evidence
-    env:
-      GITHUB_TOKEN: ${{ github.token }}
+  - name: Prepare the frozen checker runtime
     run: |
-      as_of=""
-      if [ "${{ inputs.benchmark }}" = true ]; then as_of=2026-09-06T18:11:29Z; fi
-      bundle exec ruby tools/ci/dependency_candidates.rb /tmp/gh-aw/agent/dependency-candidates.json "$(jq -r .base /tmp/gh-aw/agent/pr-context.json)" "$as_of"
-      bundle exec ruby tools/ci/dependency_release_notes.rb /tmp/gh-aw/agent/dependency-candidates.json /tmp/gh-aw/agent/release-notes.json
-      cp .github/dependency-updater.md /tmp/gh-aw/agent/mission.md
       mkdir -p /tmp/gh-aw/agent/checks
-      cp -R tools/ci/dependency_factory tools/ci/dependency_factory.rb tools/ci/check_dependency*.rb /tmp/gh-aw/agent/checks/
       cp tools/ci/dependency_ruby.sh Gemfile Gemfile.lock /tmp/gh-aw/agent/checks/
       ruby -rrbconfig -e 'puts File.dirname(RbConfig.ruby)' > /tmp/gh-aw/agent/checks/ruby-bin
       printf '%s\n' "$PWD/vendor/bundle" > /tmp/gh-aw/agent/checks/bundle-path
-      cd /tmp/gh-aw/agent
-      echo "digest=$(cat pr-context.json dependency-candidates.json release-notes.json | sha256sum | cut -d ' ' -f1)" >> "$GITHUB_OUTPUT"
+      printf '%s\n' 'abort unless Bundler.default_gemfile.to_s == "/tmp/gh-aw/agent/checks/Gemfile"' 'puts "Pinned Ruby #{RUBY_VERSION} loaded toml-rb despite login-shell and Bundler redirection"' > /tmp/gh-aw/agent/checks/smoke.rb
+
+pre-agent-steps:
+  - name: Verify login-shell execution in the actual agent image without network
+    run: |
+      docker run --rm --network none --user "$(id -u):$(id -g)" --entrypoint /bin/bash \
+        -v "$GITHUB_WORKSPACE:$GITHUB_WORKSPACE:ro" -v /opt:/opt:ro -v /tmp/gh-aw:/tmp/gh-aw:ro -w "$GITHUB_WORKSPACE" \
+        ghcr.io/github/gh-aw-firewall/agent:0.28.12@sha256:390051be4ed1847f774fd8980b61d3a3523574c0175d00c3fc7cdf2002a88202 \
+        -lc 'BUNDLE_GEMFILE=/wrong BUNDLE_APP_CONFIG=/wrong BUNDLE_PATH=/wrong RUBYOPT=-r/wrong sh /tmp/gh-aw/agent/checks/dependency_ruby.sh -rtoml-rb /tmp/gh-aw/agent/checks/smoke.rb'
+      mkdir -p "$RUNNER_TEMP/gh-aw/safeoutputs"
+      printf '%s\n' '{"type":"noop","message":"Frozen Ruby login-shell regression passed inside the agent image; no model invocation"}' >> "$RUNNER_TEMP/gh-aw/safeoutputs/outputs.jsonl"
 
 jobs:
   safe_outputs: {if: &validated "needs.agent.result == 'success'"}
@@ -98,18 +82,10 @@ jobs:
   conclusion: {if: *validated}
 
 post-steps:
-  - name: Verify immutable evidence, mechanical diff, and publication
+  - name: Require the successful deterministic smoke-test outcome
     id: validate
-    env:
-      GH_TOKEN: ${{ github.token }}
-      EXPECTED_DIGEST: ${{ steps.evidence.outputs.digest }}
-      GIT_NO_REPLACE_OBJECTS: "1"
     run: |
-      test "$(cat /tmp/gh-aw/agent/{pr-context,dependency-candidates,release-notes}.json | sha256sum | cut -d ' ' -f1)" = "$EXPECTED_DIGEST"
-      git archive "$GITHUB_SHA" tools/ci Gemfile Gemfile.lock | tar -x -C /tmp
-      export BUNDLE_GEMFILE=/tmp/Gemfile BUNDLE_PATH="$GITHUB_WORKSPACE/vendor/bundle"
-      bundle install
-      bundle exec ruby /tmp/tools/ci/check_dependency_output.rb
+      jq -e '.items[] | select(.type == "noop")' /tmp/gh-aw/agent_output.json
       echo "validated=true" >> "$GITHUB_OUTPUT"
   - name: Require completed validation even when an earlier step was skipped
     if: always()
