@@ -48,6 +48,7 @@ class DependencyFactoryReportChecksTest < Minitest::Test
     deferred = rows.first.merge("action" => "defer", "source" => nil, "security" => "unknown")
     assert_empty errors(rows: [deferred, rows.last], changes: {}, source: nil, candidate_source: nil)
     refute_empty errors(rows: [deferred, rows.last], changes: {})
+    refute_empty errors(rows: [rows.first, rows.last.merge("source" => rows.first["source"])], candidate_source: rows.first["source"])
     refute_empty errors(rows: [deferred.merge("security" => false), rows.last], changes: {}, source: nil, candidate_source: nil)
     refute_empty errors(rows: [deferred.merge("action" => "update"), rows.last], source: nil, candidate_source: nil)
   end
@@ -57,6 +58,14 @@ class DependencyFactoryReportChecksTest < Minitest::Test
     [{}, {"gh" => original["gh"].merge("wake_at" => "2.98.0", "reason" => "Generic request asks for updates")}, {"gh" => original["gh"].merge("reason" => "Reinterpreted user decision")}].each do |current|
       assert_includes errors(snoozes: current, original_snoozes: original), "gh: existing snooze requires a human edit"
     end
+  end
+
+  def test_selected_version_must_itself_reach_the_wake_boundary
+    snooze = {"gh" => {"candidate" => "2.97.1", "wake_at" => "2.98.0"}}
+    assert_includes errors(changes: {"gh" => ["2.97.0", "2.97.1"]}, snoozes: snooze), "gh: snoozed until 2.98.0"
+    assert_empty errors(snoozes: snooze)
+    refute_includes errors(changes: {"gh" => ["2.97.0", "2.99.0"]}, snoozes: snooze), "gh: snoozed until 2.98.0"
+    assert_includes errors(changes: {"gh" => ["2.97.0", "2.99.0"]}, snoozes: snooze), "gh: 2.99.0 outside eligible range"
   end
 
   private

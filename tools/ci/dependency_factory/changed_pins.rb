@@ -19,7 +19,7 @@ module DependencyFactory
 
     def changed_pins(path, before, after)
       old_pins, new_pins = pins_at(path, before), pins_at(path, after)
-      new_pins.filter_map { |name, version| [name, [old_pins[name], version]] if old_pins[name] != version }
+      (old_pins.keys | new_pins.keys).filter_map { |name| [name, [old_pins[name], new_pins[name]]] if old_pins[name] != new_pins[name] }
     end
 
     def pins_at(path, content)

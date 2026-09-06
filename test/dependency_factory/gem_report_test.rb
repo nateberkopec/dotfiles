@@ -15,7 +15,7 @@ class DependencyFactoryGemReportTest < Minitest::Test
 
   def errors(version: "1.1.0", extra: {})
     members = %w[json standard].map do |name|
-      {"name" => name, "kind" => "gem", "current" => "1.0.0", "eligible" => "1.1.0", "latest" => "1.2.0", "source" => "https://example.test/#{name}",
+      {"name" => name, "kind" => "gem", "current" => "1.0.0", "eligible" => "1.1.0", "latest" => "1.2.0", "source" => "https://example.test/#{name}", "releases" => %w[1.1.0 1.2.0].map { |target| {"version" => target, "release_url" => "https://example.test/#{name}"} },
        "published" => {"1.1.0" => "2026-08-01T00:00:00Z", "1.2.0" => "2026-09-01T00:00:00Z"}}
     end
     rows = members.flat_map do |pin|

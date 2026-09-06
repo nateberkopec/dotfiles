@@ -2,6 +2,13 @@ require "test_helper"
 require_relative "../../tools/ci/dependency_factory"
 
 class DependencyFactoryChangedPinsTest < Minitest::Test
+  def test_no_changes_by_default_and_removed_pins_are_not_hidden
+    pins = DependencyFactory::ChangedPins.new(base: "abc", show: ->(*) { "" }, read: ->(*) { "" })
+    assert_empty pins.changes
+    pins = DependencyFactory::ChangedPins.new(base: "abc", show: ->(_base, path) { (path == "Gemfile.lock") ? "GEM\n  specs:\n    json (1.0)\n\nPLATFORMS\n  ruby\n\nBUNDLED WITH\n   2.7.0\n" : "" }, read: ->(*) { "" })
+    assert_equal ["1.0", nil], pins.changes["json"]
+  end
+
   def test_reports_changed_pins_by_canonical_name_and_flags_a_changed_lock
     before = {
       "files/home/.config/mise/config.toml" => "[tools]\ngh = \"2.97.0\"\nfd = \"10.4.2\"\n",

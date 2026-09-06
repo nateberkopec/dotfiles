@@ -14,9 +14,7 @@ module DependencyFactory
     def build(pins)
       observed, pinned = pins.partition { |pin| skip_reason(pin) }
       found = pinned.uniq(&:name).filter_map { |pin| candidate(pin) }
-      gems, others = found.partition { |candidate| candidate["kind"] == "gem" && candidate["name"] != "bundler" }
-      others << batch(gems) unless gems.empty?
-      {"generated_at" => @now.utc.iso8601, "minimum_release_age_days" => @days, "candidates" => others,
+      {"generated_at" => @now.utc.iso8601, "minimum_release_age_days" => @days, "candidates" => found,
        "observation_only" => observed.map { |pin| observation(pin) }}
     end
 
@@ -69,11 +67,6 @@ module DependencyFactory
 
     def source_url(releases, version)
       releases.find { |release| release["version"] == version }&.fetch("release_url", nil)
-    end
-
-    def batch(members)
-      {"name" => BATCH, "kind" => "gem-lock", "manifest" => BATCH, "current" => "#{members.size} gems behind",
-       "eligible" => "regenerated", "latest" => "regenerated", "published" => {}, "source" => "https://rubygems.org", "members" => members}
     end
   end
 end

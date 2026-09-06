@@ -95,9 +95,11 @@ post-steps:
     env:
       GH_TOKEN: ${{ github.token }}
       EXPECTED_DIGEST: ${{ steps.evidence.outputs.digest }}
+      GIT_NO_REPLACE_OBJECTS: "1"
     run: |
       test "$(cat /tmp/gh-aw/agent/{pr-context,dependency-candidates,release-notes}.json | sha256sum | cut -d ' ' -f1)" = "$EXPECTED_DIGEST"
-      git archive "$GITHUB_SHA" tools/ci | tar -x -C /tmp
+      git archive "$GITHUB_SHA" tools/ci Gemfile Gemfile.lock | tar -x -C /tmp
+      export BUNDLE_GEMFILE=/tmp/Gemfile BUNDLE_PATH="$GITHUB_WORKSPACE/vendor/bundle"
       bundle install
       bundle exec ruby /tmp/tools/ci/check_dependency_output.rb
 

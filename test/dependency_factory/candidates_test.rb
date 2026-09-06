@@ -64,11 +64,11 @@ class DependencyFactoryCandidatesTest < Minitest::Test
     assert_equal ["gh"], calls
   end
 
-  def test_builds_candidates_from_every_manifest_and_batches_gems
+  def test_builds_independent_candidates_from_every_manifest
     result = DependencyFactory::Candidates.new(sources: FakeSources.new, days: 3, now: NOW).build(pins)
     names = result["candidates"].map { |candidate| candidate["name"] }
 
-    assert_equal ["mise", "gh", "pi:pi-subagents", "bundler", "Gemfile.lock"], names
+    assert_equal ["mise", "gh", "pi:pi-subagents", "json", "standard", "bundler"], names
     gh = result["candidates"].find { |candidate| candidate["name"] == "gh" }
     assert_equal "2.98.0", gh["eligible"]
     assert_equal "2.99.0", gh["latest"]
@@ -82,14 +82,6 @@ class DependencyFactoryCandidatesTest < Minitest::Test
 
     assert_equal "0.37.2", pi["eligible"]
     assert_equal "0.63.0", pi["latest"]
-  end
-
-  def test_gem_batch_lists_only_gems_that_are_behind
-    result = DependencyFactory::Candidates.new(sources: FakeSources.new, days: 3, now: NOW).build(pins)
-    batch = result["candidates"].find { |candidate| candidate["name"] == "Gemfile.lock" }
-
-    assert_equal %w[json standard], batch["members"].map { |member| member["name"] }
-    assert_equal "2 gems behind", batch["current"]
   end
 
   def test_unpinned_and_unstable_pins_are_observation_only
