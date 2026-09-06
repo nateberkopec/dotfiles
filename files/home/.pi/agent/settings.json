@@ -1,8 +1,8 @@
 {
   "lastChangelogVersion": "0.80.9",
   "defaultProvider": "openai-codex",
-  "defaultModel": "gpt-5.6-sol",
-  "defaultThinkingLevel": "medium",
+  "defaultModel": "gpt-6-astra",
+  "defaultThinkingLevel": "low",
   "hideThinkingBlock": false,
   "packages": [
     "npm:pi-mcp-adapter@2.32.1",
@@ -31,17 +31,33 @@
   ],
   "subagents": {
     "agentOverrides": {
+      "delegate": {
+        "model": "openai-codex/gpt-6-astra",
+        "thinking": "low"
+      },
       "reviewer": {
+        "model": "openai-codex/gpt-6-astra",
         "thinking": "xhigh"
       },
       "oracle": {
+        "model": "openai-codex/gpt-6-astra",
         "thinking": "xhigh"
       },
       "advisor": {
+        "model": "openai-codex/gpt-6-astra",
         "thinking": "xhigh"
       },
+      "scout": {
+        "model": "openai-codex/gpt-5.6-sol",
+        "thinking": "low"
+      },
       "worker": {
-        "thinking": "medium"
+        "model": "openai-codex/gpt-6-astra",
+        "thinking": "low"
+      },
+      "researcher": {
+        "model": "openai-codex/gpt-5.6-luna",
+        "thinking": "max"
       }
     }
   },
