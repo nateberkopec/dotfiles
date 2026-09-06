@@ -19,6 +19,8 @@ on:
     name: dependency-update
     events: [issues, issue_comment, pull_request_comment]
   roles: [admin]
+  status-comment: false
+  reaction: none
 
 checkout:
   fetch: ["dependency-update-*", "dependency-benchmark-642", "main"]
@@ -46,9 +48,7 @@ env:
 
 engine:
   id: codex
-  args:
-    - -c
-    - model_reasoning_effort="low"
+  args: [-c, 'model_reasoning_effort="low"']
 model: gpt-5.6-sol
 max-ai-credits: 200
 timeout-minutes: 45
@@ -145,9 +145,7 @@ safe-outputs:
       id: codex
       model: gpt-5.6-luna
       # gh-aw 0.86.2 omits the separator before detection args; keep the leading space.
-      args:
-        - " -c"
-        - model_reasoning_effort="high"
+      args: [" -c", 'model_reasoning_effort="high"']
   create-pull-request:
     patch-format: bundle
     github-token: ${{ secrets.DEPENDENCY_FACTORY_PAT }}

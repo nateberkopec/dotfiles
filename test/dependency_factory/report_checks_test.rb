@@ -27,6 +27,7 @@ class DependencyFactoryReportChecksTest < Minitest::Test
   end
 
   def test_lock_batch_cannot_hide_unknown_or_new_transitive_gems
+    assert_empty errors(changes: {"Gemfile.lock" => ["changed", "changed"], "gh" => ["2.97.0", "2.98.0"]})
     assert_includes errors(changes: {"Gemfile.lock" => ["changed", "changed"], "new-gem" => [nil, "1.0"]}), "new-gem: changed but not a candidate; refresh discovery"
   end
 
