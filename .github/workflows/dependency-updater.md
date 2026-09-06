@@ -155,6 +155,7 @@ safe-outputs:
       # gh-aw 0.86.2 omits the separator before detection args; keep the leading space.
       args: [" -c", 'model_reasoning_effort="high"']
   create-pull-request:
+    branch-prefix: "${{ inputs.benchmark && 'benchmark/' || 'dependency-update-' }}"
     patch-format: bundle
     github-token: ${{ secrets.DEPENDENCY_FACTORY_PAT }}
     labels: [dependency-update]
