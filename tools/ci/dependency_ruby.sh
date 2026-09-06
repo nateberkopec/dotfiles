@@ -1,6 +1,6 @@
 #!/bin/sh
 set -eu
-checks=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+checks=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
 ruby_bin=$(cat "$checks/ruby-bin")
 bundle=$(cat "$checks/bundle-path")
 export BUNDLE_GEMFILE="$checks/Gemfile" BUNDLE_PATH="$bundle" BUNDLE_IGNORE_CONFIG=1
