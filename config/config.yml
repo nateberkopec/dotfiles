@@ -17,7 +17,6 @@ debian_desktop_apps:
 brew_casks:
   - 1password
   - discord
-  - dropbox
   - ghostty
   - github
   - jordanbaird-ice

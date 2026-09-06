@@ -19,7 +19,7 @@ class ConfigTest < Minitest::Test
   def test_loads_brew_casks_from_yaml
     config = Dotfiles::Config.new(@fixtures_dir)
 
-    assert_equal ["firefox", "dropbox"], config.brew_casks
+    assert_equal ["firefox", "ghostty"], config.brew_casks
   end
 
   def test_brew_casks_default_to_empty
@@ -29,7 +29,7 @@ class ConfigTest < Minitest::Test
   def test_fetch_returns_config_value
     config = Dotfiles::Config.new(@fixtures_dir)
 
-    assert_equal ["firefox", "dropbox"], config.fetch("brew_casks")
+    assert_equal ["firefox", "ghostty"], config.fetch("brew_casks")
   end
 
   def test_fetch_returns_default_for_missing_key
@@ -41,7 +41,7 @@ class ConfigTest < Minitest::Test
   def test_bracket_accessor_returns_config_value
     config = Dotfiles::Config.new(@fixtures_dir)
 
-    assert_equal ["firefox", "dropbox"], config["brew_casks"]
+    assert_equal ["firefox", "ghostty"], config["brew_casks"]
   end
 
   def test_brew_ci_casks_overrides_config
