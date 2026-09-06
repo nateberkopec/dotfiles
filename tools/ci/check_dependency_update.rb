@@ -86,8 +86,20 @@ def normalized(path, content)
   return [content.scan(/^  remote: .+$/), content.sub(/^GEM\n.*?(?=^PLATFORMS\n)/m, "GEM\nGENERATED\n")] if path == "Gemfile.lock"
   mise_lock(content)
 end
+
+def snooze_memory(before, after)
+  old = YAML.safe_load(before).fetch("snoozes", nil) || {}
+  current = YAML.safe_load(after).fetch("snoozes", nil) || {}
+  current.each do |name, decision|
+    next if old[name] == decision
+    abort "#{name}: changed snooze needs a reason" if decision["reason"].to_s.strip.empty?
+  end
+end
+
 paths.each do |path|
-  abort "Dependency update made unsafe changes to #{path}" unless normalized(path, `git show #{base}:#{path}`) == normalized(path, File.read(path))
+  before, after = `git show #{base}:#{path}`, File.read(path)
+  abort "Dependency update made unsafe changes to #{path}" unless normalized(path, before) == normalized(path, after)
+  snooze_memory(before, after) if path == "config/dependency-updater.yml"
 end
 lock = "files/home/.config/mise/mise.lock"
 if paths.include?(lock)

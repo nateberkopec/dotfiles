@@ -35,4 +35,3 @@ unless number.empty?
   File.write("#{directory}/pr.json", JSON.pretty_generate(pr))
 end
 File.write("#{directory}/pr-context.json", JSON.pretty_generate(context))
-File.open(ENV.fetch("GITHUB_OUTPUT"), "a") { |file| file.puts "pr_number=#{number}\nbase_branch=#{branch}" }

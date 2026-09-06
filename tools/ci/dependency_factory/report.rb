@@ -27,9 +27,9 @@ module DependencyFactory
     private
 
     def valid?(row)
-      row.is_a?(Hash) && %w[name version reason source].all? { |key| row[key].is_a?(String) && !row[key].strip.empty? } &&
-        %w[update defer].include?(row["action"]) && [true, false].include?(row["security"]) &&
-        (!row["security"] || row["quote"].is_a?(String))
+      row.is_a?(Hash) && %w[name version reason].all? { |key| row[key].is_a?(String) && !row[key].strip.empty? } &&
+        %w[update defer].include?(row["action"]) && [true, false, "unknown"].include?(row["security"]) &&
+        (row["security"] != true || row["quote"].is_a?(String)) && row.key?("source") && (row["source"].nil? || row["source"].is_a?(String))
     end
   end
 end

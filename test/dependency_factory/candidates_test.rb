@@ -39,6 +39,13 @@ class DependencyFactoryCandidatesTest < Minitest::Test
     assert_empty DependencyFactory::Candidates.new(sources: FakeSources.new, days: 3, now: NOW).build([])["candidates"]
   end
 
+  def test_historical_replay_does_not_consider_future_publications
+    pin = DependencyFactory::Pin.new(name: "gh", kind: "mise", current: "2.97.0")
+    candidate = DependencyFactory::Candidates.new(sources: FakeSources.new, days: 3, now: Time.utc(2026, 8, 25)).build([pin])["candidates"].first
+    assert_equal "2.98.0", candidate["latest"]
+    refute_includes candidate["releases"].map { |release| release["version"] }, "2.99.0"
+  end
+
   def test_retains_all_stable_intermediate_and_gated_releases_without_rediscovery
     calls = []
     releases = %w[1.0 1.1 1.2 1.3 1.4.pre].map do |version|

@@ -6,7 +6,7 @@ require "json"
 directory = ARGV.fetch(0, "/tmp/gh-aw/agent")
 items = JSON.parse(File.read(File.join(directory, "../agent_output.json"))).fetch("items")
 context = JSON.parse(File.read(File.join(directory, "pr-context.json")))
-outcomes = %w[create_pull_request push_to_pull_request_branch update_pull_request add_comment noop]
+outcomes = %w[create_pull_request push_to_pull_request_branch update_pull_request add_comment noop missing_data report_incomplete]
 abort "The agent finished without an explicit outcome" unless items.any? { |item| outcomes.include?(item["type"]) }
 items.select { |item| item["type"] == "add_comment" }.each do |item|
   targets = item.values_at("item_number", "issue_number", "pull_request_number").compact.map(&:to_s)

@@ -44,6 +44,14 @@ class DependencyFactoryReportChecksTest < Minitest::Test
     assert_empty errors(rows: [security, rows.last], snoozes: snoozes, source: security["source"])
   end
 
+  def test_unknown_evidence_can_be_deferred_but_not_fabricated_or_selected
+    deferred = rows.first.merge("action" => "defer", "source" => nil, "security" => "unknown")
+    assert_empty errors(rows: [deferred, rows.last], changes: {}, source: nil, candidate_source: nil)
+    refute_empty errors(rows: [deferred, rows.last], changes: {})
+    refute_empty errors(rows: [deferred.merge("security" => false), rows.last], changes: {}, source: nil, candidate_source: nil)
+    refute_empty errors(rows: [deferred.merge("action" => "update"), rows.last], source: nil, candidate_source: nil)
+  end
+
   private
 
   def rows
@@ -53,10 +61,10 @@ class DependencyFactoryReportChecksTest < Minitest::Test
     end
   end
 
-  def errors(rows: self.rows, changes: {"gh" => ["2.97.0", "2.98.0"]}, snoozes: {}, prose: "", source: "https://example.test/2.98.0")
-    candidate = {"name" => "gh", "kind" => "mise", "current" => "2.97.0", "eligible" => "2.98.0", "latest" => "2.99.0", "source" => "https://example.test/2.99.0", "published" => {"2.98.0" => "2026-08-20T00:00:00Z", "2.99.0" => "2026-09-01T00:00:00Z"}}
+  def errors(rows: self.rows, changes: {"gh" => ["2.97.0", "2.98.0"]}, snoozes: {}, prose: "", source: "https://example.test/2.98.0", candidate_source: "https://example.test/2.99.0")
+    candidate = {"name" => "gh", "kind" => "mise", "current" => "2.97.0", "eligible" => "2.98.0", "latest" => "2.99.0", "source" => candidate_source, "published" => {"2.98.0" => "2026-08-20T00:00:00Z", "2.99.0" => "2026-09-01T00:00:00Z"}}
     data = {"generated_at" => "2026-09-01T22:00:00Z", "minimum_release_age_days" => 3, "candidates" => [candidate]}
-    notes = {"packages" => {"gh" => [{"version" => "2.98.0", "url" => source, "text" => "Stops exposing forwarded ports."}]}}
+    notes = {"packages" => {"gh" => [{"version" => "2.98.0", "url" => source, "text" => "Stops exposing forwarded ports."}, {"version" => "2.99.0", "url" => "https://example.test/2.99.0"}]}}
     text = "#{prose}<!-- dependency-decisions\n#{JSON.generate("outcome" => "ready", "decisions" => rows)}\n-->"
     DependencyFactory::ReportChecks.new(candidates: data, report: DependencyFactory::Report.new(text), changes: changes, snoozes: snoozes, notes: notes).errors
   end

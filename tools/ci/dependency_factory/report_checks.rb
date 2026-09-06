@@ -36,12 +36,13 @@ module DependencyFactory
         selected = @changes[name]&.last == version
         [("#{name} #{version}: decision disagrees with diff" unless (row["action"] == "update") == selected),
           ("#{name} #{version}: source is not collected evidence" unless collected?(row, note, pin)),
-          ("#{name} #{version}: security requires an exact collected quote" if row["security"] && !quoted?(row, note))].compact
+          ("#{name} #{version}: security requires an exact collected quote" if row["security"] == true && !quoted?(row, note))].compact
       end
     end
 
     def collected?(row, note, pin)
-      note || pin&.fetch("source", nil) == row["source"]
+      return note || pin&.fetch("source", nil) == row["source"] unless row["source"].nil?
+      row["action"] == "defer" && row["security"] == "unknown" && pin && !pin["source"] && !(@notes[row["name"]] || []).any? { |entry| entry["version"] == row["version"] && entry["url"] }
     end
 
     def quoted?(row, note)
@@ -69,7 +70,7 @@ module DependencyFactory
     def snoozed?(pin)
       snooze = @snoozes[pin["name"]]
       snooze && Versions.newer?(snooze["wake_at"], pin["eligible"]) && !@report.decisions.any? do |row|
-        row["name"] == pin["name"] && row["security"] && row["source"].match?(%r{/advisories/|/security/|CVE-\d|osv\.dev}i)
+        row["name"] == pin["name"] && row["security"] == true && row["source"].to_s.match?(%r{/advisories/|/security/|CVE-\d|osv\.dev}i)
       end
     end
   end

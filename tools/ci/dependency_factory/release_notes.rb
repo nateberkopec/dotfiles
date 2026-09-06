@@ -1,3 +1,5 @@
+require "cgi"
+
 module DependencyFactory
   class ReleaseNotes
     CHANGELOGS = %w[CHANGELOG.md CHANGELOG HISTORY.md].freeze
@@ -29,6 +31,7 @@ module DependencyFactory
     end
 
     def resolve(candidate, release, result)
+      return go_notes(release, result) if candidate["name"] == "go"
       repo = @upstream.repository(candidate, release)
       raise "No primary upstream repository identified" unless repo
       errors = []
@@ -36,6 +39,15 @@ module DependencyFactory
       notes ||= changelog(repo, release.fetch("version"), errors)
       return result.merge("url" => notes[0], "text" => notes[1]) if notes
       result.merge("url" => nil, "error" => (["No release notes found"] + errors).join("; "))
+    end
+
+    def go_notes(release, result)
+      url = "https://go.dev/doc/devel/release"
+      version = Regexp.escape(release.fetch("version"))
+      html = @upstream.fetch(url)[/<p id="go#{version}">(.*?)<\/p>/m, 1]
+      raise "No Go release-history entry" unless html
+      text = CGI.unescapeHTML(html.gsub(/<[^>]+>/, " ")).split.join(" ")
+      result.merge("url" => "#{url}#go#{release["version"]}", "text" => text)
     end
 
     def github_notes(repo, candidate, version, errors)
