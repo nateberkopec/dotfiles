@@ -38,6 +38,6 @@ bundle exec ruby /tmp/gh-aw/agent/checks/check_dependency_report.rb /tmp/gh-aw/a
 bundle exec ruby /tmp/gh-aw/agent/checks/check_dependency_update.rb <base SHA>
 ```
 
-Run these saved checkers from the PR checkout; they stay current even on older branches. Run applicable tests and lints. Fix all checker errors, then publish that exact body. On revisions, push changes and replace the PR body with `update_pull_request` (`operation: replace`); a comment alone leaves the report stale. The post-step verifies both creation and revision bodies.
+Run these saved checkers from the PR checkout; they stay current even on older branches. Run applicable tests and lints. Fix all checker errors and commit, then publish that exact body. Emit push/create only after the final commit; do not edit the checkout afterward. On revisions, push changes and replace the PR body with `update_pull_request` (`operation: replace`); a comment alone leaves the report stale. The post-step verifies both creation and revision bodies.
 
 For `/dependency-update` decisions, retain approved updates in this PR, remove declined ones, record explicit wake versions, regenerate locks, refresh the report, and reply with the decisions and your interpretation of “next minor.” Never merge. Never request review while required checks are pending or failed.

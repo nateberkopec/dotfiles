@@ -27,6 +27,7 @@ class DependencyFactoryReleaseNotesTest < Minitest::Test
     assert_includes notes.first["text"], "Earlier fix"
     refute_includes notes.last["text"], "Earlier fix"
     assert notes.all? { |note| note["error"].nil? }
+    refute_equal notes.first["url"], notes.last["url"]
     assert_equal 1, calls.count("https://rubygems.org/api/v1/gems/example.json")
     assert_equal 1, calls.count("https://raw.githubusercontent.com/owner/example/HEAD/CHANGELOG.md")
   end
@@ -56,6 +57,21 @@ class DependencyFactoryReleaseNotesTest < Minitest::Test
     note = collector(responses).build("candidates" => [package("gh", "mise", "1.0", "1.1")])["packages"]["gh"].first
     assert_includes note["text"], "Nested fix"
     refute_match(/Future|Preview|Old/, note["text"])
+  end
+
+  def test_empty_release_heading_or_unrelated_version_mention_is_not_evidence
+    ["# 1.1\n# 1.0\nOld notes", "# Troubleshooting 1.1\nNot release notes"].each do |text|
+      responses = {"https://raw.githubusercontent.com/cli/cli/HEAD/CHANGELOG.md" => text}
+      note = collector(responses).build("candidates" => [package("gh", "mise", "1.0", "1.1")])["packages"]["gh"].first
+      assert_includes note["error"], "No release notes found"
+    end
+  end
+
+  def test_bundler_does_not_inherit_rubygems_release_claims
+    responses = {"https://api.github.com/repos/rubygems/rubygems/releases/tags/v4.0.20" => JSON.generate("body" => "## RubyGems 4.0.20\nGem fix\n## Bundler 4.0.20\nBundler fix")}
+    note = collector(responses).build("candidates" => [package("bundler", "gem", "2.7.0", "4.0.20")])["packages"]["bundler"].first
+    assert_includes note["text"], "Bundler fix"
+    refute_includes note["text"], "Gem fix"
   end
 
   def test_missing_repository_is_explicit

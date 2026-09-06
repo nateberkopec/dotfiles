@@ -3,6 +3,7 @@ module DependencyFactory
     CHANGELOGS = %w[CHANGELOG.md CHANGELOG HISTORY.md].freeze
     UPSTREAM_CHANGELOGS = {
       "rust-lang/rust" => "RELEASES.md",
+      "rubygems/rubygems" => "bundler/CHANGELOG.md",
       "earendil-works/pi" => "packages/coding-agent/CHANGELOG.md",
       "badlogic/pi-mono" => "packages/coding-agent/CHANGELOG.md"
     }.freeze
@@ -42,8 +43,10 @@ module DependencyFactory
       prefixes.each do |prefix|
         url = "https://api.github.com/repos/#{repo}/releases/tags/#{URI.encode_www_form_component(prefix + version)}"
         release = attempt(errors) { JSON.parse(@upstream.fetch(url)) }
-        next unless release && !release["body"].to_s.strip.empty?
-        return [release["html_url"] || url, release["body"]]
+        body = release&.fetch("body", "").to_s
+        body = body[/^## Bundler #{Regexp.escape(version)}\b.*?(?=^## |\z)/m].to_s if candidate["name"] == "bundler"
+        next if body.strip.empty?
+        return [release["html_url"] || url, body]
       end
       nil
     end
@@ -53,15 +56,19 @@ module DependencyFactory
         url = "https://raw.githubusercontent.com/#{repo}/HEAD/#{path}"
         text = attempt(errors) { @upstream.fetch(url) }
         entry = changelog_entry(text.to_s, version)
-        return [url, entry] if entry
+        if entry
+          line = text.lines.index { |line| line.strip == entry.lines.first.strip } + 1
+          return ["https://github.com/#{repo}/blob/HEAD/#{path}?plain=1#L#{line}", entry]
+        end
       end
       nil
     end
 
     def changelog_entry(text, version)
-      heading = text.match(/^(\#{1,6})\s+[^\n]*?(?<![\d.])#{Regexp.escape(version)}(?![\w.+-])[^\n]*$/)
+      heading = text.match(/^(\#{1,6})\s+\[?(?:v|Version |Release )?#{Regexp.escape(version)}(?![\w.+-])[^\n]*$/i)
       return unless heading
-      text[heading.begin(0)..].split(/^\#{1,#{heading[1].size}}\s+/, 3)[1]&.strip
+      body = text[heading.end(0)..].split(/^\#{1,#{heading[1].size}}\s+/, 2).first.to_s.strip
+      "#{heading[0]}\n#{body}" unless body.empty?
     end
 
     def attempt(errors)

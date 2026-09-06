@@ -17,7 +17,9 @@ abort "The pull request body must replace, not append" unless item.fetch("operat
 abort "The pull request body is empty" if item["body"].to_s.strip.empty?
 context = JSON.parse(File.read(File.join(directory, "pr-context.json")))
 if context["number"]
-  abort "Update the triggering pull request only" unless item["type"] == "update_pull_request" && item["pull_request_number"].to_s == context["number"].to_s
+  targets = item.values_at("pull_request_number", "pr_number", "pr").compact
+  abort "Update the triggering pull request only" unless item["type"] == "update_pull_request" && targets.all? { |number| number.to_s == context["number"].to_s }
+  abort "Changed checkout requires a branch push" unless pushed || system("git", "diff", "--quiet", context.fetch("head"), "--")
 else
   abort "No triggering pull request to update" unless item["type"] == "create_pull_request"
 end
@@ -25,3 +27,8 @@ body_path = File.join(directory, "pr-body.md")
 File.write(body_path, item.fetch("body"))
 checker = File.join(__dir__, "check_dependency_report.rb")
 abort "Dependency report failed validation" unless system("bundle", "exec", "ruby", checker, File.join(directory, "dependency-candidates.json"), body_path, context.fetch("base"), File.join(directory, "release-notes.json"))
+abort "Commit checkout changes before publishing" unless system("git", "diff", "--quiet", "HEAD", "--")
+items.select { |entry| %w[create_pull_request push_to_pull_request_branch].include?(entry["type"]) }.each do |entry|
+  errors = DependencyFactory::Transport.errors(entry, directory: directory)
+  abort errors.join("\n") unless errors.empty?
+end

@@ -33,22 +33,48 @@ class DependencyFactoryOutputTest < Minitest::Test
     %w[create_pull_request update_pull_request].each do |type|
       item = {"type" => type, "body" => "New body", "pull_request_number" => 2}
       context = {"base" => "invalid", "number" => ((type == "update_pull_request") ? 2 : nil)}
-      assert_includes check([item], context: context), "Expected a commit SHA"
+      items = (type == "update_pull_request") ? [{"type" => "push_to_pull_request_branch"}, item] : [item]
+      assert_includes check(items, context: context), "Expected a commit SHA"
     end
+  end
+
+  def test_fixed_target_accepts_omitted_number_and_aliases
+    [nil, "pr_number", "pr"].each do |key|
+      item = {"type" => "update_pull_request", "body" => "New body"}
+      item[key] = 2 if key
+      items = [{"type" => "push_to_pull_request_branch"}, item]
+      assert_includes check(items, context: {"number" => 2, "base" => "invalid"}), "Expected a commit SHA"
+    end
+  end
+
+  def test_body_only_revision_cannot_leave_changed_pins_or_snoozes_unpublished
+    item = {"type" => "update_pull_request", "body" => "Claims the snooze was changed"}
+    assert_includes check([item], context: {"number" => 2, "head" => "HEAD"}, modified: true), "Changed checkout requires a branch push"
   end
 
   private
 
-  def check(items, context: {})
+  def check(items, context: {}, modified: false)
     Dir.mktmpdir do |root|
       directory = File.join(root, "agent")
       Dir.mkdir(directory)
       File.write(File.join(root, "agent_output.json"), JSON.generate("items" => items))
       File.write(File.join(directory, "pr-context.json"), JSON.generate(context))
+      changed_checkout(root) if modified
       script = File.expand_path("../../tools/ci/check_dependency_output.rb", __dir__)
-      output, = Open3.capture2e("bundle", "exec", "ruby", script, directory)
+      gemfile = File.expand_path("../../Gemfile", __dir__)
+      output, = Open3.capture2e({"BUNDLE_GEMFILE" => gemfile}, "bundle", "exec", "ruby", script, directory, chdir: root)
       output
     end
+  end
+
+  def changed_checkout(root)
+    File.write(File.join(root, "snooze.yml"), "wake_at: 1.0\n")
+    git = ["git", "-C", root, "-c", "core.hooksPath=/dev/null"]
+    Open3.capture2e(*git, "init", "--quiet")
+    Open3.capture2e(*git, "add", "snooze.yml")
+    Open3.capture2e(*git, "-c", "user.name=Test", "-c", "user.email=test@example.test", "commit", "--no-gpg-sign", "-qm", "Fixture")
+    File.write(File.join(root, "snooze.yml"), "wake_at: 2.0\n")
   end
 end
 # standard:enable Dotfiles/BanFileSystemClasses

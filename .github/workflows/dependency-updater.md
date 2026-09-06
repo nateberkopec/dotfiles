@@ -131,6 +131,7 @@ safe-outputs:
         - " -c"
         - model_reasoning_effort="max"
   create-pull-request:
+    patch-format: bundle
     github-token: ${{ secrets.DEPENDENCY_FACTORY_PAT }}
     labels: [dependency-update]
     base-branch: main
@@ -148,6 +149,7 @@ safe-outputs:
       - files/home/.pi/agent/settings.json
     protected-files: allowed
   push-to-pull-request-branch:
+    patch-format: bundle
     github-token: ${{ secrets.DEPENDENCY_FACTORY_PAT }}
     target: "${{ github.event.workflow_run.pull_requests[0].number || github.event.issue.number || 'triggering' }}"
     required-labels: [dependency-update]
