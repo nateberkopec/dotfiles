@@ -54,6 +54,13 @@ class DependencyFactoryReportChecksTest < Minitest::Test
     assert_includes errors, "watchexec: Dependency assessments needs a bullet that starts with `watchexec <version>`"
   end
 
+  def test_assessment_tolerates_safe_output_mention_formatting
+    bullet = "- `npm:`@openai/codex` 0.153.0`: Security: none found."
+    report = DependencyFactory::Report.new("## Dependency assessments\n\n#{bullet}\n")
+
+    assert_equal "#{bullet}\n", report.assessment("npm:@openai/codex")
+  end
+
   private
 
   def errors_for(text, changes: self.changes)

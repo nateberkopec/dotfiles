@@ -40,7 +40,9 @@ module DependencyFactory
     end
 
     def assessment(tool)
-      section("Dependency assessments").lines.find { |line| line.match?(/\A- `#{Regexp.escape(tool)}[` ]/) }
+      section("Dependency assessments").lines.find do |line|
+        line.start_with?("- `") && line.delete("`").match?(/\A- #{Regexp.escape(tool)}(?: |:)/)
+      end
     end
 
     private
