@@ -24,7 +24,7 @@ number = issue if number.empty? && !issue.empty? && api("issues/#{issue}")["pull
 open = api("pulls?state=open&base=#{branch}&per_page=100").select { |pr| pr["labels"].any? { |label| label["name"] == "dependency-update" } }
 abort "Multiple active dependency batches require human resolution" if open.size > 1
 number = open.first["number"].to_s if number.empty? && !open.empty?
-context = {"base" => base, "base_branch" => branch, "issue" => issue, "benchmark" => benchmark, "human_request" => ENV["HUMAN_REQUEST"] == "true"}
+context = {"base" => base, "base_branch" => branch, "issue" => issue, "benchmark" => benchmark}
 unless number.empty?
   pr = api("pulls/#{number}")
   abort "Not an owned dependency batch" unless pr["state"] == "open" && pr["base"]["ref"] == branch && pr["head"]["repo"]["full_name"] == ENV.fetch("GITHUB_REPOSITORY") && pr["labels"].any? { |label| label["name"] == "dependency-update" }

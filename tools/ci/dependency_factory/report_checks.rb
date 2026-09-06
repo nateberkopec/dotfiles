@@ -2,9 +2,10 @@ require "time"
 
 module DependencyFactory
   class ReportChecks
-    def initialize(candidates:, report:, changes:, snoozes:, notes:)
+    def initialize(candidates:, report:, changes:, snoozes:, notes:, original_snoozes: snoozes)
       @report, @changes, @snoozes = report, changes, snoozes
       @notes = notes.fetch("packages")
+      @original_snoozes = original_snoozes
       @pins = candidates.fetch("candidates").flat_map { |candidate| candidate["members"] || [candidate] }
       @cutoff = Time.iso8601(candidates.fetch("generated_at")) - candidates.fetch("minimum_release_age_days") * 86_400
     end
@@ -12,10 +13,16 @@ module DependencyFactory
     def errors
       format = @report.errors
       return format unless format.empty?
-      [coverage, decisions, changes].flatten
+      [memory, coverage, decisions, changes].flatten
     end
 
     private
+
+    def memory
+      @original_snoozes.filter_map do |name, decision|
+        "#{name}: existing snooze requires a human edit" unless @snoozes[name] == decision
+      end
+    end
 
     def coverage
       expected = @pins.flat_map do |pin|
