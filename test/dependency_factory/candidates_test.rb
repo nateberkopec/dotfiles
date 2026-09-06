@@ -35,6 +35,28 @@ class DependencyFactoryCandidatesTest < Minitest::Test
     end
   end
 
+  def test_empty_pins_have_no_candidates
+    assert_empty DependencyFactory::Candidates.new(sources: FakeSources.new, days: 3, now: NOW).build([])["candidates"]
+  end
+
+  def test_retains_all_stable_intermediate_and_gated_releases_without_rediscovery
+    calls = []
+    releases = %w[1.0 1.1 1.2 1.3 1.4.pre].map do |version|
+      {"version" => version, "created_at" => (version == "1.3") ? "2026-09-01T00:00:00Z" : "2026-08-01T00:00:00Z"}
+    end
+    sources = Object.new
+    sources.define_singleton_method(:mise) { |name|
+      calls << name
+      releases
+    }
+    pin = DependencyFactory::Pin.new(name: "gh", kind: "mise", current: "1.0")
+    candidate = DependencyFactory::Candidates.new(sources: sources, days: 3, now: NOW).build([pin])["candidates"].first
+    assert_equal "1.2", candidate["eligible"]
+    assert_equal "1.3", candidate["latest"]
+    assert_equal %w[1.1 1.2 1.3], candidate["releases"].map { |release| release["version"] }
+    assert_equal ["gh"], calls
+  end
+
   def test_builds_candidates_from_every_manifest_and_batches_gems
     result = DependencyFactory::Candidates.new(sources: FakeSources.new, days: 3, now: NOW).build(pins)
     names = result["candidates"].map { |candidate| candidate["name"] }

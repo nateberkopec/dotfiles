@@ -36,10 +36,22 @@ module DependencyFactory
       eligible = newest_after(Versions.eligible(releases, @cutoff), pin.current)
       latest = newest_after(Versions.latest(releases), eligible)
       return if latest == pin.current
-      pin.to_h.slice(:name, :kind, :manifest, :current).transform_keys(&:to_s).merge(
+      candidate_identity(pin).merge(
         "eligible" => eligible, "latest" => latest, "published" => Versions.published(releases, [eligible, latest]),
+        "meta" => pin.meta, "releases" => release_range(releases, pin.current, latest),
         "source" => source_url(releases, (eligible == pin.current) ? latest : eligible)
       )
+    end
+
+    def candidate_identity(pin)
+      pin.to_h.slice(:name, :kind, :manifest, :current).transform_keys(&:to_s)
+    end
+
+    def release_range(releases, current, latest)
+      releases.select do |release|
+        version = release["version"]
+        Versions.stable?(version) && Versions.newer?(version, current) && !Versions.newer?(version, latest)
+      end.uniq { |release| release["version"] }.sort_by { |release| Versions.parse(release["version"]) }
     end
 
     def newest_after(version, floor)

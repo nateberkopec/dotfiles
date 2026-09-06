@@ -25,12 +25,4 @@ class DependencyFactoryVersionsTest < Minitest::Test
     assert_equal "1.2.0", Versions.latest(releases)
     assert_equal({"1.1.0" => "2026-08-20T00:00:00Z"}, Versions.published(releases, ["1.1.0"]))
   end
-
-  def test_patch_bump_requires_only_the_last_segment_to_change
-    assert Versions.patch_bump?("1.56.0", "1.56.1")
-    assert Versions.patch_bump?("3.7b", "3.7c")
-    assert Versions.patch_bump?("2026.8.10", "2026.8.14")
-    refute Versions.patch_bump?("2.5.1", "2.7.0")
-    refute Versions.patch_bump?("1.36.0", "2.2.0")
-  end
 end

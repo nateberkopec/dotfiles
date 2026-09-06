@@ -42,10 +42,5 @@ module DependencyFactory
         dates[release["version"]] = release["created_at"] if versions.include?(release["version"])
       end
     end
-
-    def patch_bump?(old, new)
-      before, after = parse(old).segments, parse(new).segments
-      before.size >= 3 && before.size == after.size && before[0..-2] == after[0..-2]
-    end
   end
 end
