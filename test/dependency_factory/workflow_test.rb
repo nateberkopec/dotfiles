@@ -45,6 +45,7 @@ class DependencyWorkflowTest < Minitest::Test
   def test_native_success_and_current_attempt_receipts_gate_publication
     jobs = workflow.fetch("jobs")
     assert_equal %w[agent detection], jobs.fetch("native").fetch("needs")
+    assert_equal({"actions" => "read", "contents" => "read", "pull-requests" => "read"}, jobs.fetch("native").fetch("permissions"))
     assert_equal "./.github/workflows/lock-provenance.yml", jobs.fetch("native").fetch("uses")
     publisher = jobs.fetch("safe_outputs")
     assert_includes publisher.fetch("needs"), "native"

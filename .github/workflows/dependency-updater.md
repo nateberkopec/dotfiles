@@ -76,6 +76,7 @@ network:
 jobs:
   native:
     needs: [agent, detection]
+    permissions: {actions: read, contents: read, pull-requests: read}
     uses: ./.github/workflows/lock-provenance.yml
     with: {factory: true}
   safe_outputs:
