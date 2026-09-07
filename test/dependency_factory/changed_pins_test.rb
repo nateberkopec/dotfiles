@@ -14,6 +14,6 @@ class DependencyFactoryChangedPinsTest < Minitest::Test
     )
     pins = DependencyFactory::ChangedPins.new(base: "abc", show: ->(_base, path) { before.fetch(path, "") }, read: ->(path) { after.fetch(path, "") })
 
-    assert_equal({"gh" => ["2.97.0", "2.98.0"], "Gemfile.lock" => ["changed", "changed"], "json" => ["2.18.0", "2.21.2"]}, pins.changes)
+    assert_equal({"gh" => ["2.97.0", "2.98.0"], "json" => ["2.18.0", "2.21.2"]}, pins.changes)
   end
 end

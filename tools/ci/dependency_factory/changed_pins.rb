@@ -10,7 +10,6 @@ module DependencyFactory
     def changes
       Manifests::PATHS.each_with_object({}) do |path, changes|
         before, after = @show.call(@base, path), @read.call(path)
-        changes[Candidates::BATCH] = ["changed", "changed"] if path == Candidates::BATCH && before != after
         changed_pins(path, before, after).each { |name, versions| changes[name] = versions }
       end
     end
@@ -19,7 +18,7 @@ module DependencyFactory
 
     def changed_pins(path, before, after)
       old_pins, new_pins = pins_at(path, before), pins_at(path, after)
-      new_pins.filter_map { |name, version| [name, [old_pins[name], version]] if old_pins[name] != version }
+      (old_pins.keys | new_pins.keys).filter_map { |name| [name, [old_pins[name], new_pins[name]]] if old_pins[name] != new_pins[name] }
     end
 
     def pins_at(path, content)
