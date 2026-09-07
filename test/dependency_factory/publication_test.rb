@@ -21,6 +21,15 @@ class DependencyPublicationTest < Minitest::Test
     end
   end
 
+  def test_non_ascii_report_publishes_under_c_locale
+    publication_fixture do |fixture|
+      publication_bundle(fixture)
+      item = publication_item.merge("body" => "Your layout survives a restart—arrange it once. Credentials no longer leak into logs; review café client configuration before upgrading.")
+      output, status = validate_publication(fixture, [item], locale: "C")
+      assert status.success?, output
+    end
+  end
+
   def test_native_creation_metadata_does_not_fail_after_research
     publication_fixture do |fixture|
       publication_bundle(fixture)

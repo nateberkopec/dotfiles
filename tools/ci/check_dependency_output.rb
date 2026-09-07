@@ -4,8 +4,8 @@ require "json"
 
 # Runs only from the trusted publisher checkout; reports are prose, not executable policy.
 directory, context_path = ARGV
-context = JSON.parse(File.read(context_path))
-items = JSON.parse(File.read(File.join(directory, "../agent_output.json"))).fetch("items")
+context = JSON.parse(File.read(context_path, encoding: "UTF-8"))
+items = JSON.parse(File.read(File.join(directory, "../agent_output.json"), encoding: "UTF-8")).fetch("items")
 allowed = {
   "create_pull_request" => %w[type title body branch base repo draft labels],
   "push_to_pull_request_branch" => %w[type branch pull_request_number message repo],

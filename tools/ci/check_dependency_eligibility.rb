@@ -2,8 +2,8 @@
 require_relative "dependency_factory"
 require "yaml"
 
-context = JSON.parse(File.read(ARGV.fetch(0)))
-data = JSON.parse(File.read(ARGV.fetch(1)))
+context = JSON.parse(File.read(ARGV.fetch(0), encoding: "UTF-8"))
+data = JSON.parse(File.read(ARGV.fetch(1), encoding: "UTF-8"))
 base = context["head"] || context.fetch("base")
 changes = DependencyFactory::ChangedPins.new(base: context.fetch("base"), root: Dir.pwd).changes
 policy = YAML.safe_load(DependencyFactory::Sources.capture({}, "git", "show", "#{base}:#{DependencyFactory::CONFIG_PATH}"))

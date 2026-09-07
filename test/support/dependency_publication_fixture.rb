@@ -61,7 +61,7 @@ module DependencyPublicationFixture
     path
   end
 
-  def validate_publication(fixture, items = [{"type" => "noop"}])
+  def validate_publication(fixture, items = [{"type" => "noop"}], locale: nil)
     File.write(File.join(fixture[:directory], "../agent_output.json"), JSON.generate("items" => items))
     script = File.join(fixture[:source], "tools/ci/validate_dependency_publication.rb")
     bundle_path = Bundler.settings[:path]
@@ -72,7 +72,7 @@ module DependencyPublicationFixture
       File.write(File.join(bin, "gh"), "#!/bin/sh\nprintf '%s\\n' '{\"object\":{\"sha\":\"#{context.fetch("base")}\"}}'\n")
       File.chmod(0o755, File.join(bin, "gh"))
     end
-    Open3.capture2e({"PATH" => "#{fixture[:root]}/bin:#{ENV["PATH"]}", "GITHUB_REPOSITORY" => "test/test", "BUNDLE_GEMFILE" => File.join(fixture[:source], "Gemfile"), "BUNDLE_PATH" => bundle_path && File.expand_path(bundle_path, Bundler.root)}, "bundle", "exec", "ruby", script, fixture[:directory], fixture[:evidence], chdir: fixture[:source])
+    Open3.capture2e({"LC_ALL" => locale, "LANG" => locale, "RUBYOPT" => nil, "PATH" => "#{fixture[:root]}/bin:#{ENV["PATH"]}", "GITHUB_REPOSITORY" => "test/test", "BUNDLE_GEMFILE" => File.join(fixture[:source], "Gemfile"), "BUNDLE_PATH" => bundle_path && File.expand_path(bundle_path, Bundler.root)}, "bundle", "exec", "ruby", script, fixture[:directory], fixture[:evidence], chdir: fixture[:source])
   end
 
   def publication_item
