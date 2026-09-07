@@ -51,12 +51,12 @@ ENV["BUNDLE_GEMFILE"] = File.join(source, "Gemfile")
 ENV["GIT_CONFIG_GLOBAL"] = ENV["GIT_CONFIG_SYSTEM"] = File::NULL
 ENV["GIT_NO_REPLACE_OBJECTS"] = "1"
 context_path = File.join(evidence, "pr-context.json")
-context = JSON.parse(File.read(context_path, encoding: "UTF-8"))
+context = JSON.parse(File.read(context_path, encoding: "UTF-8").tap { |text| abort "Invalid UTF-8 JSON" unless text.valid_encoding? })
 base = context["head"] || context.fetch("base")
 abort "Expected commit SHAs" unless [base, context.fetch("base")].all? { |sha| sha.match?(/\A[0-9a-f]{40}\z/) }
 checker = File.join(source, "tools/ci/check_dependency_output.rb")
 abort "Invalid output" unless system("bundle", "exec", "ruby", checker, directory, context_path)
-items = JSON.parse(File.read(File.join(directory, "../agent_output.json"), encoding: "UTF-8")).fetch("items")
+items = JSON.parse(File.read(File.join(directory, "../agent_output.json"), encoding: "UTF-8").tap { |text| abort "Invalid UTF-8 JSON" unless text.valid_encoding? }).fetch("items")
 item = items.find { |entry| %w[create_pull_request push_to_pull_request_branch].include?(entry["type"]) }
 Dir.mktmpdir("dependency-validation-") do |root|
   target = File.join(root, "agent")
