@@ -3,7 +3,7 @@ require_relative "dependency_factory"
 require "json"
 
 repo = ENV.fetch("GITHUB_REPOSITORY")
-event = JSON.parse(File.read(ENV.fetch("GITHUB_EVENT_PATH")))
+event = JSON.parse(File.read(ENV.fetch("GITHUB_EVENT_PATH"), encoding: "UTF-8"))
 def api(path)
   JSON.parse(DependencyFactory::Sources.capture({}, "gh", "api", path))
 end
