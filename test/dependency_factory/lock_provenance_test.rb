@@ -6,8 +6,6 @@ class DependencyFactoryLockProvenanceTest < Minitest::Test
     lock = provenance(entry("fnox", "linux-x64", verified: false) + entry("fnox", "macos-arm64", verified: true))
 
     assert_empty lock.lost_since(lock)
-    assert_empty lock.verified_by(lock, "macos-arm64")
-    assert_empty lock.unverified_by(lock, "macos-arm64")
   end
 
   def test_losing_the_provenance_type_is_reported_but_losing_only_verification_is_not
@@ -25,27 +23,9 @@ class DependencyFactoryLockProvenanceTest < Minitest::Test
     assert_equal ["fnox macos-arm64"], provenance(entry("fnox", "linux-x64", verified: true)).lost_since(before)
   end
 
-  def test_native_runs_report_newly_verified_platforms_only_for_their_platform
-    committed = provenance(entry("fnox", "linux-x64", verified: false) + entry("fnox", "macos-arm64", verified: false))
-    native = provenance(entry("fnox", "linux-x64", verified: false) + entry("fnox", "macos-arm64", verified: true))
-
-    assert_equal ["fnox macos-arm64: provenance verified natively"], committed.verified_by(native, "macos-arm64")
-    assert_empty committed.verified_by(native, "linux-x64")
-    assert_empty committed.unverified_by(native, "macos-arm64")
-  end
-
-  def test_claimed_verification_that_a_native_run_cannot_reproduce_is_an_error
-    committed = provenance(entry("fnox", "macos-arm64", verified: true))
-    native = provenance(entry("fnox", "macos-arm64", provenance: nil))
-
-    assert_equal ["fnox macos-arm64: provenance_verified could not be reproduced natively"], committed.unverified_by(native, "macos-arm64")
-    assert_empty committed.verified_by(native, "macos-arm64")
-  end
-
   def test_reads_nested_platform_tables_and_locks_without_tools
-    nested = provenance("[tools.jq.platforms.linux-x64]\nurl = \"https://example.test/jq\"\nprovenance = \"github-attestations\"\nprovenance_verified = true\n")
-
-    assert_equal ["jq linux-x64: provenance verified natively"], provenance("").verified_by(nested, "linux-x64")
+    nested = provenance("[tools.jq.platforms.linux-x64]\nprovenance = \"github-attestations\"\n")
+    assert_equal ["jq linux-x64"], provenance("").lost_since(nested)
   end
 
   private

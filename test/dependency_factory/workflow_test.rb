@@ -42,6 +42,25 @@ class DependencyWorkflowTest < Minitest::Test
     assert steps.any? { |step| step["name"] == "Require the claim to be stored" }
   end
 
+  def test_native_success_and_current_attempt_receipts_gate_publication
+    jobs = workflow.fetch("jobs")
+    assert_equal %w[agent detection], jobs.fetch("native").fetch("needs")
+    assert_equal "./.github/workflows/lock-provenance.yml", jobs.fetch("native").fetch("uses")
+    publisher = jobs.fetch("safe_outputs")
+    assert_includes publisher.fetch("needs"), "native"
+    assert_includes publisher.fetch("if"), "needs.native.result == 'success'"
+    download = publisher.fetch("steps").find { |step| step.dig("with", "path") == "/tmp/native-receipts" }
+    assert_equal "native-${{ github.run_attempt }}-*", download.dig("with", "pattern")
+    refute download.fetch("with").key?("run-id")
+    native = YAML.load_file(File.expand_path("../../.github/workflows/lock-provenance.yml", __dir__))
+    assert_equal "read", native.dig("permissions", "contents")
+    steps = native.dig("jobs", "native", "steps")
+    refute steps.first.dig("with", "persist-credentials")
+    assert_equal "${{ inputs.factory && github.sha || github.event.pull_request.head.sha || github.sha }}", steps.first.dig("with", "ref")
+    receipt = steps.find { |step| step.dig("with", "name").to_s.start_with?("native-${{") }
+    assert_equal "success()", receipt.fetch("if")
+  end
+
   private
 
   def workflow

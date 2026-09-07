@@ -29,11 +29,17 @@ def source_identity(url, version)
   [uri.scheme, uri.host, path]
 end
 
+def lock_specifiers(record, version)
+  abort "Invalid lock specifiers" if record.key?("specifiers") && record.delete("specifiers") != [version]
+end
+
 def mise_lock(content)
   data = TomlRB.parse(content)
+  abort "Unsupported lock format" unless [nil, 1].include?(data.delete("lockfile_version"))
   data.fetch("tools").each_value do |records|
     records.each do |record|
       version = record.fetch("version")
+      lock_specifiers(record, version)
       record["version"] = exact_version(version)
       record.each_value do |platform|
         next unless platform.is_a?(Hash)

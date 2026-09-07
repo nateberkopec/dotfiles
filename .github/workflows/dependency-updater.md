@@ -74,9 +74,14 @@ tools:
 network:
   allowed: [defaults, github, go, linux-distros, node, ruby, rust, api.osv.dev, appupdates.agilebits.com, blog.rustlang.org, cache.agilebits.com, cmake.org, dl.google.com, formulae.brew.sh, mise-versions.jdx.dev, mise.run, support.1password.com, tmaproduction.blob.core.windows.net, tuf-repo-cdn.sigstore.dev, www.ruby-lang.org]
 jobs:
+  native:
+    needs: [agent, detection]
+    uses: ./.github/workflows/lock-provenance.yml
+    with: {factory: true}
   safe_outputs:
-    if: "needs.agent.result == 'success'"
+    if: "needs.agent.result == 'success' && needs.native.result == 'success'"
 safe-outputs:
+  needs: [native]
   steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       with: {ref: "${{ github.sha }}", path: trusted-validator, fetch-depth: 0, persist-credentials: false}
@@ -84,13 +89,15 @@ safe-outputs:
       with: {ruby-version: ruby, working-directory: trusted-validator}
     - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
       with: {name: dependency-start, path: /tmp/dependency-start}
+    - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+      with: {pattern: "native-${{ github.run_attempt }}-*", path: /tmp/native-receipts, merge-multiple: true}
     - name: Validate the exact proposal in the fresh publisher job
       id: dependency_validation
       working-directory: trusted-validator
       env: {GH_TOKEN: "${{ github.token }}", BUNDLE_PATH: "${{ runner.temp }}/validator-bundle", BUNDLE_IGNORE_CONFIG: "1"}
       run: |
         bundle install --jobs 4
-        bundle exec ruby tools/ci/validate_dependency_publication.rb /tmp/gh-aw/agent /tmp/dependency-start
+        bundle exec ruby tools/ci/validate_dependency_publication.rb /tmp/gh-aw/agent /tmp/dependency-start /tmp/native-receipts
         echo "validated=true" >> "$GITHUB_OUTPUT"
     - name: Require completed validation
       if: always()

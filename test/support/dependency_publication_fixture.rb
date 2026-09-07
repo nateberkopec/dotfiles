@@ -58,6 +58,9 @@ module DependencyPublicationFixture
   def publication_bundle(fixture, refs = ["dependency-update-test"])
     path = File.join(fixture[:directory], "../aw-dependency-update-test.bundle")
     fixture_git(fixture[:agent], "bundle", "create", path, *refs)
+    receipts = File.join(fixture[:root], "receipts")
+    FileUtils.mkdir_p(receipts)
+    %w[linux-x64 macos-arm64].each { |platform| File.write(File.join(receipts, "#{platform}.sha"), "#{fixture_git(fixture[:agent], "rev-parse", "HEAD")}\n") }
     path
   end
 
@@ -72,7 +75,7 @@ module DependencyPublicationFixture
       File.write(File.join(bin, "gh"), "#!/bin/sh\nprintf '%s\\n' '{\"object\":{\"sha\":\"#{context.fetch("base")}\"}}'\n")
       File.chmod(0o755, File.join(bin, "gh"))
     end
-    Open3.capture2e({"LC_ALL" => locale, "LANG" => locale, "RUBYOPT" => nil, "PATH" => "#{fixture[:root]}/bin:#{ENV["PATH"]}", "GITHUB_REPOSITORY" => "test/test", "BUNDLE_GEMFILE" => File.join(fixture[:source], "Gemfile"), "BUNDLE_PATH" => bundle_path && File.expand_path(bundle_path, Bundler.root)}, "bundle", "exec", "ruby", script, fixture[:directory], fixture[:evidence], chdir: fixture[:source])
+    Open3.capture2e({"LC_ALL" => locale, "LANG" => locale, "RUBYOPT" => nil, "PATH" => "#{fixture[:root]}/bin:#{ENV["PATH"]}", "GITHUB_REPOSITORY" => "test/test", "BUNDLE_GEMFILE" => File.join(fixture[:source], "Gemfile"), "BUNDLE_PATH" => bundle_path && File.expand_path(bundle_path, Bundler.root)}, "bundle", "exec", "ruby", script, fixture[:directory], fixture[:evidence], File.join(fixture[:root], "receipts"), chdir: fixture[:source])
   end
 
   def publication_item

@@ -45,7 +45,7 @@ def import_bundle(item, directory, target, base)
   source
 end
 
-directory, evidence = ARGV.map { |path| File.expand_path(path) }
+directory, evidence, receipts = ARGV.map { |path| File.expand_path(path) }
 source = Dir.pwd
 ENV["BUNDLE_GEMFILE"] = File.join(source, "Gemfile")
 ENV["GIT_CONFIG_GLOBAL"] = ENV["GIT_CONFIG_SYSTEM"] = File::NULL
@@ -69,6 +69,16 @@ Dir.mktmpdir("dependency-validation-") do |root|
       %w[check_dependency_update check_dependency_eligibility].each do |name|
         arguments = name.end_with?("eligibility") ? [context_path, File.join(evidence, "dependency-candidates.json")] : [context.fetch("base")]
         abort "Invalid dependency change" unless system("bundle", "exec", "ruby", File.join(source, "tools/ci/#{name}.rb"), *arguments)
+      end
+      if ENV["NATIVE_PLATFORM"]
+        abort "Native verification failed" unless system("bundle", "exec", "ruby", File.join(source, "tools/ci/reproduce_mise_lock.rb"), ENV.fetch("NATIVE_PLATFORM"), receipts)
+      else
+        sha = git("rev-parse", "HEAD").strip
+        abort "Missing native receipts" unless receipts
+        %w[linux-x64 macos-arm64].each do |platform|
+          path = File.join(receipts, "#{platform}.sha")
+          abort "Missing or mismatched native receipt: #{platform}" unless File.file?(path) && File.binread(path) == "#{sha}\n"
+        end
       end
     end
   end
