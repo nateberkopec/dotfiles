@@ -184,7 +184,11 @@ safe-outputs:
       with:
         script: |
           const pr = JSON.parse(require('fs').readFileSync('/tmp/gh-aw/agent/pr-context.json', 'utf8'));
-          if (pr.number && (await github.rest.pulls.get({...context.repo, pull_number: pr.number})).data.head.sha !== pr.head) core.setFailed('PR head changed after validation');
+          if (pr.number) {
+            const current = (await github.rest.pulls.get({...context.repo, pull_number: pr.number})).data;
+            if (current.head.sha !== pr.head) core.setFailed('PR head changed after validation');
+          }
+          if (pr.benchmark && (await github.rest.git.getRef({...context.repo, ref: 'heads/' + pr.base_branch})).data.object.sha !== pr.base) core.setFailed('Benchmark base changed after validation');
   threat-detection:
     max-ai-credits: 50
     engine:
