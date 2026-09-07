@@ -49,8 +49,8 @@ runs-on: ubuntu-22.04 # Prepared Ruby must also run against the agent image libc
 
 engine:
   id: codex
-  args: [-c, 'model_reasoning_effort="low"']
-model: gpt-5.6-sol
+  args: [-c, 'model_reasoning_effort="high"']
+model: gpt-5.6-luna
 max-ai-credits: 200
 timeout-minutes: 45
 
@@ -240,34 +240,6 @@ safe-outputs:
       model: gpt-5.6-luna
       # gh-aw 0.86.2 omits the separator before detection args; keep the leading space.
       args: [" -c", 'model_reasoning_effort="high"']
-  create-pull-request:
-    branch-prefix: "${{ inputs.benchmark && 'benchmark/' || 'dependency-update-' }}"
-    patch-format: bundle
-    github-token: ${{ secrets.DEPENDENCY_FACTORY_PAT }}
-    labels: [dependency-update]
-    base-branch: "${{ inputs.benchmark && 'dependency-benchmark-642' || 'main' }}"
-    draft: false
-    fallback-as-issue: false
-    if-no-changes: ignore
-    allowed-files: &dependency-files
-      - .mise.toml
-      - Gemfile.lock
-      - config/config.yml
-      - config/dependency-updater.yml
-      - config/mise.version
-      - files/home/.config/mise/config.toml
-      - files/home/.config/mise/mise.lock
-      - files/home/.pi/agent/settings.json
-    protected-files: allowed
-  push-to-pull-request-branch:
-    patch-format: bundle
-    github-token: ${{ secrets.DEPENDENCY_FACTORY_PAT }}
-    target: "*"
-    required-labels: [dependency-update]
-    fallback-as-pull-request: false
-    if-no-changes: ignore
-    allowed-files: *dependency-files
-    protected-files: allowed
   update-pull-request:
     target: "*"
     required-labels: [dependency-update]
