@@ -82,15 +82,15 @@ pre-agent-steps:
       cat > /tmp/gh-aw/agent/checks/smoke.sh <<'SH'
       set -eu
       export PATH="$(find /opt/hostedtoolcache -maxdepth 5 -type d -name bin | tr '\n' ':')$PATH"
-      git --version; gh --version; node --version; /tmp/prepared-mise --version
       export BUNDLE_GEMFILE=/wrong BUNDLE_APP_CONFIG=/wrong BUNDLE_PATH=/wrong RUBYOPT=-r/wrong
       checks=/tmp/gh-aw/agent/checks
       sh "$checks/dependency_ruby.sh" -rtoml-rb "$checks/smoke.rb"
       sh "$checks/dependency_ruby.sh" "$checks/check_dependency_report.rb" "$checks/candidates.json" "$checks/report.md" "$HEAD" "$checks/notes.json"
       sh "$checks/dependency_ruby.sh" "$checks/check_dependency_update.rb" "$HEAD"
+      git --version; gh --version; node --version; /tmp/prepared/mise --version
       SH
       docker run --rm --network none --user "$(id -u):$(id -g)" --entrypoint /bin/bash \
-        -e MISE_TRUSTED_CONFIG_PATHS="$GITHUB_WORKSPACE" -e HEAD="$(git rev-parse HEAD)" -v "$(command -v mise):/tmp/prepared-mise:ro" -v "$GITHUB_WORKSPACE:$GITHUB_WORKSPACE:ro" -v /opt:/opt:ro -v /tmp/gh-aw:/tmp/gh-aw:ro -w "$GITHUB_WORKSPACE" \
+        -e HOME=/tmp -e MISE_TRUSTED_CONFIG_PATHS="$GITHUB_WORKSPACE" -e HEAD="$(git rev-parse HEAD)" -v "$(command -v mise):/tmp/prepared/mise:ro" -v "$GITHUB_WORKSPACE:$GITHUB_WORKSPACE:ro" -v /opt:/opt:ro -v /tmp/gh-aw:/tmp/gh-aw:ro -w "$GITHUB_WORKSPACE" \
         ghcr.io/github/gh-aw-firewall/agent:0.28.12@sha256:390051be4ed1847f774fd8980b61d3a3523574c0175d00c3fc7cdf2002a88202 \
         -lc 'sh /tmp/gh-aw/agent/checks/smoke.sh'
       mkdir -p "$RUNNER_TEMP/gh-aw/safeoutputs"
