@@ -45,6 +45,8 @@ permissions:
 
 env: {GH_AW_CODEX_MAX_REBUILD_FACTOR: "60"}
 
+runs-on: ubuntu-22.04 # Prepared Ruby must also run against the agent image libc.
+
 engine:
   id: codex
   args: [-c, 'model_reasoning_effort="low"']
