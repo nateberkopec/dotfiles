@@ -6,4 +6,5 @@ end
 module DependencyFactory
   ROOT = File.expand_path("../..", __dir__)
   CONFIG_PATH = "config/dependency-updater.yml"
+  DEPENDENCY_PATHS = %w[.mise.toml Gemfile.lock config/config.yml config/dependency-updater.yml config/mise.version files/home/.config/mise/config.toml files/home/.config/mise/mise.lock files/home/.pi/agent/settings.json].freeze
 end

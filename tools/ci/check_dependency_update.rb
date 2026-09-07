@@ -5,7 +5,7 @@ EXACT_VERSION = /\A\d[\w.+-]*\z/
 FUZZY_VERSION = /(?:\A|[.-])(?:latest|lts|x)(?:\z|[.-])/i
 base = ARGV.fetch(0)
 abort "Expected a commit SHA" unless base.match?(/\A[0-9a-f]{40}\z/)
-allowed = %w[.mise.toml Gemfile.lock config/config.yml config/dependency-updater.yml config/mise.version files/home/.config/mise/config.toml files/home/.config/mise/mise.lock files/home/.pi/agent/settings.json]
+allowed = DependencyFactory::DEPENDENCY_PATHS
 paths = `git diff --name-only #{base}...HEAD`.lines.map(&:chomp)
 abort "Dependency update changed forbidden files: #{paths - allowed}" unless (paths - allowed).empty?
 

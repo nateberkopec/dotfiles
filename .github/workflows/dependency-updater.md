@@ -77,7 +77,6 @@ steps:
       cache: true
       experimental: true
   - name: Prepare reusable evidence and capabilities
-    id: evidence
     env:
       GITHUB_TOKEN: ${{ github.token }}
     run: |
@@ -93,32 +92,53 @@ steps:
       cp tools/ci/dependency_ruby.sh Gemfile Gemfile.lock /tmp/gh-aw/agent/checks/
       ruby -rrbconfig -e 'puts File.dirname(RbConfig.ruby)' > /tmp/gh-aw/agent/checks/ruby-bin
       printf '%s\n' "$PWD/vendor/bundle" > /tmp/gh-aw/agent/checks/bundle-path
-      cd /tmp/gh-aw/agent
-      echo "digest=$(cat pr-context.json dependency-candidates.json release-notes.json | sha256sum | cut -d ' ' -f1)" >> "$GITHUB_OUTPUT"
+  - name: Preserve trusted pre-agent evidence
+    uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+    with:
+      name: dependency-evidence
+      path: |
+        /tmp/gh-aw/agent/pr-context.json
+        /tmp/gh-aw/agent/dependency-candidates.json
+        /tmp/gh-aw/agent/release-notes.json
 
 jobs:
-  safe_outputs: {if: &validated "needs.agent.result == 'success'"}
-  detection: {if: *validated}
-  conclusion: {if: *validated}
-
-post-steps:
-  - name: Verify immutable evidence, mechanical diff, and publication
-    id: validate
-    env:
-      GH_TOKEN: ${{ github.token }}
-      EXPECTED_DIGEST: ${{ steps.evidence.outputs.digest }}
-      GIT_NO_REPLACE_OBJECTS: "1"
-    run: |
-      test "$(cat /tmp/gh-aw/agent/{pr-context,dependency-candidates,release-notes}.json | sha256sum | cut -d ' ' -f1)" = "$EXPECTED_DIGEST"
-      git archive "$GITHUB_SHA" tools/ci Gemfile Gemfile.lock | tar -x -C /tmp
-      export BUNDLE_GEMFILE=/tmp/Gemfile BUNDLE_PATH="$GITHUB_WORKSPACE/vendor/bundle"
-      bundle install
-      bundle exec ruby /tmp/tools/ci/check_dependency_output.rb
-      echo "validated=true" >> "$GITHUB_OUTPUT"
-  - name: Require completed validation even when an earlier step was skipped
-    if: always()
-    env: {VALIDATED: "${{ steps.validate.outputs.validated }}"}
-    run: test "$VALIDATED" = true
+  safe_outputs: &publication
+    needs: [validation]
+    if: "needs.agent.result == 'success' && needs.validation.result == 'success' && needs.validation.outputs.validated == 'true'"
+  detection: *publication
+  conclusion: *publication
+  validation:
+    needs: [agent]
+    runs-on: ubuntu-latest
+    permissions: {contents: read, actions: read, pull-requests: read}
+    outputs: {validated: "${{ steps.validate.outputs.validated }}"}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with: {ref: "${{ github.sha }}", fetch-depth: 0, persist-credentials: false}
+      - uses: ruby/setup-ruby@4c56a21280b36d862b5fc31348f463d60bdc55d5
+        with: {ruby-version: ruby}
+      - name: Install trusted validator dependencies without an agent cache
+        run: bundle install --jobs 4
+        env: {BUNDLE_PATH: "${{ runner.temp }}/validator-bundle", BUNDLE_IGNORE_CONFIG: "1"}
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with: {name: agent, path: /tmp/gh-aw}
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with: {name: dependency-evidence, path: /tmp/dependency-evidence}
+      - name: Validate immutable publisher input in private Git metadata
+        id: validate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BUNDLE_PATH: ${{ runner.temp }}/validator-bundle
+          BUNDLE_IGNORE_CONFIG: "1"
+        run: |
+          bundle exec ruby tools/ci/validate_dependency_publication.rb /tmp/gh-aw/agent /tmp/dependency-evidence /tmp/publication.sha256
+          echo "validated=true" >> "$GITHUB_OUTPUT"
+      - name: Require completed validation even if skipped or missing
+        if: always()
+        env: {VALIDATED: "${{ steps.validate.outputs.validated }}"}
+        run: test "$VALIDATED" = true
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with: {name: dependency-validation, path: /tmp/publication.sha256}
 
 tools:
   edit:
@@ -154,6 +174,17 @@ network:
     - www.ruby-lang.org
 
 safe-outputs:
+  steps:
+    - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+      with: {name: dependency-validation, path: /tmp/validated-publication}
+    - name: Recheck exact validated publisher input
+      run: sha256sum --check /tmp/validated-publication/publication.sha256
+    - name: Recheck PR head immediately before mutation
+      uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3
+      with:
+        script: |
+          const pr = JSON.parse(require('fs').readFileSync('/tmp/gh-aw/agent/pr-context.json', 'utf8'));
+          if (pr.number && (await github.rest.pulls.get({...context.repo, pull_number: pr.number})).data.head.sha !== pr.head) core.setFailed('PR head changed after validation');
   threat-detection:
     max-ai-credits: 50
     engine:
