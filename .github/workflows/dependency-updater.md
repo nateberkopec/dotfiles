@@ -70,7 +70,7 @@ steps:
       cp -R tools/ci/dependency_factory /tmp/gh-aw/agent/checks/
       printf '%s\n' '{"candidates":[],"generated_at":"2026-09-06T18:11:29Z","minimum_release_age_days":3}' > /tmp/gh-aw/agent/checks/candidates.json
       printf '%s\n' '{"packages":{}}' > /tmp/gh-aw/agent/checks/notes.json
-      printf '%s\n' '```json dependency-decisions' '{"outcome":"no-change","decisions":[]}' '```' > /tmp/gh-aw/agent/checks/report.md
+      printf '%s\n' '```json dependency-decisions' '{"outcome":"researched","decisions":[]}' '```' > /tmp/gh-aw/agent/checks/report.md
       ruby -rrbconfig -e 'puts File.dirname(RbConfig.ruby)' > /tmp/gh-aw/agent/checks/ruby-bin
       printf '%s\n' "$PWD/vendor/bundle" > /tmp/gh-aw/agent/checks/bundle-path
       printf '%s\n' 'abort unless Bundler.default_gemfile.to_s == "/tmp/gh-aw/agent/checks/Gemfile"' 'puts "Pinned Ruby #{RUBY_VERSION} loaded toml-rb despite login-shell and Bundler redirection"' > /tmp/gh-aw/agent/checks/smoke.rb
@@ -90,7 +90,7 @@ pre-agent-steps:
       sh "$checks/dependency_ruby.sh" "$checks/check_dependency_update.rb" "$HEAD"
       SH
       docker run --rm --network none --user "$(id -u):$(id -g)" --entrypoint /bin/bash \
-        -e HEAD="$(git rev-parse HEAD)" -v "$(command -v mise):/tmp/prepared-mise:ro" -v "$GITHUB_WORKSPACE:$GITHUB_WORKSPACE:ro" -v /opt:/opt:ro -v /tmp/gh-aw:/tmp/gh-aw:ro -w "$GITHUB_WORKSPACE" \
+        -e MISE_TRUSTED_CONFIG_PATHS="$GITHUB_WORKSPACE" -e HEAD="$(git rev-parse HEAD)" -v "$(command -v mise):/tmp/prepared-mise:ro" -v "$GITHUB_WORKSPACE:$GITHUB_WORKSPACE:ro" -v /opt:/opt:ro -v /tmp/gh-aw:/tmp/gh-aw:ro -w "$GITHUB_WORKSPACE" \
         ghcr.io/github/gh-aw-firewall/agent:0.28.12@sha256:390051be4ed1847f774fd8980b61d3a3523574c0175d00c3fc7cdf2002a88202 \
         -lc 'sh /tmp/gh-aw/agent/checks/smoke.sh'
       mkdir -p "$RUNNER_TEMP/gh-aw/safeoutputs"
