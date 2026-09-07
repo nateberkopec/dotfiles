@@ -12,6 +12,7 @@ concurrency: {group: dependency-factory, cancel-in-progress: false, queue: max}
 permissions: {actions: read, contents: read, issues: read, pull-requests: read}
 engine:
   id: codex
+  env: {GH_AW_CODEX_CONTEXT_REBUILD_CIRCUIT_BREAKER: "false"}
   args: [-c, 'model_reasoning_effort="high"']
 model: gpt-5.6-luna
 max-ai-credits: 85
