@@ -88,6 +88,8 @@ steps:
       cp .github/dependency-updater.md /tmp/gh-aw/agent/mission.md
       mkdir -p /tmp/gh-aw/agent/checks
       cp -R tools/ci/dependency_factory tools/ci/dependency_factory.rb tools/ci/check_dependency*.rb /tmp/gh-aw/agent/checks/
+      mkdir -p /tmp/gh-aw/agent/checks/runtime-lib
+      cp -L /usr/lib/x86_64-linux-gnu/libyaml-0.so.2 /tmp/gh-aw/agent/checks/runtime-lib/
       cp tools/ci/dependency_ruby.sh Gemfile Gemfile.lock /tmp/gh-aw/agent/checks/
       ruby -rrbconfig -e 'puts File.dirname(RbConfig.ruby)' > /tmp/gh-aw/agent/checks/ruby-bin
       printf '%s\n' "$PWD/vendor/bundle" > /tmp/gh-aw/agent/checks/bundle-path
