@@ -17,7 +17,7 @@ abort "Missing explicit outcome" if items.empty?
 items.each do |item|
   next if %w[missing_data missing_tool report_incomplete noop].include?(item["type"])
   abort "Unexpected repository" if item["repo"] && item["repo"] != ENV.fetch("GITHUB_REPOSITORY")
-  abort "Unexpected base" if item["base"] && item["base"] != "main"
+  abort "Unexpected base" if item["base"] && item["base"] != "dependency-benchmark-642"
   abort "Unexpected labels" if item["labels"] && item["labels"] != ["dependency-update"]
   abort "Expected draft proposal" if item.key?("draft") && item["draft"] != true
   abort "Unexpected output fields" unless allowed.key?(item["type"]) && (item.keys - allowed.fetch(item["type"]) - %w[secrecy integrity]).empty?

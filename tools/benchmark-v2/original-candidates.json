@@ -1,0 +1,334 @@
+{
+  "generated_at": "2026-09-06T18:11:29Z",
+  "minimum_release_age_days": 3,
+  "candidates": [
+    {
+      "name": "hk",
+      "kind": "mise",
+      "manifest": ".mise.toml",
+      "current": "1.56.1",
+      "eligible": "1.57.0",
+      "latest": "1.58.1",
+      "published": {
+        "1.57.0": "2026-08-30T23:48:55.0Z",
+        "1.58.1": "2026-09-05T19:46:14.0Z"
+      },
+      "source": "https://github.com/jdx/hk/releases/tag/v1.57.0"
+    },
+    {
+      "name": "github:aubepkg/aube",
+      "kind": "mise",
+      "manifest": "files/home/.config/mise/config.toml",
+      "current": "2.2.4",
+      "eligible": "2.2.4",
+      "latest": "2.2.12",
+      "published": {
+        "2.2.4": "2026-08-31T15:45:23Z",
+        "2.2.12": "2026-09-06T00:44:39Z"
+      },
+      "source": "https://github.com/aubepkg/aube/releases/tag/v2.2.12"
+    },
+    {
+      "name": "go",
+      "kind": "mise",
+      "manifest": "files/home/.config/mise/config.toml",
+      "current": "1.27.0",
+      "eligible": "1.27.1",
+      "latest": "1.27.1",
+      "published": {
+        "1.27.1": "2026-09-01T19:52:53.0Z"
+      },
+      "source": null
+    },
+    {
+      "name": "rust",
+      "kind": "mise",
+      "manifest": "files/home/.config/mise/config.toml",
+      "current": "1.98.0",
+      "eligible": "1.98.1",
+      "latest": "1.98.1",
+      "published": {
+        "1.98.1": "2026-09-03T13:14:07.0Z"
+      },
+      "source": "https://releases.rs/docs/1.98.1/"
+    },
+    {
+      "name": "cargo:broot",
+      "kind": "mise",
+      "manifest": "files/home/.config/mise/config.toml",
+      "current": "1.59.0",
+      "eligible": "1.59.0",
+      "latest": "1.60.0",
+      "published": {
+        "1.59.0": "2026-08-24T09:30:45Z",
+        "1.60.0": "2026-09-05T16:45:49Z"
+      },
+      "source": null
+    },
+    {
+      "name": "npm:@openai/codex",
+      "kind": "mise",
+      "manifest": "files/home/.config/mise/config.toml",
+      "current": "0.151.0",
+      "eligible": "0.153.0",
+      "latest": "0.153.4",
+      "published": {
+        "0.153.0": "2026-09-03T01:42:05.774Z",
+        "0.153.4": "2026-09-04T23:31:18.513Z"
+      },
+      "source": null
+    },
+    {
+      "name": "pipx",
+      "kind": "mise",
+      "manifest": "files/home/.config/mise/config.toml",
+      "current": "1.16.7",
+      "eligible": "1.17.2",
+      "latest": "1.17.2",
+      "published": {
+        "1.17.2": "2026-09-01T21:50:56.0Z"
+      },
+      "source": "https://github.com/pypa/pipx/releases/tag/1.17.2"
+    },
+    {
+      "name": "npm:@earendil-works/pi-coding-agent",
+      "kind": "mise",
+      "manifest": "files/home/.config/mise/config.toml",
+      "current": "0.84.4",
+      "eligible": "0.84.4",
+      "latest": "0.85.1",
+      "published": {
+        "0.84.4": "2026-08-28T22:07:57.753Z",
+        "0.85.1": "2026-09-05T12:17:19.281Z"
+      },
+      "source": null
+    },
+    {
+      "name": "github:BarutSRB/OmniWM",
+      "kind": "mise",
+      "manifest": "files/home/.config/mise/config.toml",
+      "current": "0.6.4",
+      "eligible": "0.6.5",
+      "latest": "0.6.7",
+      "published": {
+        "0.6.5": "2026-09-02T15:45:31Z",
+        "0.6.7": "2026-09-06T09:00:23Z"
+      },
+      "source": "https://github.com/BarutSRB/OmniWM/releases/tag/v0.6.5"
+    },
+    {
+      "name": "watchexec",
+      "kind": "mise",
+      "manifest": "files/home/.config/mise/config.toml",
+      "current": "2.7.0",
+      "eligible": "2.7.1",
+      "latest": "2.7.2",
+      "published": {
+        "2.7.1": "2026-09-03T09:42:24.0Z",
+        "2.7.2": "2026-09-06T04:28:45.0Z"
+      },
+      "source": "https://github.com/watchexec/watchexec/releases/tag/v2.7.1"
+    },
+    {
+      "name": "fnox",
+      "kind": "mise",
+      "manifest": "files/home/.config/mise/config.toml",
+      "current": "1.31.1",
+      "eligible": "1.35.0",
+      "latest": "1.35.1",
+      "published": {
+        "1.35.0": "2026-09-03T10:27:21.0Z",
+        "1.35.1": "2026-09-05T19:24:01.0Z"
+      },
+      "source": "https://github.com/jdx/fnox/releases/tag/v1.35.0"
+    },
+    {
+      "name": "aqua:fish-shell/fish-shell",
+      "kind": "mise",
+      "manifest": "files/home/.config/mise/config.toml",
+      "current": "4.8.1",
+      "eligible": "4.9.0",
+      "latest": "4.9.2",
+      "published": {
+        "4.9.0": "2026-09-03T16:51:16Z",
+        "4.9.2": "2026-09-05T11:15:05Z"
+      },
+      "source": "https://github.com/fish-shell/fish-shell/releases/tag/4.9.0"
+    },
+    {
+      "name": "gh",
+      "kind": "mise",
+      "manifest": "files/home/.config/mise/config.toml",
+      "current": "2.98.0",
+      "eligible": "2.100.0",
+      "latest": "2.100.0",
+      "published": {
+        "2.100.0": "2026-09-03T15:43:20.0Z"
+      },
+      "source": "https://github.com/cli/cli/releases/tag/v2.100.0"
+    },
+    {
+      "name": "lazygit",
+      "kind": "mise",
+      "manifest": "files/home/.config/mise/config.toml",
+      "current": "0.64.1",
+      "eligible": "0.64.1",
+      "latest": "0.65.0",
+      "published": {
+        "0.64.1": "2026-08-12T17:57:59.0Z",
+        "0.65.0": "2026-09-05T15:12:29.0Z"
+      },
+      "source": "https://github.com/jesseduffield/lazygit/releases/tag/v0.65.0"
+    },
+    {
+      "name": "claude",
+      "kind": "mise",
+      "manifest": "files/home/.config/mise/config.toml",
+      "current": "2.1.220",
+      "eligible": "2.1.259",
+      "latest": "2.1.263",
+      "published": {
+        "2.1.259": "2026-09-02T22:33:51.0Z",
+        "2.1.263": "2026-09-06T02:54:20.0Z"
+      },
+      "source": "https://github.com/anthropics/claude-code/releases/tag/v2.1.259"
+    },
+    {
+      "name": "mise",
+      "kind": "github",
+      "manifest": "config/mise.version",
+      "current": "2026.8.14",
+      "eligible": "2026.9.1",
+      "latest": "2026.9.1",
+      "published": {
+        "2026.9.1": "2026-09-02T13:48:24Z"
+      },
+      "source": "https://github.com/jdx/mise/releases/tag/v2026.9.1"
+    },
+    {
+      "name": "pi:pi-mcp-adapter",
+      "kind": "npm",
+      "manifest": "files/home/.pi/agent/settings.json",
+      "current": "2.31.0",
+      "eligible": "2.32.1",
+      "latest": "2.32.1",
+      "published": {
+        "2.32.1": "2026-09-01T21:11:07.693Z"
+      },
+      "source": "https://www.npmjs.com/package/pi-mcp-adapter/v/2.32.1"
+    },
+    {
+      "name": "pi:@narumitw/pi-btw",
+      "kind": "npm",
+      "manifest": "files/home/.pi/agent/settings.json",
+      "current": "0.56.0",
+      "eligible": "0.56.2",
+      "latest": "0.57.0",
+      "published": {
+        "0.56.2": "2026-09-03T14:06:51.084Z",
+        "0.57.0": "2026-09-04T14:44:11.595Z"
+      },
+      "source": "https://www.npmjs.com/package/@narumitw/pi-btw/v/0.56.2"
+    },
+    {
+      "name": "pi:pi-subagents",
+      "kind": "npm",
+      "manifest": "files/home/.pi/agent/settings.json",
+      "current": "0.59.0",
+      "eligible": "0.64.0",
+      "latest": "0.66.0",
+      "published": {
+        "0.64.0": "2026-09-02T19:40:02.468Z",
+        "0.66.0": "2026-09-06T13:18:04.701Z"
+      },
+      "source": "https://www.npmjs.com/package/pi-subagents/v/0.64.0"
+    },
+    {
+      "name": "bundler",
+      "kind": "gem",
+      "manifest": "Gemfile.lock",
+      "current": "2.7.0",
+      "eligible": "4.0.20",
+      "latest": "4.0.20",
+      "published": {
+        "4.0.20": "2026-09-02T09:09:01.485Z"
+      },
+      "source": "https://rubygems.org/gems/bundler/versions/4.0.20"
+    },
+    {
+      "name": "Gemfile.lock",
+      "kind": "gem-lock",
+      "manifest": "Gemfile.lock",
+      "current": "4 gems behind",
+      "eligible": "regenerated",
+      "latest": "regenerated",
+      "published": {},
+      "source": "https://rubygems.org",
+      "members": [
+        {
+          "name": "parallel",
+          "kind": "gem",
+          "manifest": "Gemfile.lock",
+          "current": "1.27.0",
+          "eligible": "2.1.0",
+          "latest": "2.2.0",
+          "published": {
+            "2.2.0": "2026-09-06T06:48:13.761Z",
+            "2.1.0": "2026-04-24T00:42:17.270Z"
+          },
+          "source": "https://rubygems.org/gems/parallel/versions/2.1.0"
+        },
+        {
+          "name": "rubocop",
+          "kind": "gem",
+          "manifest": "Gemfile.lock",
+          "current": "1.81.7",
+          "eligible": "1.90.0",
+          "latest": "1.90.0",
+          "published": {
+            "1.90.0": "2026-08-24T11:40:27.160Z"
+          },
+          "source": "https://rubygems.org/gems/rubocop/versions/1.90.0"
+        },
+        {
+          "name": "rubocop-performance",
+          "kind": "gem",
+          "manifest": "Gemfile.lock",
+          "current": "1.26.1",
+          "eligible": "1.27.0",
+          "latest": "1.27.0",
+          "published": {
+            "1.27.0": "2026-08-16T05:00:19.499Z"
+          },
+          "source": "https://rubygems.org/gems/rubocop-performance/versions/1.27.0"
+        },
+        {
+          "name": "standard",
+          "kind": "gem",
+          "manifest": "Gemfile.lock",
+          "current": "1.52.0",
+          "eligible": "1.56.0",
+          "latest": "1.56.0",
+          "published": {
+            "1.56.0": "2026-07-15T18:58:34.333Z"
+          },
+          "source": "https://rubygems.org/gems/standard/versions/1.56.0"
+        }
+      ]
+    }
+  ],
+  "observation_only": [
+    {
+      "name": "go:github.com/noperator/yknotify",
+      "manifest": "files/home/.config/mise/config.toml",
+      "current": "0.0.0-20260324103239-0c773bdadedb",
+      "reason": "not a stable version"
+    },
+    {
+      "name": "pi:git:github.com/nijaru/pi-fast-mode@85c8b67a4a3f823e33ab0217a55f37d15e6e6eca",
+      "manifest": "files/home/.pi/agent/settings.json",
+      "current": "git:github.com/nijaru/pi-fast-mode@85c8b67a4a3f823e33ab0217a55f37d15e6e6eca",
+      "reason": "unpinned"
+    }
+  ]
+}
