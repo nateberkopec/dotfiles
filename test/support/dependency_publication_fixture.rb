@@ -32,10 +32,11 @@ module DependencyPublicationFixture
   end
 
   def resume_publication(fixture, head)
-    write_evidence(fixture, "pr-context", {"base" => fixture[:base], "head" => head, "number" => 2})
+    write_evidence(fixture, "pr-context", {"base" => fixture[:base], "base_head" => fixture[:base], "head" => head, "number" => 2, "branch" => "dependency-update-test"})
     Dir.mkdir(File.join(fixture[:root], "bin"))
     stub = File.join(fixture[:root], "bin/gh")
-    File.write(stub, "#!/bin/sh\nprintf '#{head}'\n")
+    response = {"head" => {"sha" => head}, "base" => {"ref" => "main", "sha" => fixture[:base]}, "state" => "open"}
+    File.write(stub, "#!/bin/sh\nprintf '%s\\n' '#{JSON.generate(response)}'\n")
     File.chmod(0o755, stub)
   end
 
