@@ -45,6 +45,8 @@ permissions:
 
 env: {GH_AW_CODEX_MAX_REBUILD_FACTOR: "60"}
 
+runs-on: ubuntu-22.04 # Prepared Ruby must also run against the agent image libc.
+
 engine:
   id: codex
   args: [-c, 'model_reasoning_effort="low"']
@@ -53,6 +55,9 @@ max-ai-credits: 200
 timeout-minutes: 45
 
 steps:
+  - name: Prepare mise like production
+    uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151
+    with: {install: false, cache: true, experimental: true}
   - name: Prepare the real Ruby bundle
     uses: ruby/setup-ruby@4c56a21280b36d862b5fc31348f463d60bdc55d5
     with:
@@ -61,18 +66,33 @@ steps:
   - name: Prepare the frozen checker runtime
     run: |
       mkdir -p /tmp/gh-aw/agent/checks
-      cp tools/ci/dependency_ruby.sh Gemfile Gemfile.lock /tmp/gh-aw/agent/checks/
+      cp tools/ci/dependency_ruby.sh tools/ci/check_dependency_*.rb tools/ci/dependency_factory.rb Gemfile Gemfile.lock /tmp/gh-aw/agent/checks/
+      cp -R tools/ci/dependency_factory /tmp/gh-aw/agent/checks/
+      printf '%s\n' '{"candidates":[],"generated_at":"2026-09-06T18:11:29Z","minimum_release_age_days":3}' > /tmp/gh-aw/agent/checks/candidates.json
+      printf '%s\n' '{"packages":{}}' > /tmp/gh-aw/agent/checks/notes.json
+      printf '%s\n' '```json dependency-decisions' '{"outcome":"no-change","decisions":[]}' '```' > /tmp/gh-aw/agent/checks/report.md
       ruby -rrbconfig -e 'puts File.dirname(RbConfig.ruby)' > /tmp/gh-aw/agent/checks/ruby-bin
       printf '%s\n' "$PWD/vendor/bundle" > /tmp/gh-aw/agent/checks/bundle-path
       printf '%s\n' 'abort unless Bundler.default_gemfile.to_s == "/tmp/gh-aw/agent/checks/Gemfile"' 'puts "Pinned Ruby #{RUBY_VERSION} loaded toml-rb despite login-shell and Bundler redirection"' > /tmp/gh-aw/agent/checks/smoke.rb
 
 pre-agent-steps:
   - name: Verify login-shell execution in the actual agent image without network
+    env: {GH_TOKEN: "${{ github.token }}"}
     run: |
+      cat > /tmp/gh-aw/agent/checks/smoke.sh <<'SH'
+      set -eu
+      export PATH="$(find /opt/hostedtoolcache -maxdepth 5 -type d -name bin | tr '\n' ':')$PATH"
+      git --version; gh --version; node --version; /tmp/prepared-mise --version
+      export BUNDLE_GEMFILE=/wrong BUNDLE_APP_CONFIG=/wrong BUNDLE_PATH=/wrong RUBYOPT=-r/wrong
+      checks=/tmp/gh-aw/agent/checks
+      sh "$checks/dependency_ruby.sh" -rtoml-rb "$checks/smoke.rb"
+      sh "$checks/dependency_ruby.sh" "$checks/check_dependency_report.rb" "$checks/candidates.json" "$checks/report.md" "$HEAD" "$checks/notes.json"
+      sh "$checks/dependency_ruby.sh" "$checks/check_dependency_update.rb" "$HEAD"
+      SH
       docker run --rm --network none --user "$(id -u):$(id -g)" --entrypoint /bin/bash \
-        -v "$GITHUB_WORKSPACE:$GITHUB_WORKSPACE:ro" -v /opt:/opt:ro -v /tmp/gh-aw:/tmp/gh-aw:ro -w "$GITHUB_WORKSPACE" \
+        -e HEAD="$(git rev-parse HEAD)" -v "$(command -v mise):/tmp/prepared-mise:ro" -v "$GITHUB_WORKSPACE:$GITHUB_WORKSPACE:ro" -v /opt:/opt:ro -v /tmp/gh-aw:/tmp/gh-aw:ro -w "$GITHUB_WORKSPACE" \
         ghcr.io/github/gh-aw-firewall/agent:0.28.12@sha256:390051be4ed1847f774fd8980b61d3a3523574c0175d00c3fc7cdf2002a88202 \
-        -lc 'BUNDLE_GEMFILE=/wrong BUNDLE_APP_CONFIG=/wrong BUNDLE_PATH=/wrong RUBYOPT=-r/wrong sh /tmp/gh-aw/agent/checks/dependency_ruby.sh -rtoml-rb /tmp/gh-aw/agent/checks/smoke.rb'
+        -lc 'sh /tmp/gh-aw/agent/checks/smoke.sh'
       mkdir -p "$RUNNER_TEMP/gh-aw/safeoutputs"
       printf '%s\n' '{"type":"noop","message":"Frozen Ruby login-shell regression passed inside the agent image; no model invocation"}' >> "$RUNNER_TEMP/gh-aw/safeoutputs/outputs.jsonl"
 
