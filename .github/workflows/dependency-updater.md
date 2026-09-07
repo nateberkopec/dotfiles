@@ -66,6 +66,10 @@ steps:
   - name: Prepare the frozen checker runtime
     run: |
       mkdir -p /tmp/gh-aw/agent/checks
+      mkdir -p /tmp/gh-aw/agent/checks/runtime-lib
+      dpkg-query -S /usr/lib/x86_64-linux-gnu/libyaml-0.so.2
+      cp -L /usr/lib/x86_64-linux-gnu/libyaml-0.so.2 /tmp/gh-aw/agent/checks/runtime-lib/
+      sha256sum /usr/lib/x86_64-linux-gnu/libyaml-0.so.2 /tmp/gh-aw/agent/checks/runtime-lib/libyaml-0.so.2
       cp tools/ci/dependency_ruby.sh tools/ci/check_dependency_*.rb tools/ci/dependency_factory.rb Gemfile Gemfile.lock /tmp/gh-aw/agent/checks/
       cp -R tools/ci/dependency_factory /tmp/gh-aw/agent/checks/
       printf '%s\n' '{"candidates":[],"generated_at":"2026-09-06T18:11:29Z","minimum_release_age_days":3}' > /tmp/gh-aw/agent/checks/candidates.json
