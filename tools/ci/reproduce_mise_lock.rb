@@ -13,13 +13,14 @@ Dir.mktmpdir("native-lock-") do |scratch|
   DependencyFactory::Sources.capture({}, "git", "-C", scratch, "checkout", "--quiet", "--detach", sha)
   generated = File.join(scratch, lock)
   expected = DependencyFactory::Sources.capture({}, "git", "-C", scratch, "show", "#{sha}:#{lock}")
-  File.write(generated, TomlRB.dump(TomlRB.parse(expected).slice("lockfile_version")))
+  proposed = TomlRB.parse(expected)
+  other = "platforms.#{(platform == "linux-x64") ? "macos-arm64" : "linux-x64"}"
+  seed = proposed.slice("lockfile_version").merge("tools" => proposed.fetch("tools").transform_values { |records| records.reject { |record| record.key?(other) && !record.key?("platforms.#{platform}") }.map { |record| record.slice("version", "backend", "options", "specifiers") } })
+  File.write(generated, TomlRB.dump(seed))
   command = File.expand_path("lock_native_platform.sh", __dir__)
   abort "Native generation failed" unless system("bash", command, platform, scratch, chdir: scratch)
   data = TomlRB.load_file(generated)
-  proposed = TomlRB.parse(expected).fetch("tools")
-  other = "platforms.#{(platform == "linux-x64") ? "macos-arm64" : "linux-x64"}"
-  proposed.each do |tool, records|
+  proposed.fetch("tools").each do |tool, records|
     keys = records.map { |record| record.values_at("version", "options") }
     abort "Ambiguous native records: #{tool}" unless keys.uniq == keys
     native = data.fetch("tools").fetch(tool)
@@ -27,7 +28,6 @@ Dir.mktmpdir("native-lock-") do |scratch|
       match = native.find { |entry| entry.values_at("version", "options") == record.values_at("version", "options") }
       match ? match[other] = record[other] : native.push(record.slice("version", "backend", "options", "specifiers", other))
     end
-    # mise preserves record order; align identities without importing native values.
     native.sort_by! { |entry| keys.index(entry.values_at("version", "options")) || keys.length }
   end
   File.write(generated, TomlRB.dump(data))

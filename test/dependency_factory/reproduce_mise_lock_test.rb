@@ -24,7 +24,7 @@ class ReproduceMiseLockTest < Minitest::Test
       File.write(lock_path(fixture), expected)
       fixture_commit(fixture[:agent])
       File.write(File.join(fixture[:root], "merged.lock"), expected)
-      script = "lock=\"$2/files/home/.config/mise/mise.lock\"\nif grep -q '\\[\\[tools' \"$lock\"; then cmp '#{fixture[:root]}/merged.lock' \"$lock\"; else cp '#{fixture[:root]}/canonical.lock' \"$lock\"; fi\n"
+      script = "lock=\"$2/files/home/.config/mise/mise.lock\"\nif grep -q 'checksum' \"$lock\"; then cmp '#{fixture[:root]}/merged.lock' \"$lock\"; else cp '#{fixture[:root]}/canonical.lock' \"$lock\"; fi\n"
       File.write(File.join(fixture[:source], "tools/ci/lock_native_platform.sh"), script)
       output, status = reproduce(fixture)
       assert status.success?, output
@@ -38,7 +38,7 @@ class ReproduceMiseLockTest < Minitest::Test
       File.write(lock_path(fixture), legacy)
       fixture_commit(fixture[:agent])
       File.write(File.join(fixture[:root], "canonical.lock"), legacy)
-      script = "lock=\"$2/files/home/.config/mise/mise.lock\"\nif ! grep -q '\\[\\[tools' \"$lock\"; then test ! -s \"$lock\" || exit 1; fi\ncp '#{fixture[:root]}/canonical.lock' \"$lock\"\n"
+      script = "lock=\"$2/files/home/.config/mise/mise.lock\"\nif ! grep -q 'checksum' \"$lock\"; then ! grep -q 'lockfile_version\\|platforms\\|checksum\\|provenance' \"$lock\" || exit 1; fi\ncp '#{fixture[:root]}/canonical.lock' \"$lock\"\n"
       File.write(File.join(fixture[:source], "tools/ci/lock_native_platform.sh"), script)
       output, status = reproduce(fixture)
       assert status.success?, output
@@ -58,7 +58,7 @@ class ReproduceMiseLockTest < Minitest::Test
       %w[linux-x64 macos-arm64].zip(records).each do |platform, record|
         File.write(File.join(fixture[:root], "#{platform}.lock"), TomlRB.dump({"lockfile_version" => 1, "tools" => {"tool" => [record]}}))
       end
-      script = "lock=\"$2/files/home/.config/mise/mise.lock\"\nif grep -q '\\[\\[tools' \"$lock\"; then cmp '#{fixture[:root]}/merged.lock' \"$lock\"; else cp \"#{fixture[:root]}/$1.lock\" \"$lock\"; fi\n"
+      script = "lock=\"$2/files/home/.config/mise/mise.lock\"\nif grep -q 'checksum' \"$lock\"; then cmp '#{fixture[:root]}/merged.lock' \"$lock\"; else test \"$(grep -c asset_pattern \"$lock\")\" -eq 1 && grep -q \"$1\" \"$lock\" && cp \"#{fixture[:root]}/$1.lock\" \"$lock\"; fi\n"
       File.write(File.join(fixture[:source], "tools/ci/lock_native_platform.sh"), script)
       %w[linux-x64 macos-arm64].each do |platform|
         output, status = reproduce(fixture, platform)
@@ -98,8 +98,8 @@ class ReproduceMiseLockTest < Minitest::Test
     reject_mutation { |text| text.sub("provenance_verified = false", "provenance_verified = true") }
   end
 
-  def test_stale_platform_independent_metadata_is_rejected
-    reject_mutation { |text| text.sub("backend = \"github:test/tool\"", "backend = \"github:other/tool\"") }
+  def test_stale_generated_metadata_is_rejected
+    reject_mutation { |text| text.sub("backend = \"github:test/tool\"", "backend = \"github:test/tool\"\nchecksum = \"stale\"") }
   end
 
   def test_omitted_native_record_is_rejected
