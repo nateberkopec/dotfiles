@@ -107,6 +107,50 @@ jobs:
     if: "needs.agent.result == 'success' && needs.validation.result == 'success' && needs.validation.outputs.validated == 'true'"
   detection: *publication
   conclusion: *publication
+  failure_accounting:
+    needs: [activation, agent, validation]
+    if: "always() && !(needs.agent.result == 'success' && needs.validation.result == 'success' && needs.validation.outputs.validated == 'true')"
+    runs-on: ubuntu-latest
+    permissions: {actions: read, contents: read, issues: read, pull-requests: read}
+    concurrency: {group: gh-aw-conclusion-dependency-updater, cancel-in-progress: false, queue: max}
+    steps:
+      - uses: github/gh-aw-actions/setup@9271a1804551c0dc4fb0085a97979950aa2f8489
+        with: {destination: "${{ runner.temp }}/gh-aw/actions", job-name: conclusion}
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        continue-on-error: true
+        with: {pattern: "{agent,agent-output-fallback}", merge-multiple: true, path: /tmp/gh-aw}
+      - name: Collect original usage without publishing agent output
+        if: always()
+        run: bash "$RUNNER_TEMP/gh-aw/actions/collect_usage_artifact_files.sh"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with: {name: usage, path: /tmp/gh-aw/usage/, if-no-files-found: ignore}
+      - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        if: always()
+        with:
+          key: agentic-workflow-usage-dependencyupdater-${{ github.run_id }}
+          restore-keys: agentic-workflow-usage-dependencyupdater-
+          path: /tmp/gh-aw/agentic-workflow-usage-cache.jsonl
+      - name: Record original usage with the pinned daily accounting implementation
+        if: always()
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3
+        with:
+          script: |
+            const path = require('path');
+            const directory = path.join(process.env.RUNNER_TEMP, 'gh-aw/actions');
+            require(path.join(directory, 'setup_globals.cjs')).setupGlobals(core, github, context);
+            await require(path.join(directory, 'write_daily_aic_usage_cache.cjs')).main();
+      - uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        if: always()
+        with:
+          key: agentic-workflow-usage-dependencyupdater-${{ github.run_id }}
+          path: /tmp/gh-aw/agentic-workflow-usage-cache.jsonl
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with: {name: aic-usage-cache, path: /tmp/gh-aw/agentic-workflow-usage-cache.jsonl, retention-days: 7}
+      - name: Summarize publication failure without repository mutation
+        if: always()
+        run: echo 'Publication did not complete validation. Inspect the agent and validation jobs; original usage was retained without publishing agent output.' >> "$GITHUB_STEP_SUMMARY"
   validation:
     needs: [agent]
     runs-on: ubuntu-latest
@@ -229,6 +273,7 @@ safe-outputs:
     required-labels: [dependency-update]
     title: false
     body: true
+    update-branch: false
   add-comment: {target: "*"}
   noop: {report-as-issue: false}
 ---

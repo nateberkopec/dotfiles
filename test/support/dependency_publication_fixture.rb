@@ -31,6 +31,14 @@ module DependencyPublicationFixture
     end
   end
 
+  def resume_publication(fixture, head)
+    write_evidence(fixture, "pr-context", {"base" => fixture[:base], "head" => head, "number" => 2})
+    Dir.mkdir(File.join(fixture[:root], "bin"))
+    stub = File.join(fixture[:root], "bin/gh")
+    File.write(stub, "#!/bin/sh\nprintf '#{head}'\n")
+    File.chmod(0o755, stub)
+  end
+
   def write_evidence(fixture, name, data)
     fixture.values_at(:directory, :evidence).each { |path| File.write(File.join(path, "#{name}.json"), JSON.generate(data)) }
   end
@@ -56,7 +64,7 @@ module DependencyPublicationFixture
     File.write(File.join(fixture[:directory], "../agent_output.json"), JSON.generate("items" => items))
     script = File.join(fixture[:source], "tools/ci/validate_dependency_publication.rb")
     bundle_path = Bundler.settings[:path]
-    Open3.capture2e({"GITHUB_REPOSITORY" => "test/test", "BUNDLE_GEMFILE" => File.join(fixture[:source], "Gemfile"), "BUNDLE_PATH" => bundle_path && File.expand_path(bundle_path, Bundler.root)}, "bundle", "exec", "ruby", script, fixture[:directory], fixture[:evidence], File.join(fixture[:root], "publication.sha256"), chdir: fixture[:source])
+    Open3.capture2e({"PATH" => "#{fixture[:root]}/bin:#{ENV["PATH"]}", "GITHUB_REPOSITORY" => "test/test", "BUNDLE_GEMFILE" => File.join(fixture[:source], "Gemfile"), "BUNDLE_PATH" => bundle_path && File.expand_path(bundle_path, Bundler.root)}, "bundle", "exec", "ruby", script, fixture[:directory], fixture[:evidence], File.join(fixture[:root], "publication.sha256"), chdir: fixture[:source])
   end
 
   def publication_item

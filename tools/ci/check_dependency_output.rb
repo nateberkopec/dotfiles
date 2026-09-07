@@ -6,6 +6,7 @@ require "json"
 directory = ARGV.fetch(0, "/tmp/gh-aw/agent")
 items = JSON.parse(File.read(File.join(directory, "../agent_output.json"))).fetch("items")
 context = JSON.parse(File.read(File.join(directory, "pr-context.json")))
+abort "Branch updates require a validated bundle, not update_branch" if items.any? { |item| item.key?("update_branch") }
 outcomes = %w[create_pull_request push_to_pull_request_branch update_pull_request add_comment noop missing_data report_incomplete]
 abort "The agent finished without an explicit outcome" unless items.any? { |item| outcomes.include?(item["type"]) }
 items.select { |item| item["type"] == "add_comment" }.each do |item|
@@ -36,7 +37,7 @@ end
 body_path = File.join(directory, "pr-body.md")
 File.write(body_path, item.fetch("body"))
 checker = File.join(__dir__, "check_dependency_report.rb")
-abort "Dependency report failed validation" unless system("bundle", "exec", "ruby", checker, File.join(directory, "dependency-candidates.json"), body_path, context.fetch("base"), File.join(directory, "release-notes.json"))
+abort "Dependency report failed validation" unless system("bundle", "exec", "ruby", checker, File.join(directory, "dependency-candidates.json"), body_path, context.fetch("base"), File.join(directory, "release-notes.json"), context["head"] || context.fetch("base"))
 abort "Commit checkout changes before publishing" unless system("git", "diff", "--quiet", "HEAD", "--")
 abort "Mechanical boundary failed" unless system("bundle", "exec", "ruby", File.join(__dir__, "check_dependency_update.rb"), context.fetch("base"))
 items.select { |entry| %w[create_pull_request push_to_pull_request_branch].include?(entry["type"]) }.each do |entry|

@@ -47,6 +47,12 @@ class DependencyFactoryOutputTest < Minitest::Test
     assert_includes check([{"type" => "add_comment", "item_number" => 3}], context: {"issue" => 2}), "Comment must target the active batch or triggering issue"
   end
 
+  def test_branch_update_field_is_rejected_even_without_a_bundle
+    [true, false].each do |value|
+      assert_includes check([{"type" => "update_pull_request", "update_branch" => value}]), "Branch updates require a validated bundle"
+    end
+  end
+
   private
 
   def check(items, context: {}, modified: false)

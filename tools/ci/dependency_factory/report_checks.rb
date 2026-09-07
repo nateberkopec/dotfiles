@@ -4,10 +4,11 @@ module DependencyFactory
   class ReportChecks
     def initialize(candidates:, report:, changes:, snoozes:, notes:, original_snoozes: snoozes)
       @report, @changes, @snoozes = report, changes, snoozes
-      @notes = notes.fetch("packages")
+      @evidence = ReportEvidence.new(notes.fetch("packages"))
       @original_snoozes = original_snoozes
       @pins = candidates.fetch("candidates").flat_map { |candidate| candidate["members"] || [candidate] }
-      @cutoff = Time.iso8601(candidates.fetch("generated_at")) - candidates.fetch("minimum_release_age_days") * 86_400
+      @age = candidates.fetch("minimum_release_age_days") * 86_400
+      @cutoff = Time.iso8601(candidates.fetch("generated_at")) - @age
     end
 
     def errors
@@ -38,25 +39,23 @@ module DependencyFactory
     def decisions
       @report.decisions.flat_map do |row|
         name, version = row.values_at("name", "version")
-        note = (@notes[name] || []).find { |entry| entry["version"] == version && entry["url"] == row["source"] }
         pin = @pins.find { |entry| entry["name"] == name }
         selected = @changes[name]&.last == version
         [("#{name} #{version}: decision disagrees with diff" unless (row["action"] == "update") == selected),
-          ("#{name} #{version}: source is not collected evidence" unless collected?(row, pin)),
-          ("#{name} #{version}: security requires an exact collected quote" if row["security"] == true && !quoted?(row, note))].compact
+          *@evidence.errors(row, pin),
+          *wake_errors(row, pin)].compact
       end
     end
 
-    def collected?(row, pin)
-      records = (@notes[row["name"]] || []) + (pin ? pin.fetch("releases", []) : [])
-      sources = records.filter_map { |entry| entry["url"] || entry["release_url"] if entry["version"] == row["version"] }
-      return sources.include?(row["source"]) unless row["source"].nil?
-      row["action"] == "defer" && row["security"] == "unknown" && pin && sources.empty?
+    def wake_errors(row, pin)
+      date = pin && publication_date(pin, row["version"])
+      return [] unless date && Time.iso8601(date) > @cutoff
+      wake = (Time.iso8601(date) + @age).utc.iso8601
+      row["reason"].include?(wake) ? [] : ["#{row["name"]} #{row["version"]}: age-gated decision must include wake time #{wake}"]
     end
 
-    def quoted?(row, note)
-      quote = row["quote"].to_s
-      note && !note["error"] && quote.size >= 20 && note["text"].to_s.include?(quote)
+    def publication_date(pin, version)
+      pin.fetch("published")[version] || pin.fetch("releases", []).find { |release| release["version"] == version }&.fetch("created_at", nil)
     end
 
     def changes
@@ -70,7 +69,7 @@ module DependencyFactory
 
     def version_errors(pin, version)
       name = pin["name"]
-      date = pin.fetch("published")[version] || pin.fetch("releases", []).find { |release| release["version"] == version }&.fetch("created_at", nil)
+      date = publication_date(pin, version)
       [("#{name}: #{version} outside eligible range" unless Versions.newer?(version, pin["current"]) && !Versions.newer?(version, pin["eligible"])),
         ("#{name}: #{version} has no eligible publication date" unless date && Time.iso8601(date) <= @cutoff),
         ("#{name}: snoozed until #{@snoozes[name]["wake_at"]}" if snoozed?(pin, version))].compact

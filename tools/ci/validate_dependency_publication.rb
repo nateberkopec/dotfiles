@@ -28,8 +28,7 @@ def queued_bundle(item, directory)
   abort "Cross-repository publication is forbidden" unless [nil, repo].include?(item["repo"])
   branch = item.fetch("branch")
   git("check-ref-format", "refs/heads/#{branch}")
-  paths = [item["repo"], repo, nil].uniq.map { |slug| DependencyFactory::Transport.bundle_path(directory, slug, branch) }
-  paths.find { |path| File.exist?(path) || File.symlink?(path) } || abort("Missing queued bundle for #{branch}")
+  DependencyFactory::Transport.queued_bundle(item, directory: directory, repo: repo) || abort("Missing queued bundle for #{branch}")
 end
 
 def check_commit_scope(commit)

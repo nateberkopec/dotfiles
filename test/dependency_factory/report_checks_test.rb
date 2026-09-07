@@ -69,12 +69,22 @@ class DependencyFactoryReportChecksTest < Minitest::Test
     assert_includes errors(changes: {"gh" => ["2.97.0", "2.99.0"]}, snoozes: snooze), "gh: 2.99.0 outside eligible range"
   end
 
+  def test_release_url_does_not_certify_security_without_notes
+    assert_empty errors
+    assert_includes errors(rows: [rows.first, rows.last.merge("security" => false)]), "gh 2.99.0: unavailable notes require unknown security"
+  end
+
+  def test_age_gated_release_requires_its_computed_wake_time
+    assert_empty errors
+    assert_includes errors(rows: [rows.first, rows.last.merge("reason" => "Too recent")]), "gh 2.99.0: age-gated decision must include wake time 2026-09-04T00:00:00Z"
+  end
+
   private
 
   def rows
     %w[2.98.0 2.99.0].map do |version|
       {"name" => "gh", "version" => version, "action" => (version == "2.98.0") ? "update" : "defer",
-       "reason" => "Useful fix or wait for the age gate", "source" => "https://example.test/#{version}", "security" => false}
+       "reason" => "Useful fix or wait until 2026-09-04T00:00:00Z", "source" => "https://example.test/#{version}", "security" => (version == "2.98.0") ? false : "unknown"}
     end
   end
 

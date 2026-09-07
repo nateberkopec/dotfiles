@@ -30,14 +30,14 @@ class DependencyFactoryTransportTest < Minitest::Test
     end
   end
 
-  def test_repo_qualified_bundle_takes_precedence_over_an_unqualified_one
+  def test_ambiguous_qualified_and_unqualified_bundles_are_rejected
     Dir.mktmpdir do |root|
       git(root, "init", "-qb", "dependency-update-test")
       commit(root, "1.1")
       git(root, "bundle", "create", File.join(root, "aw-owner-repo-dependency-update-test.bundle"), "dependency-update-test")
       commit(root, "1.2")
       git(root, "bundle", "create", File.join(root, "aw-dependency-update-test.bundle"), "dependency-update-test")
-      assert_includes errors({"branch" => "dependency-update-test", "repo" => "Owner/Repo"}, root).join, "does not match the checked HEAD"
+      assert_raises(RuntimeError) { errors({"branch" => "dependency-update-test", "repo" => "Owner/Repo"}, root) }
     end
   end
 

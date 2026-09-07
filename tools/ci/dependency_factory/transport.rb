@@ -6,12 +6,19 @@ module DependencyFactory
     def errors(item, directory:, root: Dir.pwd, repo: ENV["GITHUB_REPOSITORY"])
       branch = item["branch"]
       return ["Publishing requires a branch"] if branch.to_s.empty?
-      paths = [item["repo"], repo, nil].uniq.map { |slug| bundle_path(directory, slug, branch) }
-      bundle = paths.find { |path| File.file?(path) }
+      bundle = queued_bundle(item, directory: directory, repo: repo)
       return ["Missing queued bundle for #{branch}"] unless bundle
       heads = Sources.capture({}, "git", "bundle", "list-heads", bundle).lines.map(&:split)
       head = Sources.capture({}, "git", "-C", root, "rev-parse", "HEAD").strip
       heads.include?([head, "refs/heads/#{branch}"]) ? [] : ["Queued bundle for #{branch} does not match the checked HEAD; emit the push/create after the final commit"]
+    end
+
+    def queued_bundle(item, directory:, repo: ENV["GITHUB_REPOSITORY"])
+      slugs = [item["repo"], repo].compact.reject(&:empty?).uniq + [nil]
+      paths = slugs.map { |slug| bundle_path(directory, slug, item.fetch("branch")) }.uniq
+      present = paths.select { |path| File.exist?(path) || File.symlink?(path) }
+      raise "Ambiguous queued bundles" if present.size > 1
+      present.first
     end
 
     def bundle_path(directory, repo, branch)

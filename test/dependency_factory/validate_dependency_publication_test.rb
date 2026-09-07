@@ -21,7 +21,7 @@ class ValidateDependencyPublicationTest < Minitest::Test
       source = "https://github.com/jdx/hk/releases/tag/v1.1"
       pin = {"name" => "hk", "current" => "1.0", "eligible" => "1.1", "latest" => "1.1", "published" => {"1.1" => "2026-09-01T00:00:00Z"}}
       write_evidence(fixture, "dependency-candidates", {"candidates" => [pin], "generated_at" => "2026-09-06T18:11:29Z", "minimum_release_age_days" => 3})
-      write_evidence(fixture, "release-notes", {"packages" => {"hk" => [{"version" => "1.1", "url" => source}]}})
+      write_evidence(fixture, "release-notes", {"packages" => {"hk" => [{"version" => "1.1", "url" => source, "text" => "Useful release notes"}]}})
       File.write(File.join(fixture[:agent], ".mise.toml"), "[tools]\nhk = \"1.1\"\n")
       fixture_commit(fixture[:agent])
       publication_bundle(fixture)
