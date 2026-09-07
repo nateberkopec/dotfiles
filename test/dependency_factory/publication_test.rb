@@ -24,7 +24,7 @@ class DependencyPublicationTest < Minitest::Test
   def test_native_creation_metadata_does_not_fail_after_research
     publication_fixture do |fixture|
       publication_bundle(fixture)
-      item = publication_item.merge("base" => "main", "repo" => "test/test", "draft" => true, "labels" => ["dependency-update"])
+      item = publication_item.merge("base" => "dependency-benchmark-642", "repo" => "test/test", "draft" => true, "labels" => ["dependency-update"])
       output, status = validate_publication(fixture, [item])
       assert status.success?, output
     end

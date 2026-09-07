@@ -54,7 +54,7 @@ class DependencyPublicationRevisionTest < Minitest::Test
       write_evidence(fixture, "pr-context", {"number" => 1, "base" => fixture[:base], "head" => fixture[:base], "branch" => "dependency-update-test"})
       bin = File.join(fixture[:root], "bin")
       FileUtils.mkdir_p(bin)
-      response = JSON.generate("head" => {"sha" => stale ? "0" * 40 : fixture[:base]}, "base" => {"ref" => "main"}, "state" => "open")
+      response = JSON.generate("head" => {"sha" => stale ? "0" * 40 : fixture[:base]}, "base" => {"ref" => "dependency-benchmark-642"}, "state" => "open")
       File.write(File.join(bin, "gh"), "#!/bin/sh\nprintf '%s\\n' '#{response}'\n")
       File.chmod(0o755, File.join(bin, "gh"))
       old_path = ENV.fetch("PATH")

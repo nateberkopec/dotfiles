@@ -53,7 +53,7 @@ class DependencyPublicationEnvelopeTest < Minitest::Test
     publication_fixture do |fixture|
       resume_publication(fixture, fixture[:base])
       native_items.each do |item|
-        {"update_branch" => true, "branch" => "other", "base" => "main"}.each do |field, value|
+        {"update_branch" => true, "branch" => "other", "base" => "dependency-benchmark-642"}.each do |field, value|
           output, status = validate_publication(fixture, [item.merge(field => value)])
           refute status.success?, output
           assert_includes output, "Unexpected output fields"

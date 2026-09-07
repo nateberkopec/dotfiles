@@ -75,9 +75,9 @@ Dir.mktmpdir("dependency-validation-") do |root|
 end
 if context["number"]
   pr = JSON.parse(DependencyFactory::Sources.capture({}, "gh", "api", "repos/#{ENV.fetch("GITHUB_REPOSITORY")}/pulls/#{context["number"]}"))
-  abort "Stale PR" unless pr.dig("head", "sha") == base && pr.dig("base", "ref") == "main" && pr["state"] == "open" && pr.dig("base", "sha") == context["base_head"]
+  abort "Stale PR" unless pr.dig("head", "sha") == base && pr.dig("base", "ref") == "dependency-benchmark-642" && pr["state"] == "open" && pr.dig("base", "sha") == context["base_head"]
 end
 unless context["number"]
-  remote = JSON.parse(DependencyFactory::Sources.capture({}, "gh", "api", "repos/#{ENV.fetch("GITHUB_REPOSITORY")}/git/ref/heads/main"))
+  remote = JSON.parse(DependencyFactory::Sources.capture({}, "gh", "api", "repos/#{ENV.fetch("GITHUB_REPOSITORY")}/git/ref/heads/dependency-benchmark-642"))
   abort "Main advanced during this run" unless remote.dig("object", "sha") == base
 end

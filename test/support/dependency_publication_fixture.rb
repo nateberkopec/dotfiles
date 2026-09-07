@@ -35,7 +35,7 @@ module DependencyPublicationFixture
     write_evidence(fixture, "pr-context", {"base" => fixture[:base], "base_head" => fixture[:base], "head" => head, "number" => 2, "branch" => "dependency-update-test"})
     Dir.mkdir(File.join(fixture[:root], "bin"))
     stub = File.join(fixture[:root], "bin/gh")
-    response = {"head" => {"sha" => head}, "base" => {"ref" => "main", "sha" => fixture[:base]}, "state" => "open"}
+    response = {"head" => {"sha" => head}, "base" => {"ref" => "dependency-benchmark-642", "sha" => fixture[:base]}, "state" => "open"}
     File.write(stub, "#!/bin/sh\nprintf '%s\\n' '#{JSON.generate(response)}'\n")
     File.chmod(0o755, stub)
   end
