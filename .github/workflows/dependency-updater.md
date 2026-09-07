@@ -4,6 +4,11 @@ on:
     - cron: "0 18 * * 0" # Monday 03:00 JST
   workflow_dispatch:
     inputs:
+      probe_mode:
+        description: Deterministic publication boundary case
+        type: choice
+        options: [poison, failed, skipped, missing, tamper]
+        default: poison
       request:
         description: Outcome or question for the dependency agent
         type: string
@@ -55,43 +60,15 @@ max-ai-credits: 200
 timeout-minutes: 45
 
 steps:
-  - name: Resolve the active batch
-    env:
-      GH_TOKEN: ${{ github.token }}
-      BENCHMARK: ${{ inputs.benchmark }}
-      PR_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number }}
-      ISSUE_NUMBER: ${{ github.event.issue.number }}
-      EVENT_HEAD: ${{ github.event.workflow_run.head_sha }}
+  - name: Prepare the same Ruby bundle as the agent
+    uses: ruby/setup-ruby@4c56a21280b36d862b5fc31348f463d60bdc55d5
+    with: {ruby-version: ruby, bundler-cache: true}
+  - name: Prepare bounded deterministic evidence
     run: |
-      mkdir -p /tmp/gh-aw/agent
-      ruby tools/ci/dependency_context.rb
-  - name: Set up Ruby
-    uses: ruby/setup-ruby@4c56a21280b36d862b5fc31348f463d60bdc55d5 # v1.301.0
-    with:
-      ruby-version: 'ruby'
-      bundler-cache: true
-  - name: Install mise
-    uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
-    with:
-      install: false
-      cache: true
-      experimental: true
-  - name: Prepare reusable evidence and capabilities
-    env:
-      GITHUB_TOKEN: ${{ github.token }}
-    run: |
-      as_of=""
-      if [ "${{ inputs.benchmark }}" = true ]; then as_of=2026-09-06T18:11:29Z; fi
-      bundle exec ruby tools/ci/dependency_candidates.rb /tmp/gh-aw/agent/dependency-candidates.json "$(jq -r .base /tmp/gh-aw/agent/pr-context.json)" "$as_of"
-      bundle exec ruby tools/ci/dependency_release_notes.rb /tmp/gh-aw/agent/dependency-candidates.json /tmp/gh-aw/agent/release-notes.json
-      cp .github/dependency-updater.md /tmp/gh-aw/agent/mission.md
       mkdir -p /tmp/gh-aw/agent/checks
-      cp -R tools/ci/dependency_factory tools/ci/dependency_factory.rb tools/ci/check_dependency*.rb /tmp/gh-aw/agent/checks/
-      mkdir -p /tmp/gh-aw/agent/checks/runtime-lib
-      cp -L /usr/lib/x86_64-linux-gnu/libyaml-0.so.2 /tmp/gh-aw/agent/checks/runtime-lib/
-      cp tools/ci/dependency_ruby.sh Gemfile Gemfile.lock /tmp/gh-aw/agent/checks/
-      ruby -rrbconfig -e 'puts File.dirname(RbConfig.ruby)' > /tmp/gh-aw/agent/checks/ruby-bin
-      printf '%s\n' "$PWD/vendor/bundle" > /tmp/gh-aw/agent/checks/bundle-path
+      jq -n --arg base "$GITHUB_SHA" '{base:$base,issue:654}' > /tmp/gh-aw/agent/pr-context.json
+      printf '%s\n' '{"candidates":[],"generated_at":"2026-09-06T18:11:29Z","minimum_release_age_days":3}' > /tmp/gh-aw/agent/dependency-candidates.json
+      printf '%s\n' '{"packages":{}}' > /tmp/gh-aw/agent/release-notes.json
   - name: Preserve trusted pre-agent evidence
     uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
     with:
@@ -100,6 +77,35 @@ steps:
         /tmp/gh-aw/agent/pr-context.json
         /tmp/gh-aw/agent/dependency-candidates.json
         /tmp/gh-aw/agent/release-notes.json
+
+pre-agent-steps:
+  - name: Seed real serialized output without inference and poison only agent state
+    env: {PROBE_MODE: "${{ inputs.probe_mode }}"}
+    run: |
+      mkdir -p "$RUNNER_TEMP/gh-aw/safeoutputs"
+      bundle exec ruby -rjson -rtoml-rb -e '
+        items = [{type: "noop", message: "Deterministic boundary probe; no model invocation"}]
+        if %w[failed skipped missing tamper].include?(ENV.fetch("PROBE_MODE"))
+          items << {type: "add_comment", item_number: 654, body: "FORBIDDEN publication probe\n<!-- hidden-probe-marker -->\n```json dependency-decisions\n{\"name\":\"npm:@scope/pkg\"}\n```"}
+        end
+        File.open(ENV.fetch("RUNNER_TEMP") + "/gh-aw/safeoutputs/outputs.jsonl", "a") { |file| items.each { |item| file.puts JSON.generate(item) } }
+        if ENV.fetch("PROBE_MODE") == "poison"
+          path = Gem.loaded_specs.fetch("toml-rb").full_gem_path + "/lib/toml-rb.rb"
+          File.write(path, "abort \"AGENT CACHE POISON\"\n")
+          puts "Poisoned agent-only gem: #{path}"
+        end'
+      if [ "$PROBE_MODE" = poison ]; then
+        if bundle exec ruby -rtoml-rb -e nil > /tmp/gh-aw/agent/poison-gem.log 2>&1; then exit 1; fi
+        grep 'AGENT CACHE POISON' /tmp/gh-aw/agent/poison-gem.log
+        printf '%s\n' 'abort "AGENT CHECKER POISON"' > /tmp/gh-aw/agent/checks/check_dependency_report.rb
+        printf '%s\n' 'abort "CANDIDATE GEMFILE POISON"' > Gemfile
+        printf '%s\n' '#!/bin/sh' 'echo executed >> /tmp/gh-aw/agent/poison-hook-ran' "printf 'token\\0'" > /tmp/gh-aw/agent/poison-hook
+        chmod +x /tmp/gh-aw/agent/poison-hook
+        git config core.fsmonitor /tmp/gh-aw/agent/poison-hook
+        git status --porcelain
+        test -s /tmp/gh-aw/agent/poison-hook-ran
+      fi
+      if [ "$PROBE_MODE" = failed ]; then printf '%s\n' '{"packages":{"tampered":[]}}' > /tmp/gh-aw/agent/release-notes.json; fi
 
 jobs:
   safe_outputs: &publication
@@ -168,15 +174,22 @@ jobs:
         with: {name: agent, path: /tmp/gh-aw}
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with: {name: dependency-evidence, path: /tmp/dependency-evidence}
+      - name: Exercise reviewed boundary counterexamples with positive controls
+        env: {BUNDLE_PATH: "${{ runner.temp }}/validator-bundle", BUNDLE_IGNORE_CONFIG: "1"}
+        run: bundle exec ruby -Itest -e 'Dir["test/dependency_factory/{publication_review,output,report_checks,accounting}_test.rb"].each { |file| require_relative file }' -- -v
       - name: Validate immutable publisher input in private Git metadata
+        if: inputs.probe_mode != 'skipped'
         id: validate
         env:
           GH_TOKEN: ${{ github.token }}
+          PROBE_MODE: ${{ inputs.probe_mode }}
           BUNDLE_PATH: ${{ runner.temp }}/validator-bundle
           BUNDLE_IGNORE_CONFIG: "1"
         run: |
+          if [ "$PROBE_MODE" = poison ]; then sha256sum /tmp/gh-aw/agent/poison-hook-ran > /tmp/poison-hook.sha256; fi
           bundle exec ruby tools/ci/validate_dependency_publication.rb /tmp/gh-aw/agent /tmp/dependency-evidence /tmp/publication.sha256
-          echo "validated=true" >> "$GITHUB_OUTPUT"
+          if [ "$PROBE_MODE" = poison ]; then sha256sum --check /tmp/poison-hook.sha256; fi
+          if [ "$PROBE_MODE" != missing ]; then echo "validated=true" >> "$GITHUB_OUTPUT"; fi
       - name: Require completed validation even if skipped or missing
         if: always()
         env: {VALIDATED: "${{ steps.validate.outputs.validated }}"}
@@ -221,6 +234,9 @@ safe-outputs:
   steps:
     - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
       with: {name: dependency-validation, path: /tmp/validated-publication}
+    - name: Deliberately tamper after validation to test the final publication binding
+      if: inputs.probe_mode == 'tamper'
+      run: echo ' ' >> /tmp/gh-aw/agent_output.json
     - name: Recheck exact validated publisher input
       run: sha256sum --check /tmp/validated-publication/publication.sha256
     - name: Recheck PR head immediately before mutation
