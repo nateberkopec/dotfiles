@@ -25,7 +25,7 @@ Rules:
 - `.env.example` documents required keys only. It must be a strict subset of `.env`: every key in `.env.example` must also exist in the local `.env`, but `.env` may contain extra keys.
 - Keep example values empty or obviously fake, e.g. `DATABASE_URL=` or `STRIPE_API_KEY=replace-me`.
 - **Real secrets must not be hardcoded in `.env`.** Any value that is a credential (API token, password, signing key, database URL with embedded password, etc.) must be a reference resolved at runtime, not a plaintext string sitting on disk. The threat model is: an LLM agent or attacker that can read the working tree should not be able to extract a usable secret.
-  - Preferred: store the secret in 1Password and reference it from `fnox.toml`. mise loads the resolved environment via `_.source = "fnox export"`. See the `env-to-fnox` skill for migration steps.
+  - Preferred: store the secret in 1Password and reference it from `fnox.toml`. mise loads the resolved environment via `_.source = "fnox export"`.
   - Acceptable: keep `.env` and use `op://Vault/Item/Field` references that mise resolves at load time.
   - Not acceptable: plaintext credential values in `.env` or any other file in the working tree.
 - The audit runs `gitleaks` against the working tree to enforce this — see the **Secret Scanning** section below.
