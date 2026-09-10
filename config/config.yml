@@ -63,3 +63,7 @@ vscode_extension_sources:
     github: nateberkopec/vscodevim
     tag: core-v1.32.4
     asset: vscodevim-core-1.32.4.vsix
+  nateberkopec.wordcount:
+    github: nateberkopec/vscode-wordcount
+    tag: v0.1.0-nate.1
+    asset: wordcount.vsix
