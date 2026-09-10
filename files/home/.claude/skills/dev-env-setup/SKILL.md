@@ -17,7 +17,7 @@ Treat its failures as the worklist. Run it again after setup; completion require
 
 Determine ownership with `git shortlog -sn --no-merges | head -5`; ask when unclear. In a repository Nate does not own, local setup must leave the *entire* `git status --porcelain` clean. Require a clean baseline before changing anything, use local config or `.git/info/exclude`, and stop if unrelated preexisting dirt makes that guarantee unverifiable. The checker detects ordinary repositories and linked worktrees and reports dirty path counts without exposing names.
 
-Never read or store plaintext credentials. Use fnox/1Password runtime references and the `env-to-fnox` skill. Keep `.env` untracked and examples fake. GitHub Actions must pin third-party actions to full commit SHAs.
+Never read or store plaintext credentials. Use fnox/1Password runtime references. Keep `.env` untracked and examples fake. GitHub Actions must pin third-party actions to full commit SHAs.
 
 ## Choose references
 

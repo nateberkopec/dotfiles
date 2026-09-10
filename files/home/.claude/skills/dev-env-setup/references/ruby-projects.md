@@ -29,7 +29,7 @@ Add `debride` to the project's Ruby dependencies. Because `debride` exits 0 when
 
 ### 11. Ruby flog/flay
 
-For Ruby projects, pre-commit must include `flog` and `flay`. Add both development dependencies, then load the `ruby-flog-flay-setup` skill and use its authoritative fail-safe Rake tasks. Keep the explicit project source scope, class- and instance-method parsing, fail-safe output parsing, and fail-at-threshold semantics unchanged. Check flog's command status. For flay, treat a parseable total as authoritative because findings may produce a nonzero status; abort when no total can be parsed.
+For Ruby projects, pre-commit must include `flog` and `flay`. Add both development dependencies and fail-safe Rake tasks with explicit project source scope, class- and instance-method parsing, fail-safe output parsing, and fail-at-threshold semantics. Check flog's command status. For flay, treat a parseable total as authoritative because findings may produce a nonzero status; abort when no total can be parsed.
 
 Expose those tasks through mise:
 
