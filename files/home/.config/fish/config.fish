@@ -45,6 +45,10 @@ set -Ux HOMEBREW_NO_REQUIRE_TAP_TRUST 1
 # Suppress pi's startup update/package-update notices for normal agent sessions.
 # Leave package-management subcommands online so `pi update` still works.
 function pi
+  # Keep Pi on the machine-wide Node instead of a project's pinned version.
+  set -l node_root (mise -C "$HOME" where node); or return
+  set -lx PATH "$node_root/bin" $PATH
+
   if test (count $argv) -gt 0
     switch $argv[1]
       case install remove uninstall update list
