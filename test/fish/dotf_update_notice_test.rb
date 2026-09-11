@@ -32,10 +32,14 @@ class DotfUpdateNoticeTest < Minitest::Test
       FileUtils.mkdir_p(function_dir)
       File.write(File.join(state_dir, "last-run-sha"), "#{initial_sha}\n")
       FileUtils.cp(FUNCTION_PATH, function_dir)
+      shim_dir = File.join(tmpdir, "shims")
+      FileUtils.mkdir_p(shim_dir)
+      File.write(File.join(shim_dir, "fish"), "#!/bin/sh\nexit 99\n")
+      FileUtils.chmod(0o755, File.join(shim_dir, "fish"))
 
       output, status = Open3.capture2e(
         GIT_ENV.merge("DOTFILES_DIR" => checkout, "HOME" => home, "XDG_STATE_HOME" => state_home),
-        "fish", "--no-config", "--command", "source #{Shellwords.escape(CONFIG_PATH)}; fish_greeting"
+        "fish", "--no-config", "--command", "source #{Shellwords.escape(CONFIG_PATH)}; set -gx PATH #{Shellwords.escape(shim_dir)} $PATH; fish_greeting"
       )
 
       assert status.success?, output
