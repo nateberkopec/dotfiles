@@ -10,7 +10,8 @@
     "git:github.com/nijaru/pi-fast-mode@85c8b67a4a3f823e33ab0217a55f37d15e6e6eca",
     "npm:pi-ding@0.2.2",
     "npm:pi-subagents@0.64.0",
-    "npm:pi-web-providers@3.5.1"
+    "npm:pi-web-providers@3.5.1",
+    "git:github.com/nateberkopec/pi-openai-guidance@b9e9507ece945fc1dd71d1e838a75fe794576d83"
   ],
   "npmCommand": [
     "mise",
