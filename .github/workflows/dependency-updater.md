@@ -34,11 +34,18 @@ permissions:
   issues: read
   pull-requests: read
 
+env:
+  # gh-aw counts cached input as rebuilt context, aborting productive long runs (#676).
+  # Keep the workflow timeout and default 1000-AIC budget as the run limits.
+  GH_AW_CODEX_CONTEXT_REBUILD_CIRCUIT_BREAKER: "false"
+
 engine:
   id: codex
   args:
     - -c
     - model_reasoning_effort="max"
+    - -c
+    - tool_output_token_limit=4096
 # gh-aw-firewall 0.27.44 misresolves model names with query parameters.
 model: gpt-5.6-luna
 timeout-minutes: 60
