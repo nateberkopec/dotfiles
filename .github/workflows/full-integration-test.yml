@@ -3,6 +3,8 @@ name: Integration Tests
 on:
   pull_request:
     branches: [ main ]
+  schedule:
+    - cron: "23 6 * * *"
   workflow_dispatch:
 
 concurrency:
@@ -31,10 +33,6 @@ jobs:
           pull_request)
             base_sha="${{ github.event.pull_request.base.sha }}"
             head_sha="${{ github.event.pull_request.head.sha }}"
-            ;;
-          push)
-            base_sha="${{ github.event.before }}"
-            head_sha="${{ github.sha }}"
             ;;
           *)
             echo "integration_optional=false" >> "$GITHUB_OUTPUT"
