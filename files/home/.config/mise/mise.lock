@@ -214,6 +214,7 @@ checksum = "sha256:f999226cddee14afc8d0d2d461191888b65064262e66e83ce1fc8e9069792
 url = "https://github.com/aubepkg/aube/releases/download/v2.2.13/aube-v2.2.13-aarch64-apple-darwin.tar.gz"
 url_api = "https://api.github.com/repos/aubepkg/aube/releases/assets/553104973"
 provenance = "github-attestations"
+provenance_verified = true
 
 [[tools."github:nateberkopec/print-label"]]
 version = "0.3.0"
