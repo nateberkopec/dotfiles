@@ -11,7 +11,7 @@ jobs:
   detect-changes:
     runs-on: ubuntu-latest
     outputs:
-      docs_only: ${{ steps.docs_only.outputs.docs_only }}
+      integration_optional: ${{ steps.integration_optional.outputs.integration_optional }}
 
     steps:
     - name: Checkout repository
@@ -19,8 +19,8 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: Detect docs-only changes
-      id: docs_only
+    - name: Detect changes that do not need integration
+      id: integration_optional
       shell: bash
       run: |
         set -euo pipefail
@@ -35,38 +35,38 @@ jobs:
             head_sha="${{ github.sha }}"
             ;;
           *)
-            echo "docs_only=false" >> "$GITHUB_OUTPUT"
+            echo "integration_optional=false" >> "$GITHUB_OUTPUT"
             exit 0
             ;;
         esac
 
         if [ "$base_sha" = "0000000000000000000000000000000000000000" ]; then
-          echo "docs_only=false" >> "$GITHUB_OUTPUT"
+          echo "integration_optional=false" >> "$GITHUB_OUTPUT"
           exit 0
         fi
 
         mapfile -t files < <(git diff --name-only "$base_sha" "$head_sha")
 
         if [ "${#files[@]}" -eq 0 ]; then
-          echo "docs_only=false" >> "$GITHUB_OUTPUT"
+          echo "integration_optional=false" >> "$GITHUB_OUTPUT"
           exit 0
         fi
 
-        docs_only=true
+        integration_optional=true
 
         for file in "${files[@]}"; do
           case "$file" in
-            docs/*|README.md|AGENTS.md|files/home/.claude/skills/*.md|files/home/.claude/skills/*/LICENSE.txt|files/home/.agents/*.md)
+            test/*|docs/*|README.md|AGENTS.md|files/home/.claude/skills/*.md|files/home/.claude/skills/*/LICENSE.txt|files/home/.agents/*.md)
               ;;
             *)
-              docs_only=false
+              integration_optional=false
               break
               ;;
           esac
         done
 
-        echo "docs_only=$docs_only" >> "$GITHUB_OUTPUT"
-        printf 'docs_only=%s\n' "$docs_only"
+        echo "integration_optional=$integration_optional" >> "$GITHUB_OUTPUT"
+        printf 'integration_optional=%s\n' "$integration_optional"
         printf 'changed files:\n%s\n' "$(printf '%s\n' "${files[@]}")"
 
   integration-test:
@@ -80,23 +80,23 @@ jobs:
           - ubuntu-22.04
 
     steps:
-    - name: Skip integration tests for docs-only changes
-      if: needs.detect-changes.outputs.docs_only == 'true'
-      run: echo "Docs-only change; skipping integration test."
+    - name: Skip integration tests for prose or test-only changes
+      if: needs.detect-changes.outputs.integration_optional == 'true'
+      run: echo "Prose or test-only change; skipping integration test."
 
     - name: Checkout repository
-      if: needs.detect-changes.outputs.docs_only != 'true'
+      if: needs.detect-changes.outputs.integration_optional != 'true'
       uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
     - name: Set up Ruby
-      if: needs.detect-changes.outputs.docs_only != 'true'
+      if: needs.detect-changes.outputs.integration_optional != 'true'
       uses: ruby/setup-ruby@4c56a21280b36d862b5fc31348f463d60bdc55d5 # v1.301.0
       with:
         ruby-version: 'ruby'
         bundler-cache: false
 
     - name: Run dotfiles integration script
-      if: needs.detect-changes.outputs.docs_only != 'true'
+      if: needs.detect-changes.outputs.integration_optional != 'true'
       id: run
       timeout-minutes: 20
       env:
@@ -113,7 +113,7 @@ jobs:
       run: bash tools/ci/run_dotfiles_integration.sh "${GITHUB_WORKSPACE}"
 
     - name: Upload logs
-      if: always() && needs.detect-changes.outputs.docs_only != 'true'
+      if: always() && needs.detect-changes.outputs.integration_optional != 'true'
       uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
       with:
         name: logs-${{ matrix.os }}
@@ -129,23 +129,23 @@ jobs:
     timeout-minutes: 20
 
     steps:
-    - name: Skip non-admin integration test for docs-only changes
-      if: needs.detect-changes.outputs.docs_only == 'true'
-      run: echo "Docs-only change; skipping non-admin integration test."
+    - name: Skip non-admin integration test for prose or test-only changes
+      if: needs.detect-changes.outputs.integration_optional == 'true'
+      run: echo "Prose or test-only change; skipping non-admin integration test."
 
     - name: Checkout repository
-      if: needs.detect-changes.outputs.docs_only != 'true'
+      if: needs.detect-changes.outputs.integration_optional != 'true'
       uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
     - name: Set up Ruby
-      if: needs.detect-changes.outputs.docs_only != 'true'
+      if: needs.detect-changes.outputs.integration_optional != 'true'
       uses: ruby/setup-ruby@4c56a21280b36d862b5fc31348f463d60bdc55d5 # v1.301.0
       with:
         ruby-version: 'ruby'
         bundler-cache: false
 
     - name: Prepare non-admin macOS runner user
-      if: needs.detect-changes.outputs.docs_only != 'true'
+      if: needs.detect-changes.outputs.integration_optional != 'true'
       run: |
         set -euo pipefail
 
@@ -177,7 +177,7 @@ jobs:
         '
 
     - name: Seed immutable gem credentials for non-admin user
-      if: needs.detect-changes.outputs.docs_only != 'true'
+      if: needs.detect-changes.outputs.integration_optional != 'true'
       run: |
         set -euo pipefail
 
@@ -193,7 +193,7 @@ jobs:
         BASH
 
     - name: Run dotfiles integration script as non-admin macOS user
-      if: needs.detect-changes.outputs.docs_only != 'true'
+      if: needs.detect-changes.outputs.integration_optional != 'true'
       id: non_admin_run
       timeout-minutes: 20
       env:
@@ -226,7 +226,7 @@ jobs:
           bash "${home_dir}/dotfiles/tools/ci/run_dotfiles_integration.sh" "${home_dir}/dotfiles"
 
     - name: Upload non-admin logs
-      if: always() && needs.detect-changes.outputs.docs_only != 'true'
+      if: always() && needs.detect-changes.outputs.integration_optional != 'true'
       uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
       with:
         name: logs-macos-latest-non-admin
