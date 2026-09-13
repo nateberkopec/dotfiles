@@ -23,12 +23,24 @@ observed_casks:
 # Codex records declined candidates here while revising the batch PR.
 # A security advisory always wakes a snooze early.
 snoozes:
+  hk:
+    candidate: "1.58.1"
+    wake_at: "1.59.0"
+  "pi:pi-mcp-adapter":
+    candidate: "2.33.0"
+    wake_at: "2.34.0"
+  "pi:@narumitw/pi-btw":
+    candidate: "0.58.1"
+    wake_at: "0.59.0"
+  "pi:pi-subagents":
+    candidate: "0.67.0"
+    wake_at: "0.68.0"
   standard:
     candidate: "1.56.0"
     wake_at: "1.57.0"
   fnox:
-    candidate: "1.34.1"
-    wake_at: "1.35.0"
+    candidate: "1.35.1"
+    wake_at: "1.35.2"
   claude:
     candidate: "2.1.251"
     wake_at: "2.2.0"
