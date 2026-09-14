@@ -148,7 +148,14 @@ class SpotlightControllerTest < Minitest::Test
     write_command("chmod", "/bin/chmod \"$@\"")
     write_command("mv", "/bin/mv \"$@\"")
     write_command("rm", "/bin/rm \"$@\"")
-    write_command("lockf", "/usr/bin/lockf \"$@\"")
+    write_command("lockf", <<~SH)
+      [ "$1" = "-k" ] && shift
+      lock=$1
+      shift
+      while ! /bin/mkdir "$lock.test-lock" 2>/dev/null; do /bin/sleep 0.01; done
+      trap '/bin/rmdir "$lock.test-lock"' EXIT
+      "$@"
+    SH
     write_command("touch", "/usr/bin/touch \"$@\"")
     write_command("mdutil", <<~SH)
       if [ "$1" = "-s" ]; then
