@@ -1,14 +1,14 @@
 require "test_helper"
 
-# OmniWM 0.6.4 rejects settings.toml outright when any key of its schema is
-# missing or when the hotkey list does not name every assignable action exactly
-# once, quarantining the file as settings.toml.corrupt and regenerating defaults.
+# OmniWM rejects settings.toml outright when any key of its schema is missing or
+# when the hotkey list does not name every assignable action exactly once,
+# quarantining the file as settings.toml.corrupt and regenerating defaults.
 # The fixture lists the key paths and action IDs the pinned version requires.
 class OmniWMSettingsSchemaTest < Minitest::Test
   include OmniWMSettingsHelper
 
   def test_uses_the_settings_schema_version_omniwm_supports
-    assert_equal 1, settings.fetch("schemaVersion")
+    assert_equal 3, settings.fetch("schemaVersion")
   end
 
   def test_declares_every_setting_omniwm_requires
