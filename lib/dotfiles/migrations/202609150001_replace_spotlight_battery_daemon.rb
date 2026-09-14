@@ -4,15 +4,24 @@ class Dotfiles::Migration::ReplaceSpotlightBatteryDaemon < Dotfiles::Migration
   macos_only
 
   def up
-    execute(shell_script(<<~SH))
-      sudo launchctl bootout system /Library/LaunchDaemons/com.user.spotlight-battery.plist 2>/dev/null || true
-      sudo launchctl bootout system /Library/LaunchDaemons/local.spotlight-resume.plist 2>/dev/null || true
-      sudo rm -f /Library/LaunchDaemons/com.user.spotlight-battery.plist /Library/LaunchDaemons/local.spotlight-resume.plist
-    SH
+    remove_legacy_daemon if @system.file_exist?(legacy_daemon_path)
     @system.rm_rf(File.join(@home, ".local", "share", "spotlight"))
   end
 
   def down
-    raise NotImplementedError, "This migration removes obsolete Spotlight daemons and cannot be safely reversed."
+    raise NotImplementedError, "This migration removes the obsolete Spotlight battery daemon and cannot be safely reversed."
+  end
+
+  private
+
+  def remove_legacy_daemon
+    execute(shell_script(<<~SH))
+      sudo launchctl bootout system #{legacy_daemon_path} 2>/dev/null || true
+      sudo rm -f #{legacy_daemon_path}
+    SH
+  end
+
+  def legacy_daemon_path
+    "/Library/LaunchDaemons/com.user.spotlight-battery.plist"
   end
 end

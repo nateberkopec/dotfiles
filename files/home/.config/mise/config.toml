@@ -78,7 +78,7 @@ run = "sudo /usr/local/libexec/dotfiles-spotlight-controller status"
 
 [tasks."spotlight:pause"]
 description = "Pause Spotlight volume indexing (default: 24h)"
-run = 'sudo /usr/local/libexec/dotfiles-spotlight-controller pause "${1:-24h}"'
+run = "sudo /usr/local/libexec/dotfiles-spotlight-controller pause"
 
 [tasks."spotlight:resume"]
 description = "Clear a pause and apply the current power policy"

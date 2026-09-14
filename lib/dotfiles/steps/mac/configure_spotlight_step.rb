@@ -22,7 +22,11 @@ class Dotfiles::Step::ConfigureSpotlightStep < Dotfiles::Step
 
   def complete?
     super
-    return !controller_installed? unless enabled?
+    unless enabled?
+      add_error("Spotlight controller uninstall command failed") if @uninstall_failed
+      add_error("Spotlight controller artifacts remain after uninstall") if controller_installed?
+      return @errors.empty?
+    end
 
     add_error("Spotlight controller source is stale") unless current_file?(controller_source_path, controller_content)
     add_error("Spotlight controller is missing or stale") unless current_file?(controller_path, controller_content)
@@ -51,8 +55,13 @@ class Dotfiles::Step::ConfigureSpotlightStep < Dotfiles::Step
   end
 
   def uninstall_controller
-    execute(shell_script("launchctl bootout system #{Shellwords.escape(launchdaemon_path)} 2>/dev/null || true; rm -f #{Shellwords.escape(launchdaemon_path)} #{Shellwords.escape(controller_path)}"), sudo: true)
+    _output, status = execute(uninstall_command, sudo: true)
+    @uninstall_failed = !status.zero?
     @system.rm_rf(source_dir)
+  end
+
+  def uninstall_command
+    shell_script("launchctl bootout system #{Shellwords.escape(launchdaemon_path)} 2>/dev/null || true; rm -f #{Shellwords.escape(launchdaemon_path)} #{Shellwords.escape(controller_path)}")
   end
 
   def controller_current?
@@ -71,8 +80,8 @@ class Dotfiles::Step::ConfigureSpotlightStep < Dotfiles::Step
 
   def controller_content
     controller_template
-      .sub("__VOLUMES__", shell_paths(spotlight_settings.fetch("volumes", default_volumes)))
-      .sub("__EXCLUSIONS__", shell_paths(spotlight_settings.fetch("exclusions", [])))
+      .gsub("__VOLUMES__", shell_paths(spotlight_settings.fetch("volumes", default_volumes)))
+      .gsub("__EXCLUSIONS__", shell_paths(spotlight_settings.fetch("exclusions", [])))
       .sub("__STATE_DIR__", state_dir)
   end
 

@@ -4,8 +4,7 @@ set -eu
 PATH=/usr/bin:/bin:/usr/sbin:/sbin
 STATE_DIR=__STATE_DIR__
 PAUSE_FILE="$STATE_DIR/pause-until"
-VOLUMES="__VOLUMES__"
-EXCLUSIONS="__EXCLUSIONS__"
+LOCK_FILE="$STATE_DIR/controller.lock"
 
 require_root() {
   if [ "$(id -u)" -ne 0 ]; then
@@ -16,7 +15,8 @@ require_root() {
 
 set_indexing() {
   desired=$1
-  for volume in $VOLUMES; do
+  set -- __VOLUMES__
+  for volume do
     status=$(mdutil -s "$volume")
     case "$desired:$status" in
       off:*enabled*) mdutil -i off "$volume" ;;
@@ -85,12 +85,14 @@ status() {
     power=$(pmset -g batt | head -n 1)
     echo "Policy: automatic ($power)"
   fi
-  for volume in $VOLUMES; do mdutil -s "$volume"; done
+  set -- __VOLUMES__
+  for volume do mdutil -s "$volume"; done
 }
 
 audit() {
   echo "Declared folder exclusions (manual Search Privacy configuration required):"
-  for path in $EXCLUSIONS; do echo "  $path"; done
+  set -- __EXCLUSIONS__
+  for path do echo "  $path"; done
   echo
   echo "Effective Spotlight volume configuration:"
   mdutil -P /System/Volumes/Data
@@ -100,6 +102,14 @@ audit() {
 }
 
 require_root
+mkdir -p "$STATE_DIR"
+chmod 700 "$STATE_DIR"
+
+if [ "${1:-}" != "--locked" ]; then
+  exec lockf -k "$LOCK_FILE" "$0" --locked "$@"
+fi
+shift
+
 case "${1:-}" in
   reconcile) reconcile ;;
   pause) pause "${2:-24h}" ;;

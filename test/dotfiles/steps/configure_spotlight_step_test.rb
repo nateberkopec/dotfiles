@@ -43,6 +43,20 @@ class ConfigureSpotlightStepTest < StepTestCase
     refute @fake_system.file_exist?(controller_source_path)
   end
 
+  def test_failed_uninstall_is_reported_by_validation
+    write_spotlight_config("enabled" => false)
+    stub_controller_template
+    @fake_system.write_file(controller_path, "old")
+    command = Dotfiles::Command.prepend(step.send(:uninstall_command), "sudo")
+    @fake_system.stub_command(command, "permission denied", 1)
+
+    step.run
+
+    errors = step.collect_errors
+    assert_includes errors, "Spotlight controller uninstall command failed"
+    assert_includes errors, "Spotlight controller artifacts remain after uninstall"
+  end
+
   def test_disabled_configuration_is_complete_without_artifacts
     write_spotlight_config("enabled" => false)
     stub_controller_template
@@ -50,14 +64,17 @@ class ConfigureSpotlightStepTest < StepTestCase
     assert_complete
   end
 
-  def test_generated_controller_contains_declared_policy
-    write_spotlight_config
+  def test_generated_controller_shell_quotes_paths_with_spaces
+    write_spotlight_config(
+      "volumes" => ["/", "/Volumes/External SSD"],
+      "exclusions" => ["~/Documents/Code Archive"]
+    )
     stub_controller_template
 
     controller = step.send(:controller_content)
 
-    assert_includes controller, "VOLUMES=\"/ /System/Volumes/Data\""
-    assert_includes controller, "EXCLUSIONS=\"/tmp/home/Documents/Code.nosync /tmp/home/src\""
+    assert_includes controller, "set -- / /Volumes/External\\ SSD"
+    assert_includes controller, "set -- /tmp/home/Documents/Code\\ Archive"
   end
 
   private
@@ -75,7 +92,7 @@ class ConfigureSpotlightStepTest < StepTestCase
   def stub_controller_template
     @fake_system.stub_file_content(
       "/tmp/dotfiles/files/spotlight/spotlight-controller.sh",
-      "VOLUMES=\"__VOLUMES__\"\nEXCLUSIONS=\"__EXCLUSIONS__\"\nSTATE=__STATE_DIR__\n"
+      "set -- __VOLUMES__\nset -- __VOLUMES__\nset -- __EXCLUSIONS__\nSTATE=__STATE_DIR__\n"
     )
   end
 
