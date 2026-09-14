@@ -15,8 +15,10 @@ class MiseBootstrapPackagesLaunchdTest < Minitest::Test
   def test_declares_daily_time_machine_launch_agent
     agent = config.dig("bootstrap", "macos", "launchd", "agents", "time-machine-backup")
 
-    assert_equal "~/.local/share/dotfiles/run-time-machine-backup.fish", agent.fetch("program")
-    assert_equal({"PATH" => "{{env.HOME}}/.local/share/mise/shims:/usr/bin:/bin"}, agent.fetch("environment"))
+    assert_equal "~/.local/bin/mise", agent.fetch("program")
+    assert_equal ["exec", "--", "fish", "run-time-machine-backup.fish"], agent.fetch("args")
+    assert_equal "~/.local/share/dotfiles", agent.fetch("working_directory")
+    refute agent.key?("environment")
     assert_equal({"hour" => 5, "minute" => 15}, agent.fetch("start_calendar_interval"))
     assert_equal "~/Library/Logs/time-machine-backup.out.log", agent.fetch("stdout_path")
     assert_equal "~/Library/Logs/time-machine-backup.err.log", agent.fetch("stderr_path")
