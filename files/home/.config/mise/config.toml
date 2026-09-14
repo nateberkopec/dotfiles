@@ -72,6 +72,27 @@ BASH_ENV = "{{env.HOME}}/.config/bash/safety.bash"
 CARGO_HTTP_TIMEOUT = "5"
 GO_GET_TIMEOUT = "5s"
 
+[tasks."spotlight:status"]
+description = "Show the managed Spotlight policy and volume indexing status"
+run = "sudo /usr/local/libexec/dotfiles-spotlight-controller status"
+
+[tasks."spotlight:pause"]
+description = "Pause Spotlight volume indexing (default: 24h)"
+run = 'sudo /usr/local/libexec/dotfiles-spotlight-controller pause "${1:-24h}"'
+
+[tasks."spotlight:resume"]
+description = "Clear a pause and apply the current power policy"
+run = "sudo /usr/local/libexec/dotfiles-spotlight-controller resume"
+
+[tasks."spotlight:audit"]
+description = "Compare declared folder exclusions with effective Spotlight configuration"
+run = '''
+printf 'User Search Privacy preference:\n'
+defaults read com.apple.Spotlight Exclusions 2>/dev/null || echo '  unavailable (grant Full Disk Access only if macOS reports a permission error)'
+printf '\n'
+sudo /usr/local/libexec/dotfiles-spotlight-controller audit
+'''
+
 # Desktop packages (1password and google-chrome) retain specialized installers.
 # docker.io stays conditional to preserve other installations.
 [bootstrap.packages]

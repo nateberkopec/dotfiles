@@ -31,10 +31,13 @@ brew_casks:
   - whatsapp
   - zoom
 spotlight_settings:
-  battery_disable: true
-  battery_volumes:
+  enabled: true
+  volumes:
   - "/"
   - "/System/Volumes/Data"
+  exclusions:
+  - "~/Documents/Code.nosync"
+  - "~/src"
   check_interval_seconds: 60
 time_machine_settings:
   auto_backup: true
