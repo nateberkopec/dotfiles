@@ -179,8 +179,9 @@ raycastGlobalHotkey = "Command-49"
 onboarding_setupHotkey = true
 
 [bootstrap.macos.launchd.agents.time-machine-backup]
-program = "~/.local/share/dotfiles/run-time-machine-backup.fish"
-environment = { PATH = "{{env.HOME}}/.local/share/mise/shims:/usr/bin:/bin" }
+program = "~/.local/bin/mise"
+args = ["exec", "--", "fish", "run-time-machine-backup.fish"]
+working_directory = "~/.local/share/dotfiles"
 start_calendar_interval = { hour = 5, minute = 15 }
 stdout_path = "~/Library/Logs/time-machine-backup.out.log"
 stderr_path = "~/Library/Logs/time-machine-backup.err.log"
