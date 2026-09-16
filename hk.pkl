@@ -1,35 +1,41 @@
-amends "package://github.com/jdx/hk/releases/download/v1.39.0/hk@1.39.0#/Config.pkl"
+amends "package://github.com/jdx/hk/releases/download/v1.57.0/hk@1.57.0#/Config.pkl"
+
+local checks = new Mapping<String, Step> {
+  ["lint"] {
+    check = "mise run lint:standard"
+  }
+  ["complexity"] {
+    check = "mise run lint:complexity"
+  }
+  ["secrets"] {
+    check = "mise run lint:secrets"
+  }
+  ["dead-code"] {
+    check = "mise run lint:dead-code"
+  }
+  ["flog"] {
+    check = "mise run lint:flog"
+  }
+  ["flay"] {
+    check = "mise run lint:flay"
+  }
+  ["skills"] {
+    check = "mise run lint:skills"
+  }
+  ["test"] {
+    check = "unset $(git rev-parse --local-env-vars); mise run test"
+  }
+}
 
 hooks {
   ["pre-commit"] {
-    steps {
-      ["standard"] {
-        check = "mise run lint:standard"
-      }
-      ["complexity"] {
-        check = "mise run lint:complexity"
-      }
+    steps = (checks) {
       ["human-only"] {
         check = "mise run lint:human-only"
       }
-      ["secrets"] {
-        check = "mise run lint:secrets"
-      }
-      ["dead-code"] {
-        check = "mise run lint:dead-code"
-      }
-      ["flog"] {
-        check = "mise run lint:flog"
-      }
-      ["flay"] {
-        check = "mise run lint:flay"
-      }
-      ["skills"] {
-        check = "mise run lint:skills"
-      }
-      ["test"] {
-        check = "unset $(git rev-parse --local-env-vars); mise run test"
-      }
     }
+  }
+  ["check"] {
+    steps = checks
   }
 }
