@@ -9,6 +9,11 @@ class OpenRouterUSRuntimeTest < Minitest::Test
   MODEL_A = "anthropic/claude-3-haiku"
   MODEL_B = "google/gemini-2.5-pro"
 
+  def setup
+    missing = %w[mise node pi].reject { |command| command_available?(command) }
+    skip "requires managed Pi runtime: #{missing.join(", ")}" unless missing.empty?
+  end
+
   def test_repeated_online_refreshes_restore_the_us_snapshot_offline
     result = run_runtime(<<~JS)
       const store = new ai.InMemoryModelsStore();
@@ -71,6 +76,12 @@ class OpenRouterUSRuntimeTest < Minitest::Test
   end
 
   private
+
+  def command_available?(command)
+    ENV.fetch("PATH", "").split(File::PATH_SEPARATOR).any? do |directory|
+      File.executable?(File.join(directory, command))
+    end
+  end
 
   def run_runtime(body)
     install_root, status = Open3.capture2e("mise", "where", "npm:@earendil-works/pi-coding-agent")
