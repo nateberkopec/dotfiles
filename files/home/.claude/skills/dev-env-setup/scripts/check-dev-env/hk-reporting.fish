@@ -1,13 +1,3 @@
-function set_hk_flag
-    set variable_name $argv[1]
-    set pattern $argv[2]
-    set contents $argv[3..-1]
-
-    if string match -rq "$pattern" -- "$contents"
-        set -g $variable_name 1
-    end
-end
-
 function check_hk_installed
     if not test -d "$target_dir/.git"
         check_warn "hk hooks installed" "Not a git repository - cannot check hook installation."
