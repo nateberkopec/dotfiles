@@ -24,11 +24,25 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
+    - name: Set up Node
+      uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      with:
+        node-version: '24.11.1'
+
+    - name: Install pinned Pi runtime and TypeScript
+      run: npm install --global @earendil-works/pi-coding-agent@0.85.1 typescript@5.9.2
+
     - name: Set up Ruby
       uses: ruby/setup-ruby@4c56a21280b36d862b5fc31348f463d60bdc55d5 # v1.301.0
       with:
         ruby-version: 'ruby'
         bundler-cache: true
+
+    - name: Run OpenRouter US regressions without skips
+      run: bundle exec ruby -Itest test/dotfiles/hooks/openrouter_us_catalog_test.rb --verbose && bundle exec ruby -Itest test/dotfiles/hooks/openrouter_us_runtime_test.rb --verbose
+
+    - name: Type-check Pi extensions
+      run: tools/typecheck_pi_extensions.sh
 
     - name: Run tests with managed Bash startup
       timeout-minutes: 5

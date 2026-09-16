@@ -8,6 +8,9 @@ dfr = "./bin/dotf run"
 
 [tools]
 hk = "1.57.0"
+node = "24.11.1"
+"npm:@earendil-works/pi-coding-agent" = "0.85.1"
+"npm:typescript" = "5.9.2"
 
 [deps.bundler]
 auto = true
@@ -66,8 +69,11 @@ depends = ["lint:standard", "lint:complexity", "lint:human-only", "lint:secrets"
 
 [tasks.test]
 description = "Run the test suite"
-sources = ["**/*.rb", "!tmp/**", "!vendor/**", "!.claude/worktrees/**", "!.pi-subagents/**", "test/**/*", "lib/**/*"]
-run = "bundle exec rake test"
+sources = ["**/*.rb", "**/*.ts", "!tmp/**", "!vendor/**", "!.claude/worktrees/**", "!.pi-subagents/**", "test/**/*", "lib/**/*", "tools/typecheck_pi_extensions.sh"]
+run = """
+bundle exec rake test
+tools/typecheck_pi_extensions.sh
+"""
 
 [tasks.dev]
 description = "Run dotfiles setup on the current machine"
