@@ -25,6 +25,12 @@ class OpenRouterUSRuntimeTest < Minitest::Test
       stored = JSON.parse(File.read(File.join(agent_dir, "models-store.json"))).fetch("openrouter")
       assert_equal [BASE_URL], stored.fetch("models").map { |model| model.fetch("baseUrl") }.uniq
       assert_models run_pi(agent_dir, offline: true), [MODEL_A]
+
+      expire_stored_catalog(agent_dir)
+      assert_models run_pi(agent_dir, offline: true), [MODEL_A]
+      failing_mock = write_failing_fetch_mock(agent_dir, File.join(agent_dir, "failed.log"))
+      assert_models run_pi(agent_dir, mock: failing_mock), [MODEL_A]
+      assert_equal ["#{BASE_URL}/models"], File.readlines(File.join(agent_dir, "failed.log"), chomp: true)
     end
   end
 
@@ -63,6 +69,21 @@ class OpenRouterUSRuntimeTest < Minitest::Test
     store = JSON.parse(File.read(path))
     store.fetch("openrouter")["checkedAt"] = 0
     File.write(path, JSON.generate(store))
+  end
+
+  def write_failing_fetch_mock(agent_dir, calls_path)
+    path = File.join(agent_dir, "failing_fetch_mock.ts")
+    File.write(path, <<~TS)
+      import { appendFileSync } from "node:fs";
+
+      export default function () {
+        globalThis.fetch = async (input) => {
+          appendFileSync(#{calls_path.to_json}, `${String(input)}\n`);
+          throw new Error("mock discovery failure");
+        };
+      }
+    TS
+    path
   end
 
   def write_fetch_mock(agent_dir, calls_path, model_ids)
