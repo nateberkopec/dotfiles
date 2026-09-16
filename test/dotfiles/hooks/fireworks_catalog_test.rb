@@ -1,9 +1,11 @@
 require "test_helper"
 require "json"
 require "open3"
+require "tmpdir"
 
 class FireworksCatalogTest < Minitest::Test
-  CATALOG = File.expand_path("../../../files/home/.pi/agent/extensions/fireworks_catalog.ts", __dir__)
+  EXTENSION = File.expand_path("../../../files/home/.pi/agent/extensions/fireworks", __dir__)
+  CATALOG = File.join(EXTENSION, "fireworks_catalog.ts")
   MARKDOWN = <<~MD
     # US-only Serverless
 
@@ -70,10 +72,48 @@ class FireworksCatalogTest < Minitest::Test
     assert_includes error.message, "new-model-us"
   end
 
+  def test_pi_loads_folder_extension_offline_and_ignores_old_global_cache
+    # rubocop:disable Dotfiles/BanFileSystemClasses -- Pi needs a real isolated agent directory.
+    Dir.mktmpdir("pi-fireworks-test") do |agent_dir|
+      # rubocop:enable Dotfiles/BanFileSystemClasses
+      system = Dotfiles::SystemAdapter.new
+      valid = model("accounts/fireworks/routers/new-model-us")
+      old_global = model("accounts/fireworks/models/kimi-k3", base_url: "https://api.fireworks.ai/inference/v1")
+      system.write_file(File.join(agent_dir, "models-store.json"), JSON.pretty_generate(
+        "fireworks" => {"models" => [old_global, valid], "checkedAt" => 1}
+      ))
+      system.write_file(File.join(agent_dir, "models.json"), JSON.generate("providers" => {}))
+
+      stdout, stderr, status = Open3.capture3(
+        {"PI_CODING_AGENT_DIR" => agent_dir, "PI_OFFLINE" => "1", "FIREWORKS_API_KEY" => "test-key"},
+        "pi", "--no-extensions", "--extension", EXTENSION, "--list-models", "fireworks"
+      )
+
+      assert status.success?, stderr
+      assert_includes stdout, valid.fetch("id")
+      refute_includes stdout, old_global.fetch("id")
+    end
+  end
+
   private
 
   def api_model(id, image: false)
     {id: id, context_length: 200_000, supports_chat: true, supports_image_input: image}
+  end
+
+  def model(id, base_url: "https://us.api.fireworks.ai/inference/v1")
+    {
+      "id" => id,
+      "name" => id,
+      "provider" => "fireworks",
+      "api" => "openai-completions",
+      "baseUrl" => base_url,
+      "reasoning" => true,
+      "input" => ["text"],
+      "cost" => {"input" => 0, "output" => 0, "cacheRead" => 0, "cacheWrite" => 0},
+      "contextWindow" => 200_000,
+      "maxTokens" => 131_072
+    }
   end
 
   def run_catalog(operation, payload)

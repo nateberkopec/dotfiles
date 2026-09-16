@@ -98,6 +98,12 @@ export function isUSModelId(id: unknown): id is string {
 	return typeof id === "string" && US_MODEL_ID.test(id);
 }
 
+export function cachedUSModels(models: readonly Model<Api>[]): FireworksModel[] {
+	return models.filter((model): model is FireworksModel =>
+		model.provider === FIREWORKS_PROVIDER && model.api === "openai-completions" &&
+		model.baseUrl === FIREWORKS_BASE_URL && isUSModelId(model.id));
+}
+
 export class USModelCatalog {
 	#models: FireworksModel[] = [];
 	#allowedIds = new Set<string>();
@@ -107,9 +113,7 @@ export class USModelCatalog {
 	}
 
 	replace(nextModels: readonly Model<Api>[]) {
-		if (nextModels.some((model) =>
-			model.provider !== FIREWORKS_PROVIDER || model.api !== "openai-completions" ||
-			model.baseUrl !== FIREWORKS_BASE_URL || !isUSModelId(model.id))) {
+		if (cachedUSModels(nextModels).length !== nextModels.length) {
 			throw new Error("Refusing invalid cached Fireworks US-only catalog");
 		}
 		this.#models = nextModels as FireworksModel[];

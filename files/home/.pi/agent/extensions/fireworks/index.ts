@@ -1,5 +1,5 @@
-import { openAICompletionsApi } from "@earendil-works/pi-ai/api/openai-completions.lazy";
 import {
+	openAICompletionsApi,
 	envApiKeyAuth,
 	type Api,
 	type Context,
@@ -11,6 +11,7 @@ import {
 } from "@earendil-works/pi-ai";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import {
+	cachedUSModels,
 	fetchUSModels,
 	FIREWORKS_BASE_URL,
 	FIREWORKS_PROVIDER,
@@ -21,9 +22,16 @@ const fireworksApi = openAICompletionsApi();
 const catalog: USModelCatalog = new USModelCatalog();
 
 async function refreshModels(context: RefreshModelsContext) {
-	if (context.stored) {
-		const restored = context.stored.models.filter(({ provider }) => provider === FIREWORKS_PROVIDER);
-		if (!(await context.publish({ update: () => catalog.replace(restored) }))) return;
+	if (catalog.getModels().length > 0 && !context.allowNetwork) {
+		await context.publish({
+			persist: { models: [...catalog.getModels()], checkedAt: Date.now() },
+			update: () => {},
+		});
+		return;
+	}
+	if (context.stored && catalog.getModels().length === 0) {
+		const restored = cachedUSModels(context.stored.models);
+		if (restored.length > 0 && !(await context.publish({ update: () => catalog.replace(restored) }))) return;
 	}
 	if (!context.allowNetwork || context.signal.aborted) return;
 	const apiKey = context.credential?.type === "api_key" ? context.credential.key : undefined;
@@ -59,7 +67,16 @@ const provider: Provider<"openai-completions"> = {
 	streamSimple: guardedApi.streamSimple,
 };
 
-export default function (pi: ExtensionAPI) {
+export default async function (pi: ExtensionAPI) {
+	const apiKey = process.env.FIREWORKS_API_KEY;
+	if (process.env.PI_OFFLINE === undefined && apiKey) {
+		try {
+			catalog.replace(await fetchUSModels(apiKey, AbortSignal.timeout(15_000)));
+		} catch (error) {
+			console.warn(`Fireworks model discovery failed; using the cached catalog: ${String(error)}`);
+		}
+	}
+
 	pi.registerProvider(provider);
 	pi.on("before_provider_request", (event, ctx) => {
 		if (ctx.model?.provider !== FIREWORKS_PROVIDER) return;
