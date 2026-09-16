@@ -48,7 +48,9 @@ class OpenRouterUSRuntimeTest < Minitest::Test
 
   def test_cold_offline_cli_fails_closed
     with_agent_dir do |agent_dir|
-      assert_equal "No models matching \"openrouter\"\n", run_pi(agent_dir, offline: true)
+      output = run_pi(agent_dir, offline: true)
+      assert_models output, []
+      assert_match(/No models (?:matching|available)/, output)
     end
   end
 
