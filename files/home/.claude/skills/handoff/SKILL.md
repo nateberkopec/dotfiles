@@ -4,7 +4,7 @@ description: Compact the current conversation into a handoff document for anothe
 argument-hint: "What will the next session be used for?"
 disable-model-invocation: true
 license: "MIT; copyright Matt Pocock; see ../matt-pocock-skills-LICENSE.txt"
-source: https://github.com/mattpocock/skills/tree/main/skills/productivity/handoff
+source: https://github.com/mattpocock/skills/blob/885e2ca4d842d139e9aef4e48d366c63cb1b8013/skills/productivity/handoff/SKILL.md
 ---
 
 Write a handoff document summarising the current conversation so a fresh agent can continue the work. Save to the temporary directory of the user's OS - not the current workspace.

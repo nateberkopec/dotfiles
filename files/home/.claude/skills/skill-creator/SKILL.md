@@ -2,6 +2,7 @@
 name: skill-creator
 description: Create or update an agent skill. Use when defining triggers, workflows, references, scripts, or assets for a reusable skill.
 license: Complete terms in LICENSE.txt
+source: https://github.com/anthropics/skills/blob/e5c60158df67e67d7609065ba3ad5605a6794e93/skill-creator/SKILL.md
 ---
 
 # Skill creator
