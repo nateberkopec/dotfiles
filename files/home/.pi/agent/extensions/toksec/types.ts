@@ -15,7 +15,10 @@ export type ActiveMeasurement = {
 	observedChars: number;
 };
 
+export type TimingValues = { latest: number; average: number };
+
 export type AggregateStats = {
+	latest?: Pick<ToksecEntry, "outputTokens" | "generationMs" | "ttftMs">;
 	count: number;
 	outputTokens: number;
 	generationMs: number;

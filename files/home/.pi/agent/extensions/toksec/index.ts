@@ -43,7 +43,15 @@ export default function toksecExtension(pi: ExtensionAPI) {
 
 	pi.on("session_start", async (_event, ctx) => {
 		selectedModel = currentModel(ctx);
-		stats = rebuildStats(ctx, selectedModel);
+		stats = rebuildStats(ctx);
+		updateStatus(ctx, stats);
+	});
+
+	pi.on("session_tree", async (_event, ctx) => {
+		active = undefined;
+		pendingRequestStartedAt = undefined;
+		selectedModel = currentModel(ctx);
+		stats = rebuildStats(ctx);
 		updateStatus(ctx, stats);
 	});
 
@@ -112,7 +120,7 @@ export default function toksecExtension(pi: ExtensionAPI) {
 		selectedModel = { provider: event.model.provider, id: event.model.id };
 		active = undefined;
 		pendingRequestStartedAt = undefined;
-		stats = event.source === "restore" ? rebuildStats(ctx, selectedModel) : zeroStats();
+		stats = rebuildStats(ctx);
 		updateStatus(ctx, stats);
 	});
 
