@@ -1,0 +1,21 @@
+amends "package://github.com/jdx/hk/releases/download/v1.57.0/hk@1.57.0#/Config.pkl"
+
+fail_fast = false
+
+local checks = new Mapping<String, Step> {
+  ["lint"] {
+    check = "mise run lint"
+  }
+  ["test"] {
+    check = "mise run test"
+  }
+}
+
+hooks {
+  ["pre-commit"] {
+    steps = checks
+  }
+  ["check"] {
+    steps = checks
+  }
+}
