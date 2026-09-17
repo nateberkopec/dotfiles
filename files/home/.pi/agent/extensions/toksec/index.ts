@@ -1,4 +1,5 @@
-import type { ExtensionAPI, ExtensionContext } from "@mariozechner/pi-coding-agent";
+import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
+import { trackHumanTurns } from "./human_turns.ts";
 import { formatStatus } from "./format.ts";
 import { addSample, currentModel, rebuildStats, sameModel, zeroStats } from "./samples.ts";
 import {
@@ -9,11 +10,6 @@ import {
 	outputTokensFromMessage,
 } from "./stream_events.ts";
 import { CUSTOM_TYPE, STATUS_KEY, type ActiveMeasurement, type AggregateStats, type ModelRef, type ToksecEntry } from "./types.ts";
-
-function updateStatus(ctx: ExtensionContext, stats: AggregateStats): void {
-	if (!ctx.hasUI) return;
-	ctx.ui.setStatus(STATUS_KEY, ctx.ui.theme.fg("dim", formatStatus(stats)));
-}
 
 function createSample(message: unknown, measurement: ActiveMeasurement): ToksecEntry | undefined {
 	const firstOutputAt = measurement.firstOutputAt;
@@ -38,10 +34,24 @@ export default function toksecExtension(pi: ExtensionAPI) {
 	let active: ActiveMeasurement | undefined;
 	let pendingRequestStartedAt: number | undefined;
 	let selectedModel: ModelRef | undefined;
+	const tbht = trackHumanTurns(pi, (ctx) => updateStatus(ctx, stats));
+
+	function updateStatus(ctx: ExtensionContext, stats: AggregateStats): void {
+		if (!ctx.hasUI) return;
+		ctx.ui.setStatus(STATUS_KEY, ctx.ui.theme.fg("dim", formatStatus(stats, tbht())));
+	}
 
 	pi.on("session_start", async (_event, ctx) => {
 		selectedModel = currentModel(ctx);
-		stats = rebuildStats(ctx, selectedModel);
+		stats = rebuildStats(ctx);
+		updateStatus(ctx, stats);
+	});
+
+	pi.on("session_tree", async (_event, ctx) => {
+		active = undefined;
+		pendingRequestStartedAt = undefined;
+		selectedModel = currentModel(ctx);
+		stats = rebuildStats(ctx);
 		updateStatus(ctx, stats);
 	});
 
@@ -110,7 +120,7 @@ export default function toksecExtension(pi: ExtensionAPI) {
 		selectedModel = { provider: event.model.provider, id: event.model.id };
 		active = undefined;
 		pendingRequestStartedAt = undefined;
-		stats = event.source === "restore" ? rebuildStats(ctx, selectedModel) : zeroStats();
+		stats = rebuildStats(ctx);
 		updateStatus(ctx, stats);
 	});
 

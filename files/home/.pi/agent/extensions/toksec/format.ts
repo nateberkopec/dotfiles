@@ -1,20 +1,19 @@
-import type { AggregateStats } from "./types.ts";
-
-const STATUS_EMPTY = "tok/s --- · TTFT --.-s";
+import type { AggregateStats, TimingValues } from "./types.ts";
 
 function formatRate(tokens: number, ms: number): string {
 	if (tokens <= 0 || ms <= 0) return "---";
-	const rate = Math.round(tokens / (ms / 1000));
-	return String(Math.min(999, Math.max(0, rate))).padStart(3, " ");
+	return String(Math.round(tokens / (ms / 1000)));
 }
 
-function formatTtft(ms: number, count: number): string {
-	if (count <= 0 || ms <= 0) return "--.-";
-	const seconds = Math.min(99.9, ms / count / 1000);
-	return seconds.toFixed(1).padStart(4, " ");
+function formatDuration(ms: number | undefined): string {
+	if (ms === undefined) return "--.-s";
+	return ms < 60_000 ? `${(ms / 1000).toFixed(1)}s` : `${(ms / 60_000).toFixed(1)}m`;
 }
 
-export function formatStatus(stats: AggregateStats): string {
-	if (stats.count === 0) return STATUS_EMPTY;
-	return `tok/s ${formatRate(stats.outputTokens, stats.generationMs)} · TTFT ${formatTtft(stats.ttftMs, stats.count)}s`;
+export function formatStatus(stats: AggregateStats, tbht?: TimingValues): string {
+	const latest = stats.latest;
+	const rate = latest ? formatRate(latest.outputTokens, latest.generationMs) : "---";
+	const averageRate = formatRate(stats.outputTokens, stats.generationMs);
+	const averageTtft = stats.count > 0 ? stats.ttftMs / stats.count : undefined;
+	return `tok/s ${rate} (${averageRate}) · TTFT ${formatDuration(latest?.ttftMs)} (${formatDuration(averageTtft)}) · TBHT ${formatDuration(tbht?.latest)} (${formatDuration(tbht?.average)})`;
 }
