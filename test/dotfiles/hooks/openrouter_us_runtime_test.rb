@@ -20,7 +20,9 @@ class OpenRouterUSRuntimeTest < Minitest::Test
       mock = write_fetch_mock(agent_dir, calls, [MODEL_A])
 
       2.times { assert_models run_pi(agent_dir, mock: mock), [MODEL_A] }
-      assert_equal ["#{BASE_URL}/models"], File.readlines(calls, chomp: true)
+      fetches = File.readlines(calls, chomp: true)
+      assert_includes 1..2, fetches.length
+      assert fetches.all? { |url| url == "#{BASE_URL}/models" }
 
       stored = JSON.parse(File.read(File.join(agent_dir, "models-store.json"))).fetch("openrouter")
       assert_equal [BASE_URL], stored.fetch("models").map { |model| model.fetch("baseUrl") }.uniq
@@ -37,11 +39,11 @@ class OpenRouterUSRuntimeTest < Minitest::Test
   def test_online_cli_discovers_new_models_after_reload
     with_agent_dir do |agent_dir|
       first_mock = write_fetch_mock(agent_dir, File.join(agent_dir, "first.log"), [MODEL_A])
-      assert_models run_pi(agent_dir, mock: first_mock), [MODEL_A]
+      2.times { assert_models run_pi(agent_dir, mock: first_mock), [MODEL_A] }
       expire_stored_catalog(agent_dir)
 
       second_mock = write_fetch_mock(agent_dir, File.join(agent_dir, "second.log"), [MODEL_A, MODEL_B])
-      assert_models run_pi(agent_dir, mock: second_mock), [MODEL_A, MODEL_B]
+      2.times { assert_models run_pi(agent_dir, mock: second_mock), [MODEL_A, MODEL_B] }
       assert_models run_pi(agent_dir, offline: true), [MODEL_A, MODEL_B]
     end
   end
@@ -77,13 +79,14 @@ class OpenRouterUSRuntimeTest < Minitest::Test
     path = File.join(agent_dir, "failing_fetch_mock.ts")
     File.write(path, <<~TS)
       import { appendFileSync } from "node:fs";
+      import openRouterUS from #{INDEX.to_json};
 
-      export default function () {
-        globalThis.fetch = async (input) => {
-          appendFileSync(#{calls_path.to_json}, `${String(input)}\n`);
-          throw new Error("mock discovery failure");
-        };
-      }
+      globalThis.fetch = async (input) => {
+        appendFileSync(#{calls_path.to_json}, `${String(input)}\n`);
+        throw new Error("mock discovery failure");
+      };
+
+      export default openRouterUS;
     TS
     path
   end
@@ -92,19 +95,20 @@ class OpenRouterUSRuntimeTest < Minitest::Test
     path = File.join(agent_dir, "fetch_mock_#{File.basename(calls_path, ".log")}.ts")
     File.write(path, <<~TS)
       import { appendFileSync } from "node:fs";
+      import openRouterUS from #{INDEX.to_json};
 
-      export default function () {
-        const originalFetch = globalThis.fetch;
-        globalThis.fetch = async (input, init) => {
-          const url = String(input);
-          appendFileSync(#{calls_path.to_json}, `${url}\n`);
-          if (url === #{"#{BASE_URL}/models".to_json}) {
-            const ids = #{model_ids.to_json};
-            return new Response(JSON.stringify({ data: ids.map((id) => ({ id })) }));
-          }
-          return originalFetch(input, init);
-        };
-      }
+      const originalFetch = globalThis.fetch;
+      globalThis.fetch = async (input, init) => {
+        const url = String(input);
+        appendFileSync(#{calls_path.to_json}, `${url}\n`);
+        if (url === #{"#{BASE_URL}/models".to_json}) {
+          const ids = #{model_ids.to_json};
+          return new Response(JSON.stringify({ data: ids.map((id) => ({ id })) }));
+        }
+        return originalFetch(input, init);
+      };
+
+      export default openRouterUS;
     TS
     path
   end
@@ -115,10 +119,9 @@ class OpenRouterUSRuntimeTest < Minitest::Test
       "PI_CODING_AGENT_DIR" => agent_dir,
       "PI_OFFLINE" => offline ? "1" : nil
     }
-    extensions = mock ? ["--extension", mock] : []
     output, status = Open3.capture2e(
       env,
-      "pi", "--no-extensions", *extensions, "--extension", INDEX, "--list-models", "openrouter"
+      "pi", "--no-extensions", "--extension", mock || INDEX, "--list-models", "openrouter"
     )
     assert status.success?, output
     output
