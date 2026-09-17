@@ -1,0 +1,10 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "nate-skills",
+  "version": "1.0.0",
+  "description": "Nate's reusable workflows, maintained in dotfiles.",
+  "author": {
+    "name": "Nate Berkopec"
+  },
+  "repository": "https://github.com/nateberkopec/dotfiles"
+}

@@ -1,0 +1,20 @@
+{
+  "name": "nate-dotfiles",
+  "interface": {
+    "displayName": "Nate's Dotfiles"
+  },
+  "plugins": [
+    {
+      "name": "nate-skills",
+      "source": {
+        "source": "local",
+        "path": "./files/home/.claude"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}
