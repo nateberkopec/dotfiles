@@ -49,7 +49,10 @@ cat >"$config" <<JSON
     "strict": true,
     "target": "ES2023"
   },
-  "files": ["$PWD/files/home/.pi/agent/extensions/openrouter_us/index.ts"]
+  "files": [
+    "$PWD/files/home/.pi/agent/extensions/openrouter_us/index.ts",
+    "$PWD/files/home/.pi/agent/extensions/toksec/index.ts"
+  ]
 }
 JSON
 

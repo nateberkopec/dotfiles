@@ -1,4 +1,4 @@
-import type { ExtensionContext } from "@mariozechner/pi-coding-agent";
+import type { ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { CUSTOM_TYPE, MIN_GENERATION_MS, type AggregateStats, type ModelRef, type ToksecEntry } from "./types.ts";
 
 export function sameModel(a: ModelRef | undefined, b: ModelRef | undefined): boolean {

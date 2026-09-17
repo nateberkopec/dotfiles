@@ -14,7 +14,10 @@ function formatTtft(ms: number, count: number): string {
 	return seconds.toFixed(1).padStart(4, " ");
 }
 
-export function formatStatus(stats: AggregateStats): string {
-	if (stats.count === 0) return STATUS_EMPTY;
-	return `tok/s ${formatRate(stats.outputTokens, stats.generationMs)} · TTFT ${formatTtft(stats.ttftMs, stats.count)}s`;
+export function formatStatus(stats: AggregateStats, tbhtMs?: number): string {
+	const throughput = stats.count === 0 ? STATUS_EMPTY :
+		`tok/s ${formatRate(stats.outputTokens, stats.generationMs)} · TTFT ${formatTtft(stats.ttftMs, stats.count)}s`;
+	const tbht = tbhtMs === undefined ? "--.-s" : tbhtMs < 60_000 ?
+		`${(tbhtMs / 1000).toFixed(1)}s` : `${(tbhtMs / 60_000).toFixed(1)}m`;
+	return `${throughput} · TBHT ${tbht}`;
 }
