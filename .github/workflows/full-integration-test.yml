@@ -33,15 +33,18 @@ jobs:
       run: bash tools/ci/detect_optional_integration.sh "${{ github.event_name }}" "$BASE_SHA" "$HEAD_SHA"
 
   integration-test:
+    name: integration-test (${{ matrix.os }})
     needs: detect-changes
     if: ${{ !cancelled() && needs.detect-changes.result == 'success' && needs.detect-changes.outputs.integration_optional == 'false' }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os:
-          - macos-latest
-          - ubuntu-22.04
+        include:
+          - os: macos-latest
+            mise_ci_tools: "gum,github:aubepkg/aube,npm:@earendil-works/pi-coding-agent,fzf,aqua:fish-shell/fish-shell,pipx,pipx:playwright,github:abue-ammar/tinycast"
+          - os: ubuntu-22.04
+            mise_ci_tools: "gum,github:aubepkg/aube,npm:@earendil-works/pi-coding-agent,fzf,aqua:fish-shell/fish-shell,pipx,pipx:playwright"
 
     steps:
     - name: Checkout repository
@@ -62,7 +65,7 @@ jobs:
         NONINTERACTIVE: true
         AUBE_DISABLE_TARBALL_STREAM: "1"
         GITHUB_TOKEN: ${{ github.token }}
-        MISE_CI_TOOLS: "gum,github:aubepkg/aube,npm:@earendil-works/pi-coding-agent,fzf,aqua:fish-shell/fish-shell,pipx,pipx:playwright"
+        MISE_CI_TOOLS: ${{ matrix.mise_ci_tools }}
         BREW_CI_PACKAGES: "duti"
         BREW_CI_CASKS: ""
         DEBIAN_CI_PACKAGES: "trash-cli"
@@ -162,7 +165,7 @@ jobs:
         NONINTERACTIVE: true
         AUBE_DISABLE_TARBALL_STREAM: "1"
         GITHUB_TOKEN: ${{ github.token }}
-        MISE_CI_TOOLS: "gum,github:aubepkg/aube,npm:@earendil-works/pi-coding-agent,fzf,aqua:fish-shell/fish-shell,pipx,pipx:playwright"
+        MISE_CI_TOOLS: "gum,github:aubepkg/aube,npm:@earendil-works/pi-coding-agent,fzf,aqua:fish-shell/fish-shell,pipx,pipx:playwright,github:abue-ammar/tinycast"
         BREW_CI_PACKAGES: "duti"
         BREW_CI_CASKS: ""
       run: |

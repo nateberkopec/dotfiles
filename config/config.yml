@@ -21,7 +21,6 @@ brew_casks:
   - github
   - jordanbaird-ice
   - orbstack
-  - raycast
   - slack
   - steam
   - tailscale-app

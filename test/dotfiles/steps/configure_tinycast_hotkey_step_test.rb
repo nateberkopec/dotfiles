@@ -1,15 +1,15 @@
 require "test_helper"
 
-class ConfigureRaycastHotkeyStepTest < StepTestCase
-  step_class Dotfiles::Step::ConfigureRaycastHotkeyStep
+class ConfigureTinycastHotkeyStepTest < StepTestCase
+  step_class Dotfiles::Step::ConfigureTinycastHotkeyStep
 
   def test_default_return_value_is_incomplete
     assert_incomplete
   end
 
-  def test_depends_on_homebrew_cask_install
-    assert_includes Dotfiles::Step::ConfigureRaycastHotkeyStep.depends_on,
-      Dotfiles::Step::InstallBrewCasksStep
+  def test_depends_on_tinycast_app_install
+    assert_includes Dotfiles::Step::ConfigureTinycastHotkeyStep.depends_on,
+      Dotfiles::Step::InstallTinycastAppStep
   end
 
   def test_run_disables_spotlight_hotkey_64
@@ -49,7 +49,7 @@ class ConfigureRaycastHotkeyStepTest < StepTestCase
     notice = step.notices.first
     assert notice, "Expected a manual setup notice"
     assert_includes notice[:message], "System Settings → Keyboard"
-    assert_includes notice[:message], "Raycast → Settings → General"
+    assert_includes notice[:message], "Tinycast → Settings → General"
   end
 
   private

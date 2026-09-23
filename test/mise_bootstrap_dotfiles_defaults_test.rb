@@ -29,8 +29,7 @@ class MiseBootstrapDotfilesDefaultsTest < Minitest::Test
     assert_equal "scale", defaults.dig("com.apple.dock", "mineffect")
     assert_equal 1, defaults.dig("com.apple.AppleMultitouchTrackpad", "TrackpadRightClick")
     assert_equal false, defaults.dig("com.apple.spaces", "spans-displays")
-    assert_equal "Command-49", defaults.dig("com.raycast.macos", "raycastGlobalHotkey")
-    assert_equal true, defaults.dig("com.raycast.macos", "onboarding_setupHotkey")
+    refute defaults.key?("com.raycast.macos")
   end
 
   def test_installs_native_try_release_assets
@@ -40,6 +39,16 @@ class MiseBootstrapDotfilesDefaultsTest < Minitest::Test
     assert_equal "try", tool.fetch("bin")
     assert_equal "try-v1.10.1-linux-x64.tar.gz", tool.dig("platforms", "linux-x64", "asset_pattern")
     assert_equal "try-v1.10.1-macos-arm64.tar.gz", tool.dig("platforms", "macos-arm64", "asset_pattern")
+  end
+
+  def test_installs_native_tinycast_release
+    tool = config.fetch("tools").fetch("github:abue-ammar/tinycast")
+
+    assert_equal "0.11.3", tool.fetch("version")
+    assert_equal "Tinycast-{{version}}.zip", tool.fetch("asset_pattern")
+    assert_equal "Tinycast.app/Contents/MacOS", tool.fetch("bin_path")
+    assert_equal ["macos"], tool.fetch("os")
+    assert_equal ["arm64"], tool.fetch("arch")
   end
 
   def test_installs_and_starts_omniwm
