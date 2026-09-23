@@ -79,12 +79,10 @@ export default async function meridian(pi: ExtensionAPI) {
 
 	const anthropicModels = anthropic.getModels();
 	let models: ProviderModelConfig[] = [];
-	if (process.env.PI_OFFLINE === undefined) {
-		try {
-			models = await fetchModels(anthropicModels, AbortSignal.timeout(2_000));
-		} catch (error) {
-			console.error(`[meridian] ${error instanceof Error ? error.message : String(error)}. Start Meridian at ${BASE_URL}, then open /model to retry discovery.`);
-		}
+	try {
+		models = await fetchModels(anthropicModels, AbortSignal.timeout(2_000));
+	} catch (error) {
+		console.error(`[meridian] ${error instanceof Error ? error.message : String(error)}. Start Meridian at ${BASE_URL}, then open /model to retry discovery.`);
 	}
 
 	const refreshModels = async (context: RefreshModelsContext) => {
