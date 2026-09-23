@@ -141,3 +141,20 @@ jobs:
     - name: Fail on provenance the native runs could not reproduce
       if: always() && steps.verify.outcome == 'failure'
       run: exit 1
+
+  lock-provenance:
+    needs: [detect-changes, lock-linux, lock-macos]
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+    - name: Require conclusive lock provenance results
+      run: >-
+        bash tools/ci/check_lock_workflow_result.sh
+        "${{ needs.detect-changes.result }}"
+        "${{ needs.detect-changes.outputs.lock_changed }}"
+        "${{ needs.lock-linux.result }}"
+        "${{ needs.lock-macos.result }}"
