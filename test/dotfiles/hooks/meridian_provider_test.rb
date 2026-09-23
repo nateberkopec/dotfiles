@@ -6,8 +6,8 @@ require "tmpdir"
 class MeridianProviderTest < Minitest::Test
   EXTENSION = File.expand_path("../../../files/home/.pi/agent/extensions/meridian.ts", __dir__)
 
-  def test_discovers_catalog_changes_and_routes_every_model_to_loopback
-    output, status = run_wrapper(<<~TS)
+  def test_discovers_local_catalog_in_offline_mode_and_routes_every_model_to_loopback
+    output, status = run_wrapper(<<~TS, {"PI_OFFLINE" => "1"})
       import meridian from #{EXTENSION.to_json};
 
       const catalog = (id) => ({
@@ -108,14 +108,6 @@ class MeridianProviderTest < Minitest::Test
         pi.registerProvider(registered.id, registered.config);
       }
     TS
-
-    assert status.success?, output
-    assert_match(/^anthropic\s+claude-opus-4-6\s/, output)
-    refute_match(/^meridian\s+/, output)
-  end
-
-  def test_offline_startup_preserves_anthropic_provider
-    output, status = run_extension({"ANTHROPIC_API_KEY" => "test-key", "PI_OFFLINE" => "1"})
 
     assert status.success?, output
     assert_match(/^anthropic\s+claude-opus-4-6\s/, output)

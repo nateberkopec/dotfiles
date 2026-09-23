@@ -11,7 +11,7 @@ hk = "2.0.1"
 "cargo:difftastic" = "0.70.0"
 "cargo:starship" = "1.26.0"
 "npm:@openai/codex" = { version = "0.154.0", depends = ["github:aubepkg/aube"] }
-"npm:@rynfar/meridian" = { version = "1.66.0", depends = ["github:aubepkg/aube"] }
+"npm:@rynfar/meridian" = { version = "1.76.1", depends = ["github:aubepkg/aube"] }
 "npm:sfw" = { version = "2.0.6", depends = ["github:aubepkg/aube"] }
 pipx = "1.17.2"
 "pipx:playwright" = { version = "1.62.0", depends = ["pipx"] }
