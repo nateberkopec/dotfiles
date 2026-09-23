@@ -5,59 +5,138 @@ require "tmpdir"
 
 class MeridianProviderTest < Minitest::Test
   EXTENSION = File.expand_path("../../../files/home/.pi/agent/extensions/meridian.ts", __dir__)
-  SUPPORTED_MODELS = %w[
-    claude-fable-5
-    claude-haiku-4-5-20251001
-    claude-opus-4-6
-    claude-opus-4-7
-    claude-opus-4-8
-    claude-opus-5
-    claude-sonnet-4-6
-  ].freeze
 
-  def test_registers_distinct_provider_with_required_transport
+  def test_discovers_catalog_changes_and_routes_every_model_to_loopback
+    output, status = run_wrapper(<<~TS)
+      import meridian from #{EXTENSION.to_json};
+
+      const catalog = (id) => ({
+        object: "list",
+        data: [{
+          id,
+          object: "model",
+          owned_by: "anthropic",
+          display_name: id === "claude-opus-4-6" ? "Known" : "New",
+          context_window: 12345,
+          capabilities: { image_input: { supported: true }, thinking: { supported: true } },
+        }],
+      });
+
+      export default async function verify(pi) {
+        let payload = catalog("claude-opus-4-6");
+        globalThis.fetch = async (url) => {
+          if (url !== "http://127.0.0.1:3456/v1/models") throw new Error("wrong discovery URL");
+          return new Response(JSON.stringify(payload), { status: 200 });
+        };
+        let registered;
+        await meridian({ registerProvider: (id, config) => { registered = { id, config }; } });
+        if (registered.id !== "meridian") throw new Error("wrong provider id");
+        if (registered.config.api !== "anthropic-messages") throw new Error("wrong API");
+        if (registered.config.apiKey !== "x") throw new Error("wrong dummy key");
+        if (registered.config.headers["x-meridian-agent"] !== "pi") throw new Error("missing Pi adapter header");
+        if (registered.config.models[0].maxTokens === 12345) throw new Error("known model did not reuse built-in metadata");
+
+        payload = catalog("claude-new-from-meridian");
+        const refreshed = await registered.config.refreshModels({
+          allowNetwork: true,
+          signal: new AbortController().signal,
+        });
+        if (refreshed[0].id !== "claude-new-from-meridian") throw new Error("catalog change was ignored");
+        if (refreshed[0].contextWindow !== 12345 || refreshed[0].maxTokens !== 12345) {
+          throw new Error("new model did not use endpoint metadata");
+        }
+        for (const model of [...registered.config.models, ...refreshed]) {
+          if (model.baseUrl !== registered.config.baseUrl) throw new Error("model escaped loopback routing");
+          if (model.api !== "anthropic-messages") throw new Error("model used the wrong API");
+        }
+        pi.registerProvider(registered.id, { ...registered.config, models: refreshed });
+      }
+    TS
+
+    assert status.success?, output
+    assert_match(/^meridian\s+claude-new-from-meridian\s/, output)
+  end
+
+  def test_malformed_catalog_is_rejected
+    output, status = run_wrapper(<<~TS, {}, "catalog-test")
+      import { buildModels } from #{EXTENSION.to_json};
+
+      export default function verify(pi) {
+        try {
+          buildModels({ object: "list", data: [{ id: "incomplete" }] }, []);
+          throw new Error("malformed catalog was accepted");
+        } catch (error) {
+          if (!String(error).includes("Meridian returned a malformed model catalog")) throw error;
+        }
+        pi.registerProvider("catalog-test", {
+          baseUrl: "http://127.0.0.1:3456",
+          apiKey: "x",
+          api: "anthropic-messages",
+          models: [{
+            id: "malformed-rejected",
+            name: "Malformed rejected",
+            reasoning: false,
+            input: ["text"],
+            cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+            contextWindow: 1,
+            maxTokens: 1,
+          }],
+        });
+      }
+    TS
+
+    assert status.success?, output
+    assert_match(/^catalog-test\s+malformed-rejected\s/, output)
+  end
+
+  def test_endpoint_outage_does_not_break_other_providers
+    output, status = run_wrapper(<<~TS, {"ANTHROPIC_API_KEY" => "test-key"}, "claude-opus-4-6")
+      import meridian from #{EXTENSION.to_json};
+
+      export default async function verify(pi) {
+        globalThis.fetch = async () => { throw new Error("service unavailable"); };
+        let registered;
+        let notice = "";
+        const originalError = console.error;
+        console.error = (message) => { notice = String(message); };
+        await meridian({ registerProvider: (id, config) => { registered = { id, config }; } });
+        console.error = originalError;
+        if (registered.config.models.length !== 0) throw new Error("outage exposed stale models");
+        if (!notice.includes("Start Meridian at http://127.0.0.1:3456, then open /model to retry discovery")) {
+          throw new Error("missing actionable outage notice");
+        }
+        pi.registerProvider(registered.id, registered.config);
+      }
+    TS
+
+    assert status.success?, output
+    assert_match(/^anthropic\s+claude-opus-4-6\s/, output)
+    refute_match(/^meridian\s+/, output)
+  end
+
+  def test_offline_startup_preserves_anthropic_provider
+    output, status = run_extension({"ANTHROPIC_API_KEY" => "test-key", "PI_OFFLINE" => "1"})
+
+    assert status.success?, output
+    assert_match(/^anthropic\s+claude-opus-4-6\s/, output)
+    refute_match(/^meridian\s+/, output)
+  end
+
+  private
+
+  def run_wrapper(source, env = {}, query = "meridian")
     Dir.mktmpdir("meridian-provider") do |agent_dir|
       wrapper = File.join(agent_dir, "verify_meridian.ts")
-      File.write(wrapper, <<~TS)
-        import meridian from #{EXTENSION.to_json};
-
-        export default function verify(pi) {
-          let registered;
-          meridian({ registerProvider: (id, config) => { registered = { id, config }; } });
-          if (registered.id !== "meridian") throw new Error("wrong provider id");
-          if (registered.config.baseUrl !== "http://127.0.0.1:3456") throw new Error("wrong base URL");
-          if (registered.config.api !== "anthropic-messages") throw new Error("wrong API");
-          if (registered.config.apiKey !== "x") throw new Error("wrong dummy key");
-          if (registered.config.headers["x-meridian-agent"] !== "pi") throw new Error("missing Pi adapter header");
-          if (registered.config.models.some((model) => model.provider !== "meridian")) throw new Error("wrong model provider");
-          if (registered.config.models.some((model) => model.baseUrl !== registered.config.baseUrl)) throw new Error("wrong model URL");
-          pi.registerProvider(registered.id, registered.config);
-        }
-      TS
-
-      output, status = Open3.capture2e(
-        {"PI_CODING_AGENT_DIR" => agent_dir, "PI_OFFLINE" => "1"},
-        "pi", "--no-extensions", "--extension", wrapper, "--list-models", "meridian"
-      )
-
-      assert status.success?, output
-      models = output.lines.filter_map { |line| line[/^meridian\s+(\S+)\s/, 1] }
-      assert_equal SUPPORTED_MODELS, models.sort
-      assert output.lines.all? { |line| !line.start_with?("anthropic ") }
+      File.write(wrapper, source)
+      run_extension({"PI_OFFLINE" => nil}.merge(env).merge("PI_CODING_AGENT_DIR" => agent_dir), wrapper, query)
     end
   end
 
-  def test_does_not_replace_anthropic_provider
-    Dir.mktmpdir("meridian-provider") do |agent_dir|
-      output, status = Open3.capture2e(
-        {"ANTHROPIC_API_KEY" => "test-key", "PI_CODING_AGENT_DIR" => agent_dir, "PI_OFFLINE" => "1"},
-        "pi", "--no-extensions", "--extension", EXTENSION, "--list-models", "claude-opus-4-6"
-      )
-
-      assert status.success?, output
-      assert_match(/^anthropic\s+claude-opus-4-6\s/, output)
-      assert_match(/^meridian\s+claude-opus-4-6\s/, output)
-    end
+  def run_extension(env, extension = EXTENSION, query = "claude-opus-4-6")
+    Open3.capture2e(
+      env,
+      "pi", "--no-extensions", "--extension", extension, "--list-models", query
+    )
   end
 end
 # standard:enable Dotfiles/BanFileSystemClasses
