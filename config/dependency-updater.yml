@@ -15,7 +15,6 @@ observed_casks:
   tailscale-app: "1.102.2"
   telegram: "12.9,282555"
   thebrowsercompany-dia: "1.44.1,85212"
-  tinycast: "0.11.3"
   visual-studio-code: "1.133.0"
   whatsapp: "26.32.19"
   zoom: "7.1.5.84650"

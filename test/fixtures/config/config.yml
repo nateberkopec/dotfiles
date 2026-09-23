@@ -1,6 +1,4 @@
 ---
-brew_trusted_taps:
-  - example/tools
 brew_casks:
   - firefox
   - ghostty

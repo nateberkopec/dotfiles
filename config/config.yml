@@ -14,8 +14,6 @@ debian_desktop_apps:
     package: google-chrome-stable
     line: "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome-archive-keyring.gpg] http://dl.google.com/linux/chrome/deb/ stable main"
     key_url: https://dl.google.com/linux/linux_signing_key.pub
-brew_trusted_taps:
-  - abue-ammar/tinycast
 brew_casks:
   - 1password
   - discord
@@ -28,7 +26,6 @@ brew_casks:
   - tailscale-app
   - telegram
   - thebrowsercompany-dia
-  - tinycast
   - visual-studio-code
   - whatsapp
   - zoom

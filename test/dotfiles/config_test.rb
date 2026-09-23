@@ -26,14 +26,6 @@ class ConfigTest < Minitest::Test
     assert_empty Dotfiles::Config.new("/nonexistent/dir").brew_casks
   end
 
-  def test_loads_brew_trusted_taps_from_yaml
-    assert_equal ["example/tools"], Dotfiles::Config.new(@fixtures_dir).brew_trusted_taps
-  end
-
-  def test_brew_trusted_taps_default_to_empty
-    assert_empty Dotfiles::Config.new("/nonexistent/dir").brew_trusted_taps
-  end
-
   def test_fetch_returns_config_value
     config = Dotfiles::Config.new(@fixtures_dir)
 

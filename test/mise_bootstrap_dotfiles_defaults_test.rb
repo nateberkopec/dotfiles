@@ -41,6 +41,16 @@ class MiseBootstrapDotfilesDefaultsTest < Minitest::Test
     assert_equal "try-v1.10.1-macos-arm64.tar.gz", tool.dig("platforms", "macos-arm64", "asset_pattern")
   end
 
+  def test_installs_native_tinycast_release
+    tool = config.fetch("tools").fetch("github:abue-ammar/tinycast")
+
+    assert_equal "0.11.3", tool.fetch("version")
+    assert_equal "Tinycast-{{version}}.zip", tool.fetch("asset_pattern")
+    assert_equal "Tinycast.app/Contents/MacOS", tool.fetch("bin_path")
+    assert_equal ["macos"], tool.fetch("os")
+    assert_equal ["arm64"], tool.fetch("arch")
+  end
+
   def test_installs_and_starts_omniwm
     tool = config.fetch("tools").fetch("github:BarutSRB/OmniWM")
     agent = config.dig("bootstrap", "macos", "launchd", "agents", "omniwm")

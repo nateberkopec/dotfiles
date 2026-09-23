@@ -181,6 +181,18 @@ checksum = "sha256:9c24ab174e11a1e21155a0640e0323beaa7e22a402e59b69694c8465b002b
 url = "https://github.com/OmniNull/OmniWM/releases/download/v0.6.9/OmniWM-v0.6.9.zip"
 url_api = "https://api.github.com/repos/OmniNull/OmniWM/releases/assets/553954910"
 
+[[tools."github:abue-ammar/tinycast"]]
+version = "0.11.3"
+backend = "github:abue-ammar/tinycast"
+
+[tools."github:abue-ammar/tinycast".options]
+asset_pattern = "Tinycast-{version}.zip"
+
+[tools."github:abue-ammar/tinycast"."platforms.macos-arm64"]
+checksum = "sha256:3fa02525e1fd06fc44b1e9056a69395b8bd3a0b565ffb289fe813ae46f3a7772"
+url = "https://github.com/abue-ammar/tinycast/releases/download/v0.11.3/Tinycast-0.11.3.zip"
+url_api = "https://api.github.com/repos/abue-ammar/tinycast/releases/assets/575358922"
+
 [[tools."github:aldanial/cloc"]]
 version = "2.10"
 backend = "github:aldanial/cloc"

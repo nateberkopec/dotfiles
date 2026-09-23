@@ -17,12 +17,11 @@ class Dotfiles::Step::InstallBrewCasksStep < Dotfiles::Step
     return false unless brewfile_needed?
 
     generate_brewfile
-    !trusted_taps? || !packages_already_installed?
+    !packages_already_installed?
   end
 
   def run
     debug "Installing Homebrew packages..."
-    trust_taps
     brew_quiet("update")
     install_and_reset
     install_and_reset unless packages_already_installed?
@@ -33,9 +32,8 @@ class Dotfiles::Step::InstallBrewCasksStep < Dotfiles::Step
     return true unless brewfile_needed?
 
     generate_brewfile
-    add_untrusted_taps_error unless trusted_taps?
     add_missing_packages_error unless packages_already_installed?
-    trusted_taps? && @packages_installed_status
+    @packages_installed_status
   end
 
   private
@@ -44,24 +42,6 @@ class Dotfiles::Step::InstallBrewCasksStep < Dotfiles::Step
     output, exit_status = install_packages
     log_installation_results(output, exit_status)
     @packages_installed_status = nil
-  end
-
-  def trust_taps
-    @config.brew_trusted_taps.each { |tap| brew_quiet("trust", "--tap", tap) }
-    @trusted_taps = nil
-  end
-
-  def trusted_taps?
-    return true if @config.brew_trusted_taps.empty?
-    return @trusted_taps unless @trusted_taps.nil?
-
-    output, status = brew_quiet("trust", "--json=v1")
-    return @trusted_taps = false unless status == 0
-
-    trusted = JSON.parse(output).fetch("taps", [])
-    @trusted_taps = (@config.brew_trusted_taps - trusted).empty?
-  rescue JSON::ParserError
-    @trusted_taps = false
   end
 
   def packages_already_installed?
@@ -77,10 +57,6 @@ class Dotfiles::Step::InstallBrewCasksStep < Dotfiles::Step
     message = "Some Homebrew packages are not installed"
     details = @packages_installed_error.to_s.strip
     add_error(details.empty? ? message : "#{message}: #{details}")
-  end
-
-  def add_untrusted_taps_error
-    add_error("Some required Homebrew taps are not trusted")
   end
 
   def install_packages
@@ -101,14 +77,13 @@ class Dotfiles::Step::InstallBrewCasksStep < Dotfiles::Step
 
   def brewfile_content
     [
-      *@config.brew_trusted_taps.map { |tap| "tap \"#{tap}\"" },
       *formulae.map { |package| "brew \"#{package}\"" },
       *@config.brew_casks.map { |cask| "cask \"#{cask}\"" }
     ].join("\n") + "\n"
   end
 
   def brewfile_needed?
-    @config.brew_trusted_taps.any? || formulae.any? || @config.brew_casks.any?
+    formulae.any? || @config.brew_casks.any?
   end
 
   def formulae

@@ -21,6 +21,7 @@ pipx = "1.17.2"
 "github:pkgforge-dev/ghostty-appimage[bin=ghostty]" = { version = "1.3.1", os = ["linux"] }
 "github:nateberkopec/print-label" = "0.3.0"
 "github:BarutSRB/OmniWM" = { version = "0.6.9", asset_pattern = "OmniWM-v{{version}}.zip", bin_path = "OmniWM.app/Contents/MacOS", os = ["macos"], arch = ["arm64"] }
+"github:abue-ammar/tinycast" = { version = "0.11.3", asset_pattern = "Tinycast-{{version}}.zip", bin_path = "Tinycast.app/Contents/MacOS", os = ["macos"], arch = ["arm64"] }
 watchexec = "2.7.2"
 fnox = "1.35.0"
 bat = "0.26.1"
