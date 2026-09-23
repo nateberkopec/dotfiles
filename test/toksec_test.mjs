@@ -3,7 +3,7 @@ import { EventEmitter } from "node:events";
 import { test } from "node:test";
 import toksec from "../files/home/.pi/agent/extensions/toksec/index.ts";
 
-function harness(t, { installed = true, branch = [] } = {}) {
+function harness(t, { installed = true, branch = [], child = false } = {}) {
 	t.mock.timers.enable({ apis: ["Date", "setTimeout"], now: 1000 });
 	const handlers = new Map();
 	const bus = new EventEmitter();
@@ -24,7 +24,15 @@ function harness(t, { installed = true, branch = [] } = {}) {
 		getAllTools: () => installed ? [{ name: "subagent" }] : [],
 		appendEntry(customType, data) { branch.push({ type: "custom", customType, data }); },
 	};
-	toksec(pi);
+	const previousDepth = process.env.PI_SUBAGENT_DEPTH;
+	if (child) process.env.PI_SUBAGENT_DEPTH = "1";
+	else delete process.env.PI_SUBAGENT_DEPTH;
+	try {
+		toksec(pi);
+	} finally {
+		if (previousDepth === undefined) delete process.env.PI_SUBAGENT_DEPTH;
+		else process.env.PI_SUBAGENT_DEPTH = previousDepth;
+	}
 	return {
 		ctx, bus, branch,
 		get status() { return status; },
@@ -168,13 +176,7 @@ test("status timeouts surface errors and never count as idle", async (t) => {
 });
 
 test("does not measure child sessions", async (t) => {
-	const previous = process.env.PI_SUBAGENT_DEPTH;
-	process.env.PI_SUBAGENT_DEPTH = "1";
-	t.after(() => {
-		if (previous === undefined) delete process.env.PI_SUBAGENT_DEPTH;
-		else process.env.PI_SUBAGENT_DEPTH = previous;
-	});
-	const h = harness(t, { installed: false });
+	const h = harness(t, { installed: false, child: true });
 	await h.emit("session_start");
 	await h.emit("input", { source: "rpc" });
 	t.mock.timers.tick(10_000);
