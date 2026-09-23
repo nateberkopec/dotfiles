@@ -7,6 +7,10 @@ class Dotfiles::Step::ConfigureIceStep < Dotfiles::Step
     [Dotfiles::Step::InstallBrewCasksStep]
   end
 
+  def should_run?
+    ice_installed? && super
+  end
+
   def run
     configure_preferences unless preferences_complete?
     configure_login_item unless login_item_complete?
@@ -15,6 +19,8 @@ class Dotfiles::Step::ConfigureIceStep < Dotfiles::Step
   end
 
   def complete?
+    return true unless ice_installed?
+
     super
     add_error("Managed Ice preferences differ") unless preferences_complete?
     add_error("Ice login item is missing or stale") unless login_item_complete?
@@ -90,8 +96,13 @@ class Dotfiles::Step::ConfigureIceStep < Dotfiles::Step
     )
   end
 
+  def ice_installed?
+    !ice_application_path.nil?
+  end
+
   def ice_application_path
-    user_path = File.join(@home, "Applications", "Ice.app")
-    @system.dir_exist?(user_path) ? user_path : "/Applications/Ice.app"
+    [File.join(@home, "Applications", "Ice.app"), "/Applications/Ice.app"].find do |path|
+      @system.dir_exist?(path)
+    end
   end
 end

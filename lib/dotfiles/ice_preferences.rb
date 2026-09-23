@@ -6,6 +6,7 @@ class Dotfiles::IcePreferences
   DATA_KEYS = %w[IceIcon MenuBarAppearanceConfigurationV2].freeze
   FLOAT_KEYS = %w[ShowOnHoverDelay ItemSpacingOffset RehideInterval TempShowInterval].freeze
   INTEGER_KEYS = %w[IceBarLocation RehideStrategy].freeze
+  FLOAT_EPSILON = 0.000001
 
   def initialize(repository_path:, local_path:, system:)
     @repository_path = repository_path
@@ -50,7 +51,7 @@ class Dotfiles::IcePreferences
   end
 
   def exported_preferences
-    output, status = @system.execute(["defaults", "export", DOMAIN, "-"])
+    output, status = @system.execute(["defaults", "export", DOMAIN, "-"], sensitive: true)
     return {} unless status == 0 && !output.empty?
     Dotfiles::IcePlist.parse(output)
   end
@@ -58,6 +59,7 @@ class Dotfiles::IcePreferences
   def matches?(actual, expected, key)
     return hotkeys_match?(actual, expected) if key == "Hotkeys"
     return json_subset?(JSON.parse(actual), expected) if DATA_KEYS.include?(key) && actual.is_a?(String)
+    return (actual - expected).abs < FLOAT_EPSILON if FLOAT_KEYS.include?(key) && actual.is_a?(Numeric) && expected.is_a?(Numeric)
     actual == expected
   rescue JSON::ParserError
     false

@@ -19,6 +19,15 @@ class IcePreferencesTest < Minitest::Test
     stub_export(@settings.merge("UnmanagedMachineSetting" => "preserved"))
 
     assert preferences.complete?
+    assert @fake_system.received_operation?(:execute,
+      ["defaults", "export", Dotfiles::IcePreferences::DOMAIN, "-"], quiet: true, sensitive: true)
+  end
+
+  def test_float_preferences_tolerate_defaults_rounding
+    actual = @settings.merge("ShowOnHoverDelay" => 0.20000000298023224)
+    stub_export(actual)
+
+    assert preferences.complete?
   end
 
   def test_local_overrides_win_without_writing_the_override_file

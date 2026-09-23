@@ -7,6 +7,7 @@ class ConfigureIceStepTest < StepTestCase
     super
     source = Dotfiles::SystemAdapter.new.read_file(File.expand_path("../../../config/ice.yml", __dir__))
     @fake_system.stub_file_content(File.join(@dotfiles_dir, "config", "ice.yml"), source)
+    @fake_system.stub_file_content("/Applications/Ice.app/Contents/Info.plist", "plist")
   end
 
   def test_default_return_value_is_incomplete
@@ -15,6 +16,15 @@ class ConfigureIceStepTest < StepTestCase
 
   def test_depends_on_homebrew_cask_install
     assert_includes Dotfiles::Step::ConfigureIceStep.depends_on, Dotfiles::Step::InstallBrewCasksStep
+  end
+
+  def test_complete_and_does_not_run_when_ice_is_not_installed
+    system = FakeSystemAdapter.new
+    missing_ice_step = create_step(Dotfiles::Step::ConfigureIceStep, system: system)
+
+    assert missing_ice_step.complete?
+    refute missing_ice_step.should_run?
+    refute system.received_operation?(:execute)
   end
 
   def test_run_quits_and_reopens_running_ice_when_preferences_drift
