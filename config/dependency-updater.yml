@@ -24,23 +24,38 @@ observed_casks:
 # A security advisory always wakes a snooze early.
 snoozes:
   hk:
-    candidate: "1.58.1"
-    wake_at: "1.59.0"
+    candidate: "2.0.1"
+    wake_at: "2.1.0"
+  "npm:@earendil-works/pi-coding-agent":
+    candidate: "0.86.0"
+    wake_at: "0.87.0"
+  "npm:typescript":
+    candidate: "7.0.2"
+    wake_at: "7.1.0"
   "pi:pi-mcp-adapter":
-    candidate: "2.33.0"
-    wake_at: "2.34.0"
+    candidate: "2.34.0"
+    wake_at: "2.35.0"
   "pi:@narumitw/pi-btw":
-    candidate: "0.58.1"
-    wake_at: "0.59.0"
+    candidate: "0.60.1"
+    wake_at: "0.61.0"
   "pi:pi-subagents":
-    candidate: "0.67.0"
-    wake_at: "0.68.0"
+    candidate: "0.70.0"
+    wake_at: "0.71.0"
   standard:
     candidate: "1.56.0"
     wake_at: "1.57.0"
   fnox:
-    candidate: "1.35.1"
-    wake_at: "1.35.2"
+    candidate: "1.35.2"
+    wake_at: "1.36.0"
+  "github:BarutSRB/OmniWM":
+    candidate: "0.7.1"
+    wake_at: "0.8.0"
+  json:
+    candidate: "3.0.2"
+    wake_at: "3.1.0"
+  pitchfork:
+    candidate: "2.27.0"
+    wake_at: "2.28.0"
   claude:
     candidate: "2.1.251"
     wake_at: "2.2.0"
