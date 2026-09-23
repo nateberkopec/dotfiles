@@ -2,6 +2,7 @@ require "test_helper"
 require "json"
 require "open3"
 require "tmpdir"
+require "fileutils"
 
 # Real files exercise the post-step CLI in a separate process.
 # standard:disable Dotfiles/BanFileSystemClasses
@@ -52,15 +53,45 @@ class DependencyFactoryOutputTest < Minitest::Test
     assert_includes check([item], context: {"number" => 2, "head" => "HEAD"}, modified: true), "Changed checkout requires a branch push"
   end
 
+  def test_untracked_checkout_changes_fail_final_publication
+    item = {"type" => "update_pull_request", "body" => "Ready to publish"}
+    output = check([item], context: {"number" => 2, "head" => "HEAD"}, untracked: true)
+
+    assert_includes output, "Commit checkout changes before publishing"
+  end
+
+  def test_saved_mechanical_checker_gates_publication
+    Dir.mktmpdir do |root|
+      directory = File.join(root, "agent")
+      checks = File.join(root, "checks")
+      Dir.mkdir(directory)
+      FileUtils.mkdir_p(checks)
+      source = File.expand_path("../../tools/ci", __dir__)
+      FileUtils.cp(File.join(source, "check_dependency_output.rb"), checks)
+      FileUtils.cp(File.join(source, "dependency_factory.rb"), checks)
+      FileUtils.cp_r(File.join(source, "dependency_factory"), checks)
+      File.write(File.join(checks, "check_dependency_report.rb"), "exit 0\n")
+      File.write(File.join(checks, "check_dependency_update.rb"), 'abort "saved mechanical checker ran"')
+      File.write(File.join(root, "agent_output.json"), JSON.generate("items" => [{"type" => "update_pull_request", "body" => "Ready"}]))
+      File.write(File.join(directory, "pr-context.json"), JSON.generate("number" => 2, "head" => "HEAD", "base" => "a" * 40))
+      setup_checkout(root, false, false)
+      gemfile = File.expand_path("../../Gemfile", __dir__)
+
+      output, = Open3.capture2e({"BUNDLE_GEMFILE" => gemfile}, "bundle", "exec", "ruby", File.join(checks, "check_dependency_output.rb"), directory, chdir: root)
+      assert_includes output, "saved mechanical checker ran"
+      assert_includes output, "Dependency update failed mechanical validation"
+    end
+  end
+
   private
 
-  def check(items, context: {}, modified: false)
+  def check(items, context: {}, modified: false, untracked: false)
     Dir.mktmpdir do |root|
       directory = File.join(root, "agent")
       Dir.mkdir(directory)
       File.write(File.join(root, "agent_output.json"), JSON.generate("items" => items))
       File.write(File.join(directory, "pr-context.json"), JSON.generate(context))
-      changed_checkout(root) if modified
+      setup_checkout(root, modified, untracked)
       script = File.expand_path("../../tools/ci/check_dependency_output.rb", __dir__)
       gemfile = File.expand_path("../../Gemfile", __dir__)
       output, = Open3.capture2e({"BUNDLE_GEMFILE" => gemfile}, "bundle", "exec", "ruby", script, directory, chdir: root)
@@ -68,13 +99,15 @@ class DependencyFactoryOutputTest < Minitest::Test
     end
   end
 
-  def changed_checkout(root)
-    File.write(File.join(root, "snooze.yml"), "wake_at: 1.0\n")
+  def setup_checkout(root, modified, untracked)
     git = ["git", "-C", root, "-c", "core.hooksPath=/dev/null"]
     Open3.capture2e(*git, "init", "--quiet")
-    Open3.capture2e(*git, "add", "snooze.yml")
-    Open3.capture2e(*git, "-c", "user.name=Test", "-c", "user.email=test@example.test", "commit", "--no-gpg-sign", "-qm", "Fixture")
-    File.write(File.join(root, "snooze.yml"), "wake_at: 2.0\n")
+    File.write(File.join(root, ".git/info/exclude"), "/agent/\n/agent_output.json\n/checks/\n")
+    File.write(File.join(root, "snooze.yml"), "wake_at: 1.0\n") if modified
+    Open3.capture2e(*git, "add", ".")
+    Open3.capture2e(*git, "-c", "user.name=Test", "-c", "user.email=test@example.test", "commit", "--no-gpg-sign", "--allow-empty", "-qm", "Fixture")
+    File.write(File.join(root, "snooze.yml"), "wake_at: 2.0\n") if modified
+    File.write(File.join(root, "unexpected.yml"), "untracked: true\n") if untracked
   end
 end
 # standard:enable Dotfiles/BanFileSystemClasses

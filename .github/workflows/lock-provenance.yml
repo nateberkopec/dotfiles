@@ -41,8 +41,9 @@ jobs:
         fi
 
         if git diff --quiet "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}" -- \
-          files/home/.config/mise config/mise.version tools/ci/lock_native_platform.sh tools/ci/check_lock_provenance.rb \
-          tools/ci/dependency_factory/lock_provenance.rb .github/workflows/lock-provenance.yml; then
+          files/home/.config/mise config/mise.version tools/ci/lock_native_platform.sh tools/ci/lock_changed_mise_tools.sh \
+          tools/ci/mise_lock_targets.rb \
+          tools/ci/check_lock_provenance.rb tools/ci/dependency_factory/lock_provenance.rb .github/workflows/lock-provenance.yml; then
           echo "lock_changed=false" >> "$GITHUB_OUTPUT"
         else
           echo "lock_changed=true" >> "$GITHUB_OUTPUT"
@@ -61,11 +62,24 @@ jobs:
       uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       with:
         ref: ${{ github.head_ref || github.ref }}
+        fetch-depth: 0
 
-    - name: Lock linux-x64 natively
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@4c56a21280b36d862b5fc31348f463d60bdc55d5 # v1.301.0
+      with:
+        ruby-version: 'ruby'
+        bundler-cache: true
+
+    - name: Lock changed tools for linux-x64 natively
       env:
         GITHUB_TOKEN: ${{ github.token }}
-      run: bash tools/ci/lock_native_platform.sh linux-x64
+      shell: bash
+      run: |
+        if [ "${{ github.event_name }}" = "pull_request" ]; then
+          bash tools/ci/lock_changed_mise_tools.sh "${{ github.event.pull_request.base.sha }}" linux-x64
+        else
+          bash tools/ci/lock_native_platform.sh linux-x64 --all
+        fi
 
     - name: Upload linux-x64 lock
       uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -86,6 +100,7 @@ jobs:
       uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       with:
         ref: ${{ github.head_ref || github.ref }}
+        fetch-depth: 0
         token: ${{ secrets.DEPENDENCY_FACTORY_PAT || github.token }}
 
     - name: Set up Ruby
@@ -100,10 +115,16 @@ jobs:
         name: mise-lock-linux-x64
         path: files/home/.config/mise
 
-    - name: Lock macos-arm64 natively
+    - name: Lock changed tools for macos-arm64 natively
       env:
         GITHUB_TOKEN: ${{ github.token }}
-      run: bash tools/ci/lock_native_platform.sh macos-arm64
+      shell: bash
+      run: |
+        if [ "${{ github.event_name }}" = "pull_request" ]; then
+          bash tools/ci/lock_changed_mise_tools.sh "${{ github.event.pull_request.base.sha }}" macos-arm64
+        else
+          bash tools/ci/lock_native_platform.sh macos-arm64 --all
+        fi
 
     - name: Verify provenance against the committed lock
       id: verify
@@ -114,30 +135,52 @@ jobs:
         git show "HEAD:$LOCK" > "$RUNNER_TEMP/committed.lock"
         bundle exec ruby tools/ci/check_lock_provenance.rb "$RUNNER_TEMP/committed.lock" "$LOCK" linux-x64 macos-arm64
 
-    - name: Publish the natively generated lock
+    - name: Prepare the natively generated lock
+      id: generated
       shell: bash
       run: |
         set -euo pipefail
-
+        echo "base=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
         if git diff --quiet -- "$LOCK"; then
-          echo "The committed lock already matches native generation on every platform."
+          echo "changed=false" >> "$GITHUB_OUTPUT"
+          echo "The committed lock already matches targeted native generation."
           exit 0
         fi
 
         git diff -- "$LOCK"
-        if [ "${{ github.event_name }}" != "pull_request" ] || [ "${{ github.event.pull_request.head.repo.full_name }}" != "${{ github.repository }}" ]; then
-          echo "::error::$LOCK differs from native generation; regenerate it with tools/ci/lock_native_platform.sh on each platform."
-          exit 1
-        fi
-
         git config user.name "github-actions[bot]"
         git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
         git add "$LOCK"
         git commit -m "Regenerate mise.lock with native provenance verification"
+        echo "changed=true" >> "$GITHUB_OUTPUT"
+
+    - name: Validate generated dependency drift
+      id: policy
+      continue-on-error: true
+      run: bundle exec ruby tools/ci/check_dependency_update.rb "${{ steps.generated.outputs.base }}"
+
+    - name: Preserve a rejected native lock
+      if: ${{ always() && steps.generated.outputs.changed == 'true' && (steps.verify.outcome == 'failure' || steps.policy.outcome == 'failure') }}
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      with:
+        name: rejected-mise-lock-${{ github.run_attempt }}
+        path: files/home/.config/mise/mise.lock
+
+    - name: Publish the accepted native lock
+      if: ${{ steps.generated.outputs.changed == 'true' && steps.verify.outcome == 'success' && steps.policy.outcome == 'success' }}
+      shell: bash
+      run: |
+        set -euo pipefail
+        if [ "${{ github.event_name }}" != "pull_request" ] || [ "${{ github.event.pull_request.head.repo.full_name }}" != "${{ github.repository }}" ]; then
+          echo "::error::$LOCK differs from native generation; regenerate it with targeted tools/ci/lock_native_platform.sh calls."
+          exit 1
+        fi
         git push origin "HEAD:${{ github.head_ref }}"
-        echo "::error::Pushed the natively generated lock as $(git rev-parse HEAD); checks rerun on that commit."
+        echo "::error::Pushed the accepted native lock as $(git rev-parse HEAD); checks rerun on that commit."
         exit 1
 
-    - name: Fail on provenance the native runs could not reproduce
-      if: always() && steps.verify.outcome == 'failure'
-      run: exit 1
+    - name: Fail on rejected native output
+      if: ${{ always() && (steps.verify.outcome == 'failure' || steps.policy.outcome == 'failure') }}
+      run: |
+        echo "::error::Native lock output failed provenance or dependency policy; it was preserved as an artifact and was not pushed."
+        exit 1

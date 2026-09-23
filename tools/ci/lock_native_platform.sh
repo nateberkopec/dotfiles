@@ -4,7 +4,21 @@
 # refusing to cross-generate keeps every provenance_verified entry native.
 set -euo pipefail
 
-platform="${1:?usage: lock_native_platform.sh PLATFORM}"
+platform="${1:?usage: lock_native_platform.sh PLATFORM TOOL...|--all}"
+shift
+if [ "$#" -eq 0 ]; then
+    echo "Specify changed tools, or --all for an intentional full refresh" >&2
+    exit 1
+fi
+if [ "$1" = "--all" ]; then
+    if [ "$#" -ne 1 ]; then
+        echo "--all cannot be combined with tool names" >&2
+        exit 1
+    fi
+    tools=()
+else
+    tools=("$@")
+fi
 root="$(cd "$(dirname "$0")/../.." && pwd)"
 
 case "$(uname -s)-$(uname -m)" in
@@ -23,4 +37,8 @@ if [ "$("$mise_bin" --version 2>/dev/null | awk 'NR == 1 { print $1 }')" != "$ve
     curl -fsSL https://mise.run | MISE_VERSION="$version" MISE_INSTALL_PATH="$mise_bin" sh
 fi
 
-MISE_GLOBAL_CONFIG_FILE="$root/files/home/.config/mise/config.toml" "$mise_bin" lock --global --platform "$platform"
+if [ "${#tools[@]}" -eq 0 ]; then
+    MISE_GLOBAL_CONFIG_FILE="$root/files/home/.config/mise/config.toml" "$mise_bin" lock --global --platform "$platform"
+else
+    MISE_GLOBAL_CONFIG_FILE="$root/files/home/.config/mise/config.toml" "$mise_bin" lock --global --platform "$platform" "${tools[@]}"
+fi

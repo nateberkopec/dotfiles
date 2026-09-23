@@ -26,6 +26,8 @@ A separate dependency factory finds and reviews updates.
 
 Use mise for command-line tools when mise can install them. Use Homebrew for integration formulae and GUI casks that mise cannot install.
 
+[ADR 0008](0008-reduce-homebrew-usage.md) supersedes the Homebrew fallback in the preceding paragraph. The convergence and update-separation decisions here remain in effect.
+
 `dotf` installs a cask only when the cask is not present. The versions in `config/dependency-updater.yml` are observation baselines. They are not installation targets. `dotf` never downgrades a cask. The dependency factory omits cask version changes because the repository cannot enforce them.
 
 The dependency factory does not manage macOS versions. The existing macOS update Step continues to find the latest available update.
