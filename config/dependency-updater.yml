@@ -47,6 +47,9 @@ snoozes:
   fnox:
     candidate: "1.35.2"
     wake_at: "1.36.0"
+  mise:
+    candidate: "2026.9.11"
+    wake_at: "2026.10.0"
   "github:BarutSRB/OmniWM":
     candidate: "0.7.1"
     wake_at: "0.8.0"
