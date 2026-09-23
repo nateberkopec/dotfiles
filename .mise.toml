@@ -7,7 +7,7 @@ BUNDLE_PATH = "vendor/bundle"
 dfr = "./bin/dotf run"
 
 [tools]
-hk = "1.57.0"
+hk = "2.0.1"
 node = "24.11.1"
 "npm:@earendil-works/pi-coding-agent" = "0.85.1"
 "npm:typescript" = "5.9.2"
