@@ -41,7 +41,8 @@ jobs:
         fi
 
         if git diff --quiet "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}" -- \
-          files/home/.config/mise config/mise.version tools/ci/lock_native_platform.sh tools/ci/mise_lock_targets.rb \
+          files/home/.config/mise config/mise.version tools/ci/lock_native_platform.sh tools/ci/lock_changed_mise_tools.sh \
+          tools/ci/mise_lock_targets.rb \
           tools/ci/check_lock_provenance.rb tools/ci/dependency_factory/lock_provenance.rb .github/workflows/lock-provenance.yml; then
           echo "lock_changed=false" >> "$GITHUB_OUTPUT"
         else
@@ -61,6 +62,7 @@ jobs:
       uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       with:
         ref: ${{ github.head_ref || github.ref }}
+        fetch-depth: 0
 
     - name: Set up Ruby
       uses: ruby/setup-ruby@4c56a21280b36d862b5fc31348f463d60bdc55d5 # v1.301.0
@@ -73,16 +75,10 @@ jobs:
         GITHUB_TOKEN: ${{ github.token }}
       shell: bash
       run: |
-        targets=()
         if [ "${{ github.event_name }}" = "pull_request" ]; then
-          while IFS= read -r tool; do targets+=("$tool"); done < <(bundle exec ruby tools/ci/mise_lock_targets.rb "${{ github.event.pull_request.base.sha }}")
+          bash tools/ci/lock_changed_mise_tools.sh "${{ github.event.pull_request.base.sha }}" linux-x64
         else
-          targets=(--all)
-        fi
-        if [ "${#targets[@]}" -eq 0 ]; then
-          echo "No global mise pin changed; keeping unrelated lock entries intact."
-        else
-          bash tools/ci/lock_native_platform.sh linux-x64 "${targets[@]}"
+          bash tools/ci/lock_native_platform.sh linux-x64 --all
         fi
 
     - name: Upload linux-x64 lock
@@ -104,6 +100,7 @@ jobs:
       uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       with:
         ref: ${{ github.head_ref || github.ref }}
+        fetch-depth: 0
         token: ${{ secrets.DEPENDENCY_FACTORY_PAT || github.token }}
 
     - name: Set up Ruby
@@ -123,16 +120,10 @@ jobs:
         GITHUB_TOKEN: ${{ github.token }}
       shell: bash
       run: |
-        targets=()
         if [ "${{ github.event_name }}" = "pull_request" ]; then
-          while IFS= read -r tool; do targets+=("$tool"); done < <(bundle exec ruby tools/ci/mise_lock_targets.rb "${{ github.event.pull_request.base.sha }}")
+          bash tools/ci/lock_changed_mise_tools.sh "${{ github.event.pull_request.base.sha }}" macos-arm64
         else
-          targets=(--all)
-        fi
-        if [ "${#targets[@]}" -eq 0 ]; then
-          echo "No global mise pin changed; keeping unrelated lock entries intact."
-        else
-          bash tools/ci/lock_native_platform.sh macos-arm64 "${targets[@]}"
+          bash tools/ci/lock_native_platform.sh macos-arm64 --all
         fi
 
     - name: Verify provenance against the committed lock

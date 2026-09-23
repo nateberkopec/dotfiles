@@ -75,7 +75,7 @@ steps:
         > /tmp/gh-aw/agent/open-dependency-update-prs.json
       cat /tmp/gh-aw/agent/open-dependency-update-prs.json
   - name: Stop repeated automatic repair loops
-    run: bash tools/ci/check_dependency_repair_loop.sh "$(jq -r .base /tmp/gh-aw/agent/pr-context.json)" "${{ github.event_name }}"
+    run: bash tools/ci/check_dependency_repair_loop.sh "$(jq -r .base /tmp/gh-aw/agent/pr-context.json)" "$(jq -r '.head // empty' /tmp/gh-aw/agent/pr-context.json)" "${{ github.event_name }}"
   - name: Set up Ruby
     uses: ruby/setup-ruby@4c56a21280b36d862b5fc31348f463d60bdc55d5 # v1.301.0
     with:

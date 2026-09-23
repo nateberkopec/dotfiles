@@ -5,23 +5,25 @@ require "tmpdir"
 # Real history fixtures verify that a new bot SHA cannot reset the loop guard.
 # standard:disable Dotfiles/BanFileSystemClasses
 class DependencyFactoryRepairLoopTest < Minitest::Test
-  def test_allows_the_first_native_lock_rewrite
+  def test_allows_the_first_native_lock_rewrite_while_main_is_checked_out
     with_history do |root, base|
       commit(root, "Regenerate mise.lock with native provenance verification", bot: true)
+      pr_head = checkout_main(root)
 
-      _output, status = guard(root, base, "workflow_run")
+      _output, status = guard(root, base, pr_head, "workflow_run")
 
       assert status.success?
     end
   end
 
-  def test_bails_out_after_a_second_native_lock_rewrite
+  def test_bails_out_on_pr_history_while_main_is_checked_out
     with_history do |root, base|
       commit(root, "Regenerate mise.lock with native provenance verification", bot: true)
       commit(root, "Repair dependency update lock host")
       commit(root, "Regenerate mise.lock with native provenance verification", bot: true)
+      pr_head = checkout_main(root)
 
-      output, status = guard(root, base, "workflow_run")
+      output, status = guard(root, base, pr_head, "workflow_run")
 
       refute status.success?
       assert_includes output, "Bailing out after 2 native lock rewrites"
@@ -29,11 +31,18 @@ class DependencyFactoryRepairLoopTest < Minitest::Test
     end
   end
 
-  def test_non_repair_events_do_not_bail_out
+  def test_rejects_an_unavailable_pr_head
     with_history do |root, base|
-      2.times { commit(root, "Regenerate mise.lock with native provenance verification", bot: true) }
+      output, status = guard(root, base, "0" * 40, "workflow_run")
 
-      _output, status = guard(root, base, "workflow_dispatch")
+      refute status.success?
+      assert_includes output, "Expected an available commit SHA"
+    end
+  end
+
+  def test_non_repair_events_do_not_require_pr_history
+    with_history do |root, base|
+      _output, status = guard(root, base, "", "workflow_dispatch")
 
       assert status.success?
     end
@@ -43,9 +52,11 @@ class DependencyFactoryRepairLoopTest < Minitest::Test
 
   def with_history
     Dir.mktmpdir do |root|
-      git(root, "init", "--quiet")
+      git(root, "init", "--quiet", "--initial-branch=main")
       commit(root, "Base")
-      yield root, git(root, "rev-parse", "HEAD").first.strip
+      base = git(root, "rev-parse", "HEAD").first.strip
+      git(root, "switch", "--quiet", "-c", "dependency-update-test")
+      yield root, base
     end
   end
 
@@ -60,9 +71,15 @@ class DependencyFactoryRepairLoopTest < Minitest::Test
     Open3.capture2e(env, "git", "-C", root, "-c", "core.hooksPath=/dev/null", "commit", "--no-gpg-sign", "-qm", message)
   end
 
-  def guard(root, base, event)
+  def checkout_main(root)
+    pr_head = git(root, "rev-parse", "HEAD").first.strip
+    git(root, "switch", "--quiet", "main")
+    pr_head
+  end
+
+  def guard(root, base, pr_head, event)
     script = File.expand_path("../../tools/ci/check_dependency_repair_loop.sh", __dir__)
-    Open3.capture2e("bash", script, base, event, chdir: root)
+    Open3.capture2e("bash", script, base, pr_head, event, chdir: root)
   end
 
   def git(root, *args)
