@@ -11,6 +11,7 @@ class DependencyFactoryMiseLockTargetsTest < Minitest::Test
       config = File.join(root, "files/home/.config/mise")
       FileUtils.mkdir_p(config)
       File.write(File.join(config, "config.toml"), pins(gh: "2.99.0"))
+      write_mise_version(root)
       git(root, "init", "--quiet")
       git(root, "add", ".")
       git(root, "commit", "--no-gpg-sign", "-qm", "Base")
@@ -32,6 +33,7 @@ class DependencyFactoryMiseLockTargetsTest < Minitest::Test
       FileUtils.mkdir_p(config)
       File.write(File.join(config, "config.toml"), pins(gh: "2.99.0"))
       File.write(File.join(config, "mise.lock"), "owner = \"BarutSRB\"\n")
+      write_mise_version(root)
       git(root, "init", "--quiet")
       git(root, "add", ".")
       git(root, "commit", "--no-gpg-sign", "-qm", "Base")
@@ -41,7 +43,7 @@ class DependencyFactoryMiseLockTargetsTest < Minitest::Test
       output, status = Open3.capture2e({"BUNDLE_GEMFILE" => File.expand_path("../../Gemfile", __dir__)}, "bundle", "exec", "ruby", script, base, chdir: root)
 
       refute status.success?
-      assert_includes output, "mise.lock changed without a corresponding global mise pin"
+      assert_includes output, "mise.lock changed without a corresponding mise input change"
     end
   end
 
@@ -50,6 +52,7 @@ class DependencyFactoryMiseLockTargetsTest < Minitest::Test
       config = File.join(root, "files/home/.config/mise")
       FileUtils.mkdir_p(config)
       File.write(File.join(config, "config.toml"), pins(gh: "2.99.0"))
+      write_mise_version(root)
       git(root, "init", "--quiet")
       git(root, "add", ".")
       git(root, "commit", "--no-gpg-sign", "-qm", "Base")
@@ -67,6 +70,11 @@ class DependencyFactoryMiseLockTargetsTest < Minitest::Test
 
   def pins(gh:)
     "[tools]\ngh = \"#{gh}\"\n\"github:BarutSRB/OmniWM\" = \"0.6.9\"\n"
+  end
+
+  def write_mise_version(root)
+    FileUtils.mkdir_p(File.join(root, "config"))
+    File.write(File.join(root, "config/mise.version"), "2026.9.4\n")
   end
 
   def script
