@@ -20,7 +20,10 @@ if [ -z "$base_sha" ] || [ -z "$head_sha" ] || [ "$base_sha" = "0000000000000000
 fi
 
 git diff --name-only --no-renames "$base_sha" "$head_sha" > "$RUNNER_TEMP/changed-files"
-mapfile -t files < "$RUNNER_TEMP/changed-files"
+files=()
+while IFS= read -r file; do
+  files+=("$file")
+done < "$RUNNER_TEMP/changed-files"
 
 if [ "${#files[@]}" -eq 0 ]; then
   echo "integration_optional=false" >> "$GITHUB_OUTPUT"

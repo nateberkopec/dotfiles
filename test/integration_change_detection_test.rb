@@ -99,7 +99,7 @@ class IntegrationChangeDetectionTest < Minitest::Test
     output_path = File.join(@repo, "github-output")
     FileUtils.rm_f(output_path)
     env = {"GITHUB_OUTPUT" => output_path, "RUNNER_TEMP" => @repo}
-    output, status = Open3.capture2e(env, "bash", SCRIPT, event, base, head, chdir: @repo)
+    output, status = Open3.capture2e(env, "/bin/bash", SCRIPT, event, base, head, chdir: @repo)
     result = File.exist?(output_path) ? File.read(output_path) : ""
     [output, status, result]
   end

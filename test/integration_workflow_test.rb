@@ -53,12 +53,12 @@ class IntegrationWorkflowTest < Minitest::Test
   private
 
   def assert_result(*arguments)
-    output, status = Open3.capture2e("bash", RESULT_CHECKER, *arguments)
+    output, status = Open3.capture2e("/bin/bash", RESULT_CHECKER, *arguments)
     assert status.success?, output
   end
 
   def refute_result(*arguments)
-    _output, status = Open3.capture2e("bash", RESULT_CHECKER, *arguments)
+    _output, status = Open3.capture2e("/bin/bash", RESULT_CHECKER, *arguments)
     refute status.success?
   end
 end
