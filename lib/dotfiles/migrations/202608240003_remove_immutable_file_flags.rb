@@ -3,8 +3,6 @@ class Dotfiles::Migration::RemoveImmutableFileFlags < Dotfiles::Migration
   MANAGED_PATHS = %w[
     .aws/credentials
     .gem/credentials
-    .git-hooks/pre-commit
-    .git-hooks/pre-push
     .pi/agent/extensions/find_timeout.ts
   ].freeze
 

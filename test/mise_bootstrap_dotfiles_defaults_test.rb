@@ -5,7 +5,10 @@ class MiseBootstrapDotfilesDefaultsTest < Minitest::Test
   def test_declares_home_sync_templates_and_symlinks
     dotfiles = config.fetch("dotfiles")
 
-    assert_equal({"source" => "~/.dotfiles/files/home", "mode" => "copy"}, dotfiles.fetch("~"))
+    assert_equal(
+      {"source" => "~/.dotfiles/files/home", "mode" => "copy", "exclude" => [".git-hooks"]},
+      dotfiles.fetch("~")
+    )
     assert_equal "template", dotfiles.fetch("~/.config/fish/conf.d/platform.fish").fetch("mode")
     assert_equal "template", dotfiles.fetch("~/.config/ghostty/config.platform").fetch("mode")
     assert_equal "symlink", dotfiles.fetch("~/.local/bin/dotf").fetch("mode")

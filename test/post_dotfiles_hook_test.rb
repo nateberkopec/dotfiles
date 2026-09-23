@@ -12,9 +12,13 @@ class PostDotfilesHookTest < Minitest::Test
       launchctl_trace = File.join(dir, "launchctl.log")
       mise_trace = File.join(dir, "mise.log")
       bin = File.join(dir, "bin")
+      hook_source = File.join(home, ".dotfiles/files/home/.git-hooks/pre-push")
+      sync_script = File.join(home, ".dotfiles/bin/lib/sync-git-hooks.sh")
 
-      FileUtils.mkdir_p([File.dirname(plist), bin])
+      FileUtils.mkdir_p([File.dirname(plist), File.dirname(hook_source), File.dirname(sync_script), bin])
       File.write(plist, "legacy")
+      File.write(hook_source, "managed hook")
+      FileUtils.cp(File.expand_path("../bin/lib/sync-git-hooks.sh", __dir__), sync_script)
       write_command(bin, "uname", "echo Darwin")
       write_command(bin, "mise", '[ "$*" = "hook-env -s bash" ] || echo "$*" >> "$MISE_TRACE"')
       write_command(bin, "launchctl", 'echo "$*" >> "$LAUNCHCTL_TRACE"')
@@ -33,6 +37,7 @@ class PostDotfilesHookTest < Minitest::Test
       refute File.exist?(plist)
       assert_equal "bootout gui/#{Process.uid}/com.user.woodblock-wallpaper\n", File.read(launchctl_trace)
       assert_equal "exec -- playwright install chromium-headless-shell\n", File.read(mise_trace)
+      assert_equal "managed hook", File.read(File.join(home, ".git-hooks/pre-push"))
     end
   end
 
