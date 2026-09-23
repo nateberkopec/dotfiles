@@ -4,7 +4,9 @@ require "json"
 
 # Validate the exact safe-output body on both creation and revision, before publishing.
 directory = ARGV.fetch(0, "/tmp/gh-aw/agent")
-items = JSON.parse(File.read(File.join(directory, "../agent_output.json"))).fetch("items")
+output_path = File.join(directory, "../agent_output.json")
+output = JSON.parse(File.read(output_path))
+items = output.fetch("items")
 outcomes = %w[create_pull_request push_to_pull_request_branch update_pull_request add_comment]
 abort "The agent finished without a pull request outcome" unless items.any? { |item| outcomes.include?(item["type"]) }
 bodies = items.select { |item| %w[create_pull_request update_pull_request].include?(item["type"]) }
@@ -24,6 +26,7 @@ else
   abort "No triggering pull request to update" unless item["type"] == "create_pull_request"
 end
 body_path = File.join(directory, "pr-body.md")
+item["body"] = DependencyFactory::ReportText.publishable(item.fetch("body"))
 File.write(body_path, item.fetch("body"))
 checker = File.join(__dir__, "check_dependency_report.rb")
 abort "Dependency report failed validation" unless system("bundle", "exec", "ruby", checker, File.join(directory, "dependency-candidates.json"), body_path, context.fetch("base"), File.join(directory, "release-notes.json"))
@@ -32,3 +35,5 @@ items.select { |entry| %w[create_pull_request push_to_pull_request_branch].inclu
   errors = DependencyFactory::Transport.errors(entry, directory: directory)
   abort errors.join("\n") unless errors.empty?
 end
+# Publish the same repaired URLs that passed validation, without unescaping prose mentions.
+File.write(output_path, JSON.generate(output))
