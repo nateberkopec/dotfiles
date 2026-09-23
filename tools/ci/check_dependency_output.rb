@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 require_relative "dependency_factory"
 require "json"
+require "open3"
 
 # Validate the exact safe-output body on both creation and revision, before publishing.
 directory = ARGV.fetch(0, "/tmp/gh-aw/agent")
@@ -28,9 +29,12 @@ end
 body_path = File.join(directory, "pr-body.md")
 item["body"] = DependencyFactory::ReportText.publishable(item.fetch("body"))
 File.write(body_path, item.fetch("body"))
-checker = File.join(__dir__, "check_dependency_report.rb")
-abort "Dependency report failed validation" unless system("bundle", "exec", "ruby", checker, File.join(directory, "dependency-candidates.json"), body_path, context.fetch("base"), File.join(directory, "release-notes.json"))
-abort "Commit checkout changes before publishing" unless system("git", "diff", "--quiet", "HEAD", "--")
+checkout_status, git_status = Open3.capture2e("git", "status", "--porcelain", "--untracked-files=all")
+abort "Commit checkout changes before publishing" unless git_status.success? && checkout_status.empty?
+report_checker = File.join(__dir__, "check_dependency_report.rb")
+abort "Dependency report failed validation" unless system("bundle", "exec", "ruby", report_checker, File.join(directory, "dependency-candidates.json"), body_path, context.fetch("base"), File.join(directory, "release-notes.json"))
+update_checker = File.join(__dir__, "check_dependency_update.rb")
+abort "Dependency update failed mechanical validation" unless system("bundle", "exec", "ruby", update_checker, context.fetch("base"))
 items.select { |entry| %w[create_pull_request push_to_pull_request_branch].include?(entry["type"]) }.each do |entry|
   errors = DependencyFactory::Transport.errors(entry, directory: directory)
   abort errors.join("\n") unless errors.empty?

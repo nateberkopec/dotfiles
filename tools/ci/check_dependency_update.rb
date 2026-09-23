@@ -6,7 +6,7 @@ FUZZY_VERSION = /(?:\A|[.-])(?:latest|lts|x)(?:\z|[.-])/i
 base = ARGV.fetch(0)
 abort "Expected a commit SHA" unless base.match?(/\A[0-9a-f]{40}\z/)
 allowed = %w[.mise.toml Gemfile.lock config/config.yml config/dependency-updater.yml config/mise.version files/home/.config/mise/config.toml files/home/.config/mise/mise.lock files/home/.pi/agent/settings.json]
-paths = `git diff --name-only #{base}...HEAD`.lines.map(&:chomp)
+paths = `git diff --name-only #{base}`.lines.map(&:chomp)
 abort "Dependency update changed forbidden files: #{paths - allowed}" unless (paths - allowed).empty?
 
 def exact_version(version)
@@ -62,7 +62,8 @@ end
 def pi_settings(content)
   JSON.parse(content).tap do |data|
     data.fetch("packages").map! do |package|
-      match = package.match(/\A(.+)@(\d[\w.+-]*)\z/) or abort "Pi package versions must be exact"
+      next package if package.start_with?("git:") && package.match?(/@[0-9a-f]{40}\z/)
+      match = package.match(/\A(npm:.+)@(\d[\w.+-]*)\z/) or abort "Pi package must use an exact npm version or Git SHA: #{package}"
       "#{match[1]}@#{exact_version(match[2])}"
     end
   end
@@ -78,7 +79,9 @@ def normalized(path, content)
   mise_lock(content)
 end
 paths.each do |path|
-  abort "Dependency update made unsafe changes to #{path}" unless normalized(path, `git show #{base}:#{path}`) == normalized(path, File.read(path))
+  before = normalized(path, `git show #{base}:#{path}`)
+  after = normalized(path, File.read(path))
+  abort "Dependency update made unsafe changes to #{path}" unless before == after
 end
 lock = "files/home/.config/mise/mise.lock"
 if paths.include?(lock)
