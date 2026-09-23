@@ -4,3 +4,12 @@ down
 log_file
 print_steps
 run_if_existing_machine
+# Ice plist value parsers are selected through the PARSERS dispatch table.
+parse_array
+parse_data
+parse_dict
+parse_false
+parse_integer
+parse_real
+parse_string
+parse_true

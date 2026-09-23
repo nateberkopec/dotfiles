@@ -18,6 +18,8 @@ class Dotfiles
       require "command_helpers"
       require "platform_restrictable"
       require "system_adapter"
+      require "ice_plist"
+      require "ice_preferences"
       require "debian_desktop_source_installer"
       require "step"
       require "step/defaultable"
