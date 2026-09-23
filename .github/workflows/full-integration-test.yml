@@ -1,6 +1,8 @@
 name: Integration Tests
 
 on:
+  push:
+    branches: [ main ]
   pull_request:
     branches: [ main ]
   schedule:
@@ -33,6 +35,10 @@ jobs:
           pull_request)
             base_sha="${{ github.event.pull_request.base.sha }}"
             head_sha="${{ github.event.pull_request.head.sha }}"
+            ;;
+          push)
+            base_sha="${{ github.event.before }}"
+            head_sha="${{ github.sha }}"
             ;;
           *)
             echo "integration_optional=false" >> "$GITHUB_OUTPUT"
