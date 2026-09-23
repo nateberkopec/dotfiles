@@ -62,7 +62,7 @@ class LockNativePlatformTest < Minitest::Test
 
   def run_script(home, *arguments)
     env = {"HOME" => home, "ARG_LOG" => File.join(home, "args")}
-    Open3.capture2e(env, "bash", File.expand_path("../tools/ci/lock_native_platform.sh", __dir__), *arguments)
+    Open3.capture2e(env, "/bin/bash", File.expand_path("../tools/ci/lock_native_platform.sh", __dir__), *arguments)
   end
 end
 # standard:enable Dotfiles/BanFileSystemClasses

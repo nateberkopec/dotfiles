@@ -37,4 +37,8 @@ if [ "$("$mise_bin" --version 2>/dev/null | awk 'NR == 1 { print $1 }')" != "$ve
     curl -fsSL https://mise.run | MISE_VERSION="$version" MISE_INSTALL_PATH="$mise_bin" sh
 fi
 
-MISE_GLOBAL_CONFIG_FILE="$root/files/home/.config/mise/config.toml" "$mise_bin" lock --global --platform "$platform" "${tools[@]}"
+if [ "${#tools[@]}" -eq 0 ]; then
+    MISE_GLOBAL_CONFIG_FILE="$root/files/home/.config/mise/config.toml" "$mise_bin" lock --global --platform "$platform"
+else
+    MISE_GLOBAL_CONFIG_FILE="$root/files/home/.config/mise/config.toml" "$mise_bin" lock --global --platform "$platform" "${tools[@]}"
+fi
