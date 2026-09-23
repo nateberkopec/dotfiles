@@ -51,6 +51,10 @@ model: gpt-5.6-luna
 timeout-minutes: 60
 
 steps:
+  - name: Check dependency publishing token
+    env:
+      GH_TOKEN: ${{ secrets.DEPENDENCY_FACTORY_PAT }}
+    run: bash tools/ci/check_dependency_factory_token.sh
   - name: Find open dependency-update pull requests
     env:
       GH_TOKEN: ${{ github.token }}
