@@ -81,7 +81,7 @@ module DependencyFactory
 
     def highlights
       urls = @changes.flat_map do |name, (old, version)|
-        (@notes[name] || []).filter_map { |note| note["url"] if old && !note["error"] && Versions.newer?(note["version"], old) && !Versions.newer?(note["version"], version) }
+        (@notes[name] || []).filter_map { |note| ReportText.canonical_url(note["url"]) if old && !note["error"] && Versions.newer?(note["version"], old) && !Versions.newer?(note["version"], version) }
       end
       @report.bullets("Release notes").filter_map do |line|
         "Release notes: each highlight must link only to notes in an upgraded version range" if Report.urls(line).empty? || (Report.urls(line) - urls).any?
@@ -95,7 +95,9 @@ module DependencyFactory
     end
 
     def quoted?(note, line)
-      Report.urls(line).include?(note["url"]) && line.scan(/[“"]([^”"]+)[”"]/).flatten.any? { |quote| quote.size >= 20 && note["text"].to_s.include?(quote) }
+      text = ReportText.unescape_mentions(note["text"].to_s)
+      quotes = ReportText.unescape_mentions(line).scan(/[“"]([^”"]+)[”"]/).flatten
+      Report.urls(line).include?(ReportText.canonical_url(note["url"])) && quotes.any? { |quote| quote.size >= 20 && text.include?(quote) }
     end
 
     def security

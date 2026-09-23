@@ -1,3 +1,5 @@
+require_relative "report_text"
+
 module DependencyFactory
   class Report
     TABLES = {"Updates" => %w[Tool Old New], "Skipped candidates" => %w[Tool Candidate Reason]}.freeze
@@ -5,7 +7,7 @@ module DependencyFactory
     LINK = %r{\[([^\]]+)\]\((https://[^)\s`]+)\)}
 
     def self.urls(text)
-      text.to_s.scan(LINK).map(&:last)
+      text.to_s.scan(LINK).map { |_, url| ReportText.canonical_url(url) }
     end
 
     def self.advisory?(text)

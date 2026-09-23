@@ -71,6 +71,22 @@ class DependencyFactoryReportChecksTest < Minitest::Test
     assert_empty errors(text: text, changes: {name => ["2.97.0", "2.98.0"]}, name: name)
   end
 
+  def test_safe_output_quotes_match_without_weakening_evidence
+    quote = "The vulnerability reported by (@P4P3R-HAK) is fixed."
+    notes = {"packages" => {"gh" => [{"version" => "2.98.0", "url" => "https://example.test/2.98.0", "text" => quote}]}}
+    text = body + "\n## Attention\n- Security: `gh 2.98.0`: [Fix.](https://example.test/2.98.0) \"#{quote.sub("@P4P3R-HAK", "``@P4P3R-HAK``")}\"\n"
+    assert_empty errors(text: text, notes: notes)
+    assert_includes errors(text: text.sub("is fixed", "is invented"), notes: notes), "gh 2.98.0: Security needs an advisory link or a linked quote from collected notes"
+  end
+
+  def test_encoded_scoped_urls_match_collected_release_notes
+    url = "https://www.npmjs.com/package/@scope/package/v/2.98.0"
+    notes = {"packages" => {"gh" => [{"version" => "2.98.0", "url" => url, "text" => "Stops exposing forwarded ports."}]}}
+    text = body.gsub("https://example.test/2.98.0", url.sub("@", "%40"))
+    text += "\n## Attention\n- Security: `gh 2.98.0`: [Fix.](#{url.sub("@", "%40")}) \"Stops exposing forwarded ports.\"\n"
+    assert_empty errors(text: text, notes: notes)
+  end
+
   private
 
   def changes
