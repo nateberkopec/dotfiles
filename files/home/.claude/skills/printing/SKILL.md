@@ -12,6 +12,7 @@ description: Print files or selected pages, check printer status, or troubleshoo
 - Use black-and-white unless color is requested or meaningful.
 - Preserve configured Draft quality
 - Change persistent printer settings only with explicit permission.
+- Avoid large filled-in areas which waste ink. Try to be conservative with ink usage.
 
 ## Normal workflow
 
