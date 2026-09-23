@@ -50,6 +50,7 @@ cat >"$config" <<JSON
     "target": "ES2023"
   },
   "files": [
+    "$PWD/files/home/.pi/agent/extensions/caffeinate.ts",
     "$PWD/files/home/.pi/agent/extensions/meridian.ts",
     "$PWD/files/home/.pi/agent/extensions/openrouter_us/index.ts",
     "$PWD/files/home/.pi/agent/extensions/toksec/index.ts"
