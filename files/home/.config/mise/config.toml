@@ -142,8 +142,9 @@ sudo /usr/local/libexec/dotfiles-spotlight-controller audit
 
 # The whole-tree copy mirrors files/home into ~. Platform-specific files render
 # through mise's template engine; explicit entries create command/config links.
+# Git hooks are synced separately so an externally managed directory can be skipped.
 [dotfiles]
-"~" = { source = "~/.dotfiles/files/home", mode = "copy" }
+"~" = { source = "~/.dotfiles/files/home", mode = "copy", exclude = [".git-hooks"] }
 "~/.config/fish/conf.d/platform.fish" = { source = "~/.dotfiles/files/templates/platform.fish", mode = "template" }
 "~/.config/ghostty/config.platform" = { source = "~/.dotfiles/files/templates/ghostty-config.platform", mode = "template" }
 "~/.local/bin/dotf" = { source = "~/.dotfiles/bin/dotf", mode = "symlink" }

@@ -11,6 +11,14 @@ class RemoveImmutableFileFlagsMigrationTest < Minitest::Test
     assert_executed!(["sudo", "chflags", "noschg,nouchg", *managed_files])
   end
 
+  def test_does_not_change_externally_managed_git_hooks
+    @fake_system.stub_file_content(File.join(@home, ".git-hooks/pre-commit"), "external")
+    @fake_system.stub_file_content(File.join(@home, ".git-hooks/pre-push"), "external")
+
+    assert_nil migration.up
+    refute_executed(["sudo", "chflags", "noschg,nouchg"])
+  end
+
   def test_does_nothing_when_managed_files_do_not_exist
     assert_nil migration.up
     refute_executed(["sudo", "chflags", "noschg,nouchg"])
