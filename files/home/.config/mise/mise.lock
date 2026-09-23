@@ -410,6 +410,10 @@ aube_args = "--deny-build=@google/genai --deny-build=protobufjs"
 version = "0.154.0"
 backend = "npm:@openai/codex"
 
+[[tools."npm:@rynfar/meridian"]]
+version = "1.66.0"
+backend = "npm:@rynfar/meridian"
+
 [[tools."npm:sfw"]]
 version = "2.0.6"
 backend = "npm:sfw"
