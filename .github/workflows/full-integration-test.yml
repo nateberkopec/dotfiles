@@ -77,6 +77,7 @@ jobs:
         printf 'changed files:\n%s\n' "$(printf '%s\n' "${files[@]}")"
 
   integration-test:
+    name: integration-test (${{ matrix.os }})
     needs: detect-changes
     if: ${{ !cancelled() }}
     # Expand the matrix even for skips so required platform check names exist.

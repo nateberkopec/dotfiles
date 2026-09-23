@@ -17,6 +17,12 @@ class FullIntegrationWorkflowTest < Minitest::Test
     refute_includes matrix_tools_for("ubuntu-22.04"), "github:abue-ammar/tinycast"
   end
 
+  def test_matrix_check_names_only_include_the_platform
+    job = workflow.fetch("jobs").fetch("integration-test")
+
+    assert_equal "integration-test (${{ matrix.os }})", job.fetch("name")
+  end
+
   private
 
   def integration_tools_for(job_name)
