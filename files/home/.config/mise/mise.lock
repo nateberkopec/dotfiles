@@ -173,13 +173,13 @@ asset_pattern = "OmniWM-v{version}.zip"
 
 [tools."github:BarutSRB/OmniWM"."platforms.linux-x64"]
 checksum = "sha256:9c24ab174e11a1e21155a0640e0323beaa7e22a402e59b69694c8465b002b165"
-url = "https://github.com/BarutSRB/OmniWM/releases/download/v0.6.9/OmniWM-v0.6.9.zip"
-url_api = "https://api.github.com/repos/BarutSRB/OmniWM/releases/assets/553954910"
+url = "https://github.com/OmniNull/OmniWM/releases/download/v0.6.9/OmniWM-v0.6.9.zip"
+url_api = "https://api.github.com/repos/OmniNull/OmniWM/releases/assets/553954910"
 
 [tools."github:BarutSRB/OmniWM"."platforms.macos-arm64"]
 checksum = "sha256:9c24ab174e11a1e21155a0640e0323beaa7e22a402e59b69694c8465b002b165"
-url = "https://github.com/BarutSRB/OmniWM/releases/download/v0.6.9/OmniWM-v0.6.9.zip"
-url_api = "https://api.github.com/repos/BarutSRB/OmniWM/releases/assets/553954910"
+url = "https://github.com/OmniNull/OmniWM/releases/download/v0.6.9/OmniWM-v0.6.9.zip"
+url_api = "https://api.github.com/repos/OmniNull/OmniWM/releases/assets/553954910"
 
 [[tools."github:aldanial/cloc"]]
 version = "2.10"
@@ -207,12 +207,14 @@ checksum = "sha256:ee4f05a2989e6cbe55b306097cbb53da9f908789acb027e62c430de2f7e22
 url = "https://github.com/aubepkg/aube/releases/download/v2.2.17/aube-v2.2.17-x86_64-unknown-linux-gnu.tar.gz"
 url_api = "https://api.github.com/repos/aubepkg/aube/releases/assets/566068152"
 provenance = "github-attestations"
+provenance_verified = true
 
 [tools."github:aubepkg/aube"."platforms.macos-arm64"]
 checksum = "sha256:83b2906a998ea62eb4890abb8d45010f0ced1674a2bb6b436c2e352d47bb338f"
 url = "https://github.com/aubepkg/aube/releases/download/v2.2.17/aube-v2.2.17-aarch64-apple-darwin.tar.gz"
 url_api = "https://api.github.com/repos/aubepkg/aube/releases/assets/566095262"
 provenance = "github-attestations"
+provenance_verified = true
 
 [[tools."github:nateberkopec/print-label"]]
 version = "0.3.1"
@@ -279,12 +281,14 @@ checksum = "sha256:3f92e83f54c1306cee35353557b097c9f2c608bc6d273c7aa65fa0096ba8e
 url = "https://github.com/rawnly/splash-cli/releases/download/4.2.0/splash_Linux_x86_64.tar.gz"
 url_api = "https://api.github.com/repos/rawnly/splash-cli/releases/assets/567336391"
 provenance = "github-attestations"
+provenance_verified = true
 
 [tools."github:rawnly/splash-cli"."platforms.macos-arm64"]
 checksum = "sha256:c8ef68d498a5275bde4583339160386193eddec919a9b4a84d53c195c77901b3"
 url = "https://github.com/rawnly/splash-cli/releases/download/4.2.0/splash_Darwin_arm64.tar.gz"
 url_api = "https://api.github.com/repos/rawnly/splash-cli/releases/assets/567336393"
 provenance = "github-attestations"
+provenance_verified = true
 
 [[tools.gitleaks]]
 version = "8.30.1"
