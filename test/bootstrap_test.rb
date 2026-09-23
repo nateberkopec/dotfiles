@@ -74,7 +74,7 @@ class BootstrapTest < Minitest::Test
     end
   end
 
-  def test_bootstrap_mise_seeds_global_config_before_activation
+  def test_bootstrap_mise_seeds_global_config_without_activating_a_short_lived_shell
     with_bootstrap_stub do |env|
       global_config = File.join(env.fetch("HOME"), ".config", "mise", "config.toml")
       FileUtils.mkdir_p(File.dirname(global_config))
@@ -84,7 +84,8 @@ class BootstrapTest < Minitest::Test
       run_bootstrap_mise(env)
 
       expected = File.read(File.expand_path("../files/home/.config/mise/config.toml", __dir__))
-      assert_equal expected, File.read(env.fetch("MISE_CONFIG_AT_ACTIVATION_LOG"))
+      assert_equal expected, File.read(global_config)
+      refute_includes logged_mise_commands(env), "mise activate bash"
       assert File.exist?(File.join(env.fetch("HOME"), ".config", "mise", "mise.lock"))
     end
   end

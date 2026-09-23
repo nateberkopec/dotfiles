@@ -188,8 +188,6 @@ bootstrap_mise() {
             mise trust --yes 2>/dev/null || true
         fi
     fi
-
-    eval "$(mise activate bash)"
 }
 
 seed_global_mise_config() {
