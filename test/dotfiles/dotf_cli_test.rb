@@ -197,7 +197,7 @@ class DotfCliTest < Minitest::Test
     commands = File.readlines(log_path, chomp: true)
     assert_equal "bootstrap", commands[0]
     assert_match(/\Amise -C .+ bootstrap --yes --locked/, commands[1])
-    assert_match(/\Amise -C .+ deps\z/, commands[2])
+    assert_match(/\Amise -C .+ deps bundler\z/, commands[2])
     assert_equal "mise activate bash", commands[3]
     assert_match(/\Aruby -r \.\/lib\/dotfiles\.rb -e Dotfiles::MigrationRunner\.new\('.+'\)\.run_if_existing_machine\z/, commands[4])
     assert_match(/\Aruby -r \.\/lib\/dotfiles\.rb -e Dotfiles::Runner\.new\('.+'\)\.run\z/, commands[5])
@@ -225,7 +225,7 @@ class DotfCliTest < Minitest::Test
       }
       mise() {
         printf 'mise %s\\n' "$*" >> #{escaped_log}
-        if [[ "$*" == *" deps" ]]; then
+        if [[ "$*" == *" deps bundler" ]]; then
           if [ "${MISE_DEPS_EXIT_STATUS:-0}" -ne 0 ]; then
             printf 'mise deps failed\n' >&2
             return "$MISE_DEPS_EXIT_STATUS"

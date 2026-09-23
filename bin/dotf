@@ -152,7 +152,7 @@ run_mise_bootstrap() {
 }
 
 run_project_dependencies() {
-    run_mise_logged -C "$DOTFILES_DIR" deps
+    run_mise_logged -C "$DOTFILES_DIR" deps bundler
 }
 
 DOTF_LOCK_DIR="${DOTF_LOCK_DIR:-$HOME/.dotfiles.lock}"
