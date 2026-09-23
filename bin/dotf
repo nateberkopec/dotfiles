@@ -88,7 +88,7 @@ ensure_homebrew_env() {
     fi
 }
 
-ensure_mise_env() {
+prepare_mise_env() {
     if is_debian; then
         export MISE_SYSTEM_PACKAGES_MANAGERS=apt
     else
@@ -98,6 +98,10 @@ ensure_mise_env() {
     if [ -d "$HOME/.local/bin" ]; then
         export PATH="$HOME/.local/bin:$PATH"
     fi
+}
+
+ensure_mise_env() {
+    prepare_mise_env
 
     if command -v mise &> /dev/null; then
         eval "$(mise activate bash)"
@@ -122,22 +126,33 @@ mise_packages_supported() {
     is_debian || user_has_admin_rights
 }
 
+run_mise_logged() {
+    local status
+
+    if [ "${DEBUG:-false}" = "true" ]; then
+        mise "$@" 2>&1 | tee -a "$LOG_FILE"
+        status="${PIPESTATUS[0]}"
+    else
+        status=0
+        mise "$@" >> "$LOG_FILE" 2> >(tee -a "$LOG_FILE" >&2) || status="$?"
+    fi
+    return "$status"
+}
+
 run_mise_bootstrap() {
     local args=(-C "$HOME" bootstrap --yes --locked)
-    local status
     if ! mise_packages_supported; then
         args+=(--skip packages)
     fi
-
-    if [ "${DEBUG:-false}" = "true" ]; then
-        mise "${args[@]}" 2>&1 | tee -a "$LOG_FILE"
-        status="${PIPESTATUS[0]}"
-    else
+    if [ "${DEBUG:-false}" != "true" ]; then
         args+=(--quiet)
-        status=0
-        mise "${args[@]}" >> "$LOG_FILE" 2> >(tee -a "$LOG_FILE" >&2) || status="$?"
     fi
-    return "$status"
+
+    run_mise_logged "${args[@]}"
+}
+
+run_project_dependencies() {
+    run_mise_logged -C "$DOTFILES_DIR" deps
 }
 
 DOTF_LOCK_DIR="${DOTF_LOCK_DIR:-$HOME/.dotfiles.lock}"
@@ -188,8 +203,9 @@ cmd_run() {
     debug "Starting dotf run command"
     "$SCRIPT_DIR/bootstrap"
     ensure_homebrew_env
-    ensure_mise_env
+    prepare_mise_env
     run_mise_bootstrap
+    run_project_dependencies
     ensure_mise_env
 
     cd "$DOTFILES_DIR"

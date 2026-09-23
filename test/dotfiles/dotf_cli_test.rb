@@ -112,7 +112,7 @@ class DotfCliTest < Minitest::Test
     end
   end
 
-  def test_run_runs_existing_machine_migrations_before_setup_steps
+  def test_run_prepares_project_dependencies_before_activating_mise
     with_dotf_script do |tmpdir, script_path, _logs_dir|
       log_path = File.join(tmpdir, "run-commands.log")
       File.write(File.join(tmpdir, "bin", "bootstrap"), bootstrap_stub(log_path))
@@ -122,9 +122,26 @@ class DotfCliTest < Minitest::Test
       stdout, status = Open3.capture2e("bash", "-c", command)
 
       assert status.success?
+      refute_includes stdout, "deps: bundler"
       refute_includes stdout, "Running migration"
       assert_run_commands(log_path)
       assert_equal "test-sha\n", File.read(File.join(tmpdir, "state", "dotfiles", "last-run-sha"))
+    end
+  end
+
+  def test_run_stops_when_project_dependency_preparation_fails
+    with_dotf_script do |tmpdir, script_path, _logs_dir|
+      log_path = File.join(tmpdir, "run-commands.log")
+      File.write(File.join(tmpdir, "bin", "bootstrap"), bootstrap_stub(log_path))
+      FileUtils.chmod("+x", File.join(tmpdir, "bin", "bootstrap"))
+      command = "export MISE_DEPS_EXIT_STATUS=23\n#{run_function_command(script_path, log_path)}"
+
+      stdout, status = Open3.capture2e("bash", "-c", command)
+
+      assert_equal 23, status.exitstatus
+      assert_includes stdout, "mise deps failed"
+      refute File.exist?(File.join(tmpdir, "state", "dotfiles", "last-run-sha"))
+      refute File.readlines(log_path).any? { |line| line.start_with?("ruby ") }
     end
   end
 
@@ -179,8 +196,8 @@ class DotfCliTest < Minitest::Test
   def assert_run_commands(log_path)
     commands = File.readlines(log_path, chomp: true)
     assert_equal "bootstrap", commands[0]
-    assert_equal "mise activate bash", commands[1]
-    assert_match(/\Amise -C .+ bootstrap --yes --locked/, commands[2])
+    assert_match(/\Amise -C .+ bootstrap --yes --locked/, commands[1])
+    assert_match(/\Amise -C .+ deps\z/, commands[2])
     assert_equal "mise activate bash", commands[3]
     assert_match(/\Aruby -r \.\/lib\/dotfiles\.rb -e Dotfiles::MigrationRunner\.new\('.+'\)\.run_if_existing_machine\z/, commands[4])
     assert_match(/\Aruby -r \.\/lib\/dotfiles\.rb -e Dotfiles::Runner\.new\('.+'\)\.run\z/, commands[5])
@@ -197,6 +214,7 @@ class DotfCliTest < Minitest::Test
   def run_function_command(script_path, log_path)
     escaped_script = Shellwords.escape(script_path)
     escaped_log = Shellwords.escape(log_path)
+    deps_state = Shellwords.escape(File.join(File.dirname(log_path), "deps-prepared"))
     <<~BASH
       source #{escaped_script}
       export HOME=#{Shellwords.escape(File.join(File.dirname(escaped_log), "home"))}
@@ -207,6 +225,15 @@ class DotfCliTest < Minitest::Test
       }
       mise() {
         printf 'mise %s\\n' "$*" >> #{escaped_log}
+        if [[ "$*" == *" deps" ]]; then
+          if [ "${MISE_DEPS_EXIT_STATUS:-0}" -ne 0 ]; then
+            printf 'mise deps failed\n' >&2
+            return "$MISE_DEPS_EXIT_STATUS"
+          fi
+          touch #{deps_state}
+        elif [ "$*" = "activate bash" ] && [ ! -e #{deps_state} ]; then
+          printf 'mise WARN deps: bundler (Gemfile changed) - run mise deps\n' >&2
+        fi
       }
       ruby() {
         printf 'ruby %s\\n' "$*" >> #{escaped_log}
