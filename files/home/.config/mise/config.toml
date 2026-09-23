@@ -11,6 +11,7 @@ hk = "1.57.0"
 "cargo:difftastic" = "0.70.0"
 "cargo:starship" = "1.26.0"
 "npm:@openai/codex" = { version = "0.154.0", depends = ["github:aubepkg/aube"] }
+"npm:@rynfar/meridian" = { version = "1.66.0", depends = ["github:aubepkg/aube"] }
 "npm:sfw" = { version = "2.0.6", depends = ["github:aubepkg/aube"] }
 pipx = "1.17.2"
 "pipx:playwright" = { version = "1.62.0", depends = ["pipx"] }
@@ -227,6 +228,17 @@ program = "~/.local/share/dotfiles/launch-omniwm"
 run_at_load = true
 stdout_path = "~/Library/Logs/omniwm-launcher.out.log"
 stderr_path = "~/Library/Logs/omniwm-launcher.err.log"
+
+[bootstrap.macos.launchd.agents.meridian]
+program = "~/.local/bin/mise"
+args = ["exec", "--", "meridian"]
+working_directory = "~"
+environment = { MERIDIAN_HOST = "127.0.0.1", MERIDIAN_PORT = "3456", MERIDIAN_PASSTHROUGH = "1" }
+run_at_load = true
+keep_alive = true
+kickstart = true
+stdout_path = "~/Library/Logs/meridian.out.log"
+stderr_path = "~/Library/Logs/meridian.err.log"
 
 [bootstrap.hooks]
 pre-dotfiles = 'bash "$HOME/.dotfiles/bin/lib/unprotect-managed-files.sh"'

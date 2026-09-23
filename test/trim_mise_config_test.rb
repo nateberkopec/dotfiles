@@ -29,6 +29,9 @@ class TrimMiseConfigTest < Minitest::Test
         [bootstrap.macos.launchd.agents.time-machine-backup]
         program = "time-machine-backup"
 
+        [bootstrap.macos.launchd.agents.meridian]
+        program = "meridian"
+
         [settings]
         experimental = true
       TOML

@@ -27,61 +27,16 @@ jobs:
 
     - name: Detect changes that do not need integration
       id: integration_optional
-      shell: bash
-      run: |
-        set -euo pipefail
-
-        case "${{ github.event_name }}" in
-          pull_request)
-            base_sha="${{ github.event.pull_request.base.sha }}"
-            head_sha="${{ github.event.pull_request.head.sha }}"
-            ;;
-          push)
-            base_sha="${{ github.event.before }}"
-            head_sha="${{ github.sha }}"
-            ;;
-          *)
-            echo "integration_optional=false" >> "$GITHUB_OUTPUT"
-            exit 0
-            ;;
-        esac
-
-        if [ "$base_sha" = "0000000000000000000000000000000000000000" ]; then
-          echo "integration_optional=false" >> "$GITHUB_OUTPUT"
-          exit 0
-        fi
-
-        git diff --name-only --no-renames "$base_sha" "$head_sha" > "$RUNNER_TEMP/changed-files"
-        mapfile -t files < "$RUNNER_TEMP/changed-files"
-
-        if [ "${#files[@]}" -eq 0 ]; then
-          echo "integration_optional=false" >> "$GITHUB_OUTPUT"
-          exit 0
-        fi
-
-        integration_optional=true
-
-        for file in "${files[@]}"; do
-          case "$file" in
-            test/*|docs/*|README.md|AGENTS.md|files/home/.claude/skills/*.md|files/home/.claude/skills/*/LICENSE.txt|files/home/.agents/*.md)
-              ;;
-            *)
-              integration_optional=false
-              break
-              ;;
-          esac
-        done
-
-        echo "integration_optional=$integration_optional" >> "$GITHUB_OUTPUT"
-        printf 'integration_optional=%s\n' "$integration_optional"
-        printf 'changed files:\n%s\n' "$(printf '%s\n' "${files[@]}")"
+      env:
+        BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      run: bash tools/ci/detect_optional_integration.sh "${{ github.event_name }}" "$BASE_SHA" "$HEAD_SHA"
 
   integration-test:
     name: integration-test (${{ matrix.os }})
     needs: detect-changes
-    if: ${{ !cancelled() }}
-    # Expand the matrix even for skips so required platform check names exist.
-    runs-on: ${{ needs.detect-changes.outputs.integration_optional == 'true' && 'ubuntu-slim' || matrix.os }}
+    if: ${{ !cancelled() && needs.detect-changes.result == 'success' && needs.detect-changes.outputs.integration_optional == 'false' }}
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
@@ -92,26 +47,16 @@ jobs:
             mise_ci_tools: "gum,github:aubepkg/aube,npm:@earendil-works/pi-coding-agent,fzf,aqua:fish-shell/fish-shell,pipx,pipx:playwright"
 
     steps:
-    - name: Require successful change detection
-      run: test "${{ needs.detect-changes.result }}" = success
-
-    - name: Skip integration for prose or test-only changes
-      if: needs.detect-changes.outputs.integration_optional == 'true'
-      run: echo "No integration-relevant changes."
-
     - name: Checkout repository
-      if: needs.detect-changes.outputs.integration_optional != 'true'
       uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
     - name: Set up Ruby
-      if: needs.detect-changes.outputs.integration_optional != 'true'
       uses: ruby/setup-ruby@4c56a21280b36d862b5fc31348f463d60bdc55d5 # v1.301.0
       with:
         ruby-version: 'ruby'
         bundler-cache: false
 
     - name: Run dotfiles integration script
-      if: needs.detect-changes.outputs.integration_optional != 'true'
       id: run
       timeout-minutes: 20
       env:
@@ -128,7 +73,7 @@ jobs:
       run: bash tools/ci/run_dotfiles_integration.sh "${GITHUB_WORKSPACE}"
 
     - name: Upload logs
-      if: always() && needs.detect-changes.outputs.integration_optional != 'true'
+      if: always()
       uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
       with:
         name: logs-${{ matrix.os }}
@@ -140,14 +85,11 @@ jobs:
 
   non-admin-integration-test:
     needs: detect-changes
-    if: ${{ !cancelled() && (needs.detect-changes.result != 'success' || needs.detect-changes.outputs.integration_optional != 'true') }}
+    if: ${{ !cancelled() && needs.detect-changes.result == 'success' && needs.detect-changes.outputs.integration_optional == 'false' }}
     runs-on: macos-latest
     timeout-minutes: 20
 
     steps:
-    - name: Require successful change detection
-      run: test "${{ needs.detect-changes.result }}" = success
-
     - name: Checkout repository
       uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
@@ -266,3 +208,20 @@ jobs:
           /Users/dotfiles-ci/dotfiles/output-second.log
           /Users/dotfiles-ci/dotfiles/fish-init.log
         retention-days: 7
+
+  integration-result:
+    needs: [detect-changes, integration-test, non-admin-integration-test]
+    if: ${{ always() && !cancelled() }}
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout result checker
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+    - name: Require successful integration result
+      env:
+        DETECTION_RESULT: ${{ needs.detect-changes.result }}
+        INTEGRATION_OPTIONAL: ${{ needs.detect-changes.outputs.integration_optional }}
+        PLATFORM_RESULT: ${{ needs.integration-test.result }}
+        NON_ADMIN_RESULT: ${{ needs.non-admin-integration-test.result }}
+      run: bash tools/ci/check_integration_results.sh "$DETECTION_RESULT" "$INTEGRATION_OPTIONAL" "$PLATFORM_RESULT" "$NON_ADMIN_RESULT"

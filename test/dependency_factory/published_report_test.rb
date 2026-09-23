@@ -30,6 +30,7 @@ class DependencyFactoryPublishedReportTest < Minitest::Test
 
   def setup_checkout(root)
     git(root, "init", "-qb", "dependency-update-test")
+    File.write("#{root}/.git/info/exclude", "/agent/\n/agent_output.json\n*.bundle\n")
     DependencyFactory::Manifests::PATHS.each do |path|
       FileUtils.mkdir_p(File.dirname("#{root}/#{path}"))
       File.write("#{root}/#{path}", "")
