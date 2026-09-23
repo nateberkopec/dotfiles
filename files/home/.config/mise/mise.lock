@@ -173,13 +173,13 @@ asset_pattern = "OmniWM-v{version}.zip"
 
 [tools."github:BarutSRB/OmniWM"."platforms.linux-x64"]
 checksum = "sha256:9c24ab174e11a1e21155a0640e0323beaa7e22a402e59b69694c8465b002b165"
-url = "https://github.com/BarutSRB/OmniWM/releases/download/v0.6.9/OmniWM-v0.6.9.zip"
-url_api = "https://api.github.com/repos/BarutSRB/OmniWM/releases/assets/553954910"
+url = "https://github.com/OmniNull/OmniWM/releases/download/v0.6.9/OmniWM-v0.6.9.zip"
+url_api = "https://api.github.com/repos/OmniNull/OmniWM/releases/assets/553954910"
 
 [tools."github:BarutSRB/OmniWM"."platforms.macos-arm64"]
 checksum = "sha256:9c24ab174e11a1e21155a0640e0323beaa7e22a402e59b69694c8465b002b165"
-url = "https://github.com/BarutSRB/OmniWM/releases/download/v0.6.9/OmniWM-v0.6.9.zip"
-url_api = "https://api.github.com/repos/BarutSRB/OmniWM/releases/assets/553954910"
+url = "https://github.com/OmniNull/OmniWM/releases/download/v0.6.9/OmniWM-v0.6.9.zip"
+url_api = "https://api.github.com/repos/OmniNull/OmniWM/releases/assets/553954910"
 
 [[tools."github:aldanial/cloc"]]
 version = "2.10"
