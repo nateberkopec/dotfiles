@@ -74,6 +74,8 @@ steps:
         --jq '[.[] | select(.pull_request != null) | {number, url: .pull_request.html_url, title}]' \
         > /tmp/gh-aw/agent/open-dependency-update-prs.json
       cat /tmp/gh-aw/agent/open-dependency-update-prs.json
+  - name: Stop repeated automatic repair loops
+    run: bash tools/ci/check_dependency_repair_loop.sh "$(jq -r .base /tmp/gh-aw/agent/pr-context.json)" "${{ github.event_name }}"
   - name: Set up Ruby
     uses: ruby/setup-ruby@4c56a21280b36d862b5fc31348f463d60bdc55d5 # v1.301.0
     with:
@@ -183,7 +185,7 @@ safe-outputs:
 
 Follow `.github/dependency-updater.md`. Event: `${{ github.event_name }}`; command: `${{ needs.activation.outputs.slash_command }}`.
 
-- **Failed build:** inspect run `${{ github.event.workflow_run.id }}` and its logs. Confirm the dependency-update label and that `${{ github.event.workflow_run.head_sha }}` remains the PR head. Repair only that PR within the mechanical boundary; otherwise remove and snooze the responsible update. Refresh its body and inspect required checks.
+- **Failed build:** inspect run `${{ github.event.workflow_run.id }}` and its logs. Confirm the dependency-update label and that `${{ github.event.workflow_run.head_sha }}` remains the PR head. Repair only that PR within the mechanical boundary. If repair cannot pass mechanically, preserve the branch and bail out visibly; do not remove or snooze the update to force success. Refresh its body and inspect required checks after a successful repair.
 - **Slash command:** read the complete triggering PR and apply the user's decisions below to that branch. Refresh its body and reply with decisions and validation.
 - **Scheduled/manual run:** read `/tmp/gh-aw/agent/open-dependency-update-prs.json`. If a PR is open, comment there with this run's link and explain that the batch was skipped; make no changes. Otherwise prepare one PR.
 
