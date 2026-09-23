@@ -47,6 +47,24 @@ class MiseBootstrapPackagesLaunchdTest < Minitest::Test
     assert_equal "/tmp/yknotify.err", agent.fetch("stderr_path")
   end
 
+  def test_declares_loopback_meridian_launch_agent
+    agent = config.dig("bootstrap", "macos", "launchd", "agents", "meridian")
+
+    assert_equal "~/.local/bin/mise", agent.fetch("program")
+    assert_equal ["exec", "--", "meridian"], agent.fetch("args")
+    assert_equal "~", agent.fetch("working_directory")
+    assert_equal({
+      "MERIDIAN_HOST" => "127.0.0.1",
+      "MERIDIAN_PORT" => "3456",
+      "MERIDIAN_PASSTHROUGH" => "1"
+    }, agent.fetch("environment"))
+    assert_equal true, agent.fetch("run_at_load")
+    assert_equal true, agent.fetch("keep_alive")
+    assert_equal true, agent.fetch("kickstart")
+    assert_equal "~/Library/Logs/meridian.out.log", agent.fetch("stdout_path")
+    assert_equal "~/Library/Logs/meridian.err.log", agent.fetch("stderr_path")
+  end
+
   def test_pins_bootstrap_tools
     tools = config.fetch("tools")
 
