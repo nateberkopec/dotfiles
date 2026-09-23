@@ -12,8 +12,6 @@ DOTFILES_HOME="$HOME/.dotfiles/files/home"
 managed_protected_files=(
     ".aws/credentials"
     ".gem/credentials"
-    ".git-hooks/pre-commit"
-    ".git-hooks/pre-push"
     ".pi/agent/extensions/find_timeout.ts"
 )
 

@@ -8,7 +8,7 @@
     "npm:pi-mcp-adapter@2.32.1",
     "npm:@narumitw/pi-btw@0.56.2",
     "git:github.com/nijaru/pi-fast-mode@85c8b67a4a3f823e33ab0217a55f37d15e6e6eca",
-    "npm:pi-ding@0.2.2",
+    "git:github.com/nateberkopec/pi-ding@af4d8fbe67f2aff9cebcee31f30a6b0eb69ba8c4",
     "npm:pi-subagents@0.64.0",
     "npm:pi-web-providers@3.5.1",
     "git:github.com/nateberkopec/pi-openai-guidance@b9e9507ece945fc1dd71d1e838a75fe794576d83"
@@ -21,9 +21,7 @@
     "npm"
   ],
   "ding": {
-    "enabled": true,
-    "player": "afplay",
-    "path": "/System/Library/Sounds/Glass.aiff"
+    "enabled": true
   },
   "enabledModels": [
     "openai-codex/gpt-6-astra:low",

@@ -1,6 +1,8 @@
 name: Integration Tests
 
 on:
+  push:
+    branches: [ main ]
   pull_request:
     branches: [ main ]
   schedule:
@@ -33,6 +35,10 @@ jobs:
           pull_request)
             base_sha="${{ github.event.pull_request.base.sha }}"
             head_sha="${{ github.event.pull_request.head.sha }}"
+            ;;
+          push)
+            base_sha="${{ github.event.before }}"
+            head_sha="${{ github.sha }}"
             ;;
           *)
             echo "integration_optional=false" >> "$GITHUB_OUTPUT"
@@ -194,6 +200,17 @@ jobs:
         ls -lO "$HOME/.gem/credentials"
         BASH
 
+    - name: Seed externally managed git hooks for non-admin user
+      run: |
+        set -euo pipefail
+
+        hooks_dir="/Users/dotfiles-ci/.git-hooks"
+        sudo mkdir -p "${hooks_dir}"
+        printf '# external pre-commit\n' | sudo tee "${hooks_dir}/pre-commit" >/dev/null
+        printf '# external pre-push\n' | sudo tee "${hooks_dir}/pre-push" >/dev/null
+        sudo chmod 555 "${hooks_dir}"
+        sudo chmod 444 "${hooks_dir}/pre-commit" "${hooks_dir}/pre-push"
+
     - name: Run dotfiles integration script as non-admin macOS user
       id: non_admin_run
       timeout-minutes: 20
@@ -225,6 +242,16 @@ jobs:
           BREW_CI_PACKAGES="${BREW_CI_PACKAGES}" \
           BREW_CI_CASKS="${BREW_CI_CASKS}" \
           bash "${home_dir}/dotfiles/tools/ci/run_dotfiles_integration.sh" "${home_dir}/dotfiles"
+
+    - name: Verify externally managed git hooks were skipped
+      run: |
+        set -euo pipefail
+
+        home_dir="/Users/dotfiles-ci"
+        test "$(sudo cat "${home_dir}/.git-hooks/pre-commit")" = "# external pre-commit"
+        test "$(sudo cat "${home_dir}/.git-hooks/pre-push")" = "# external pre-push"
+        grep -F "dotfiles: skipping git hook sync; ${home_dir}/.git-hooks is not writable" "${home_dir}/dotfiles/output.log"
+        grep -F "dotfiles: skipping git hook sync; ${home_dir}/.git-hooks is not writable" "${home_dir}/dotfiles/output-second.log"
 
     - name: Upload non-admin logs
       if: always()

@@ -35,6 +35,7 @@ GEM
     rainbow (3.1.1)
     rake (13.4.2)
     regexp_parser (2.12.0)
+    rexml (3.4.4)
     rubocop (1.81.7)
       json (~> 2.3)
       language_server-protocol (~> 3.17.0.2)
@@ -85,6 +86,7 @@ DEPENDENCIES
   flog (>= 4.9.3)
   minitest
   rake
+  rexml
   standard
   toml-rb
 

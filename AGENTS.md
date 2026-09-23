@@ -7,7 +7,7 @@ I make changes to this repository exclusively through GitHub pull requests. Push
 ## CI
 
 - CI usually takes about 10 minutes to finish running.
-- Lint, unit tests, and integration run on PRs, daily at 06:23 UTC, and manually. Scheduled/manual runs use full coverage; merging does not repeat the PR workflows. Main must require branches to be up to date before merging.
+- Lint, unit tests, and integration run on PRs, after merges to main, daily at 06:23 UTC, and manually. Scheduled/manual runs use full coverage. Post-merge runs verify the exact merged main commit, so branches do not need to be up to date before merging.
 - Never use `[ci skip]`, `[skip ci]`, or similar commit-message skip markers in this repository, including for docs-only changes. GitHub skips required workflows entirely, leaving their checks without successful statuses and the PR stuck.
 - Docs-only changes use the repository's explicit skip mechanisms instead:
   - The integration workflow skips integration for changes limited to `docs/**`, `README.md`, `AGENTS.md`, skill Markdown/license files, agent Markdown instructions, or `test/**`. Required checks still report a passing result.

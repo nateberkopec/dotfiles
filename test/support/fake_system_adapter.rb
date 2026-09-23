@@ -137,8 +137,10 @@ class FakeSystemAdapter
     content.split("\n").map { |line| "#{line}\n" }
   end
 
-  def execute(command, quiet: true)
-    @operations << [:execute, command, {quiet: quiet}]
+  def execute(command, quiet: true, sensitive: false)
+    options = {quiet: quiet}
+    options[:sensitive] = true if sensitive
+    @operations << [:execute, command, options]
     command_result(command)
   end
 
