@@ -29,8 +29,7 @@ class MiseBootstrapDotfilesDefaultsTest < Minitest::Test
     assert_equal "scale", defaults.dig("com.apple.dock", "mineffect")
     assert_equal 1, defaults.dig("com.apple.AppleMultitouchTrackpad", "TrackpadRightClick")
     assert_equal false, defaults.dig("com.apple.spaces", "spans-displays")
-    assert_equal "Command-49", defaults.dig("com.raycast.macos", "raycastGlobalHotkey")
-    assert_equal true, defaults.dig("com.raycast.macos", "onboarding_setupHotkey")
+    refute defaults.key?("com.raycast.macos")
   end
 
   def test_installs_native_try_release_assets

@@ -35,6 +35,10 @@ class Dotfiles
       env_csv("BREW_CI_CASKS") || config.fetch("brew_casks", [])
     end
 
+    def brew_trusted_taps
+      config.fetch("brew_trusted_taps", [])
+    end
+
     private
 
     def select_named(entries, names)

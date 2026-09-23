@@ -20,6 +20,29 @@ class InstallBrewCasksStepTest < StepTestCase
     assert_executed(bundle_install_command(admin: true))
   end
 
+  def test_should_run_when_declared_tap_is_not_trusted
+    stub_admin
+    write_config(:brew, "brew_trusted_taps" => ["example/tools"], "brew_casks" => ["example-app"])
+    @fake_system.stub_command(trust_status_command, '{"taps":[]}')
+    @fake_system.stub_command(bundle_check_command, "", exit_status: 0)
+
+    assert_predicate step, :should_run?
+  end
+
+  def test_run_trusts_declared_taps_before_installing_casks
+    stub_admin
+    write_config(:brew, "brew_trusted_taps" => ["example/tools"], "brew_casks" => ["example-app"])
+    @fake_system.stub_command(update_command, "")
+    @fake_system.stub_command(bundle_install_command(admin: true), "", exit_status: 0)
+    @fake_system.stub_command(bundle_check_command, "", exit_status: 0)
+
+    step.run
+
+    assert_executed(trust_tap_command("example/tools"))
+    assert_operator executed_command_index(trust_tap_command("example/tools")), :<,
+      executed_command_index(bundle_install_command(admin: true))
+  end
+
   def test_run_installs_formulae_for_non_admin_user
     stub_non_admin
     write_config(:brew, "brew_casks" => ["ghostty"])
@@ -43,6 +66,13 @@ class InstallBrewCasksStepTest < StepTestCase
     assert_includes content, 'cask "ghostty"'
   end
 
+  def test_brewfile_includes_trusted_taps
+    stub_admin
+    write_config(:brew, "brew_trusted_taps" => ["example/tools"], "brew_casks" => ["example-app"])
+
+    assert_includes step.send(:brewfile_content), 'tap "example/tools"'
+  end
+
   def test_brewfile_includes_formulae_for_non_admin_user
     stub_non_admin
     write_config(:brew, "brew_casks" => [])
@@ -60,6 +90,15 @@ class InstallBrewCasksStepTest < StepTestCase
       step.instance_variable_set(:@formulae, nil)
       assert_equal "\n", step.send(:brewfile_content)
     end
+  end
+
+  def test_complete_when_declared_tap_is_trusted_and_cask_is_installed
+    stub_admin
+    write_config(:brew, "brew_trusted_taps" => ["example/tools"], "brew_casks" => ["example-app"])
+    @fake_system.stub_command(trust_status_command, '{"taps":["example/tools"]}')
+    @fake_system.stub_command(bundle_check_command, "", exit_status: 0)
+
+    assert_complete
   end
 
   def test_complete_checks_homebrew_state_when_packages_are_needed
@@ -106,6 +145,21 @@ class InstallBrewCasksStepTest < StepTestCase
 
   def update_command
     "HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 brew update 2>&1"
+  end
+
+  def trust_tap_command(tap)
+    "HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 brew trust --tap #{tap} 2>&1"
+  end
+
+  def trust_status_command
+    "HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 brew trust --json=v1 2>&1"
+  end
+
+  def executed_command_index(command)
+    expected = Shellwords.split(command).reject { |token| token == "2>&1" }
+    @fake_system.operations.index do |operation, value, _options|
+      operation == :execute && Shellwords.split(Dotfiles::Command.display(value)) == expected
+    end
   end
 
   def bundle_check_command

@@ -1,5 +1,5 @@
-class Dotfiles::Step::ConfigureRaycastHotkeyStep < Dotfiles::Step
-  DESCRIPTION = "Disables the macOS Spotlight Command-Space hotkey for Raycast.".freeze
+class Dotfiles::Step::ConfigureTinycastHotkeyStep < Dotfiles::Step
+  DESCRIPTION = "Disables the macOS Spotlight Command-Space hotkey for Tinycast.".freeze
 
   macos_only
 
@@ -49,9 +49,9 @@ class Dotfiles::Step::ConfigureRaycastHotkeyStep < Dotfiles::Step
       "",
       "1. System Settings → Keyboard → Keyboard Shortcuts → Spotlight",
       "2. Disable “Show Spotlight search”",
-      "3. Raycast → Settings → General",
-      "4. Set Raycast Hotkey to ⌘ Space",
-      "5. Restart Raycast if the hotkey does not apply immediately"
+      "3. Tinycast → Settings → General",
+      "4. Set Tinycast Hotkey to ⌘ Space",
+      "5. Restart Tinycast if the hotkey does not apply immediately"
     ].join("\n")
   end
 

@@ -197,10 +197,6 @@ TrackpadTwoFingerDoubleTapGesture = 1
 [bootstrap.macos.defaults."com.apple.spaces"]
 spans-displays = false
 
-[bootstrap.macos.defaults."com.raycast.macos"]
-raycastGlobalHotkey = "Command-49"
-onboarding_setupHotkey = true
-
 [bootstrap.macos.launchd.agents.time-machine-backup]
 program = "~/.local/bin/mise"
 args = ["exec", "--", "fish", "run-time-machine-backup.fish"]
