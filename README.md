@@ -13,7 +13,7 @@ When you run `dotf run` it will:
 - Bootstrap Homebrew and mise when needed
 - Use `mise bootstrap` to converge tools, system packages, home files, macOS defaults, and LaunchAgents
 - Run one-time migrations for existing machines
-- Run the remaining imperative Ruby Steps (see `dotf steps`)
+- Run the remaining imperative Ruby Steps (see `dotf steps`), then prune unused mise tools and cache entries
 
 ## Commands
 
@@ -83,6 +83,7 @@ We don't trust agents, so destructive actions and secret access require human au
 2. Run `mise bootstrap`.
 3. Run pending migrations.
 4. Run imperative Ruby Steps.
+5. Prune unused mise tools and cache entries.
 
 Mise owns declarative state in `files/home/.config/mise/config.toml`: tools, system packages, home files, macOS defaults, and LaunchAgents. Ruby Steps remain for behavior mise cannot express cleanly, such as private Homebrew casks and application-specific setup. Steps can depend on other Steps.
 
