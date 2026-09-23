@@ -155,6 +155,15 @@ run_project_dependencies() {
     run_mise_logged -C "$DOTFILES_DIR" deps bundler
 }
 
+run_mise_prune() {
+    [ "${MISE_OFFLINE:-}" = "1" ] && return 0
+    [ -n "${MISE_CI_TOOLS:-}" ] && return 0
+
+    announce "Pruning unused mise tools and cache"
+    run_mise_logged prune --yes
+    run_mise_logged cache prune --yes
+}
+
 DOTF_LOCK_DIR="${DOTF_LOCK_DIR:-$HOME/.dotfiles.lock}"
 
 acquire_dotf_lock() {
@@ -216,6 +225,7 @@ cmd_run() {
         "${migration_command[@]}" >> "$LOG_FILE"
     fi
     ruby -r ./lib/dotfiles.rb -e "Dotfiles::Runner.new('$LOG_FILE').run"
+    run_mise_prune
     record_successful_run
 
     debug "Run complete"

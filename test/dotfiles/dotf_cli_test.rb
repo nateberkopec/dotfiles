@@ -112,7 +112,7 @@ class DotfCliTest < Minitest::Test
     end
   end
 
-  def test_run_prepares_project_dependencies_before_activating_mise
+  def test_run_prepares_dependencies_then_prunes_after_ruby_steps
     with_dotf_script do |tmpdir, script_path, _logs_dir|
       log_path = File.join(tmpdir, "run-commands.log")
       File.write(File.join(tmpdir, "bin", "bootstrap"), bootstrap_stub(log_path))
@@ -124,8 +124,32 @@ class DotfCliTest < Minitest::Test
       assert status.success?
       refute_includes stdout, "deps: bundler"
       refute_includes stdout, "Running migration"
+      assert_includes stdout, "Pruning unused mise tools and cache"
       assert_run_commands(log_path)
       assert_equal "test-sha\n", File.read(File.join(tmpdir, "state", "dotfiles", "last-run-sha"))
+    end
+  end
+
+  def test_run_skips_mise_pruning_offline
+    assert_mise_pruning_skipped("MISE_OFFLINE" => "1")
+  end
+
+  def test_run_skips_mise_pruning_with_ci_tools
+    assert_mise_pruning_skipped("MISE_CI_TOOLS" => "ruby@3.4")
+  end
+
+  def test_run_stops_and_does_not_record_success_when_mise_pruning_fails
+    with_dotf_script do |tmpdir, script_path, _logs_dir|
+      log_path = prepare_run_fixture(tmpdir)
+      command = "export MISE_PRUNE_EXIT_STATUS=24\n#{run_function_command(script_path, log_path)}"
+
+      stdout, status = Open3.capture2e("bash", "-c", command)
+
+      assert_equal 24, status.exitstatus
+      assert_includes stdout, "mise prune failed"
+      assert_includes File.readlines(log_path, chomp: true), "mise prune --yes"
+      refute_includes File.readlines(log_path, chomp: true), "mise cache prune --yes"
+      refute File.exist?(File.join(tmpdir, "state", "dotfiles", "last-run-sha"))
     end
   end
 
@@ -201,7 +225,27 @@ class DotfCliTest < Minitest::Test
     assert_equal "mise activate bash", commands[3]
     assert_match(/\Aruby -r \.\/lib\/dotfiles\.rb -e Dotfiles::MigrationRunner\.new\('.+'\)\.run_if_existing_machine\z/, commands[4])
     assert_match(/\Aruby -r \.\/lib\/dotfiles\.rb -e Dotfiles::Runner\.new\('.+'\)\.run\z/, commands[5])
-    assert_equal 6, commands.size
+    assert_equal "mise prune --yes", commands[6]
+    assert_equal "mise cache prune --yes", commands[7]
+    assert_equal 8, commands.size
+  end
+
+  def assert_mise_pruning_skipped(environment)
+    with_dotf_script do |tmpdir, script_path, _logs_dir|
+      log_path = prepare_run_fixture(tmpdir)
+      _stdout, status = Open3.capture2e(environment, "bash", "-c", run_function_command(script_path, log_path))
+
+      assert status.success?
+      refute File.readlines(log_path).any? { |line| line.include?("prune --yes") }
+      assert_equal "test-sha\n", File.read(File.join(tmpdir, "state", "dotfiles", "last-run-sha"))
+    end
+  end
+
+  def prepare_run_fixture(tmpdir)
+    log_path = File.join(tmpdir, "run-commands.log")
+    File.write(File.join(tmpdir, "bin", "bootstrap"), bootstrap_stub(log_path))
+    FileUtils.chmod("+x", File.join(tmpdir, "bin", "bootstrap"))
+    log_path
   end
 
   def bootstrap_stub(log_path)
@@ -231,6 +275,9 @@ class DotfCliTest < Minitest::Test
             return "$MISE_DEPS_EXIT_STATUS"
           fi
           touch #{deps_state}
+        elif [ "$*" = "prune --yes" ] && [ "${MISE_PRUNE_EXIT_STATUS:-0}" -ne 0 ]; then
+          printf 'mise prune failed\n' >&2
+          return "$MISE_PRUNE_EXIT_STATUS"
         elif [ "$*" = "activate bash" ] && [ ! -e #{deps_state} ]; then
           printf 'mise WARN deps: bundler (Gemfile changed) - run mise deps\n' >&2
         fi
