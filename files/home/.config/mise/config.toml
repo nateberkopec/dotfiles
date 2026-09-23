@@ -232,6 +232,17 @@ run_at_load = true
 stdout_path = "~/Library/Logs/omniwm-launcher.out.log"
 stderr_path = "~/Library/Logs/omniwm-launcher.err.log"
 
+[bootstrap.macos.launchd.agents.meridian]
+program = "~/.local/bin/mise"
+args = ["exec", "--", "meridian"]
+working_directory = "~"
+environment = { MERIDIAN_HOST = "127.0.0.1", MERIDIAN_PORT = "3456", MERIDIAN_PASSTHROUGH = "1" }
+run_at_load = true
+keep_alive = true
+kickstart = true
+stdout_path = "~/Library/Logs/meridian.out.log"
+stderr_path = "~/Library/Logs/meridian.err.log"
+
 [bootstrap.hooks]
 pre-dotfiles = 'bash "$HOME/.dotfiles/bin/lib/unprotect-managed-files.sh"'
 post-dotfiles = 'bash "$HOME/.dotfiles/bin/lib/post-dotfiles-hook.sh"'

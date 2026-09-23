@@ -26,7 +26,8 @@
   "enabledModels": [
     "openai-codex/gpt-6-astra:low",
     "openai-codex/gpt-5.6-sol:medium",
-    "openai-codex/gpt-5.6-luna:xhigh"
+    "openai-codex/gpt-5.6-luna:xhigh",
+    "meridian/claude-*"
   ],
   "subagents": {
     "agentOverrides": {
