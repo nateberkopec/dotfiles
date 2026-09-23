@@ -64,8 +64,8 @@ class Dotfiles
       File.readlines(path)
     end
 
-    def execute(command, quiet: true)
-      quiet = false if ENV["DEBUG"] == "true"
+    def execute(command, quiet: true, sensitive: false)
+      quiet = false if ENV["DEBUG"] == "true" && !sensitive
       quiet ? execute_quiet(command) : execute_verbose(command)
     rescue Errno::ENOENT => e
       [e.message, 127]

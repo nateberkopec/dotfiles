@@ -1,0 +1,52 @@
+---
+ShowIceIcon: true
+IceIcon:
+  hidden:
+    catalog:
+      _0: DotFill
+  visible:
+    catalog:
+      _0: DotStroke
+  name: Dot
+UseIceBar: false
+IceBarLocation: 0
+ShowOnClick: true
+ShowOnHover: false
+ShowOnScroll: true
+ShowOnHoverDelay: 0.2
+ItemSpacingOffset: 0.0
+AutoRehide: true
+RehideStrategy: 0
+RehideInterval: 15.0
+EnableAlwaysHiddenSection: true
+CanToggleAlwaysHiddenSection: true
+ShowSectionDividers: false
+HideApplicationMenus: true
+ShowAllSectionsOnUserDrag: true
+TempShowInterval: 15.0
+Hotkeys:
+  ToggleHiddenSection:
+  ToggleAlwaysHiddenSection:
+  SearchMenuBarItems:
+  EnableIceBar:
+  ShowSectionDividers:
+  ToggleApplicationMenus:
+MenuBarAppearanceConfigurationV2:
+  lightModeConfiguration:
+    hasShadow: false
+    hasBorder: false
+    tintKind: 0
+  darkModeConfiguration:
+    hasShadow: false
+    hasBorder: false
+    tintKind: 0
+  staticConfiguration:
+    hasShadow: false
+    hasBorder: false
+    tintKind: 0
+  shapeKind: 0
+  isInset: false
+  isDynamic: false
+SUEnableAutomaticChecks: true
+SUAutomaticallyUpdate: true
+SUSendProfileInfo: false

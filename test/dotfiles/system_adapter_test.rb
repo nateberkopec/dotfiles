@@ -54,6 +54,18 @@ class SystemAdapterTest < Minitest::Test
     assert_equal [[:verbose, "echo hi"]], adapter.calls
   end
 
+  def test_sensitive_execute_stays_quiet_when_debug_is_true
+    adapter = TestSystemAdapter.new
+
+    with_env("DEBUG" => "true") do
+      output, status = adapter.execute("echo secret", sensitive: true)
+
+      assert_equal ["quiet", 0], [output, status]
+    end
+
+    assert_equal [[:quiet, "echo secret"]], adapter.calls
+  end
+
   def test_execute_honors_explicit_verbose_calls
     adapter = TestSystemAdapter.new
 
