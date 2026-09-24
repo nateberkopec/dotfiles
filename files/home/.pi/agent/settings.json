@@ -1,8 +1,8 @@
 {
   "lastChangelogVersion": "0.80.9",
   "defaultProvider": "openai-codex",
-  "defaultModel": "gpt-6-astra",
-  "defaultThinkingLevel": "low",
+  "defaultModel": "gpt-6-sol",
+  "defaultThinkingLevel": "medium",
   "hideThinkingBlock": false,
   "packages": [
     "npm:pi-mcp-adapter@2.32.1",
@@ -25,6 +25,7 @@
     "enabled": true
   },
   "enabledModels": [
+    "openai-codex/gpt-6-sol:medium",
     "openai-codex/gpt-6-astra:low",
     "openai-codex/gpt-5.6-sol:medium",
     "openai-codex/gpt-5.6-luna:xhigh",
