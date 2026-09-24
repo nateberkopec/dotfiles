@@ -19,6 +19,10 @@ if [ -z "$base_sha" ] || [ -z "$head_sha" ] || [ "$base_sha" = "0000000000000000
   exit 0
 fi
 
+if [ "$event_name" = "pull_request" ]; then
+  base_sha="$(git merge-base "$base_sha" "$head_sha")"
+fi
+
 git diff --name-only --no-renames "$base_sha" "$head_sha" > "$RUNNER_TEMP/changed-files"
 files=()
 while IFS= read -r file; do
