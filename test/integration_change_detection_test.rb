@@ -26,6 +26,19 @@ class IntegrationChangeDetectionTest < Minitest::Test
     assert_detection "true", event: "pull_request", base: base
   end
 
+  def test_docs_pull_request_ignores_runtime_changes_only_on_base_branch
+    git("checkout", "-qb", "base")
+    write("lib/dotfiles.rb", "runtime change\n")
+    commit("base runtime change")
+    base = head
+    git("checkout", "-qb", "docs", "HEAD~1")
+    write("docs/guide.md", "prose\n")
+    commit("docs")
+
+    assert_detection "true", event: "pull_request", base: base
+    assert_detection "false", event: "push", base: base
+  end
+
   def test_push_with_agent_markdown_and_skill_license_is_optional
     base = head
     %w[
