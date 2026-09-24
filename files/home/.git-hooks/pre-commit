@@ -41,6 +41,14 @@ function fail
   panel fail $argv[1]
 end
 
+function hk_hooks_installed
+  command git config --get hook.hk-pre-commit.command >/dev/null 2>/dev/null
+end
+
+if hk_hooks_installed
+  exit 0
+end
+
 function hk_install_recommended
   test -f hk.pkl; or return 1
   not command git config --local --get core.hooksPath >/dev/null 2>/dev/null
