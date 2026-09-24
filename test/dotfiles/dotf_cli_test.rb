@@ -124,7 +124,9 @@ class DotfCliTest < Minitest::Test
       assert status.success?
       refute_includes stdout, "deps: bundler"
       refute_includes stdout, "Running migration"
-      assert_includes stdout, "Pruning unused mise tools and cache"
+      refute_includes stdout, "Pruning unused mise tools and cache"
+      refute_includes stdout, "mise pruned"
+      assert_includes stdout, "mise WARN prune warning"
       assert_run_commands(log_path)
       assert_equal "test-sha\n", File.read(File.join(tmpdir, "state", "dotfiles", "last-run-sha"))
     end
@@ -278,6 +280,11 @@ class DotfCliTest < Minitest::Test
         elif [ "$*" = "prune --yes" ] && [ "${MISE_PRUNE_EXIT_STATUS:-0}" -ne 0 ]; then
           printf 'mise prune failed\n' >&2
           return "$MISE_PRUNE_EXIT_STATUS"
+        elif [[ "$*" == *"prune --yes" ]]; then
+          if [ "${MISE_LOG_LEVEL:-info}" != "warn" ]; then
+            printf 'mise pruned unused entries\n' >&2
+          fi
+          printf 'mise WARN prune warning\n' >&2
         elif [ "$*" = "activate bash" ] && [ ! -e #{deps_state} ]; then
           printf 'mise WARN deps: bundler (Gemfile changed) - run mise deps\n' >&2
         fi
