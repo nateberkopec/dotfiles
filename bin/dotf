@@ -68,14 +68,6 @@ debug() {
     fi
 }
 
-announce() {
-    if command -v gum &> /dev/null; then
-        gum style --bold --foreground 212 "$1"
-    else
-        echo "==> $1"
-    fi
-}
-
 ensure_homebrew_env() {
     if [ -x "$HOME/.homebrew/bin/brew" ]; then
         eval "$("$HOME/.homebrew/bin/brew" shellenv bash)"
@@ -159,9 +151,8 @@ run_mise_prune() {
     [ "${MISE_OFFLINE:-}" = "1" ] && return 0
     [ -n "${MISE_CI_TOOLS:-}" ] && return 0
 
-    announce "Pruning unused mise tools and cache"
-    run_mise_logged prune --yes
-    run_mise_logged cache prune --yes
+    MISE_LOG_LEVEL=warn run_mise_logged prune --yes
+    MISE_LOG_LEVEL=warn run_mise_logged cache prune --yes
 }
 
 DOTF_LOCK_DIR="${DOTF_LOCK_DIR:-$HOME/.dotfiles.lock}"
