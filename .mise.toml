@@ -8,9 +8,9 @@ dfr = "./bin/dotf run"
 
 [tools]
 hk = "2.0.1"
-node = "24.11.1"
-"npm:@earendil-works/pi-coding-agent" = "0.85.1"
-"npm:typescript" = "5.9.2"
+node = "26.10.0"
+"npm:@earendil-works/pi-coding-agent" = "0.87.0"
+"npm:typescript" = "7.0.2"
 
 [deps.bundler]
 auto = true
