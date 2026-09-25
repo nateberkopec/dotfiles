@@ -46,6 +46,9 @@ jobs:
     - name: Type-check Pi extensions
       run: tools/typecheck_pi_extensions.sh
 
+    - name: Test Pi plan following
+      run: node --test test/plan_follow_test.mjs
+
     - name: Run tests with managed Bash startup
       timeout-minutes: 5
       run: bundle exec rake test
