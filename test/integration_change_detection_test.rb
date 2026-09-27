@@ -54,6 +54,27 @@ class IntegrationChangeDetectionTest < Minitest::Test
     assert_detection "true", event: "push", base: base
   end
 
+  def test_dependency_updater_changes_are_optional
+    base = head
+    %w[config/dependency-updater.yml .github/workflows/dependency-updater.md .github/workflows/dependency-updater.lock.yml].each do |path|
+      write(path, "updater change\n")
+    end
+    commit("dependency updater")
+
+    assert_detection "true", event: "pull_request", base: base
+    assert_detection "true", event: "push", base: base
+    assert_detection "false", event: "schedule", base: base
+  end
+
+  def test_dependency_updater_changes_do_not_hide_runtime_changes
+    base = head
+    write("config/dependency-updater.yml", "updater change\n")
+    write("files/home/.config/mise/config.toml", "tool update\n")
+    commit("updater and tool")
+
+    assert_detection "false", event: "pull_request", base: base
+  end
+
   def test_mixed_code_and_docs_is_not_optional
     base = head
     write("docs/guide.md", "prose\n")

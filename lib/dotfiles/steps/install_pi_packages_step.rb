@@ -33,6 +33,7 @@ class Dotfiles::Step::InstallPiPackagesStep < Dotfiles::Step
   end
 
   def missing_packages
+    @installed_packages = nil
     expected_packages.reject { |package| package_installed?(package) }
   end
 
@@ -61,6 +62,10 @@ class Dotfiles::Step::InstallPiPackagesStep < Dotfiles::Step
   end
 
   def installed_packages
+    @installed_packages ||= fetch_installed_packages
+  end
+
+  def fetch_installed_packages
     return [] unless pi_available?
 
     output, status = execute(command("pi", "list"))

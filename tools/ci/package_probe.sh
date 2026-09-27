@@ -24,6 +24,10 @@ find_candidate() {
     return 1
 }
 find_brew_bin() {
+    if [ "$(uname -s)" = "Darwin" ] && ! id -Gn | tr ' ' '\n' | grep -qx admin; then
+        find_candidate "$HOME/.homebrew/bin/brew"
+        return
+    fi
     if command -v brew >/dev/null 2>&1; then
         command -v brew
         return 0

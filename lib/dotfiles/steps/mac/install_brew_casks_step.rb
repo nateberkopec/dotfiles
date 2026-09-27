@@ -22,7 +22,7 @@ class Dotfiles::Step::InstallBrewCasksStep < Dotfiles::Step
 
   def run
     debug "Installing Homebrew packages..."
-    brew_quiet("update")
+    @system.execute!(env_command({"HOMEBREW_NO_ENV_HINTS" => "1"}, "brew", "update-if-needed"))
     install_and_reset
     install_and_reset unless packages_already_installed?
   end

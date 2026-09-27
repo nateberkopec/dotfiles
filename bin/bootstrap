@@ -54,6 +54,8 @@ install_private_homebrew() {
         debug "Private Homebrew repository already present"
     else
         git clone --depth=1 https://github.com/Homebrew/brew "$prefix"
+        # Homebrew uses FETCH_HEAD's mtime to decide whether another fetch is due.
+        touch "$prefix/.git/FETCH_HEAD"
     fi
     mkdir -p "$prefix/Cellar" "$prefix/Caskroom" "$HOME/Library/Caches/Homebrew"
 }

@@ -7,7 +7,7 @@ class InstallBrewCasksStepTest < StepTestCase
     assert_empty self.class.step_class.depends_on
   end
 
-  def test_run_updates_homebrew_and_installs_casks_for_admin_user
+  def test_run_refreshes_homebrew_if_needed_and_installs_casks_for_admin_user
     stub_admin
     write_config(:brew, "brew_casks" => ["ghostty"])
     @fake_system.stub_command(update_command, "")
@@ -16,8 +16,15 @@ class InstallBrewCasksStepTest < StepTestCase
 
     step.run
 
-    assert_executed(update_command)
+    assert_executed!(update_command)
     assert_executed(bundle_install_command(admin: true))
+  end
+
+  def test_failed_homebrew_refresh_prevents_installation
+    @fake_system.stub_command(update_command, "network failure", exit_status: 1)
+
+    assert_raises(RuntimeError) { step.run }
+    refute_executed(bundle_install_command)
   end
 
   def test_run_installs_formulae_for_non_admin_user
@@ -105,7 +112,7 @@ class InstallBrewCasksStepTest < StepTestCase
   end
 
   def update_command
-    "HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 brew update 2>&1"
+    "HOMEBREW_NO_ENV_HINTS=1 brew update-if-needed"
   end
 
   def bundle_check_command
