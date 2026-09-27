@@ -1,7 +1,0 @@
-{
-  "providers": {
-    "openrouter": {
-      "baseUrl": "https://us.openrouter.ai/api/v1"
-    }
-  }
-}

@@ -5,11 +5,10 @@ require "open3"
 require "tmpdir"
 
 class NoTrainingExtensionsTest < Minitest::Test
-  OPENROUTER = File.expand_path("../../../files/home/.pi/agent/extensions/openrouter_us/index.ts", __dir__)
-  VERCEL = File.expand_path("../../../files/home/.pi/agent/extensions/vercel_us.ts", __dir__)
+  DATASAFE = File.expand_path("../../../files/home/.pi/agent/extensions/datasafe/index.ts", __dir__)
 
   def test_openrouter_request_preserves_routing_and_denies_collection
-    request = capture_request(OPENROUTER, "openrouter", "anthropic/claude-3-haiku", {
+    request = capture_request(DATASAFE, "openrouter", "anthropic/claude-3-haiku", {
       provider: {order: ["anthropic"], data_collection: "allow"}
     })
 
@@ -18,7 +17,7 @@ class NoTrainingExtensionsTest < Minitest::Test
   end
 
   def test_vercel_request_preserves_options_and_disallows_training
-    request = capture_request(VERCEL, "vercel-ai-gateway", "anthropic/claude-3-haiku", {
+    request = capture_request(DATASAFE, "vercel-ai-gateway", "anthropic/claude-3-haiku", {
       providerOptions: {gateway: {order: ["anthropic"], disallowPromptTraining: false}}
     })
 
@@ -35,6 +34,7 @@ class NoTrainingExtensionsTest < Minitest::Test
       script = File.join(dir, "probe.ts")
       result = File.join(dir, "request.json")
       sent = File.join(dir, "sent.json")
+      url = File.join(dir, "url.txt")
       File.write(script, <<~TS)
         import { writeFileSync } from "node:fs";
         import extension from #{extension.to_json};
@@ -43,6 +43,7 @@ class NoTrainingExtensionsTest < Minitest::Test
           if (String(input).endsWith("/models")) {
             return new Response(JSON.stringify({ data: [{ id: #{model.to_json} }] }));
           }
+          writeFileSync(#{url.to_json}, String(input));
           writeFileSync(#{sent.to_json}, String(init?.body ?? ""));
           return new Response(JSON.stringify({ error: { message: "No compliant providers available" } }), { status: 400 });
         };
@@ -74,6 +75,7 @@ class NoTrainingExtensionsTest < Minitest::Test
       assert File.exist?(sent), "outgoing request not captured: #{stdout} #{stderr}"
       assert_includes stdout + stderr, "No compliant providers available"
       assert_equal JSON.parse(File.read(result)), JSON.parse(File.read(sent))
+      assert_match(%r{\Ahttps://us\.openrouter\.ai/api/v1/messages}, File.read(url)) if provider == "openrouter"
       JSON.parse(File.read(sent))
     end
   end

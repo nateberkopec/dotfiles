@@ -41,7 +41,11 @@ Scope is Pi only, including Pi's web-search providers. I really only use Pi and 
 ## How it's enforced operationally
 
 1. I maintain the table below for providers I actually use, and I manually verify that the appropriate account level settings are checked.
-2. We have a "datasafe" pi extension I use by default, which ensures I can't accidentlly use upstream providers or tools which are contrary to this policy.
+2. The Pi `datasafe` extension defaults to `usa-no-train`. It limits model catalogs to the approved providers, restricts OpenRouter and Fireworks to US catalogs, applies the OpenRouter and Vercel request controls, and blocks web capabilities other than Exa Search and Contents. Plain `pi` sets this mode. `pi-claude` permits only Meridian and first-party Anthropic models, plus Exa Search and Contents; it does not broaden `usa-no-train` to include the Anthropic API. The Anthropic API account's data controls must be verified before using it for client work. `pi-unsafe` starts unrestricted Pi. Both wrappers use the same agent directory; non-default sessions show `[PROFILE: CLAUDE-ONLY]` or `[WARNING: UNRESTRICTED]` in the footer. Mode is chosen at launch and inherited by child processes; there is no in-session switch. Reusing a session in a broader mode can disclose its prior client context to a different provider.
+
+This is an accidental-disclosure guard, not a sandbox against code or extensions that intentionally bypass Pi. Pi currently swallows `before_provider_request` handler exceptions, so the datasafe extension uses provider streaming guards and catalog filtering where blocking before HTTP is required. Pi may select another model when restoring a session or when a configured startup default is unavailable. In both launch modes, datasafe blocks such a replacement before HTTP; a saved session requires a new session, while a missing default requires an explicit model selection.
+
+Known limitation: a separate extension registering a new provider **after** datasafe loads can still put that provider in the model catalog. The current request guard rejects the tested direct request before HTTP, but the catalog is not fail-closed for late registrations. Pi needs a post-registration model-policy hook (also used by `--list-models`) to enforce this without depending on extension load order.
 
 ## Verification table
 
