@@ -25,6 +25,7 @@ class InstallPiPackagesStepTest < StepTestCase
     stub_installed_npm_package("pi-ding", "0.2.2")
 
     refute_should_run
+    refute_executed("pi list")
   end
 
   def test_should_run_when_installed_npm_package_does_not_match_pin
@@ -52,6 +53,53 @@ class InstallPiPackagesStepTest < StepTestCase
     @fake_system.stub_command("command -v pi >/dev/null 2>&1", "", exit_status: 1)
 
     assert_incomplete
+  end
+
+  def test_complete_by_default
+    assert_complete
+  end
+
+  def test_run_without_settings_does_not_invoke_pi
+    step.run
+
+    refute_executed("pi list")
+  end
+
+  def test_git_packages_share_a_list_and_refresh_after_installation
+    packages = ["git:github.com/example/one@abc", "git:github.com/example/two@def"]
+    stub_settings(JSON.generate("packages" => packages))
+    stub_pi_available
+    stub_pi_list("")
+
+    assert_should_run
+    step.run
+    packages.each { |package| assert_executed("pi install #{package}") }
+    stub_pi_list(packages.join("\n"))
+    assert_complete
+
+    calls = @fake_system.operations.count { |operation, cmd| operation == :execute && cmd == ["pi", "list"] }
+    assert_equal 3, calls
+  end
+
+  def test_unpinned_npm_package_still_uses_pi_list
+    stub_settings('{"packages":["npm:example"]}')
+    stub_pi_available
+    stub_pi_list("npm:example")
+
+    refute_should_run
+    assert_executed("pi list")
+  end
+
+  def test_failed_list_cannot_reuse_a_previous_successful_snapshot
+    package = "git:github.com/example/one@abc"
+    stub_settings(JSON.generate("packages" => [package]))
+    stub_pi_available
+    stub_pi_list(package)
+    assert_complete
+    @fake_system.stub_command("pi list", "list failed", exit_status: 1)
+
+    assert_incomplete
+    assert_includes step.errors.join("\n"), package
   end
 
   private

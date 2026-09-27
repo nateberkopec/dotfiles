@@ -56,6 +56,30 @@ jobs:
         ruby-version: 'ruby'
         bundler-cache: false
 
+    # Scheduled/manual runs exercise installation without restored dependencies.
+    - name: Identify the Ruby used by dotf
+      if: github.event_name == 'pull_request' || github.event_name == 'push'
+      id: cache-runtime
+      run: |
+        source bin/dotf
+        ensure_homebrew_env
+        ruby -rrbconfig -e 'puts "ruby=#{RUBY_ENGINE}-#{RUBY_VERSION}-#{RUBY_PATCHLEVEL}-#{RbConfig::CONFIG.fetch("arch")}"' >> "$GITHUB_OUTPUT"
+
+    - name: Cache npm downloads
+      if: github.event_name == 'pull_request' || github.event_name == 'push'
+      uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+      with:
+        path: ~/.npm/_cacache
+        key: integration-npm-${{ matrix.os }}-${{ runner.arch }}-${{ hashFiles('files/home/.pi/agent/settings.json', 'files/home/.config/mise/mise.lock') }}
+        restore-keys: integration-npm-${{ matrix.os }}-${{ runner.arch }}-
+
+    - name: Cache integration gems
+      if: github.event_name == 'pull_request' || github.event_name == 'push'
+      uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+      with:
+        path: vendor/bundle
+        key: integration-gems-${{ matrix.os }}-${{ runner.arch }}-${{ steps.cache-runtime.outputs.ruby }}-${{ hashFiles('Gemfile', 'Gemfile.lock') }}
+
     - name: Run dotfiles integration script
       id: run
       timeout-minutes: 20
@@ -129,6 +153,35 @@ jobs:
             exit 1
           fi
         '
+
+    - name: Prepare non-admin dependency cache directories
+      run: |
+        home_dir="/Users/dotfiles-ci"
+        sudo mkdir -p "${home_dir}/.npm/_cacache" "${home_dir}/dotfiles/vendor/bundle"
+        sudo chown -R "$(id -u):$(id -g)" "${home_dir}/.npm" "${home_dir}/dotfiles/vendor"
+
+    - name: Identify the Ruby inherited by the non-admin user
+      if: github.event_name == 'pull_request' || github.event_name == 'push'
+      id: cache-runtime
+      run: ruby -rrbconfig -e 'puts "ruby=#{RUBY_ENGINE}-#{RUBY_VERSION}-#{RUBY_PATCHLEVEL}-#{RbConfig::CONFIG.fetch("arch")}"' >> "$GITHUB_OUTPUT"
+
+    - name: Cache non-admin npm downloads
+      if: github.event_name == 'pull_request' || github.event_name == 'push'
+      uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+      with:
+        path: /Users/dotfiles-ci/.npm/_cacache
+        key: integration-npm-non-admin-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('files/home/.pi/agent/settings.json', 'files/home/.config/mise/mise.lock') }}
+        restore-keys: integration-npm-non-admin-${{ runner.os }}-${{ runner.arch }}-
+
+    - name: Cache non-admin integration gems
+      if: github.event_name == 'pull_request' || github.event_name == 'push'
+      uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+      with:
+        path: /Users/dotfiles-ci/dotfiles/vendor/bundle
+        key: integration-gems-non-admin-${{ runner.os }}-${{ runner.arch }}-${{ steps.cache-runtime.outputs.ruby }}-${{ hashFiles('Gemfile', 'Gemfile.lock') }}
+
+    - name: Give the non-admin user ownership of restored dependencies
+      run: sudo chown -R dotfiles-ci:staff /Users/dotfiles-ci/.npm /Users/dotfiles-ci/dotfiles/vendor
 
     - name: Seed immutable gem credentials for non-admin user
       run: |
