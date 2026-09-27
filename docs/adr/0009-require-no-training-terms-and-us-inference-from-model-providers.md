@@ -46,6 +46,8 @@ Checked 2026-09-24; OpenRouter and Vercel request controls updated 2026-09-28.
 | vercel-ai-gateway | Vercel, US; upstreams vary | `inferenceRegion` US zone injected | [Vercel does not train](https://vercel.com/docs/ai-gateway/faq); [`disallowPromptTraining: true`](https://vercel.com/docs/ai-gateway/security-and-compliance/disallow-prompt-training) injected 2026-09-28 | compliant |
 | exa (web search) | Exa, US | US company | [privacy policy](https://exa.ai/privacy-policy) states query data trains its models; [ZDR](https://exa.ai/docs/admin/security/zero-data-retention) is Enterprise only | non-compliant |
 
+OpenRouter's [account opt-out](https://openrouter.ai/docs/guides/privacy/provider-logging) already blocks training upstreams for paid models, so `data_collection: deny` adds no restriction while that opt-out remains enabled; it makes the constraint explicit per request and also covers the separately configured free-model setting. Vercel's [own no-training policy](https://vercel.com/docs/ai-gateway/security-and-compliance/disallow-prompt-training) does **not** filter upstreams by default: `disallowPromptTraining: true` does. It would be redundant if [team-wide ZDR](https://vercel.com/docs/ai-gateway/security-and-compliance/zdr) is enabled (not verified here), since ZDR implies no training; Vercel says the request flag does not enforce the restriction on BYOK traffic.
+
 ## Consequences
 
 - [#731](https://github.com/nateberkopec/dotfiles/issues/731): implement the two modes, including the project marker, session override, picker hiding, request block, visible indicator, and web-search switch.
