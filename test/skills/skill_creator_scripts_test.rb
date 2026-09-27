@@ -5,7 +5,7 @@ require "tmpdir"
 
 class SkillCreatorScriptsTest < Minitest::Test
   ROOT = File.expand_path("../../files/home/.claude/skills/skill-creator", __dir__)
-  PYTHON = ["uv", "run", "--no-project", "--with", "pyyaml", "python"]
+  PYTHON = ["uv", "run", "--no-project", "--with", "pyyaml==6.0.3", "python"]
   VALIDATE = File.join(ROOT, "scripts/quick_validate.py")
 
   def test_bundled_skill_validates_with_source_frontmatter
