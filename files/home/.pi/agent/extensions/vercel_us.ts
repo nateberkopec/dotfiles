@@ -22,6 +22,7 @@ export function applyUSInferenceRegion<T extends Record<string, unknown>>(payloa
 			gateway: {
 				...gateway,
 				inferenceRegion: US_INFERENCE_REGION,
+				disallowPromptTraining: true,
 			},
 		},
 	};
