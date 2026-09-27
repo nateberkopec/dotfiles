@@ -47,7 +47,7 @@ engine:
     - -c
     - tool_output_token_limit=4096
 # gh-aw-firewall 0.27.44 misresolves model names with query parameters.
-model: gpt-5.6-luna
+model: gpt-6-sol
 timeout-minutes: 60
 
 steps:
@@ -138,7 +138,7 @@ safe-outputs:
   threat-detection:
     engine:
       id: codex
-      model: gpt-5.6-luna
+      model: gpt-6-luna
       # gh-aw 0.86.2 omits the separator before detection args; keep the leading space.
       args:
         - " -c"
