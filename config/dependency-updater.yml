@@ -34,6 +34,3 @@ snoozes:
   standard:
     candidate: "1.56.0"
     wake_at: "1.57.0"
-  claude:
-    candidate: "2.1.251"
-    wake_at: "2.2.0"
