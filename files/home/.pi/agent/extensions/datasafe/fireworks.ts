@@ -1,7 +1,6 @@
 import {
 	envApiKeyAuth,
 	type Api,
-	type TranscriptContext,
 	type Model,
 	type Provider,
 	type RefreshModelsContext,
@@ -63,11 +62,11 @@ function guardPayload<T extends StreamOptions | SimpleStreamOptions>(modelId: st
 }
 
 const guardedApi = {
-	stream(model: Model<Api>, context: TranscriptContext, options?: StreamOptions) {
+	stream(model: Model<Api>, context: Parameters<typeof fireworksApi.stream>[1], options?: StreamOptions) {
 		catalog.assertAllowed(model.id);
 		return fireworksApi.stream(model, context, guardPayload(model.id, options));
 	},
-	streamSimple(model: Model<Api>, context: TranscriptContext, options?: SimpleStreamOptions) {
+	streamSimple(model: Model<Api>, context: Parameters<typeof fireworksApi.streamSimple>[1], options?: SimpleStreamOptions) {
 		catalog.assertAllowed(model.id);
 		return fireworksApi.streamSimple(model, context, guardPayload(model.id, options));
 	},
