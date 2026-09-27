@@ -4,64 +4,38 @@ require "open3"
 require "tmpdir"
 
 class SkillCreatorScriptsTest < Minitest::Test
-  ROOT = File.expand_path("../../files/home/.claude/skills/skill-creator/scripts", __dir__)
-  INIT = File.join(ROOT, "init_skill.py")
-  VALIDATE = File.join(ROOT, "quick_validate.py")
+  ROOT = File.expand_path("../../files/home/.claude/skills/skill-creator", __dir__)
+  PYTHON = ["uv", "run", "--no-project", "--with", "pyyaml", "python"]
+  VALIDATE = File.join(ROOT, "scripts/quick_validate.py")
 
-  def test_initializer_rejects_traversal_before_creation
-    Dir.mktmpdir do |dir|
-      _output, status = Open3.capture2e("python3", INIT, "../escape", "--path", dir)
+  def test_bundled_skill_validates_with_source_frontmatter
+    output, status = Open3.capture2e(*PYTHON, VALIDATE, ROOT)
 
-      refute status.success?
-      refute File.exist?(File.join(File.dirname(dir), "escape"))
-      assert_empty Dir.children(dir)
-    end
+    assert status.success?, output
   end
 
-  def test_initializer_generates_valid_frontmatter
+  def test_validator_rejects_unexpected_frontmatter
     Dir.mktmpdir do |dir|
-      _output, status = Open3.capture2e("python3", INIT, "valid-name", "--path", dir)
-
-      assert status.success?
-      output, status = Open3.capture2e("python3", VALIDATE, File.join(dir, "valid-name"))
-      assert status.success?, output
-    end
-  end
-
-  def test_validator_rejects_lookalike_fields_and_directory_mismatch
-    Dir.mktmpdir do |dir|
-      skill = File.join(dir, "actual-name")
+      skill = File.join(dir, "test-skill")
       Dir.mkdir(skill)
-      File.write(File.join(skill, "SKILL.md"), "---\nnotname: actual-name\nnodescription: nope\n---\n")
-      _output, status = Open3.capture2e("python3", VALIDATE, skill)
-      refute status.success?
+      File.write(File.join(skill, "SKILL.md"), "---\nname: test-skill\ndescription: Example\nunknown: value\n---\n")
 
-      File.write(File.join(skill, "SKILL.md"), "---\nname: actual-name\ndescription: # absent\n---\n")
-      _output, status = Open3.capture2e("python3", VALIDATE, skill)
+      output, status = Open3.capture2e(*PYTHON, VALIDATE, skill)
       refute status.success?
-
-      File.write(File.join(skill, "SKILL.md"), "---\nname: other-name\ndescription: Valid\n---\n")
-      output, status = Open3.capture2e("python3", VALIDATE, skill)
-      refute status.success?
-      assert_includes output, "must match directory"
+      assert_includes output, "Unexpected key(s)"
     end
   end
 
-  def test_validator_accepts_multiline_description
+  def test_packager_includes_skill_and_excludes_cache
     Dir.mktmpdir do |dir|
-      skill = File.join(dir, "valid-name")
-      Dir.mkdir(skill)
-      File.write(File.join(skill, "SKILL.md"), <<~MD)
-        ---
-        name: valid-name
-        description: |
-          Create valid things.
-          Use for validator checks.
-        ---
-      MD
-
-      output, status = Open3.capture2e("python3", VALIDATE, skill)
+      output, status = Open3.capture2e(*PYTHON, "-m", "scripts.package_skill", ROOT, dir, chdir: ROOT)
       assert status.success?, output
+
+      listing, status = Open3.capture2e("unzip", "-Z1", File.join(dir, "skill-creator.skill"))
+      assert status.success?, listing
+      assert_includes listing, "skill-creator/SKILL.md"
+      assert_includes listing, "skill-creator/agents/grader.md"
+      refute_includes listing, "__pycache__"
     end
   end
 end
