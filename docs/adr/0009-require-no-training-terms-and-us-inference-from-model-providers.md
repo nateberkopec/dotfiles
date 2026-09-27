@@ -33,7 +33,7 @@ The verification table below covers every provider Pi is logged in to. Logging i
 
 ## Verification table
 
-Checked 2026-09-24.
+Checked 2026-09-24; OpenRouter and Vercel request controls updated 2026-09-28.
 
 | Provider | Operator | US inference | No-training basis | Status |
 |---|---|---|---|---|
@@ -42,12 +42,11 @@ Checked 2026-09-24.
 | meridian (Claude Max) | Anthropic, US | first-party | [model improvement setting](https://privacy.claude.com/en/articles/10023580-is-my-data-used-for-model-training) off, confirmed 2026-09-24 | compliant |
 | google-vertex | Google Cloud, US | US multi-region endpoint | [Cloud Data Processing Addendum, Section 17 training restriction](https://docs.cloud.google.com/gemini-enterprise-agent-platform/resources/zero-data-retention) | compliant |
 | fireworks | Fireworks, US | US endpoint, documented US-only routers, non-US IDs blocked | [privacy policy](https://fireworks.ai/privacy-policy), no training without explicit opt-in | compliant |
-| openrouter | OpenRouter, US; upstreams vary | US endpoint, catalog filtered to US availability | [account toggle](https://openrouter.ai/docs/guides/privacy/provider-logging) off for paid models, confirmed 2026-09-24; `data_collection: deny` not yet sent | enforcement pending |
-| vercel-ai-gateway | Vercel, US; upstreams vary | `inferenceRegion` US zone injected | [Vercel does not train](https://vercel.com/docs/ai-gateway/faq); [`disallowPromptTraining`](https://vercel.com/docs/ai-gateway/security-and-compliance/disallow-prompt-training) not yet sent | enforcement pending |
+| openrouter | OpenRouter, US; upstreams vary | US endpoint, catalog filtered to US availability | [account toggle](https://openrouter.ai/docs/guides/privacy/provider-logging) off for paid models, confirmed 2026-09-24; [`provider.data_collection: deny`](https://openrouter.ai/docs/guides/routing/provider-selection) injected 2026-09-28 | compliant |
+| vercel-ai-gateway | Vercel, US; upstreams vary | `inferenceRegion` US zone injected | [Vercel does not train](https://vercel.com/docs/ai-gateway/faq); [`disallowPromptTraining: true`](https://vercel.com/docs/ai-gateway/security-and-compliance/disallow-prompt-training) injected 2026-09-28 | compliant |
 | exa (web search) | Exa, US | US company | [privacy policy](https://exa.ai/privacy-policy) states query data trains its models; [ZDR](https://exa.ai/docs/admin/security/zero-data-retention) is Enterprise only | non-compliant |
 
 ## Consequences
 
 - [#731](https://github.com/nateberkopec/dotfiles/issues/731): implement the two modes, including the project marker, session override, picker hiding, request block, visible indicator, and web-search switch.
-- [#732](https://github.com/nateberkopec/dotfiles/issues/732): send `data_collection: deny` on OpenRouter requests and `disallowPromptTraining: true` on Vercel requests, failing closed.
 - [#733](https://github.com/nateberkopec/dotfiles/issues/733): research a compliant web-search provider to replace Exa. Perplexity is excluded.

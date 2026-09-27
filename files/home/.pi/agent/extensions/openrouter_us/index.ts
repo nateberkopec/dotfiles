@@ -160,4 +160,16 @@ export default async function openRouterUS(pi: ExtensionAPI) {
 		console.error(`[openrouter_us] ${error instanceof Error ? error.message : String(error)}`);
 	}
 	pi.registerProvider(createOpenRouterUSProvider(rawProvider, discovered));
+	pi.on("before_provider_request", (event, ctx) => {
+		if (ctx.model?.provider !== PROVIDER) return;
+		const payload = event.payload as Record<string, unknown>;
+		const provider = payload.provider;
+		return {
+			...payload,
+			provider: {
+				...(provider && typeof provider === "object" ? provider : {}),
+				data_collection: "deny",
+			},
+		};
+	});
 }
