@@ -7,31 +7,10 @@ I make changes to this repository exclusively through GitHub pull requests. Push
 ## CI
 
 - CI usually takes about 10 minutes to finish running.
-- Lint, unit tests, and integration run on PRs, after merges to main, daily at 06:23 UTC, and manually. Scheduled/manual runs use full coverage. Post-merge runs verify the exact merged main commit, so branches do not need to be up to date before merging.
-- Never use `[ci skip]`, `[skip ci]`, or similar commit-message skip markers in this repository, including for docs-only changes. GitHub skips required workflows entirely, leaving their checks without successful statuses and the PR stuck.
-- Docs-only changes use the repository's explicit skip mechanisms instead:
-  - The integration workflow skips integration for changes limited to `docs/**`, `README.md`, `AGENTS.md`, skill Markdown/license files, agent Markdown instructions, or `test/**`. Required checks still report a passing result.
-  - Local `hk`/mise hooks use task `sources` to skip unchanged checks before commit. CI lint and unit-test workflows still run on PRs.
+- Never use `[ci skip]`, `[skip ci]`, or similar commit-message skip markers in this repository, including for docs-only changes. GitHub skips required workflows entirely.
 
-Lints enforced on this codebase via `hk`/git hooks:
-
-- `standard`: Runs `standardrb`, including custom cops that prefer `SystemAdapter` over direct filesystem classes and keep Step public methods constrained.
-- `complexity`: Runs RuboCop's `Metrics/PerceivedComplexity` using `.rubocop-custom.yml`.
-- `secrets`: Runs `gitleaks` over the working tree with repo config and redacted output.
-- `dead-code`: Runs the custom dead-code checker for unused Ruby methods, honoring `.debride-whitelist`.
-- `flog`: Fails if any Ruby method's flog complexity reaches the configured threshold, which is 25 by default.
-- `flay`: Fails if Ruby duplication reaches the configured score threshold, which is 10 by default.
-- `skills`: Validates Claude skill files under `files/home/.claude/skills`.
-
-The pre-commit hook also runs the full Ruby test suite via `bundle exec rake test`.
+Lints enforced on this codebase via `hk`, see `hk.pkl`.
 
 ## Ruby
 
 Keep files ~100 LOC. Split as needed.
-
-### Testing Principles
-
-- Never test the type or shape of return values. Tests should verify behavior, not implementation details or data structures.
-- Each public method should have a test for its default return value with no setup.
-- When testing that a method returns the same value as its default, first establish setup that would make it return the opposite without your intervention. Otherwise the test is meaningless.
-- Keep variables as close as possible to where they're used. Don't put them in setup or as constants at the top of the test class.
