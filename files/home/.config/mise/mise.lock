@@ -161,21 +161,21 @@ url = "https://github.com/git-lfs/git-lfs/releases/download/v3.8.0/git-lfs-darwi
 url_api = "https://api.github.com/repos/git-lfs/git-lfs/releases/assets/532993595"
 
 [[tools."github:BarutSRB/OmniWM"]]
-version = "0.7.1"
+version = "0.7.2"
 backend = "github:BarutSRB/OmniWM"
 
 [tools."github:BarutSRB/OmniWM".options]
 asset_pattern = "OmniWM-v{version}.zip"
 
 [tools."github:BarutSRB/OmniWM"."platforms.linux-x64"]
-checksum = "sha256:7135d520c05fd7012de8c9b75a0bd96d3fbfad8111be27bb5c3002b60cf76162"
-url = "https://github.com/OmniNull/OmniWM/releases/download/v0.7.1/OmniWM-v0.7.1.zip"
-url_api = "https://api.github.com/repos/OmniNull/OmniWM/releases/assets/575416476"
+checksum = "sha256:c153dd2f5e94e090b8586d84d40479aafd80038e0939235f30c4b8672937fbc1"
+url = "https://github.com/OmniNull/OmniWM/releases/download/v0.7.2/OmniWM-v0.7.2.zip"
+url_api = "https://api.github.com/repos/OmniNull/OmniWM/releases/assets/583751667"
 
 [tools."github:BarutSRB/OmniWM"."platforms.macos-arm64"]
-checksum = "sha256:7135d520c05fd7012de8c9b75a0bd96d3fbfad8111be27bb5c3002b60cf76162"
-url = "https://github.com/OmniNull/OmniWM/releases/download/v0.7.1/OmniWM-v0.7.1.zip"
-url_api = "https://api.github.com/repos/OmniNull/OmniWM/releases/assets/575416476"
+checksum = "sha256:c153dd2f5e94e090b8586d84d40479aafd80038e0939235f30c4b8672937fbc1"
+url = "https://github.com/OmniNull/OmniWM/releases/download/v0.7.2/OmniWM-v0.7.2.zip"
+url_api = "https://api.github.com/repos/OmniNull/OmniWM/releases/assets/583751667"
 
 [[tools."github:abue-ammar/tinycast"]]
 version = "0.11.3"
@@ -212,19 +212,19 @@ url = "https://github.com/AlDanial/cloc/releases/download/v2.10/cloc-2.10.pl"
 url_api = "https://api.github.com/repos/AlDanial/cloc/releases/assets/466555197"
 
 [[tools."github:aubepkg/aube"]]
-version = "2.2.17"
+version = "2.3.0"
 backend = "github:aubepkg/aube"
 
 [tools."github:aubepkg/aube"."platforms.linux-x64"]
-checksum = "sha256:ee4f05a2989e6cbe55b306097cbb53da9f908789acb027e62c430de2f7e22c2f"
-url = "https://github.com/aubepkg/aube/releases/download/v2.2.17/aube-v2.2.17-x86_64-unknown-linux-gnu.tar.gz"
-url_api = "https://api.github.com/repos/aubepkg/aube/releases/assets/566068152"
+checksum = "sha256:250a7e2cf657e5e42f4fcce3443fa06ce457863fbbd4d8ccb7cfeb16a345b84d"
+url = "https://github.com/aubepkg/aube/releases/download/v2.3.0/aube-v2.3.0-x86_64-unknown-linux-gnu.tar.gz"
+url_api = "https://api.github.com/repos/aubepkg/aube/releases/assets/582128261"
 provenance = "github-attestations"
 
 [tools."github:aubepkg/aube"."platforms.macos-arm64"]
-checksum = "sha256:83b2906a998ea62eb4890abb8d45010f0ced1674a2bb6b436c2e352d47bb338f"
-url = "https://github.com/aubepkg/aube/releases/download/v2.2.17/aube-v2.2.17-aarch64-apple-darwin.tar.gz"
-url_api = "https://api.github.com/repos/aubepkg/aube/releases/assets/566095262"
+checksum = "sha256:717638c2fb87e3230d84c548ee9509f3dd880966744702c3e0d0345f1937c9b1"
+url = "https://github.com/aubepkg/aube/releases/download/v2.3.0/aube-v2.3.0-aarch64-apple-darwin.tar.gz"
+url_api = "https://api.github.com/repos/aubepkg/aube/releases/assets/582152407"
 provenance = "github-attestations"
 
 [[tools."github:nateberkopec/print-label"]]
@@ -334,23 +334,23 @@ version = "0.0.0-20260324103239-0c773bdadedb"
 backend = "go:github.com/noperator/yknotify"
 
 [[tools.gum]]
-version = "2.0.1"
+version = "2.0.2"
 backend = "aqua:charmbracelet/gum"
 
 [tools.gum."platforms.linux-x64"]
-checksum = "sha256:4dfe4547f960813864c803b3617aa64427fa32ca566707fde949e08975297c48"
-url = "https://github.com/charmbracelet/gum/releases/download/v2.0.1/gum_2.0.1_Linux_x86_64.tar.gz"
-url_api = "https://api.github.com/repos/charmbracelet/gum/releases/assets/556563001"
+checksum = "sha256:d842e06d93dbed90af48cb8dd10698db6f22e331fc40346bb37bbc753109edc2"
+url = "https://github.com/charmbracelet/gum/releases/download/v2.0.2/gum_2.0.2_Linux_x86_64.tar.gz"
+url_api = "https://api.github.com/repos/charmbracelet/gum/releases/assets/585508723"
 provenance = "cosign"
 
 [tools.gum."platforms.macos-arm64"]
-checksum = "sha256:994662daab6fcfe9dcfc57d87ca42bcae2948d86fa864f9010a3848fa9bb7d6e"
-url = "https://github.com/charmbracelet/gum/releases/download/v2.0.1/gum_2.0.1_Darwin_arm64.tar.gz"
-url_api = "https://api.github.com/repos/charmbracelet/gum/releases/assets/556563007"
+checksum = "sha256:4777a69b1170b8db23c95d5889fb32186cfda1a3ac950d339aa17e3513633890"
+url = "https://github.com/charmbracelet/gum/releases/download/v2.0.2/gum_2.0.2_Darwin_arm64.tar.gz"
+url_api = "https://api.github.com/repos/charmbracelet/gum/releases/assets/585508714"
 provenance = "cosign"
 
 [[tools.heroku]]
-version = "11.10.0"
+version = "11.10.1"
 backend = "npm:heroku"
 
 [tools.heroku.options]
@@ -420,11 +420,11 @@ backend = "npm:@earendil-works/pi-coding-agent"
 aube_args = "--deny-build=@google/genai --deny-build=protobufjs"
 
 [[tools."npm:@openai/codex"]]
-version = "0.155.1"
+version = "0.156.1"
 backend = "npm:@openai/codex"
 
 [[tools."npm:@rynfar/meridian"]]
-version = "1.76.1"
+version = "1.76.5"
 backend = "npm:@rynfar/meridian"
 
 [[tools."npm:sfw"]]
@@ -432,18 +432,18 @@ version = "2.0.6"
 backend = "npm:sfw"
 
 [[tools.pipx]]
-version = "1.17.5"
+version = "1.17.6"
 backend = "aqua:pypa/pipx"
 
 [tools.pipx."platforms.linux-x64"]
-checksum = "sha256:32003e77764edc42c62a783f990ad7446e7086566bfacf7904a0674c19db651b"
-url = "https://github.com/pypa/pipx/releases/download/1.17.5/pipx.pyz"
-url_api = "https://api.github.com/repos/pypa/pipx/releases/assets/577081095"
+checksum = "sha256:63b10dd9a15a57ec4066e29388d1e83565be4b127bd1cf6e3f150fcc39ded8b2"
+url = "https://github.com/pypa/pipx/releases/download/1.17.6/pipx.pyz"
+url_api = "https://api.github.com/repos/pypa/pipx/releases/assets/582499741"
 
 [tools.pipx."platforms.macos-arm64"]
-checksum = "sha256:32003e77764edc42c62a783f990ad7446e7086566bfacf7904a0674c19db651b"
-url = "https://github.com/pypa/pipx/releases/download/1.17.5/pipx.pyz"
-url_api = "https://api.github.com/repos/pypa/pipx/releases/assets/577081095"
+checksum = "sha256:63b10dd9a15a57ec4066e29388d1e83565be4b127bd1cf6e3f150fcc39ded8b2"
+url = "https://github.com/pypa/pipx/releases/download/1.17.6/pipx.pyz"
+url_api = "https://api.github.com/repos/pypa/pipx/releases/assets/582499741"
 
 [[tools."pipx:playwright"]]
 version = "1.63.0"
@@ -558,19 +558,19 @@ url = "https://github.com/tmux/tmux-builds/releases/download/v3.7c/tmux-3.7c-mac
 url_api = "https://api.github.com/repos/tmux/tmux-builds/releases/assets/528734861"
 
 [[tools.uv]]
-version = "0.12.1"
+version = "0.12.18"
 backend = "aqua:astral-sh/uv"
 
 [tools.uv."platforms.linux-x64"]
-checksum = "sha256:90b2f223fb69d19db49e117da601f64978593417988530aa733d456141b4bcbb"
-url = "https://github.com/astral-sh/uv/releases/download/0.12.1/uv-x86_64-unknown-linux-gnu.tar.gz"
-url_api = "https://api.github.com/repos/astral-sh/uv/releases/assets/497097153"
+checksum = "sha256:89eadd7c76fc063887959510d5ba0ab1264dfd5f1143b925ddb73021a40acf16"
+url = "https://github.com/astral-sh/uv/releases/download/0.12.18/uv-x86_64-unknown-linux-gnu.tar.gz"
+url_api = "https://api.github.com/repos/astral-sh/uv/releases/assets/582430671"
 provenance = "github-attestations"
 
 [tools.uv."platforms.macos-arm64"]
-checksum = "sha256:77d2906988e8074fd43f2f329ec452ebbf9b0c257ba1c66451c71de70a6baf42"
-url = "https://github.com/astral-sh/uv/releases/download/0.12.1/uv-aarch64-apple-darwin.tar.gz"
-url_api = "https://api.github.com/repos/astral-sh/uv/releases/assets/497097062"
+checksum = "sha256:cf40e0c6a202190ccd9e0406dcfdd5b2d6668a9a5c779b17948963df32aafe5b"
+url = "https://github.com/astral-sh/uv/releases/download/0.12.18/uv-aarch64-apple-darwin.tar.gz"
+url_api = "https://api.github.com/repos/astral-sh/uv/releases/assets/582430554"
 provenance = "github-attestations"
 
 [[tools.watchexec]]
