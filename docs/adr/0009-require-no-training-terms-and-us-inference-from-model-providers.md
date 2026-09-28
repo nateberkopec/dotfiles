@@ -18,7 +18,7 @@ I don't _actually_ trust these upstreams to never train on my data, but that is 
 
 "No train" does not equal ZDR. I accept some degree of data retention for compliance or legal or whatever other purposes the upstream says. ZDR is frequently, but not necessarily, no train.
 
-Inference must also run in the US and be operated by a US company. Anthropic's [September 2026 threat report](https://www.anthropic.com/news/detecting-and-preventing-distillation-attacks) found Moonshot and DeepSeek routing user requests to Claude through intermediary platforms and presenting the output as their own. For this reason, I only trust US jurisdiction and rule of law.
+Inference must also run in the US and credibly subject to US rule of law. Anthropic's [September 2026 threat report](https://www.anthropic.com/news/detecting-and-preventing-distillation-attacks) found Moonshot and DeepSeek routing user requests to Claude through intermediary platforms and presenting the output as their own. For this reason, I only trust US jurisdiction and rule of law.
 
 I enforce this in multiple places:
 
@@ -30,11 +30,13 @@ I enforce this in multiple places:
 A service provider is compliant with this "data safe policy" when both hold:
 
 1. It has written no-training terms in legal terms or official documentation. Marketing pages are not sufficient.
-2. Its inference compute runs in a US region operated by a US company.
+2. Its inference compute runs in a US region, under US jurisdiction.
 
 Model author is irrelevant. Data at rest, gateway processing, and TLS termination are out of scope at this time.
 
-First-party US labs (OpenAI, Anthropic, Google) are approved by default, subject to rule 1. Example: Google Vertex vs Antigravity.
+The big two US labs (OpenAI, Anthropic) are approved by default. This introduces some ambiguity because OpenAI and Anthropic don't necessarily guarantee inference is performed in the US. However, I basically think these companies are too important and under too much scrutiny to be mishandling data, so for them we basically only require premise 1.
+
+Sometimes a provider/upstream has multiple inference services, only some of which guarantee no-train (e.g.: Google Vertex vs Antigravity). In that case, we do only use no-train endpoints. 
 
 Scope is Pi only, including Pi's web-search providers. I really only use Pi and occasionally Codex or Claude directly, and I don't need code-level enforcement of the latter two (though I have checked the 'don't train on me bro' boxes, documented below). Meridian is governed as the Anthropic account behind it.
 
