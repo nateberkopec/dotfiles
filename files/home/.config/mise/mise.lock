@@ -160,23 +160,6 @@ checksum = "sha256:caff76a7d070d8160c89bc39b6e85d98f24135b6fed038a3b4de2590d2510
 url = "https://github.com/git-lfs/git-lfs/releases/download/v3.8.0/git-lfs-darwin-arm64-v3.8.0.zip"
 url_api = "https://api.github.com/repos/git-lfs/git-lfs/releases/assets/532993595"
 
-[[tools."github:BarutSRB/OmniWM"]]
-version = "0.7.2"
-backend = "github:BarutSRB/OmniWM"
-
-[tools."github:BarutSRB/OmniWM".options]
-asset_pattern = "OmniWM-v{version}.zip"
-
-[tools."github:BarutSRB/OmniWM"."platforms.linux-x64"]
-checksum = "sha256:c153dd2f5e94e090b8586d84d40479aafd80038e0939235f30c4b8672937fbc1"
-url = "https://github.com/OmniNull/OmniWM/releases/download/v0.7.2/OmniWM-v0.7.2.zip"
-url_api = "https://api.github.com/repos/OmniNull/OmniWM/releases/assets/583751667"
-
-[tools."github:BarutSRB/OmniWM"."platforms.macos-arm64"]
-checksum = "sha256:c153dd2f5e94e090b8586d84d40479aafd80038e0939235f30c4b8672937fbc1"
-url = "https://github.com/OmniNull/OmniWM/releases/download/v0.7.2/OmniWM-v0.7.2.zip"
-url_api = "https://api.github.com/repos/OmniNull/OmniWM/releases/assets/583751667"
-
 [[tools."github:abue-ammar/tinycast"]]
 version = "0.11.3"
 backend = "github:abue-ammar/tinycast"

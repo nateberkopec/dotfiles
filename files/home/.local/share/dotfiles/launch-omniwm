@@ -4,7 +4,7 @@ set -eu
 
 mise_bin="$HOME/.local/bin/mise"
 for _ in {1..300}; do
-  install_dir="$($mise_bin where github:BarutSRB/OmniWM 2>/dev/null || true)"
+  install_dir="$($mise_bin -E admin where github:BarutSRB/OmniWM 2>/dev/null || true)"
   app="$install_dir/OmniWM.app"
 
   if [[ -d "$app" ]]; then

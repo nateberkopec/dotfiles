@@ -132,7 +132,11 @@ run_mise_logged() {
 }
 
 run_mise_bootstrap() {
-    local args=(-C "$HOME" bootstrap --yes --locked)
+    local args=(-C "$HOME")
+    if ! is_debian && user_has_admin_rights; then
+        args+=(-E admin)
+    fi
+    args+=(bootstrap --yes --locked)
     if ! mise_packages_supported; then
         args+=(--skip packages)
     fi

@@ -46,7 +46,7 @@ class DotfCliTest < Minitest::Test
       assert status.success?
       assert_empty stdout
       assert_empty stderr
-      assert_equal "mise -C #{tmpdir}/home bootstrap --yes --locked --quiet\n", log
+      assert_equal "mise -C #{tmpdir}/home -E admin bootstrap --yes --locked --quiet\n", log
     end
   end
 
@@ -56,7 +56,7 @@ class DotfCliTest < Minitest::Test
 
       assert status.success?
       assert_includes stdout, "mise -C"
-      assert_equal "mise -C #{tmpdir}/home bootstrap --yes --locked\n", log
+      assert_equal "mise -C #{tmpdir}/home -E admin bootstrap --yes --locked\n", log
     end
   end
 

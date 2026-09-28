@@ -1,0 +1,9 @@
+# Selected by dotf only for macOS users in the admin group.
+[tools]
+"github:BarutSRB/OmniWM" = { version = "0.7.2", asset_pattern = "OmniWM-v{{version}}.zip", bin_path = "OmniWM.app/Contents/MacOS", os = ["macos"], arch = ["arm64"] }
+
+[bootstrap.macos.launchd.agents.omniwm]
+program = "~/.local/share/dotfiles/launch-omniwm"
+run_at_load = true
+stdout_path = "~/Library/Logs/omniwm-launcher.out.log"
+stderr_path = "~/Library/Logs/omniwm-launcher.err.log"
