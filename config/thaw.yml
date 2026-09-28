@@ -1,0 +1,11 @@
+---
+ShowOnClick: true
+ShowOnHover: false
+ShowOnScroll: true
+ShowOnHoverDelay: 0.2
+AutoRehide: true
+RehideStrategy: 0
+RehideInterval: 15.0
+EnableAlwaysHiddenSection: true
+HideApplicationMenus: true
+ShowAllSectionsOnUserDrag: true

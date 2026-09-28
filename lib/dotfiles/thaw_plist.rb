@@ -1,6 +1,6 @@
 require "rexml/document"
 
-class Dotfiles::IcePlist
+class Dotfiles::ThawPlist
   PARSERS = {
     "dict" => :parse_dict,
     "array" => :parse_array,

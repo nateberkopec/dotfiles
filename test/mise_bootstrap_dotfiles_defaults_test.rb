@@ -51,6 +51,14 @@ class MiseBootstrapDotfilesDefaultsTest < Minitest::Test
     assert_equal ["arm64"], tool.fetch("arch")
   end
 
+  def test_installs_attested_thaw_image_on_macos
+    tool = config.fetch("tools").fetch("github:thaw-app/Thaw")
+
+    assert_equal "2.0.1", tool.fetch("version")
+    assert_equal "Thaw.dmg", tool.fetch("asset_pattern")
+    assert_equal ["macos"], tool.fetch("os")
+  end
+
   def test_installs_and_starts_omniwm
     tool = config.fetch("tools").fetch("github:BarutSRB/OmniWM")
     agent = config.dig("bootstrap", "macos", "launchd", "agents", "omniwm")

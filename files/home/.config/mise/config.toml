@@ -26,6 +26,7 @@ uv = "0.12.18"
 "github:nateberkopec/print-label" = "0.3.1"
 "github:BarutSRB/OmniWM" = { version = "0.7.2", asset_pattern = "OmniWM-v{{version}}.zip", bin_path = "OmniWM.app/Contents/MacOS", os = ["macos"], arch = ["arm64"] }
 "github:abue-ammar/tinycast" = { version = "0.11.3", asset_pattern = "Tinycast-{{version}}.zip", bin_path = "Tinycast.app/Contents/MacOS", os = ["macos"], arch = ["arm64"] }
+"github:thaw-app/Thaw" = { version = "2.0.1", asset_pattern = "Thaw.dmg", bin_path = ".", os = ["macos"] }
 watchexec = "2.7.3"
 fnox = "1.35.3"
 bat = "0.26.1"

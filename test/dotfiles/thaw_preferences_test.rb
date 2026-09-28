@@ -1,12 +1,11 @@
 require "test_helper"
-require "json"
 
-class IcePreferencesTest < Minitest::Test
+class ThawPreferencesTest < Minitest::Test
   def setup
     super
-    @repository_path = File.join(@dotfiles_dir, "config", "ice.yml")
-    @local_path = File.join(@home, ".config", "dotfiles", "ice.local.yml")
-    source = Dotfiles::SystemAdapter.new.read_file(File.expand_path("../../config/ice.yml", __dir__))
+    @repository_path = File.join(@dotfiles_dir, "config", "thaw.yml")
+    @local_path = File.join(@home, ".config", "dotfiles", "thaw.local.yml")
+    source = Dotfiles::SystemAdapter.new.read_file(File.expand_path("../../config/thaw.yml", __dir__))
     @settings = YAML.safe_load(source)
     @fake_system.stub_file_content(@repository_path, YAML.dump(@settings))
   end
@@ -20,24 +19,32 @@ class IcePreferencesTest < Minitest::Test
 
     assert preferences.complete?
     assert @fake_system.received_operation?(:execute,
-      ["defaults", "export", Dotfiles::IcePreferences::DOMAIN, "-"], quiet: true, sensitive: true)
+      ["defaults", "export", Dotfiles::ThawPreferences::DOMAIN, "-"], quiet: true, sensitive: true)
   end
 
   def test_float_preferences_tolerate_defaults_rounding
-    actual = @settings.merge("ShowOnHoverDelay" => 0.20000000298023224)
-    stub_export(actual)
+    stub_export(@settings.merge("ShowOnHoverDelay" => 0.20000000298023224))
 
     assert preferences.complete?
   end
 
   def test_local_overrides_win_without_writing_the_override_file
-    @fake_system.stub_file_content(@local_path, YAML.dump("ShowIceIcon" => false))
+    @fake_system.stub_file_content(@local_path, YAML.dump("ShowOnClick" => false))
 
     preferences.apply
 
     assert @fake_system.received_operation?(:execute,
-      ["defaults", "write", Dotfiles::IcePreferences::DOMAIN, "ShowIceIcon", "-bool", "false"], quiet: true)
+      ["defaults", "write", Dotfiles::ThawPreferences::DOMAIN, "ShowOnClick", "-bool", "false"], quiet: true)
     refute @fake_system.operations.any? { |operation| operation.first == :write_file && operation[1] == @local_path }
+  end
+
+  def test_writes_integer_and_float_preferences_with_correct_types
+    preferences.apply
+
+    assert @fake_system.received_operation?(:execute,
+      ["defaults", "write", Dotfiles::ThawPreferences::DOMAIN, "RehideStrategy", "-int", "0"], quiet: true)
+    assert @fake_system.received_operation?(:execute,
+      ["defaults", "write", Dotfiles::ThawPreferences::DOMAIN, "RehideInterval", "-float", "15.0"], quiet: true)
   end
 
   def test_rejects_local_keys_outside_repository_allowlist
@@ -45,7 +52,7 @@ class IcePreferencesTest < Minitest::Test
 
     error = assert_raises(ArgumentError) { preferences.complete? }
 
-    assert_equal "Ice local overrides contain unmanaged preferences", error.message
+    assert_equal "Thaw local overrides contain unmanaged preferences", error.message
   end
 
   def test_rejects_invalid_local_override_without_disclosing_its_contents
@@ -54,22 +61,14 @@ class IcePreferencesTest < Minitest::Test
 
     error = assert_raises(ArgumentError) { preferences.apply }
 
-    assert_equal "Ice local overrides must be a valid preference mapping", error.message
+    assert_equal "Thaw local overrides must be a valid preference mapping", error.message
     refute_includes error.message, secret
-  end
-
-  def test_current_appearance_schema_can_contain_decoder_supplied_fields
-    actual = Marshal.load(Marshal.dump(@settings))
-    actual["MenuBarAppearanceConfigurationV2"]["staticConfiguration"]["borderWidth"] = 1
-    stub_export(actual)
-
-    assert preferences.complete?
   end
 
   private
 
   def preferences
-    @preferences ||= Dotfiles::IcePreferences.new(
+    @preferences ||= Dotfiles::ThawPreferences.new(
       repository_path: @repository_path,
       local_path: @local_path,
       system: @fake_system
@@ -77,17 +76,15 @@ class IcePreferencesTest < Minitest::Test
   end
 
   def stub_export(settings)
-    @fake_system.stub_command(["defaults", "export", Dotfiles::IcePreferences::DOMAIN, "-"], plist(settings))
+    @fake_system.stub_command(["defaults", "export", Dotfiles::ThawPreferences::DOMAIN, "-"], plist(settings))
   end
 
   def plist(settings)
-    body = settings.map { |key, value| "<key>#{key}</key>#{plist_value(value, key)}" }.join
+    body = settings.map { |key, value| "<key>#{key}</key>#{plist_value(value)}" }.join
     %(<?xml version="1.0" encoding="UTF-8"?><plist version="1.0"><dict>#{body}</dict></plist>)
   end
 
-  def plist_value(value, key = nil)
-    return "<data>#{[JSON.generate(value)].pack("m0")}</data>" if Dotfiles::IcePreferences::DATA_KEYS.include?(key)
-    return "<dict>#{value.map { |name, _| "<key>#{name}</key><data>bnVsbA==</data>" }.join}</dict>" if key == "Hotkeys"
+  def plist_value(value)
     case value
     when true then "<true/>"
     when false then "<false/>"
