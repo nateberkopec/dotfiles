@@ -68,7 +68,7 @@ npm.package_manager = "aube"
 github.use_git_credentials = true
 fetch_remote_versions_cache = "7d"
 minimum_release_age = "3d"
-http_timeout = "5s"
+http_timeout = "30s"
 fetch_remote_versions_timeout = "5s"
 
 [env]
