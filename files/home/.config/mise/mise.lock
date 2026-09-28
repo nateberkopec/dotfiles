@@ -227,6 +227,15 @@ url = "https://github.com/aubepkg/aube/releases/download/v2.3.0/aube-v2.3.0-aarc
 url_api = "https://api.github.com/repos/aubepkg/aube/releases/assets/582152407"
 provenance = "github-attestations"
 
+[[tools."github:nateberkopec/meridian"]]
+version = "1.76.5-nate.1"
+backend = "github:nateberkopec/meridian"
+
+[tools."github:nateberkopec/meridian"."platforms.macos-arm64"]
+checksum = "sha256:0d3f9fbaad4f677719f071c27d700311569950a8babec7d7506ebee092d381b0"
+url = "https://github.com/nateberkopec/meridian/releases/download/v1.76.5-nate.1/meridian-1.76.5-nate.1-darwin-arm64.tar.gz"
+url_api = "https://api.github.com/repos/nateberkopec/meridian/releases/assets/594654513"
+
 [[tools."github:nateberkopec/print-label"]]
 version = "0.3.1"
 backend = "github:nateberkopec/print-label"
@@ -422,10 +431,6 @@ aube_args = "--deny-build=@google/genai --deny-build=protobufjs"
 [[tools."npm:@openai/codex"]]
 version = "0.156.1"
 backend = "npm:@openai/codex"
-
-[[tools."npm:@rynfar/meridian"]]
-version = "1.76.5"
-backend = "npm:@rynfar/meridian"
 
 [[tools."npm:sfw"]]
 version = "2.0.6"
