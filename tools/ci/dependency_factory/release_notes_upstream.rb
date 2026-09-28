@@ -24,7 +24,7 @@ module DependencyFactory
     end
 
     def repository(candidate, release)
-      name = candidate.fetch("name").sub(/\[.*\]\z/, "")
+      name = candidate.fetch("tool", candidate.fetch("name")).sub(/\[.*\]\z/, "")
       return REPOSITORIES[name] if REPOSITORIES.key?(name)
       return candidate["meta"]["repo"] if candidate.dig("meta", "repo")
       return name.split(":", 2).last if name.start_with?("github:", "aqua:")
@@ -47,7 +47,7 @@ module DependencyFactory
     end
 
     def metadata_repository(candidate)
-      name = candidate.fetch("name")
+      name = candidate.fetch("tool", candidate.fetch("name"))
       if candidate["kind"] == "gem"
         metadata = JSON.parse(fetch("https://rubygems.org/api/v1/gems/#{name}.json"))
         metadata["source_code_uri"] || metadata["homepage_uri"]

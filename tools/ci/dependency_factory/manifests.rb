@@ -10,6 +10,10 @@ module DependencyFactory
 
     module_function
 
+    def key(pin, duplicates)
+      duplicates.include?(pin.name) ? "#{pin.name} (#{pin.manifest})" : pin.name
+    end
+
     def pins(path, content)
       case path
       when /mise\.version\z/ then [Pin.new(name: "mise", kind: "github", manifest: path, current: content.strip, meta: {"repo" => "jdx/mise", "tag_prefix" => "v"})]

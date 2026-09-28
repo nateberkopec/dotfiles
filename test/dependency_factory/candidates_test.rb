@@ -69,6 +69,19 @@ class DependencyFactoryCandidatesTest < Minitest::Test
     assert_equal({"2.98.0" => "2026-08-20T00:00:00Z", "2.99.0" => "2026-09-01T00:00:00Z"}, gh["published"])
   end
 
+  def test_same_tool_in_two_manifests_gets_two_candidates
+    sources = Object.new
+    sources.define_singleton_method(:mise) { |_name| [{"version" => "2.98.0", "created_at" => "2026-08-20T00:00:00Z"}] }
+    pins = [DependencyFactory::Pin.new(name: "gh", kind: "mise", manifest: ".mise.toml", current: "2.97.0"),
+      DependencyFactory::Pin.new(name: "gh", kind: "mise", manifest: "files/home/.config/mise/config.toml", current: "2.96.0")]
+
+    candidates = DependencyFactory::Candidates.new(sources: sources, days: 3, now: NOW).build(pins)["candidates"]
+
+    assert_equal ["gh (.mise.toml)", "gh (files/home/.config/mise/config.toml)"], candidates.map { |pin| pin["name"] }
+    assert_equal %w[2.97.0 2.96.0], candidates.map { |pin| pin["current"] }
+    assert_equal %w[2.98.0 2.98.0], candidates.map { |pin| pin["eligible"] }
+  end
+
   def test_pi_package_inside_the_gate_is_a_candidate_whose_eligible_release_is_the_current_pin
     result = DependencyFactory::Candidates.new(sources: FakeSources.new, days: 3, now: NOW).build(pins)
     pi = result["candidates"].find { |candidate| candidate["name"] == "pi:pi-subagents" }
