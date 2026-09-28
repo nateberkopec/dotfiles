@@ -41,6 +41,19 @@ class DependencyFactoryReleaseNotesTest < Minitest::Test
     assert_equal "2026-01-01T00:00:00Z", note["published"]
   end
 
+  def test_scoped_duplicate_uses_original_package_for_release_notes
+    calls = []
+    responses = {
+      "https://registry.npmjs.org/@scope/tool/1.0" => '{"repository":{"url":"https://github.com/owner/tool"}}',
+      "https://api.github.com/repos/owner/tool/releases/tags/v1.1" => '{"body":"New behavior"}'
+    }
+    candidate = package("npm:@scope/tool (files/home/.config/mise/config.toml)", "mise", "1.0", "1.1")
+    candidate["tool"] = "npm:@scope/tool"
+    note = collector(responses, calls).build("candidates" => [candidate])["packages"][candidate["name"]].first
+    assert_equal "New behavior", note["text"]
+    assert_includes calls, "https://registry.npmjs.org/@scope/tool/1.0"
+  end
+
   def test_mise_npm_tools_resolve_repository_from_the_small_pinned_version_document
     calls = []
     responses = {

@@ -6,6 +6,41 @@ class DependencyFactoryReportChecksTest < Minitest::Test
     assert_empty errors
   end
 
+  def test_duplicate_tool_updates_are_checked_independently_and_share_snooze
+    names = ["gh (.mise.toml)", "gh (files/home/.config/mise/config.toml)"]
+    candidates = names.zip(%w[2.97.0 2.96.0]).map do |name, current|
+      {"name" => name, "tool" => "gh", "kind" => "mise", "current" => current, "eligible" => "2.98.0", "latest" => "2.98.0",
+       "published" => {"2.98.0" => "2026-08-20T00:00:00Z"}}
+    end
+    data = {"generated_at" => "2026-09-01T22:00:00Z", "minimum_release_age_days" => 3, "candidates" => candidates}
+    text = <<~MARKDOWN
+      ## Release notes
+
+      Routine updates only; no noteworthy changes.
+
+      ## Updates
+
+      | Tool | Old | New |
+      |------|-----|-----|
+      | #{names[0]} | 2.97.0 | [2.98.0](https://example.test/2.98.0) |
+      | #{names[1]} | 2.96.0 | [2.98.0](https://example.test/2.98.0) |
+
+      ## Skipped candidates
+
+      | Tool | Candidate | Reason |
+      |------|-----------|--------|
+
+      Validation: tests passed.
+    MARKDOWN
+    changes = names.zip([%w[2.97.0 2.98.0], %w[2.96.0 2.98.0]]).to_h
+    notes = {"packages" => names.to_h { |name| [name, []] }}
+    check = ->(diff, snoozes = {}) { DependencyFactory::ReportChecks.new(candidates: data, report: DependencyFactory::Report.new(text), changes: diff, snoozes: snoozes, notes: notes).errors }
+
+    assert_empty check.call(changes)
+    assert_includes check.call(changes.except(names[1])), "#{names[1]}: New must match the diff"
+    assert_includes check.call(changes, {"gh" => {"wake_at" => "3.0.0"}}), "#{names[1]}: snoozed until 3.0.0"
+  end
+
   def test_empty_report_explains_the_required_format
     assert_includes errors(text: ""), "Start with Release notes, Updates, and Skipped candidates in that order"
   end

@@ -2,6 +2,21 @@ require "test_helper"
 require_relative "../../tools/ci/dependency_factory"
 
 class DependencyFactoryChangedPinsTest < Minitest::Test
+  def test_keeps_changes_to_duplicate_pins_separate
+    before = {
+      ".mise.toml" => "[tools]\ngh = \"2.97.0\"\n",
+      "files/home/.config/mise/config.toml" => "[tools]\ngh = \"2.96.0\"\n"
+    }
+    after = {
+      ".mise.toml" => "[tools]\ngh = \"2.98.0\"\n",
+      "files/home/.config/mise/config.toml" => "[tools]\ngh = \"2.98.0\"\n"
+    }
+    pins = DependencyFactory::ChangedPins.new(base: "abc", show: ->(_base, path) { before.fetch(path, "") }, read: ->(path) { after.fetch(path, "") })
+
+    assert_equal({"gh (.mise.toml)" => ["2.97.0", "2.98.0"],
+                  "gh (files/home/.config/mise/config.toml)" => ["2.96.0", "2.98.0"]}, pins.changes)
+  end
+
   def test_reports_changed_pins_by_canonical_name_and_flags_a_changed_lock
     before = {
       "files/home/.config/mise/config.toml" => "[tools]\ngh = \"2.97.0\"\nfd = \"10.4.2\"\n",

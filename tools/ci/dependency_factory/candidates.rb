@@ -13,11 +13,12 @@ module DependencyFactory
 
     def build(pins)
       observed, pinned = pins.partition { |pin| skip_reason(pin) }
-      found = pinned.uniq(&:name).filter_map { |pin| candidate(pin) }
+      duplicates = pins.group_by(&:name).select { |_, group| group.map(&:manifest).uniq.size > 1 }.keys
+      found = pinned.uniq { |pin| [pin.name, pin.manifest] }.filter_map { |pin| candidate(pin, duplicates) }
       gems, others = found.partition { |candidate| candidate["kind"] == "gem" && candidate["name"] != "bundler" }
       others << batch(gems) unless gems.empty?
       {"generated_at" => @now.utc.iso8601, "minimum_release_age_days" => @days, "candidates" => others,
-       "observation_only" => observed.map { |pin| observation(pin) }}
+       "observation_only" => observed.map { |pin| observation(pin, duplicates) }}
     end
 
     private
@@ -27,24 +28,26 @@ module DependencyFactory
       "not a stable version" unless Versions.stable?(pin.current)
     end
 
-    def observation(pin)
-      {"name" => pin.name, "manifest" => pin.manifest, "current" => pin.current, "reason" => skip_reason(pin)}
+    def observation(pin, duplicates)
+      {"name" => Manifests.key(pin, duplicates), "manifest" => pin.manifest, "current" => pin.current, "reason" => skip_reason(pin)}
     end
 
-    def candidate(pin)
+    def candidate(pin, duplicates)
       releases = releases_for(pin)
       eligible = newest_after(Versions.eligible(releases, @cutoff), pin.current)
       latest = newest_after(Versions.latest(releases), eligible)
       return if latest == pin.current
-      candidate_identity(pin).merge(
+      candidate_identity(pin, duplicates).merge(
         "eligible" => eligible, "latest" => latest, "published" => Versions.published(releases, [eligible, latest]),
         "meta" => pin.meta, "releases" => release_range(releases, pin.current, latest),
         "source" => source_url(releases, (eligible == pin.current) ? latest : eligible)
       )
     end
 
-    def candidate_identity(pin)
-      pin.to_h.slice(:name, :kind, :manifest, :current).transform_keys(&:to_s)
+    def candidate_identity(pin, duplicates)
+      pin.to_h.slice(:name, :kind, :manifest, :current).transform_keys(&:to_s).merge(
+        "name" => Manifests.key(pin, duplicates), "tool" => pin.name
+      )
     end
 
     def release_range(releases, current, latest)

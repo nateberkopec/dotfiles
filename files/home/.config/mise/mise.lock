@@ -371,17 +371,12 @@ backend = "npm:heroku"
 aube_args = "--deny-build=cpu-features --deny-build=protobufjs --deny-build=ssh2 --deny-build=yarn"
 
 [[tools.hk]]
-version = "2.0.1"
+version = "2.1.0"
 backend = "packslip:github.com/jdx/hk"
 
-[tools.hk."platforms.linux-x64"]
-checksum = "sha256:f14d0290a07f82911f32ea5e4a91dd80d90abb852488912b1ade9b240f70d615"
-url = "https://github.com/jdx/hk/releases/download/v2.0.1/hk-x86_64-unknown-linux-gnu.tar.gz"
-signer = "sigstore-oidc:https://github.com/jdx/hk/.github/workflows/release.yml"
-
 [tools.hk."platforms.macos-arm64"]
-checksum = "sha256:6ec393f898f562f76c4839a910356b4afec6740eff23f18ebdf8cf41c793a461"
-url = "https://github.com/jdx/hk/releases/download/v2.0.1/hk-aarch64-apple-darwin.tar.gz"
+checksum = "sha256:b30c6fb4447b5a9c24f9f80d165dca2d2e682907b8acb8222391e0527fea1ebe"
+url = "https://github.com/jdx/hk/releases/download/v2.1.0/hk-aarch64-apple-darwin.tar.gz"
 signer = "sigstore-oidc:https://github.com/jdx/hk/.github/workflows/release.yml"
 
 [[tools.jq]]
@@ -415,16 +410,12 @@ url = "https://github.com/jesseduffield/lazygit/releases/download/v0.65.1/lazygi
 url_api = "https://api.github.com/repos/jesseduffield/lazygit/releases/assets/560658243"
 
 [[tools.node]]
-version = "26.8.2"
+version = "26.10.0"
 backend = "core:node"
 
-[tools.node."platforms.linux-x64"]
-checksum = "sha256:badb3fe6a61b85e1352ca6564dc56b8b7bd5ecd5c474c52acc21dd0cdd586f35"
-url = "https://nodejs.org/dist/v26.8.2/node-v26.8.2-linux-x64.tar.gz"
-
 [tools.node."platforms.macos-arm64"]
-checksum = "sha256:974b6d5fb2fc7c33ff2354db0902b4e91c2de01ec8acc6de48e543c97e18c9e1"
-url = "https://nodejs.org/dist/v26.8.2/node-v26.8.2-darwin-arm64.tar.gz"
+checksum = "sha256:751fdf7439f115d87ee2a8f3f18c065b6151852068e3e666ac60ac2996f75ac9"
+url = "https://nodejs.org/dist/v26.10.0/node-v26.10.0-darwin-arm64.tar.gz"
 
 [[tools."npm:@earendil-works/pi-coding-agent"]]
 version = "0.85.1"

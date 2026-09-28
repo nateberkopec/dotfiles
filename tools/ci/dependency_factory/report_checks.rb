@@ -44,7 +44,7 @@ module DependencyFactory
       name, date = pin["name"], publication(pin, version)
       [("#{name}: #{version} must be newer than #{pin["current"]} and no newer than #{pin["eligible"]}" unless Versions.newer?(version, pin["current"]) && !Versions.newer?(version, pin["eligible"])),
         ("#{name}: #{version} has no eligible publication date" unless date && Time.iso8601(date) <= @cutoff),
-        ("#{name}: snoozed until #{@snoozes[name]["wake_at"]}" if snoozed?(pin))].compact
+        ("#{name}: snoozed until #{@snoozes[pin.fetch("tool", name)]["wake_at"]}" if snoozed?(pin))].compact
     end
 
     def skipped
@@ -65,7 +65,7 @@ module DependencyFactory
       return [] unless pin
       date = publication(pin, version)
       gate = (Time.iso8601(date) + @data["minimum_release_age_days"] * 86_400).utc.iso8601(9).sub(/\.?0+Z\z/, "Z") if date && Time.iso8601(date) > @cutoff
-      [*(gate ? [gate] : []), *(snoozed?(pin) ? [@snoozes[name]["wake_at"]] : [])].filter_map do |boundary|
+      [*(gate ? [gate] : []), *(snoozed?(pin) ? [@snoozes[pin.fetch("tool", name)]["wake_at"]] : [])].filter_map do |boundary|
         "#{name} #{version}: Reason must include #{boundary}" unless row["Reason"].to_s.include?(boundary)
       end
     end
@@ -75,7 +75,7 @@ module DependencyFactory
     end
 
     def snoozed?(pin)
-      snooze = @snoozes[pin["name"]]
+      snooze = @snoozes[pin.fetch("tool", pin["name"])]
       snooze && Versions.newer?(snooze["wake_at"], pin["eligible"]) && !@report.security.any? { |name, _, line| name == pin["name"] && Report.advisory?(line) }
     end
 
