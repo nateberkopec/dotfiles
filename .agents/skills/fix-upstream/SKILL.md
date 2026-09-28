@@ -5,68 +5,46 @@ description: Reproduce, report, and work around bugs in upstream software manage
 
 # Fix upstream
 
-Deliver a runnable upstream bug report, an open dotfiles tracking issue labeled `blocked`, and a dotfiles PR that installs a fixed fork. Keep the fork in place until a verified upstream release replaces it.
+## Goal and authority
 
-## GitHub communication
+Restore reliable behavior in dotfiles when an upstream dependency is broken, and make returning to upstream straightforward. Use your judgment and initiative to carry the work through to completion within the boundaries below. Choose the implementation and sequence of work yourself.
 
-Begin every GitHub message with this blockquote, followed by a blank line. Name the model that actually wrote it:
+You may merge the dotfiles PR after required checks pass. If completing the goal requires crossing a boundary, ask the user for that specific decision.
+
+## Boundaries
+
+- **Scope:** Change only what is necessary to make the bug go away. Support the platforms these dotfiles currently support; do not expand that set to match upstream's platforms.
+- **Release:** Publish a clearly identified fork as a patch-version increment of the release currently used by dotfiles. Base it on that release, not upstream main or a newer release. Preserve runtime dependency versions unless changing them is necessary to fix the bug.
+- **Communication:** The only authorized contact with anyone other than the user is the initial upstream bug report described below. No follow-up comments, replies, upstream PRs, or other outreach without permission. Creating and maintaining the user's fork, release records, dotfiles tracking issue, and dotfiles PR are authorized deliverables, not permission to start conversations with others.
+- **Privacy:** Public reports and artifacts must exclude credentials, private prompts, private code, and identifying diagnostic data. Use a self-contained synthetic reproduction; keep private evidence and scratch work under this repository's `./tmp`.
+- **Automation:** Forks must not introduce scheduled automation. Inherited scheduled workflows must remain disabled or have their schedule triggers removed before being enabled.
+- **Live machine:** Merging is authorized; running `dotf run` or otherwise converging the user's main machine requires separate authorization.
+
+## Upstream report
+
+Account for relevant upstream and dotfiles history before reporting: open and closed issues, PRs, discussions, and relevant commits. Avoid a duplicate issue; if the bug is already reported, publish the initial reproduction there instead. This does not authorize subsequent comments.
+
+Write plain technical English at an 11th-grade reading level or lower. Include the affected version, expected and actual behavior, and a complete minimal reproduction that has actually been run: prerequisites, setup, script, invocation, and observed output. Readers must not need private files or this conversation. Put long code inside `<details><summary>Runnable reproduction</summary>...</details>`.
+
+A tested proposed fix may be included in the initial report, but a working fix is not a prerequisite for reporting the bug.
+
+## Completion
+
+The work is complete when:
+
+- The runnable upstream report is published.
+- A verified fork release is pinned immutably through a merged dotfiles PR, with the required locks and supported platforms covered. The original reproduction fails before the fix and passes after it, and installation through the managed installer has been verified.
+- An open dotfiles issue labeled `blocked` links the upstream report, fork release, patch reference, and dotfiles PR, and states the conditions for returning upstream. Link it with `Refs #N`; merging the workaround must not close it.
+- The user has the result, verification evidence, and any remaining limitations. If completion is blocked, report the specific blocker rather than treating an unverified workaround as finished.
+
+When an upstream fix becomes available, verify it against the original reproduction and replace the fork through a dotfiles PR. Close the tracking issue only after that replacement ships.
+
+## GitHub disclosure
+
+Begin every authorized GitHub message with this blockquote, followed by a blank line:
 
 ```markdown
 > This was written by an agent. Model: <model ID>.
 ```
 
-Apply it to issue and PR bodies, comments, reviews, discussion posts, release notes, and other prose published on GitHub. Preserve or refresh it when editing a message. Read the model ID from the current runtime (for Pi, `PI_MODEL`); do not guess it or copy an earlier agent's identity.
-
-## 1. Reproduce locally
-
-Identify the installed version, upstream repository, and dotfiles install and lock configuration. Read the upstream contribution instructions. Keep checkouts, scripts, and private diagnostic evidence under this repository's `./tmp`.
-
-Use `gh` to search the upstream repository's open and closed issues, pull requests, and discussions for the symptom, relevant code, and likely cause. Read the relevant threads, linked changes, and commit history before proposing a fix or posting a report. Check dotfiles history for earlier workarounds too. Record useful links and any search surface that is unavailable. Prior reports may explain a deliberate behavior, a rejected fix, or a regression.
-
-Build the smallest runnable script that demonstrates the observed bug. Run it against the affected version and record the expected and actual results. Match the real failing event or request shape; a fixture that passes does not rule out a failure it never exercised.
-
-The public reproduction must work without private repositories, local paths, account data, or prior conversation context. Include prerequisites, exact versions, setup commands, the complete script, its invocation, and relevant output. Use synthetic inputs where possible. State any required credentials without publishing them.
-
-You may attempt a fix before reporting, but a working fix is not a prerequisite for opening the upstream issue.
-
-## 2. Open the upstream issue
-
-Use the history search above to avoid duplicate reports. If the same bug already has an issue, add the runnable evidence there and use that URL throughout this workflow.
-
-Write plain, simplified technical English at an 11th-grade reading level or lower. Use short sentences and concrete terms. Assume only familiarity with the upstream project. Explain the affected behavior and impact without references to "our setup" or this conversation.
-
-Include:
-
-- A title naming the broken behavior.
-- A brief description, affected version, and relevant environment.
-- Expected and actual behavior.
-- The complete minimal runnable reproduction and observed output.
-- A proposed fix, if tested, clearly separated from facts and open questions.
-
-Put a long reproduction inside `<details><summary>Runnable reproduction</summary>...</details>`. Keep the prerequisites and run command easy to find. A local file path, trace, screenshot, or link to a private script is not a runnable example.
-
-Done when the report is published and its reproduction has actually been run.
-
-## 3. Track the bug in dotfiles
-
-Open a dotfiles issue explaining the bug, its impact here, and the upstream issue URL. Apply the `blocked` label. The issue tracks the upstream dependency that must be resolved before removing the workaround.
-
-Record the managed tool, fork, patch reference, and conditions for returning upstream. Update these fields as the next step supplies them. Keep this issue open while dotfiles uses the fork. Link it from the dotfiles PR with `Refs #N`, rather than closing the tracking issue when the workaround merges.
-
-## 4. Fix and pin a fork
-
-Create a fork under the user's GitHub account, or reuse an existing fork of the same upstream. Keep the patch small and add a regression test at the failing boundary. Show the reproduction fail on the affected code and pass on the patch. Run the upstream project's required checks; report any missing or failing checks honestly.
-
-Publish an installable fork artifact or commit. Verify installation from the same source that dotfiles will use, including required build output and runtime dependencies. A source fork that cannot run through the managed installer is not a completed workaround.
-
-In a dotfiles feature branch, switch the dependency to that fork using an immutable commit, version, or checksum. Update the required lock entries and any related assertions. Preserve supported platforms and the usual convergence path. Record the upstream and tracking issue URLs beside the override where the configuration format permits, so a routine update does not erase the reason for the fork.
-
-If no verified fix or installable artifact can be produced, leave both issues open and report the exact blocker. Do not point dotfiles at a speculative fix.
-
-## 5. Open the dotfiles PR
-
-The PR must explain the bug, link both issues, identify the fork and immutable pin, list the checks run, and state how to remove the workaround. Keep unrelated upgrades out of the patch. Follow the repository's CI and merge rules; opening the PR does not authorize converging the live machine.
-
-Report the upstream issue, `blocked` dotfiles issue, fork, dotfiles PR, validation results, and any remaining gaps.
-
-When upstream ships a fix, verify the original reproduction against that release, switch dotfiles back through a PR, remove the fork-specific configuration, and close the tracking issue only after the replacement is shipped.
+Use the actual writing model's runtime ID (`PI_MODEL` in Pi), including when editing a message. This applies to issue and PR bodies, release notes, and any other authorized GitHub prose; it grants no additional permission to communicate.
