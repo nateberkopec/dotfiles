@@ -374,6 +374,11 @@ aube_args = "--deny-build=cpu-features --deny-build=protobufjs --deny-build=ssh2
 version = "2.1.0"
 backend = "packslip:github.com/jdx/hk"
 
+[tools.hk."platforms.linux-x64"]
+checksum = "sha256:7a7b28741d16f777d8be90fbcd8523996ee95c2d5222d5b173652d9b37e31969"
+url = "https://github.com/jdx/hk/releases/download/v2.1.0/hk-x86_64-unknown-linux-gnu.tar.gz"
+signer = "sigstore-oidc:https://github.com/jdx/hk/.github/workflows/release.yml"
+
 [tools.hk."platforms.macos-arm64"]
 checksum = "sha256:b30c6fb4447b5a9c24f9f80d165dca2d2e682907b8acb8222391e0527fea1ebe"
 url = "https://github.com/jdx/hk/releases/download/v2.1.0/hk-aarch64-apple-darwin.tar.gz"
@@ -412,6 +417,10 @@ url_api = "https://api.github.com/repos/jesseduffield/lazygit/releases/assets/56
 [[tools.node]]
 version = "26.10.0"
 backend = "core:node"
+
+[tools.node."platforms.linux-x64"]
+checksum = "sha256:cb5c9ce9c80d7b8821e3a258543c71b939138cf17c74d5cc44bbe85d6dbc5ad8"
+url = "https://nodejs.org/dist/v26.10.0/node-v26.10.0-linux-x64.tar.gz"
 
 [tools.node."platforms.macos-arm64"]
 checksum = "sha256:751fdf7439f115d87ee2a8f3f18c065b6151852068e3e666ac60ac2996f75ac9"
