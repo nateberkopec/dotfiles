@@ -48,6 +48,7 @@ class InstallThawAppStepTest < StepTestCase
     assert_executed(["/usr/bin/codesign", "--verify", "--deep", "--strict", File.join(mountpoint, "Thaw.app")])
     assert_executed(["/usr/bin/ditto", File.join(mountpoint, "Thaw.app"), "/Applications/Thaw.app"])
     assert_executed(["/usr/bin/hdiutil", "detach", mountpoint])
+    assert_includes step.notices.first[:message], "Thaw keeps your profiles and preferences locally"
   end
 
   def test_does_not_mount_image_when_checksum_mismatches

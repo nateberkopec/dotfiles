@@ -18,8 +18,6 @@ class Dotfiles
       require "command_helpers"
       require "platform_restrictable"
       require "system_adapter"
-      require "thaw_plist"
-      require "thaw_preferences"
       require "debian_desktop_source_installer"
       require "step"
       require "step/defaultable"

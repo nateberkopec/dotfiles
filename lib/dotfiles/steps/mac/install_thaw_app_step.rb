@@ -18,6 +18,7 @@ class Dotfiles::Step::InstallThawAppStep < Dotfiles::Step
     image = temp_path("thaw-release.dmg")
     download_image(image)
     install_app(image)
+    add_notice(title: "Thaw setup", message: "Open Thaw, grant Accessibility, and choose your layout and launch-at-login settings. Thaw keeps your profiles and preferences locally.")
   ensure
     @system.rm_rf(image) if image
   end
