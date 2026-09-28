@@ -21,6 +21,49 @@ class DotfUpdateNoticeTest < Minitest::Test
     end
   end
 
+  def test_stranded_lock_does_not_block_future_checks
+    with_repositories do |tmpdir, source, checkout, initial_sha|
+      commit_and_push(source, "new change")
+      state_home = File.join(tmpdir, "state")
+      FileUtils.mkdir_p(File.join(state_home, "dotfiles", "check.lock"))
+
+      run_check(checkout, state_home, initial_sha)
+
+      assert File.exist?(File.join(state_home, "dotfiles", "needs-run"))
+    end
+  end
+
+  def test_check_recovers_after_lock_holder_is_killed
+    with_repositories do |tmpdir, source, checkout, initial_sha|
+      commit_and_push(source, "new change")
+      state_home = File.join(tmpdir, "state")
+      state_dir = File.join(state_home, "dotfiles")
+      FileUtils.mkdir_p(state_dir)
+      marker = File.join(tmpdir, "lock-acquired")
+      lock = File.join(state_dir, "check.flock")
+      command = if RUBY_PLATFORM.include?("darwin")
+        ["lockf", "-k", "-t", "0", lock]
+      else
+        ["flock", "-n", lock]
+      end
+      pid = Process.spawn(*command, "fish", "--no-config", "--command", "echo $fish_pid > $argv[1]; exec sleep 10", marker, out: File::NULL, err: File::NULL)
+
+      begin
+        deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + 2
+        sleep 0.01 until File.exist?(marker) || Process.clock_gettime(Process::CLOCK_MONOTONIC) >= deadline
+        assert File.exist?(marker), "lock holder did not start"
+        run_check(checkout, state_home, initial_sha)
+        refute File.exist?(File.join(state_dir, "needs-run"))
+      ensure
+        Process.kill("KILL", File.read(marker).to_i) if File.exist?(marker)
+        Process.wait(pid)
+      end
+
+      run_check(checkout, state_home, initial_sha)
+      assert File.exist?(File.join(state_dir, "needs-run"))
+    end
+  end
+
   def test_greeting_checks_for_changes_in_the_background
     with_repositories do |tmpdir, source, checkout, initial_sha|
       commit_and_push(source, "new change")

@@ -1,20 +1,30 @@
 function __dotf_refresh_update_notice
+    set -l state_home "$HOME/.local/state"
+    set -q XDG_STATE_HOME; and set state_home "$XDG_STATE_HOME"
+    set -l state_dir "$state_home/dotfiles"
+    command mkdir -p "$state_dir"
+
+    if test "$argv[1]" != --locked
+        set -l fish_bin (status fish-path)
+        set -l source_file (functions --details __dotf_refresh_update_notice)
+        switch (uname -s)
+            case Darwin
+                command lockf -k -s -t 0 "$state_dir/check.flock" "$fish_bin" --no-config --command 'source $argv[1]; __dotf_refresh_update_notice --locked' "$source_file"
+            case Linux
+                command flock -n "$state_dir/check.flock" "$fish_bin" --no-config --command 'source $argv[1]; __dotf_refresh_update_notice --locked' "$source_file"
+        end
+        return 0
+    end
+
     set -l repo "$HOME/.dotfiles"
     set -q DOTFILES_DIR; and set repo "$DOTFILES_DIR"
 
-    set -l state_home "$HOME/.local/state"
-    set -q XDG_STATE_HOME; and set state_home "$XDG_STATE_HOME"
-
-    set -l state_dir "$state_home/dotfiles"
     set -l checked_at "$state_dir/checked-at"
     set -l now (date +%s)
 
     if test -f "$checked_at"; and read -l last_check <"$checked_at"; and string match --quiet --regex '^\d+$' "$last_check"; and test (math "$now - $last_check") -lt 300
         return
     end
-
-    command mkdir -p "$state_dir"
-    command mkdir "$state_dir/check.lock" 2>/dev/null; or return
 
     printf '%s\n' "$now" >"$checked_at.tmp.$fish_pid"
     command mv "$checked_at.tmp.$fish_pid" "$checked_at"
@@ -32,5 +42,4 @@ function __dotf_refresh_update_notice
         end
     end
 
-    command rmdir "$state_dir/check.lock"
 end
