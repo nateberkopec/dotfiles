@@ -16,7 +16,7 @@ You may merge the dotfiles PR after required checks pass. If completing the goal
 - **Scope:** Change only what is necessary to make the bug go away. Support the platforms these dotfiles currently support; do not expand that set to match upstream's platforms.
 - **Release:** Publish a clearly identified fork as a patch-version increment of the release currently used by dotfiles. Base it on that release, not upstream main or a newer release. Preserve runtime dependency versions unless changing them is necessary to fix the bug.
 - **Communication:** The only authorized contact with anyone other than the user is the initial upstream bug report described below. No follow-up comments, replies, upstream PRs, or other outreach without permission. Creating and maintaining the user's fork, release records, dotfiles tracking issue, and dotfiles PR are authorized deliverables, not permission to start conversations with others.
-- **Privacy:** Public reports and artifacts must exclude credentials, private prompts, private code, and identifying diagnostic data. Use a self-contained synthetic reproduction; keep private evidence and scratch work under this repository's `./tmp`.
+- **Privacy:** Public reports and artifacts must exclude credentials, private prompts, private code, and identifying diagnostic data. Use a self-contained synthetic reproduction.
 - **Automation:** Forks must not introduce scheduled automation. Inherited scheduled workflows must remain disabled or have their schedule triggers removed before being enabled.
 - **Live machine:** Merging is authorized; running `dotf run` or otherwise converging the user's main machine requires separate authorization.
 
@@ -24,7 +24,7 @@ You may merge the dotfiles PR after required checks pass. If completing the goal
 
 Account for relevant upstream and dotfiles history before reporting: open and closed issues, PRs, discussions, and relevant commits. Avoid a duplicate issue; if the bug is already reported, publish the initial reproduction there instead. This does not authorize subsequent comments.
 
-Write plain technical English at an 11th-grade reading level or lower. Include the affected version, expected and actual behavior, and a complete minimal reproduction that has actually been run: prerequisites, setup, script, invocation, and observed output. Readers must not need private files or this conversation. Put long code inside `<details><summary>Runnable reproduction</summary>...</details>`.
+Write plain Simplified Technical English at an 11th-grade reading level or lower. Include the affected version, expected and actual behavior, and a complete minimal reproduction that has actually been run: prerequisites, setup, script, invocation, and observed output. Readers must not need private files or this conversation. Put long code inside `<details><summary>Runnable reproduction</summary>...</details>`.
 
 A tested proposed fix may be included in the initial report, but a working fix is not a prerequisite for reporting the bug.
 
@@ -37,7 +37,7 @@ The work is complete when:
 - An open dotfiles issue labeled `blocked` links the upstream report, fork release, patch reference, and dotfiles PR, and states the conditions for returning upstream. Link it with `Refs #N`; merging the workaround must not close it.
 - The user has the result, verification evidence, and any remaining limitations. If completion is blocked, report the specific blocker rather than treating an unverified workaround as finished.
 
-When an upstream fix becomes available, verify it against the original reproduction and replace the fork through a dotfiles PR. Close the tracking issue only after that replacement ships.
+When an upstream fix becomes available, verify it against the original reproduction and replace the fork through a dotfiles PR. Close the tracking issue only after that replacement ships. At that point, the forked repository can be deleted, but only with explicit user approval.
 
 ## GitHub disclosure
 
