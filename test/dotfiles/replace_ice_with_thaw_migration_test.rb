@@ -5,6 +5,7 @@ class ReplaceIceWithThawMigrationTest < Minitest::Test
 
   def test_removes_old_login_item_and_cask_without_zapping_preferences
     @fake_system.stub_macos
+    @fake_system.stub_command(["groups"], "admin staff")
     @fake_system.stub_command(brew_exists_command, "", exit_status: 0)
     @fake_system.stub_command(brew_command("list", "--cask", "jordanbaird-ice"), "jordanbaird-ice", exit_status: 0)
     @fake_system.stub_command(["pgrep", "-x", "Ice"], "123", exit_status: 0)
@@ -19,12 +20,31 @@ class ReplaceIceWithThawMigrationTest < Minitest::Test
 
   def test_removes_old_login_item_without_homebrew
     @fake_system.stub_macos
+    @fake_system.stub_command(["groups"], "admin staff")
     @fake_system.stub_command(brew_exists_command, "", exit_status: 1)
 
     migration.up
 
     assert_executed!(login_item_removal)
     refute @fake_system.received_operation?(:execute!, brew_command("uninstall", "--cask", "jordanbaird-ice"), quiet: true)
+  end
+
+  def test_non_admin_leaves_ice_running_and_installed
+    @fake_system.stub_macos
+    @fake_system.stub_command(["groups"], "staff")
+
+    migration.up
+
+    refute @fake_system.operations.any? { |op| op.first == :execute! }
+  end
+
+  def test_ci_keeps_ice_installed
+    @fake_system.stub_macos
+    @fake_system.stub_command(["groups"], "admin staff")
+
+    with_ci { migration.up }
+
+    refute @fake_system.operations.any? { |op| op.first == :execute! }
   end
 
   private

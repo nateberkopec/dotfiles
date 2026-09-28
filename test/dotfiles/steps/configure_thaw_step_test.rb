@@ -5,9 +5,11 @@ class ConfigureThawStepTest < StepTestCase
 
   def setup
     super
+    @fake_system.stub_macos
     source = Dotfiles::SystemAdapter.new.read_file(File.expand_path("../../../config/thaw.yml", __dir__))
     @fake_system.stub_file_content(File.join(@dotfiles_dir, "config", "thaw.yml"), source)
     @fake_system.stub_file_content("/Applications/Thaw.app/Contents/Info.plist", "plist")
+    @fake_system.stub_command("groups", "admin staff")
   end
 
   def test_default_return_value_is_incomplete
@@ -20,11 +22,32 @@ class ConfigureThawStepTest < StepTestCase
 
   def test_complete_and_does_not_run_when_thaw_is_not_installed
     system = FakeSystemAdapter.new
+    system.stub_macos
+    system.stub_command("groups", "admin staff")
     missing_thaw_step = create_step(Dotfiles::Step::ConfigureThawStep, system: system)
 
     assert missing_thaw_step.complete?
     refute missing_thaw_step.should_run?
-    refute system.received_operation?(:execute)
+    refute system.operations.any? { |op| op.first == :execute && op[1].is_a?(Array) && op[1].first == "defaults" }
+  end
+
+  def test_non_admin_does_not_configure_installed_thaw
+    @fake_system.stub_command("groups", "staff")
+
+    assert step.complete?
+    refute step.should_run?
+    step.run
+    refute @fake_system.operations.any? { |op| op.first == :execute && op[1].is_a?(Array) && op[1].first == "osascript" }
+  end
+
+  def test_ci_does_not_configure_thaw
+    with_ci do
+      assert step.complete?
+      refute step.should_run?
+      step.run
+    end
+
+    refute @fake_system.operations.any? { |op| op.first == :execute && op[1].is_a?(Array) && op[1].first == "osascript" }
   end
 
   def test_run_quits_and_reopens_running_thaw_when_preferences_drift
@@ -88,14 +111,6 @@ class ConfigureThawStepTest < StepTestCase
     step.run
 
     assert_includes step.errors, "Failed to configure the Thaw login item"
-  end
-
-  def test_uses_user_applications_path_for_non_admin_install
-    @fake_system.stub_file_content(File.join(@home, "Applications", "Thaw.app", "Contents", "Info.plist"), "plist")
-
-    step.run
-
-    assert @fake_system.operations.any? { |operation| login_item_write?(operation, "#{@home}/Applications/Thaw.app") }
   end
 
   private

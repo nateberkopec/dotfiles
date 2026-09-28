@@ -8,10 +8,13 @@ class Dotfiles::Step::ConfigureThawStep < Dotfiles::Step
   end
 
   def should_run?
-    thaw_installed? && super
+    !ENV["CI"] && user_has_admin_rights? && thaw_installed? && super
   end
 
   def run
+    return if ENV["CI"]
+    return unless allowed_on_platform? && user_has_admin_rights? && thaw_installed?
+
     configure_preferences unless preferences_complete?
     configure_login_item unless login_item_complete?
   rescue ArgumentError, RuntimeError => e
@@ -19,7 +22,7 @@ class Dotfiles::Step::ConfigureThawStep < Dotfiles::Step
   end
 
   def complete?
-    return true unless thaw_installed?
+    return true if ENV["CI"] || !allowed_on_platform? || !user_has_admin_rights? || !thaw_installed?
 
     super
     add_error("Managed Thaw preferences differ") unless preferences_complete?
@@ -101,8 +104,6 @@ class Dotfiles::Step::ConfigureThawStep < Dotfiles::Step
   end
 
   def thaw_application_path
-    [File.join(@home, "Applications", "Thaw.app"), "/Applications/Thaw.app"].find do |path|
-      @system.dir_exist?(path)
-    end
+    "/Applications/Thaw.app" if @system.dir_exist?("/Applications/Thaw.app")
   end
 end

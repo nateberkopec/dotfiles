@@ -4,6 +4,11 @@ class Dotfiles::Migration::ReplaceIceWithThaw < Dotfiles::Migration
   macos_only
 
   def up
+    return if ENV["CI"]
+
+    groups, status = @system.execute(command("groups"))
+    return unless status == 0 && groups.split.include?("admin")
+
     execute(command("osascript", "-e", 'tell application id "com.jordanbaird.Ice" to quit')) if command_succeeds?(command("pgrep", "-x", "Ice"))
     execute(command(
       "osascript",

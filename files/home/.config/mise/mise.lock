@@ -313,19 +313,6 @@ url = "https://github.com/rawnly/splash-cli/releases/download/4.2.0/splash_Darwi
 url_api = "https://api.github.com/repos/rawnly/splash-cli/releases/assets/567336393"
 provenance = "github-attestations"
 
-[[tools."github:thaw-app/Thaw"]]
-version = "2.0.1"
-backend = "github:thaw-app/Thaw"
-
-[tools."github:thaw-app/Thaw".options]
-asset_pattern = "Thaw.dmg"
-
-[tools."github:thaw-app/Thaw"."platforms.macos-arm64"]
-checksum = "sha256:5e4a17c39075a9d27b0c9c31619cee875880befa79021d8ddc9ae6d90e345cbf"
-url = "https://github.com/thaw-app/Thaw/releases/download/2.0.1/Thaw.dmg"
-url_api = "https://api.github.com/repos/thaw-app/Thaw/releases/assets/540890893"
-provenance = "github-attestations"
-
 [[tools.gitleaks]]
 version = "8.30.1"
 backend = "aqua:gitleaks/gitleaks"

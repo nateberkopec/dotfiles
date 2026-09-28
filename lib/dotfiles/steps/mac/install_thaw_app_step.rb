@@ -1,29 +1,44 @@
 class Dotfiles::Step::InstallThawAppStep < Dotfiles::Step
-  DESCRIPTION = "Installs the mise-managed Thaw release into Applications.".freeze
-  THAW_TOOL = "github:thaw-app/Thaw".freeze
+  DESCRIPTION = "Installs the pinned Thaw release on admin macOS machines.".freeze
+  VERSION = "2.0.1".freeze
+  SHA256 = "5e4a17c39075a9d27b0c9c31619cee875880befa79021d8ddc9ae6d90e345cbf".freeze
+  URL = "https://github.com/thaw-app/Thaw/releases/download/#{VERSION}/Thaw.dmg".freeze
 
   macos_only
 
   def should_run?
-    allowed_on_platform? && !complete?
+    !ENV["CI"] && allowed_on_platform? && user_has_admin_rights? && !complete?
   end
 
   def run
-    source = thaw_source
-    return add_error("Mise-managed Thaw release not found") if source.empty?
+    return if ENV["CI"]
+    return unless allowed_on_platform? && user_has_admin_rights?
+    return if app_installed?
 
-    install_app(source) unless app_installed?
+    image = temp_path("thaw-release.dmg")
+    download_image(image)
+    install_app(image)
+  ensure
+    @system.rm_rf(image) if image
   end
 
   def complete?
     super
-    return true unless allowed_on_platform?
+    return true if ENV["CI"] || !allowed_on_platform? || !user_has_admin_rights?
 
     add_error("Thaw.app is not installed in Applications") unless app_installed?
     errors.empty?
   end
 
   private
+
+  def download_image(image)
+    _output, status = execute(command("curl", "-fsSL", "--retry", "2", "-o", image, URL))
+    raise "Failed to download Thaw release" unless status == 0
+
+    output, status = execute(command("/usr/bin/shasum", "-a", "256", image))
+    raise "Thaw release checksum mismatch" unless status == 0 && output.split.first == SHA256
+  end
 
   def install_app(image)
     mountpoint = temp_path("thaw-mount")
@@ -45,8 +60,11 @@ class Dotfiles::Step::InstallThawAppStep < Dotfiles::Step
   end
 
   def copy_app(mountpoint)
-    @system.mkdir_p(File.dirname(destination))
-    _output, status = execute(command("/usr/bin/ditto", File.join(mountpoint, "Thaw.app"), destination))
+    source = File.join(mountpoint, "Thaw.app")
+    _output, status = execute(command("/usr/bin/codesign", "--verify", "--deep", "--strict", source))
+    raise "Thaw release signature is invalid" unless status == 0
+
+    _output, status = execute(command("/usr/bin/ditto", source, destination))
     raise "Failed to copy Thaw release" unless status == 0
   end
 
@@ -55,24 +73,11 @@ class Dotfiles::Step::InstallThawAppStep < Dotfiles::Step
     raise "Failed to unmount Thaw release at #{mountpoint}" unless status == 0
   end
 
-  def thaw_source
-    return @thaw_source if defined?(@thaw_source)
-    return @thaw_source = "" unless command_exists?("mise")
-
-    install_dir, status = execute(command("mise", "--cd", @home, "where", THAW_TOOL))
-    path = File.join(install_dir.strip, "Thaw.dmg")
-    @thaw_source = (status == 0 && @system.file_exist?(path)) ? path : ""
-  end
-
   def app_installed?
     @system.file_exist?(File.join(destination, "Contents", "Info.plist"))
   end
 
   def destination
-    @destination ||= File.join(applications_directory, "Thaw.app")
-  end
-
-  def applications_directory
-    user_has_admin_rights? ? "/Applications" : File.join(@home, "Applications")
+    "/Applications/Thaw.app"
   end
 end
