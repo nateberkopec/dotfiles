@@ -3,7 +3,7 @@ require "json"
 require "open3"
 
 class OpenRouterUSCatalogTest < Minitest::Test
-  CATALOG = File.expand_path("../../../files/home/.pi/agent/extensions/openrouter_us/catalog.ts", __dir__)
+  CATALOG = File.expand_path("../../../files/home/.pi/agent/extensions/datasafe/catalog.ts", __dir__)
   US_BASE_URL = "https://us.openrouter.ai/api/v1"
 
   def test_intersection_keeps_only_regional_models_and_preserves_metadata

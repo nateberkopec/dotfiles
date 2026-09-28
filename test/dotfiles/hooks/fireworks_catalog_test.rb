@@ -4,7 +4,7 @@ require "open3"
 require "tmpdir"
 
 class FireworksCatalogTest < Minitest::Test
-  EXTENSION = File.expand_path("../../../files/home/.pi/agent/extensions/fireworks", __dir__)
+  EXTENSION = File.expand_path("../../../files/home/.pi/agent/extensions/datasafe", __dir__)
   CATALOG = File.join(EXTENSION, "fireworks_catalog.ts")
   MARKDOWN = <<~MD
     # US-only Serverless

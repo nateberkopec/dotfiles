@@ -1,9 +1,9 @@
-import type { Api, Model, Provider, RefreshModelsContext } from "@earendil-works/pi-ai";
+import type { Api, Model, Provider, RefreshModelsContext, SimpleStreamOptions, StreamOptions } from "@earendil-works/pi-ai";
 import { builtinProviders } from "@earendil-works/pi-ai/providers/all";
 import { type ExtensionAPI, getAgentDir } from "@earendil-works/pi-coding-agent";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { intersectRegionalModels, restoreRegionalModels } from "./catalog.ts";
+import { intersectRegionalModels, regionalInferenceBaseUrl, restoreRegionalModels } from "./catalog.ts";
 
 const PROVIDER = "openrouter";
 const BASE_URL = "https://us.openrouter.ai/api/v1";
@@ -135,9 +135,34 @@ export function createOpenRouterUSProvider(rawProvider: Provider, discovered?: D
 	const update = (models: Model<Api>[]) => {
 		currentModels = models;
 	};
+	const guardPayload = <T extends StreamOptions | SimpleStreamOptions>(modelId: string, options: T | undefined): T => ({
+		...options,
+		onPayload: async (payload, model) => {
+			const result = await options?.onPayload?.(payload, model);
+			const finalPayload = result ?? payload;
+			if (!finalPayload || typeof finalPayload !== "object" || Array.isArray(finalPayload) ||
+				(finalPayload as Record<string, unknown>).model !== modelId) {
+				throw new Error("Datasafe could not apply OpenRouter no-training controls to the selected model");
+			}
+			return denyOpenRouterCollection(finalPayload as Record<string, unknown>);
+		},
+	} as T);
+	const assertRegionalModel = (model: Model<Api>) => {
+		if (!currentModels.some(({ id }) => id === model.id) || model.baseUrl !== regionalInferenceBaseUrl(model, BASE_URL)) {
+			throw new Error(`Datasafe blocked OpenRouter model or endpoint: ${model.id}`);
+		}
+	};
 	return {
 		...rawProvider,
 		baseUrl: BASE_URL,
+		stream: (model, context, options) => {
+			assertRegionalModel(model);
+			return rawProvider.stream(model, context, guardPayload(model.id, options));
+		},
+		streamSimple: (model, context, options) => {
+			assertRegionalModel(model);
+			return rawProvider.streamSimple(model, context, guardPayload(model.id, options));
+		},
 		getModels: () => currentModels,
 		refreshModels: (context) => refreshModels(
 			context,
@@ -149,7 +174,7 @@ export function createOpenRouterUSProvider(rawProvider: Provider, discovered?: D
 	};
 }
 
-export default async function openRouterUS(pi: ExtensionAPI) {
+export async function registerOpenRouterUS(pi: ExtensionAPI) {
 	const rawProvider = builtinProviders().find((provider) => provider.id === PROVIDER);
 	if (!rawProvider) throw new Error("Pi does not provide the built-in OpenRouter provider");
 
@@ -160,16 +185,15 @@ export default async function openRouterUS(pi: ExtensionAPI) {
 		console.error(`[openrouter_us] ${error instanceof Error ? error.message : String(error)}`);
 	}
 	pi.registerProvider(createOpenRouterUSProvider(rawProvider, discovered));
-	pi.on("before_provider_request", (event, ctx) => {
-		if (ctx.model?.provider !== PROVIDER) return;
-		const payload = event.payload as Record<string, unknown>;
-		const provider = payload.provider;
-		return {
-			...payload,
-			provider: {
-				...(provider && typeof provider === "object" ? provider : {}),
-				data_collection: "deny",
-			},
-		};
-	});
+}
+
+export function denyOpenRouterCollection(payload: Record<string, unknown>): Record<string, unknown> {
+	const provider = payload.provider;
+	return {
+		...payload,
+		provider: {
+			...(provider && typeof provider === "object" ? provider : {}),
+			data_collection: "deny",
+		},
+	};
 }

@@ -1,14 +1,13 @@
 import {
-	openAICompletionsApi,
 	envApiKeyAuth,
 	type Api,
-	type Context,
 	type Model,
 	type Provider,
 	type RefreshModelsContext,
 	type SimpleStreamOptions,
 	type StreamOptions,
 } from "@earendil-works/pi-ai";
+import { builtinProviders } from "@earendil-works/pi-ai/providers/all";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import {
 	cachedUSModels,
@@ -18,7 +17,8 @@ import {
 	USModelCatalog,
 } from "./fireworks_catalog.ts";
 
-const fireworksApi = openAICompletionsApi();
+const fireworksApi = builtinProviders().find((provider) => provider.id === FIREWORKS_PROVIDER);
+if (!fireworksApi) throw new Error("Pi does not provide the built-in Fireworks provider");
 const catalog: USModelCatalog = new USModelCatalog();
 
 async function refreshModels(context: RefreshModelsContext) {
@@ -45,14 +45,30 @@ async function refreshModels(context: RefreshModelsContext) {
 	});
 }
 
+function guardPayload<T extends StreamOptions | SimpleStreamOptions>(modelId: string, options: T | undefined): T {
+	return {
+		...options,
+		onPayload: async (payload, model) => {
+			const result = await options?.onPayload?.(payload, model);
+			const finalPayload = result ?? payload;
+			if (!finalPayload || typeof finalPayload !== "object" || Array.isArray(finalPayload) ||
+				(finalPayload as Record<string, unknown>).model !== modelId) {
+				throw new Error("Datasafe blocked Fireworks payload model substitution");
+			}
+			catalog.assertAllowed(modelId);
+			return finalPayload;
+		},
+	} as T;
+}
+
 const guardedApi = {
-	stream(model: Model<Api>, context: Context, options?: StreamOptions) {
+	stream(model: Model<Api>, context: Parameters<typeof fireworksApi.stream>[1], options?: StreamOptions) {
 		catalog.assertAllowed(model.id);
-		return fireworksApi.stream(model, context, options);
+		return fireworksApi.stream(model, context, guardPayload(model.id, options));
 	},
-	streamSimple(model: Model<Api>, context: Context, options?: SimpleStreamOptions) {
+	streamSimple(model: Model<Api>, context: Parameters<typeof fireworksApi.streamSimple>[1], options?: SimpleStreamOptions) {
 		catalog.assertAllowed(model.id);
-		return fireworksApi.streamSimple(model, context, options);
+		return fireworksApi.streamSimple(model, context, guardPayload(model.id, options));
 	},
 };
 
@@ -67,7 +83,7 @@ const provider: Provider<"openai-completions"> = {
 	streamSimple: guardedApi.streamSimple,
 };
 
-export default async function (pi: ExtensionAPI) {
+export async function registerFireworksUS(pi: ExtensionAPI) {
 	const apiKey = process.env.FIREWORKS_API_KEY;
 	if (process.env.PI_OFFLINE === undefined && apiKey) {
 		try {
@@ -78,8 +94,8 @@ export default async function (pi: ExtensionAPI) {
 	}
 
 	pi.registerProvider(provider);
-	pi.on("before_provider_request", (event, ctx) => {
-		if (ctx.model?.provider !== FIREWORKS_PROVIDER) return;
-		catalog.assertAllowed((event.payload as { model?: unknown }).model);
-	});
+}
+
+export function assertFireworksUSModel(model: unknown): void {
+	catalog.assertAllowed(model);
 }

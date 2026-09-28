@@ -2,7 +2,12 @@ const MODEL_ID_FIELD = "id";
 
 interface CatalogModel {
 	id: string;
+	api?: string;
 	baseUrl?: string;
+}
+
+export function regionalInferenceBaseUrl(model: CatalogModel, catalogBaseUrl: string): string {
+	return model.api === "anthropic-messages" ? catalogBaseUrl.replace(/\/v1$/, "") : catalogBaseUrl;
 }
 
 function modelIds(payload: unknown): Set<string> {
@@ -26,7 +31,8 @@ export function intersectRegionalModels<T extends CatalogModel>(
 	baseUrl: string,
 ): T[] {
 	const ids = modelIds(payload);
-	const models = builtInModels.filter((model) => ids.has(model.id)).map((model) => ({ ...model, baseUrl }));
+	const models = builtInModels.filter((model) => ids.has(model.id))
+		.map((model) => ({ ...model, baseUrl: regionalInferenceBaseUrl(model, baseUrl) }));
 	if (models.length === 0) throw new Error("OpenRouter US model discovery matched no built-in models");
 	return models;
 }
@@ -36,8 +42,10 @@ export function restoreRegionalModels<T extends CatalogModel>(
 	storedModels: readonly CatalogModel[] | undefined,
 	baseUrl: string,
 ): T[] {
-	if (!storedModels?.length || storedModels.some((model) => model.baseUrl !== baseUrl)) return [];
+	if (!storedModels?.length || storedModels.some((model) =>
+		model.baseUrl !== baseUrl && model.baseUrl !== regionalInferenceBaseUrl(model, baseUrl))) return [];
 
 	const ids = new Set(storedModels.map((model) => model.id));
-	return builtInModels.filter((model) => ids.has(model.id)).map((model) => ({ ...model, baseUrl }));
+	return builtInModels.filter((model) => ids.has(model.id))
+		.map((model) => ({ ...model, baseUrl: regionalInferenceBaseUrl(model, baseUrl) }));
 }

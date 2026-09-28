@@ -5,7 +5,7 @@ require "open3"
 require "tmpdir"
 
 class OpenRouterUSRuntimeTest < Minitest::Test
-  INDEX = File.expand_path("../../../files/home/.pi/agent/extensions/openrouter_us/index.ts", __dir__)
+  INDEX = File.expand_path("../../../files/home/.pi/agent/extensions/datasafe/index.ts", __dir__)
   MODEL_A = "anthropic/claude-3-haiku"
   MODEL_B = "google/gemini-2.5-pro"
   BASE_URL = "https://us.openrouter.ai/api/v1"
@@ -20,19 +20,18 @@ class OpenRouterUSRuntimeTest < Minitest::Test
       mock = write_fetch_mock(agent_dir, calls, [MODEL_A])
 
       2.times { assert_models run_pi(agent_dir, mock: mock), [MODEL_A] }
-      fetches = File.readlines(calls, chomp: true)
+      fetches = File.readlines(calls, chomp: true).select { |url| url == "#{BASE_URL}/models" }
       assert_includes 1..2, fetches.length
-      assert fetches.all? { |url| url == "#{BASE_URL}/models" }
 
       stored = JSON.parse(File.read(File.join(agent_dir, "models-store.json"))).fetch("openrouter")
-      assert_equal [BASE_URL], stored.fetch("models").map { |model| model.fetch("baseUrl") }.uniq
+      assert_equal [BASE_URL.delete_suffix("/v1")], stored.fetch("models").map { |model| model.fetch("baseUrl") }.uniq
       assert_models run_pi(agent_dir, offline: true), [MODEL_A]
 
       expire_stored_catalog(agent_dir)
       assert_models run_pi(agent_dir, offline: true), [MODEL_A]
       failing_mock = write_failing_fetch_mock(agent_dir, File.join(agent_dir, "failed.log"))
       assert_models run_pi(agent_dir, mock: failing_mock), [MODEL_A]
-      assert_equal ["#{BASE_URL}/models"], File.readlines(File.join(agent_dir, "failed.log"), chomp: true)
+      assert_includes File.readlines(File.join(agent_dir, "failed.log"), chomp: true), "#{BASE_URL}/models"
     end
   end
 

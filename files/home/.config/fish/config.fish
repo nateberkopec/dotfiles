@@ -54,12 +54,27 @@ function pi
     switch $argv[1]
       case install remove uninstall update list
         command pi $argv
-      case '*'
-        env PI_SKIP_VERSION_CHECK=1 PI_OFFLINE=1 command pi $argv
+        return
     end
-  else
-    env PI_SKIP_VERSION_CHECK=1 PI_OFFLINE=1 command pi
   end
+
+  set -l mode usa-no-train
+  if string match -qr '^[1-9][0-9]*$' -- "$PI_SUBAGENT_DEPTH"; and test -n "$PI_DATASAFE_MODE"
+    set mode $PI_DATASAFE_MODE
+  end
+  env PI_DATASAFE_MODE=$mode PI_SKIP_VERSION_CHECK=1 PI_OFFLINE=1 command pi $argv
+end
+
+function pi-claude --description 'Start Pi with only Anthropic and Meridian models'
+  set -l node_root (mise -C "$HOME" where node); or return
+  set -lx PATH "$node_root/bin" $PATH
+  env PI_DATASAFE_MODE=claude-only PI_SKIP_VERSION_CHECK=1 PI_OFFLINE=1 command pi $argv
+end
+
+function pi-unsafe --description 'Start Pi without data-safety restrictions'
+  set -l node_root (mise -C "$HOME" where node); or return
+  set -lx PATH "$node_root/bin" $PATH
+  env PI_DATASAFE_MODE=unrestricted PI_SKIP_VERSION_CHECK=1 PI_OFFLINE=1 command pi $argv
 end
 
 # Activate mise early so cargo/gem/npm tools are available

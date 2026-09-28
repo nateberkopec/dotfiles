@@ -52,9 +52,8 @@ cat >"$config" <<JSON
   "files": [
     "$PWD/files/home/.pi/agent/extensions/caffeinate.ts",
     "$PWD/files/home/.pi/agent/extensions/meridian.ts",
-    "$PWD/files/home/.pi/agent/extensions/openrouter_us/index.ts",
-    "$PWD/files/home/.pi/agent/extensions/toksec/index.ts",
-    "$PWD/files/home/.pi/agent/extensions/vercel_us.ts"
+    "$PWD/files/home/.pi/agent/extensions/datasafe/index.ts",
+    "$PWD/files/home/.pi/agent/extensions/toksec/index.ts"
   ]
 }
 JSON
