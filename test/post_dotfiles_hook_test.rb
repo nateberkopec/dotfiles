@@ -11,6 +11,7 @@ class PostDotfilesHookTest < Minitest::Test
       plist = File.join(home, "Library/LaunchAgents/com.user.woodblock-wallpaper.plist")
       launchctl_trace = File.join(dir, "launchctl.log")
       mise_trace = File.join(dir, "mise.log")
+      ruby_trace = File.join(dir, "ruby.log")
       bin = File.join(dir, "bin")
       hook_source = File.join(home, ".dotfiles/files/home/.git-hooks/pre-push")
       sync_script = File.join(home, ".dotfiles/bin/lib/sync-git-hooks.sh")
@@ -22,13 +23,15 @@ class PostDotfilesHookTest < Minitest::Test
       write_command(bin, "uname", "echo Darwin")
       write_command(bin, "mise", '[ "$*" = "hook-env -s bash" ] || echo "$*" >> "$MISE_TRACE"')
       write_command(bin, "launchctl", 'echo "$*" >> "$LAUNCHCTL_TRACE"')
+      write_command(bin, "ruby", 'echo "$*" >> "$RUBY_TRACE"')
 
       _stdout, stderr, status = Open3.capture3(
         {
           "HOME" => home,
           "PATH" => "#{bin}:#{ENV.fetch("PATH")}",
           "LAUNCHCTL_TRACE" => launchctl_trace,
-          "MISE_TRACE" => mise_trace
+          "MISE_TRACE" => mise_trace,
+          "RUBY_TRACE" => ruby_trace
         },
         "bash", script
       )
@@ -37,6 +40,7 @@ class PostDotfilesHookTest < Minitest::Test
       refute File.exist?(plist)
       assert_equal "bootout gui/#{Process.uid}/com.user.woodblock-wallpaper\n", File.read(launchctl_trace)
       assert_equal "exec -- playwright install chromium-headless-shell\n", File.read(mise_trace)
+      assert_equal "#{home}/.dotfiles/bin/lib/install-meridian-pi-scrub.rb\n", File.read(ruby_trace)
       assert_equal "managed hook", File.read(File.join(home, ".git-hooks/pre-push"))
     end
   end
