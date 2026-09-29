@@ -51,11 +51,17 @@ class MiseBootstrapDotfilesDefaultsTest < Minitest::Test
     assert_equal ["arm64"], tool.fetch("arch")
   end
 
-  def test_installs_and_starts_omniwm
-    tool = config.fetch("tools").fetch("github:BarutSRB/OmniWM")
-    agent = config.dig("bootstrap", "macos", "launchd", "agents", "omniwm")
+  def test_installs_and_starts_omniwm_only_in_admin_environment
+    refute config.fetch("tools").key?("github:BarutSRB/OmniWM")
+    refute config.dig("bootstrap", "macos", "launchd", "agents").key?("omniwm")
+
+    admin_config = TomlRB.load_file(File.expand_path("../files/home/.config/mise/config.admin.toml", __dir__))
+    admin_lock = TomlRB.load_file(File.expand_path("../files/home/.config/mise/mise.admin.lock", __dir__))
+    tool = admin_config.fetch("tools").fetch("github:BarutSRB/OmniWM")
+    agent = admin_config.dig("bootstrap", "macos", "launchd", "agents", "omniwm")
 
     assert_equal "OmniWM-v{{version}}.zip", tool.fetch("asset_pattern")
+    assert_equal tool.fetch("version"), admin_lock.fetch("tools").fetch("github:BarutSRB/OmniWM").first.fetch("version")
     assert_equal "~/.local/share/dotfiles/launch-omniwm", agent.fetch("program")
     assert_equal true, agent.fetch("run_at_load")
   end

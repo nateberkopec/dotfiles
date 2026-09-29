@@ -20,6 +20,12 @@ legacy_wallpaper_label="com.user.woodblock-wallpaper"
 launchctl bootout "gui/$(id -u)/$legacy_wallpaper_label" 2>/dev/null || true
 rm -f "$HOME/Library/LaunchAgents/$legacy_wallpaper_label.plist"
 
+if ! id -Gn | tr ' ' '\n' | grep -qx admin; then
+    omniwm_label="dev.mise.omniwm"
+    launchctl bootout "gui/$(id -u)/$omniwm_label" 2>/dev/null || true
+    rm -f "$HOME/Library/LaunchAgents/$omniwm_label.plist"
+fi
+
 orbstack_completions="/Applications/OrbStack.app/Contents/Resources/completions/fish"
 [ -d "$orbstack_completions" ] || exit 0
 

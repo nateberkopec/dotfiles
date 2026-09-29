@@ -27,6 +27,15 @@ class AdoptOmniWMMigrationTest < Minitest::Test
     assert_executed!(start_command)
   end
 
+  def test_does_not_start_omniwm_for_non_admin_user
+    prepare_migration
+    @fake_system.stub_command("groups", "staff")
+
+    migration.up
+
+    refute @fake_system.received_operation?(:execute!, start_command, {quiet: true})
+  end
+
   def test_is_idempotent_when_homebrew_installs_are_absent
     @fake_system.stub_macos
     @fake_system.stub_command(brew_exists_command, "", exit_status: 0)
@@ -52,6 +61,7 @@ class AdoptOmniWMMigrationTest < Minitest::Test
 
   def prepare_migration
     @fake_system.stub_macos
+    @fake_system.stub_command("groups", "admin staff")
     retired_paths.each { |path| @fake_system.stub_file_content(path, "old") }
     @fake_system.stub_command(brew_exists_command, "", exit_status: 0)
     %w[aerospace omniwm].each do |cask|

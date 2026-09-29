@@ -17,7 +17,7 @@ class Dotfiles::Migration::AdoptOmniWM < Dotfiles::Migration
     remove_homebrew_installs
     reset_aerospace_permissions
     @system.rm_rf(RETIRED_PATHS.map { |path| File.join(@home, path) })
-    start_omniwm
+    start_omniwm if user_has_admin_rights?
   end
 
   def down
@@ -66,6 +66,11 @@ class Dotfiles::Migration::AdoptOmniWM < Dotfiles::Migration
 
   def reset_aerospace_permissions
     execute(shell_script("tccutil reset Accessibility bobko.aerospace >/dev/null 2>&1 || true"))
+  end
+
+  def user_has_admin_rights?
+    groups, = @system.execute(command("groups"))
+    groups.split.include?("admin")
   end
 
   def start_omniwm
