@@ -1,8 +1,6 @@
 class Dotfiles::Step::SetupSSHKeysStep < Dotfiles::Step
   DESCRIPTION = "Configures SSH to use the 1Password SSH agent.".freeze
 
-  prepend Dotfiles::Step::Sudoable
-
   macos_only
 
   SSH_CONFIG_PATH = File.expand_path("~/.ssh/config")
@@ -13,7 +11,7 @@ class Dotfiles::Step::SetupSSHKeysStep < Dotfiles::Step
   end
 
   def should_run?
-    !complete?
+    !unattended? && !complete?
   end
 
   def run
@@ -24,6 +22,7 @@ class Dotfiles::Step::SetupSSHKeysStep < Dotfiles::Step
 
   def complete?
     super
+    return true if unattended?
     unless @system.file_exist?(SSH_CONFIG_PATH)
       add_error("SSH config file does not exist at #{SSH_CONFIG_PATH}")
       return false
@@ -33,6 +32,10 @@ class Dotfiles::Step::SetupSSHKeysStep < Dotfiles::Step
   end
 
   private
+
+  def unattended?
+    ENV["CI"] || ENV["NONINTERACTIVE"]
+  end
 
   def configure_ssh_agent
     @system.file_exist?(SSH_CONFIG_PATH) ? append_agent_config : create_ssh_config

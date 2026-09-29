@@ -45,6 +45,21 @@ class EnableSudoTouchIDStepTest < StepTestCase
     refute_executed ["sudo", "install", "-o", "root", "-g", "wheel", "-m", "0444", source_path, target_path]
   end
 
+  def test_skips_interactive_non_admin_mac_without_attempting_sudo
+    @fake_system.stub_command(["groups"], "staff nonadmin")
+
+    refute_should_run
+    assert_complete
+    refute_executed ["sudo", "-n", "-v"]
+    refute_executed ["sudo", "install", "-o", "root", "-g", "wheel", "-m", "0444", source_path, target_path]
+  end
+
+  def test_runs_on_interactive_admin_mac_when_sudo_local_is_missing
+    @fake_system.stub_command(["groups"], "staff admin")
+
+    assert_should_run
+  end
+
   def test_complete_in_ci_when_sudo_local_is_missing
     with_ci { assert_complete }
   end

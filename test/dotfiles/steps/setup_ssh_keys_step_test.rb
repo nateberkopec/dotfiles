@@ -57,6 +57,13 @@ class SetupSSHKeysStepTest < Minitest::Test
     assert_includes step.notices.first[:title], "1Password"
   end
 
+  def test_runs_for_non_admin_mac
+    @fake_system.stub_macos
+    @fake_system.stub_command(["groups"], "staff everyone")
+
+    assert create_step(Dotfiles::Step::SetupSSHKeysStep).should_run?
+  end
+
   def test_skips_in_ci_environment
     ENV["CI"] = "true"
     step = create_step(Dotfiles::Step::SetupSSHKeysStep)

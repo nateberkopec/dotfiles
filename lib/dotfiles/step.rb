@@ -162,7 +162,7 @@ class Dotfiles
 
     def user_has_admin_rights?
       groups, = @system.execute(command("groups"))
-      groups.include?("admin")
+      groups.split.include?("admin")
     end
 
     def defaults_read_equals?(command, expected_value)

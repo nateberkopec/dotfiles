@@ -17,6 +17,7 @@ class StepTestCase < Minitest::Test
   def setup
     super
     raise ArgumentError, "StepTestCase subclasses must declare step_class" unless self.class.step_class
+    @fake_system.stub_command(["groups"], "staff admin") if self.class.step_class.ancestors.include?(Dotfiles::Step::Sudoable)
   end
 
   def step(overrides = {})
