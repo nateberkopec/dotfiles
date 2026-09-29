@@ -4,6 +4,7 @@ class SetFishDefaultShellStepTest < Minitest::Test
   def setup
     super
     @fake_system.stub_macos
+    @fake_system.stub_command(["groups"], "staff admin")
     @step = create_step(Dotfiles::Step::SetFishDefaultShellStep)
   end
 

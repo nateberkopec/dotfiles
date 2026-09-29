@@ -4,12 +4,12 @@ class Dotfiles
       SUDO_MUTEX = Mutex.new
 
       def should_run?
-        return false if ci_or_noninteractive?
+        return false if skip_sudo_step?
         super
       end
 
       def complete?
-        return true if ci_or_noninteractive?
+        return true if skip_sudo_step?
         super
       end
 
@@ -58,6 +58,10 @@ class Dotfiles
           ),
           quiet: false
         )
+      end
+
+      def skip_sudo_step?
+        ci_or_noninteractive? || (@system.macos? && !user_has_admin_rights?)
       end
 
       def ci_or_noninteractive?
