@@ -47,6 +47,17 @@ class InstallDebianGhosttyStepTest < StepTestCase
     refute @fake_system.operations.any? { |operation| operation.any? { |arg| arg.to_s.include?("curl") } }
   end
 
+  def test_complete_after_run_on_same_instance
+    stub_debian_mise_ghostty
+    stub_wrapper_missing
+
+    assert_should_run
+    step.run
+    stub_wrapper_installed
+
+    assert_complete
+  end
+
   private
 
   def stub_debian_mise_ghostty
