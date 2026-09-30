@@ -1,6 +1,6 @@
 import type { Api, Model, Provider } from "@earendil-works/pi-ai";
 import { builtinProviders } from "@earendil-works/pi-ai/providers/all";
-import { type ExtensionAPI, getAgentDir } from "@earendil-works/pi-coding-agent";
+import { type ExtensionAPI, type ExtensionContext, getAgentDir } from "@earendil-works/pi-coding-agent";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { regionalInferenceBaseUrl } from "./catalog.ts";
@@ -52,6 +52,16 @@ async function configuredProviderIds(): Promise<string[]> {
 	}
 }
 
+export async function refreshSubagentModels(ctx: ExtensionContext) {
+	const providers = profile.strategies.filter((id) => id === "fireworks" || id === "openrouter");
+	if (providers.length === 0) return;
+	const result = await ctx.modelRegistry.refresh({ providers, allowNetwork: false, signal: ctx.signal });
+	if (result.aborted) throw new Error("Datasafe could not refresh the subagent model catalog");
+	for (const [provider, error] of result.errors) {
+		throw new Error(`Datasafe could not refresh ${provider} before subagent launch`, { cause: error });
+	}
+}
+
 export default async function datasafe(pi: ExtensionAPI) {
 	const allowed = profile.providers === "all" ? undefined : new Set(profile.providers);
 	if (allowed) {
@@ -79,7 +89,8 @@ export default async function datasafe(pi: ExtensionAPI) {
 			? strategies[model.provider].request(event.payload, model) : undefined;
 	});
 
-	pi.on("tool_call", async (event) => {
+	pi.on("tool_call", async (event, ctx) => {
+		if (event.toolName === "subagent") await refreshSubagentModels(ctx);
 		if (profile.web === "all" || !event.toolName.startsWith("web_")) return;
 		const backend = profile.web[event.toolName];
 		if (!backend) return { block: true, reason: `Datasafe blocked web capability: ${event.toolName}` };
