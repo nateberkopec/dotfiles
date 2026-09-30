@@ -83,16 +83,7 @@ const provider: Provider<"openai-completions"> = {
 	streamSimple: guardedApi.streamSimple,
 };
 
-export async function registerFireworksUS(pi: ExtensionAPI) {
-	const apiKey = process.env.FIREWORKS_API_KEY;
-	if (process.env.PI_OFFLINE === undefined && apiKey) {
-		try {
-			catalog.replace(await fetchUSModels(apiKey, AbortSignal.timeout(15_000)));
-		} catch (error) {
-			console.warn(`Fireworks model discovery failed; using the cached catalog: ${String(error)}`);
-		}
-	}
-
+export function registerFireworksUS(pi: ExtensionAPI) {
 	pi.registerProvider(provider);
 }
 

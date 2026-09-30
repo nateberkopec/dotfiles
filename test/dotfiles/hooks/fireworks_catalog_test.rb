@@ -2,6 +2,7 @@ require "test_helper"
 require "json"
 require "open3"
 require "tmpdir"
+require "timeout"
 
 class FireworksCatalogTest < Minitest::Test
   EXTENSION = File.expand_path("../../../files/home/.pi/agent/extensions/datasafe", __dir__)
@@ -70,6 +71,63 @@ class FireworksCatalogTest < Minitest::Test
     end
 
     assert_includes error.message, "new-model-us"
+  end
+
+  def test_online_rpc_refreshes_fireworks_after_startup
+    # rubocop:disable Dotfiles/BanFileSystemClasses -- Pi needs a real isolated agent directory.
+    Dir.mktmpdir("pi-fireworks-test") do |agent_dir|
+      cached = model("accounts/fireworks/routers/kimi-k3-us")
+      File.write(File.join(agent_dir, "models-store.json"), JSON.generate(
+        "fireworks" => {"models" => [cached], "checkedAt" => 0}
+      ))
+      mock = File.join(agent_dir, "mock.ts")
+      calls = File.join(agent_dir, "fetches.log")
+      File.write(mock, <<~TS)
+        import { appendFileSync } from "node:fs";
+        import extension from #{EXTENSION.to_json};
+        globalThis.fetch = async (input) => {
+          const url = String(input);
+          appendFileSync(#{calls.to_json}, `${url}\n`);
+          if (url.endsWith("us-only-serverless.md")) return new Response(#{MARKDOWN.to_json});
+          if (url.endsWith("/models")) return new Response(JSON.stringify({ data: #{[
+            api_model("accounts/fireworks/models/kimi-k3"),
+            api_model("accounts/fireworks/routers/new-model")
+          ].to_json} }));
+          throw new Error(`unexpected fetch: ${url}`);
+        };
+        export default extension;
+      TS
+      env = {"PI_CODING_AGENT_DIR" => agent_dir, "FIREWORKS_API_KEY" => "test-key", "PI_OFFLINE" => nil}
+      output, stderr, status = Open3.capture3(env, "pi", "--no-extensions", "--extension", mock,
+        "--list-models", "fireworks")
+      assert status.success?, stderr
+      assert_includes output, cached.fetch("id")
+      refute File.exist?(calls), "--list-models must not wait for network discovery"
+
+      Open3.popen3(env, "pi", "--no-extensions", "--extension", mock, "--mode", "rpc", "--no-session") do |stdin, stdout, errors, wait|
+        begin
+          Timeout.timeout(10) do
+            loop do
+              begin
+                ids = JSON.parse(File.read(File.join(agent_dir, "models-store.json"))).fetch("fireworks").fetch("models").map { |entry| entry.fetch("id") }
+                break if ids.include?("accounts/fireworks/routers/new-model-us")
+              rescue JSON::ParserError
+                # Another process is writing the cache.
+              end
+              raise "Pi exited before refresh: #{errors.read}" unless wait.alive?
+              sleep 0.05
+            end
+          end
+        ensure
+          stdin.close
+          stdout.read
+          errors.read
+        end
+        assert wait.value.success?
+      end
+      assert_includes File.readlines(calls, chomp: true), "https://us.api.fireworks.ai/inference/v1/models"
+    end
+    # rubocop:enable Dotfiles/BanFileSystemClasses
   end
 
   def test_pi_loads_folder_extension_offline_and_ignores_old_global_cache

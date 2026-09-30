@@ -3,6 +3,7 @@ require "test_helper"
 require "json"
 require "open3"
 require "tmpdir"
+require "timeout"
 
 class OpenRouterUSRuntimeTest < Minitest::Test
   INDEX = File.expand_path("../../../files/home/.pi/agent/extensions/datasafe/index.ts", __dir__)
@@ -14,36 +15,31 @@ class OpenRouterUSRuntimeTest < Minitest::Test
     flunk "required Pi runtime is missing" unless command_available?("pi")
   end
 
-  def test_online_cli_persists_regional_models_for_offline_startup
+  def test_online_startup_uses_cache_then_refreshes_in_background
     with_agent_dir do |agent_dir|
+      seed_stored_catalog(agent_dir)
       calls = File.join(agent_dir, "fetches.log")
-      mock = write_fetch_mock(agent_dir, calls, [MODEL_A])
+      mock = write_fetch_mock(agent_dir, calls, [MODEL_A, MODEL_B])
 
-      2.times { assert_models run_pi(agent_dir, mock: mock), [MODEL_A] }
-      fetches = File.readlines(calls, chomp: true).select { |url| url == "#{BASE_URL}/models" }
-      assert_includes 1..2, fetches.length
-
-      stored = JSON.parse(File.read(File.join(agent_dir, "models-store.json"))).fetch("openrouter")
-      assert_equal [BASE_URL.delete_suffix("/v1")], stored.fetch("models").map { |model| model.fetch("baseUrl") }.uniq
-      assert_models run_pi(agent_dir, offline: true), [MODEL_A]
-
-      expire_stored_catalog(agent_dir)
-      assert_models run_pi(agent_dir, offline: true), [MODEL_A]
-      failing_mock = write_failing_fetch_mock(agent_dir, File.join(agent_dir, "failed.log"))
-      assert_models run_pi(agent_dir, mock: failing_mock), [MODEL_A]
-      assert_includes File.readlines(File.join(agent_dir, "failed.log"), chomp: true), "#{BASE_URL}/models"
+      assert_models run_pi(agent_dir, mock: mock), [MODEL_A]
+      refute File.exist?(calls), "--list-models must not fetch before displaying cached models"
+      run_rpc_refresh(agent_dir, mock) do
+        assert_equal [MODEL_A, MODEL_B].sort, stored_ids(agent_dir).sort
+      end
+      assert_includes File.readlines(calls, chomp: true), "#{BASE_URL}/models"
+      assert_models run_pi(agent_dir, offline: true), [MODEL_A, MODEL_B]
     end
   end
 
-  def test_online_cli_discovers_new_models_after_reload
+  def test_failed_background_refresh_preserves_cached_models
     with_agent_dir do |agent_dir|
-      first_mock = write_fetch_mock(agent_dir, File.join(agent_dir, "first.log"), [MODEL_A])
-      2.times { assert_models run_pi(agent_dir, mock: first_mock), [MODEL_A] }
-      expire_stored_catalog(agent_dir)
-
-      second_mock = write_fetch_mock(agent_dir, File.join(agent_dir, "second.log"), [MODEL_A, MODEL_B])
-      2.times { assert_models run_pi(agent_dir, mock: second_mock), [MODEL_A, MODEL_B] }
-      assert_models run_pi(agent_dir, offline: true), [MODEL_A, MODEL_B]
+      seed_stored_catalog(agent_dir)
+      calls = File.join(agent_dir, "failed.log")
+      mock = write_failing_fetch_mock(agent_dir, calls)
+      run_rpc_refresh(agent_dir, mock) do
+        assert File.exist?(calls)
+      end
+      assert_models run_pi(agent_dir, offline: true), [MODEL_A]
     end
   end
 
@@ -67,11 +63,43 @@ class OpenRouterUSRuntimeTest < Minitest::Test
     Dir.mktmpdir("openrouter-us-runtime", &block)
   end
 
-  def expire_stored_catalog(agent_dir)
-    path = File.join(agent_dir, "models-store.json")
-    store = JSON.parse(File.read(path))
-    store.fetch("openrouter")["checkedAt"] = 0
-    File.write(path, JSON.generate(store))
+  def seed_stored_catalog(agent_dir)
+    File.write(File.join(agent_dir, "models-store.json"), JSON.generate("openrouter" => {
+      "models" => [{
+        "id" => MODEL_A, "name" => MODEL_A, "provider" => "openrouter", "api" => "anthropic-messages",
+        "baseUrl" => BASE_URL.delete_suffix("/v1"), "reasoning" => false, "input" => ["text"],
+        "cost" => {"input" => 0, "output" => 0, "cacheRead" => 0, "cacheWrite" => 0},
+        "contextWindow" => 200_000, "maxTokens" => 8192
+      }], "checkedAt" => 0
+    }))
+  end
+
+  def stored_ids(agent_dir)
+    JSON.parse(File.read(File.join(agent_dir, "models-store.json"))).fetch("openrouter").fetch("models").map { |model| model.fetch("id") }
+  rescue JSON::ParserError
+    []
+  end
+
+  def run_rpc_refresh(agent_dir, mock)
+    env = {"OPENROUTER_API_KEY" => "runtime-test", "PI_CODING_AGENT_DIR" => agent_dir, "PI_OFFLINE" => nil}
+    Open3.popen3(env, "pi", "--no-extensions", "--extension", mock, "--mode", "rpc", "--no-session") do |stdin, stdout, stderr, wait|
+      begin
+        Timeout.timeout(10) do
+          loop do
+            yield
+            break
+          rescue Minitest::Assertion
+            raise "Pi exited before refresh: #{stderr.read}" unless wait.alive?
+            sleep 0.05
+          end
+        end
+      ensure
+        stdin.close
+        stdout.read
+        stderr.read
+      end
+      assert wait.value.success?
+    end
   end
 
   def write_failing_fetch_mock(agent_dir, calls_path)
