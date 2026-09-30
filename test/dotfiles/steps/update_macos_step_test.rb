@@ -37,17 +37,34 @@ class UpdateMacOSStepTest < Minitest::Test
 
   def test_complete_returns_true_in_ci_with_updates
     stub_updates_with_last_check
-    with_ci { assert @step.complete? }
+    with_ci do
+      assert @step.complete?
+      assert_empty @step.collect_errors
+    end
+  end
+
+  def test_nonadmin_with_updates_is_complete_without_errors_interactively
+    @fake_system.stub_macos
+    @fake_system.stub_command("groups", "staff")
+    stub_updates_with_last_check
+
+    refute @step.should_run?
+    assert_empty @step.collect_errors
+    assert @step.complete?
+    assert_empty @step.errors
   end
 
   def test_complete_returns_true_without_updates
+    @fake_system.stub_command("groups", "admin staff")
     stub_no_updates_with_last_check
     assert @step.complete?
   end
 
   def test_complete_returns_false_with_updates
+    @fake_system.stub_command("groups", "admin staff")
     stub_updates_with_last_check
     refute @step.complete?
+    assert_equal ["macOS update available: MSU_UPDATE_123_minor"], @step.collect_errors
   end
 
   def test_run_adds_notice_with_available_updates
@@ -68,6 +85,7 @@ class UpdateMacOSStepTest < Minitest::Test
   end
 
   def test_complete_ignores_major_macos_upgrades
+    @fake_system.stub_command("groups", "admin staff")
     stub_plist_updates_with_identifier("MSU_UPDATE_25F71_patch_26.5_major")
     assert @step.complete?
   end
