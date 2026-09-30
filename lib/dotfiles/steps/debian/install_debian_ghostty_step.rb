@@ -77,6 +77,6 @@ class Dotfiles::Step::InstallDebianGhosttyStep < Dotfiles::Step
   end
 
   def reset_cache
-    @ghostty_appimage_path = nil
+    remove_instance_variable(:@ghostty_appimage_path)
   end
 end
