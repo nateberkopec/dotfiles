@@ -117,6 +117,16 @@ class FireworksCatalogTest < Minitest::Test
               raise "Pi exited before refresh: #{errors.read}" unless wait.alive?
               sleep 0.05
             end
+            stdin.puts JSON.generate(id: "models", type: "get_available_models")
+            loop do
+              reply = JSON.parse(stdout.gets || raise("Pi exited without a model registry response"))
+              next unless reply["id"] == "models"
+
+              assert reply.fetch("success"), reply.inspect
+              ids = reply.fetch("data").fetch("models").map { |entry| entry.fetch("id") }
+              assert_includes ids, "accounts/fireworks/routers/new-model-us", "online discovery must update the active session registry"
+              break
+            end
           end
         ensure
           stdin.close

@@ -20,18 +20,17 @@ import {
 const fireworksApi = builtinProviders().find((provider) => provider.id === FIREWORKS_PROVIDER);
 if (!fireworksApi) throw new Error("Pi does not provide the built-in Fireworks provider");
 const catalog: USModelCatalog = new USModelCatalog();
+let catalogCheckedAt = -1;
 
 async function refreshModels(context: RefreshModelsContext) {
-	if (catalog.getModels().length > 0 && !context.allowNetwork) {
-		await context.publish({
-			persist: { models: [...catalog.getModels()], checkedAt: Date.now() },
-			update: () => {},
-		});
-		return;
-	}
-	if (context.stored && catalog.getModels().length === 0) {
-		const restored = cachedUSModels(context.stored.models);
-		if (restored.length > 0 && !(await context.publish({ update: () => catalog.replace(restored) }))) return;
+	const stored = context.stored;
+	const storedCheckedAt = stored?.checkedAt ?? 0;
+	if (stored && storedCheckedAt > catalogCheckedAt) {
+		const restored = cachedUSModels(stored.models);
+		if (restored.length > 0 && !(await context.publish({ update: () => {
+			catalog.replace(restored);
+			catalogCheckedAt = storedCheckedAt;
+		} }))) return;
 	}
 	if (!context.allowNetwork || context.signal.aborted) return;
 	const apiKey = context.credential?.type === "api_key" ? context.credential.key : undefined;
@@ -39,9 +38,13 @@ async function refreshModels(context: RefreshModelsContext) {
 
 	const refreshed = await fetchUSModels(apiKey, context.signal);
 	if (context.signal.aborted) return;
+	const checkedAt = Date.now();
 	await context.publish({
-		persist: { models: refreshed, checkedAt: Date.now() },
-		update: () => catalog.replace(refreshed),
+		persist: { models: refreshed, checkedAt },
+		update: () => {
+			catalog.replace(refreshed);
+			catalogCheckedAt = checkedAt;
+		},
 	});
 }
 
