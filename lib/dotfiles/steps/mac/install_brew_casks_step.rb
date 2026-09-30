@@ -9,81 +9,59 @@ class Dotfiles::Step::InstallBrewCasksStep < Dotfiles::Step
 
   def initialize(**kwargs)
     super
-    @brewfile_path = temp_path("brewfile")
-    @packages_installed_status = nil
+    @install_failures = {}
   end
 
   def should_run?
-    return false unless brewfile_needed?
-
-    generate_brewfile
-    !packages_already_installed?
+    packages.any? { |type, name| !installed?(type, name) }
   end
 
   def run
     debug "Installing Homebrew packages..."
     @system.execute!(env_command({"HOMEBREW_NO_ENV_HINTS" => "1"}, "brew", "update-if-needed"))
-    install_and_reset
-    install_and_reset unless packages_already_installed?
+    2.times do
+      packages.each do |type, name|
+        next if installed?(type, name)
+
+        install(type, name)
+      end
+    end
   end
 
   def complete?
     super
-    return true unless brewfile_needed?
+    packages.each do |type, name|
+      next if installed?(type, name)
 
-    generate_brewfile
-    add_missing_packages_error unless packages_already_installed?
-    @packages_installed_status
+      add_error(@install_failures.fetch([type, name], "Homebrew #{type} not installed: #{name}"))
+    end
+    errors.empty?
   end
 
   private
 
-  def install_and_reset
-    output, exit_status = install_packages
-    log_installation_results(output, exit_status)
-    @packages_installed_status = nil
+  def packages
+    formulae.map { |name| ["formula", name] } + @config.brew_casks.map { |name| ["cask", name] }
   end
 
-  def packages_already_installed?
-    return @packages_installed_status unless @packages_installed_status.nil?
-
-    output, status = brew_quiet("bundle", "check", "--file=#{@brewfile_path}", "--no-upgrade")
-    @packages_installed_status = status == 0
-    @packages_installed_error = output unless @packages_installed_status
-    @packages_installed_status
+  def installed?(type, name)
+    lookup_name = (type == "cask") ? name.split("/").last : name
+    output, status = brew_quiet("list", "--#{type}", "--versions", lookup_name)
+    status == 0 && !output.strip.empty?
   end
 
-  def add_missing_packages_error
-    message = "Some Homebrew packages are not installed"
-    details = @packages_installed_error.to_s.strip
-    add_error(details.empty? ? message : "#{message}: #{details}")
-  end
-
-  def install_packages
-    environment = {"HOMEBREW_NO_AUTO_UPDATE" => "1", "HOMEBREW_NO_ENV_HINTS" => "1", "HOMEBREW_CASK_OPTS" => cask_opts}
-    @system.execute(env_command(environment, "brew", "bundle", "install", "--file=#{@brewfile_path}"))
-  end
-
-  def log_installation_results(output, exit_status)
-    return if exit_status == 0
-
-    debug "brew bundle install exited with status #{exit_status}"
-    debug "Output:\n#{output}" if @debug
-  end
-
-  def generate_brewfile
-    @system.write_file(@brewfile_path, brewfile_content)
-  end
-
-  def brewfile_content
-    [
-      *formulae.map { |package| "brew \"#{package}\"" },
-      *@config.brew_casks.map { |cask| "cask \"#{cask}\"" }
-    ].join("\n") + "\n"
-  end
-
-  def brewfile_needed?
-    formulae.any? || @config.brew_casks.any?
+  def install(type, name)
+    args = ["brew", "install", "--#{type}"]
+    args << "--adopt" if type == "cask"
+    args << "--appdir=#{@home}/Applications" if type == "cask" && !user_has_admin_rights?
+    args << name
+    install_command = env_command({"HOMEBREW_NO_AUTO_UPDATE" => "1", "HOMEBREW_NO_ENV_HINTS" => "1"}, *args)
+    output, status = execute(install_command)
+    if status == 0
+      @install_failures.delete([type, name])
+    else
+      @install_failures[[type, name]] = "Homebrew #{type} #{name}: #{format_command_error(install_command, status, output)}"
+    end
   end
 
   def formulae
@@ -99,9 +77,5 @@ class Dotfiles::Step::InstallBrewCasksStep < Dotfiles::Step
     JSON.parse(output).fetch("brew", {}).fetch("packages", []).map { |package| package["package"] }
   rescue JSON::ParserError
     []
-  end
-
-  def cask_opts
-    user_has_admin_rights? ? "" : "--appdir=~/Applications"
   end
 end
