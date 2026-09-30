@@ -33,6 +33,17 @@ class ConfigureFileAssociationsStepTest < StepTestCase
     end
   end
 
+  def test_skips_with_reason_when_duti_is_unavailable
+    @fake_system.stub_command("command -v duti >/dev/null 2>&1", "", exit_status: 1)
+
+    refute_should_run
+    assert_complete
+    assert_equal 1, step.notices.size
+    assert_includes step.notices.first[:message], "duti is not available"
+    refute_executed("duti -x .md 2>/dev/null")
+    refute_executed("duti -s com.microsoft.VSCode .md all")
+  end
+
   def test_runs_duti_command_for_each_extension
     step.run
     assert_executed("duti -s com.microsoft.VSCode .md all")

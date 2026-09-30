@@ -32,6 +32,11 @@ class Dotfiles::Step::ConfigureFileAssociationsStep < Dotfiles::Step
     return true if ENV["CI"]
 
     super
+    unless file_associations.empty? || command_exists?("duti")
+      add_notice(title: "File Associations skipped", message: "duti is not available; install the Homebrew formula to configure file associations.") if notices.empty?
+      return true
+    end
+
     file_associations.each do |bundle_id, extensions|
       extensions.each do |ext|
         add_error("#{ext} not set to open with #{bundle_id}") unless current_handler(ext) == bundle_id
