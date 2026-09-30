@@ -12,7 +12,11 @@ class Dotfiles::Migration::RemoveImmutableFileFlags < Dotfiles::Migration
     files = managed_files.select { |file| @system.file_exist?(file) }
     return if files.empty?
 
-    execute(command("sudo", "chflags", "noschg,nouchg", *files))
+    files.each do |file|
+      flags_command = command("chflags", "noschg,nouchg", file)
+      _, status = @system.execute(flags_command)
+      execute(command("sudo", "chflags", "noschg,nouchg", file)) unless status == 0
+    end
   end
 
   def down
