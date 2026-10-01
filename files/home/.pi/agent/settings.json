@@ -5,7 +5,6 @@
   "defaultThinkingLevel": "medium",
   "hideThinkingBlock": false,
   "packages": [
-    "npm:pi-mcp-adapter@2.37.0",
     "npm:@narumitw/pi-btw@0.61.0",
     "git:github.com/nijaru/pi-fast-mode@85c8b67a4a3f823e33ab0217a55f37d15e6e6eca",
     "git:github.com/nateberkopec/pi-ding@af4d8fbe67f2aff9cebcee31f30a6b0eb69ba8c4",
@@ -72,5 +71,6 @@
       "maxRetryDelayMs": 30000
     }
   },
-  "theme": "dark"
+  "theme": "dark",
+  "tuiMode": "regular"
 }

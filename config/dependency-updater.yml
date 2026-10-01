@@ -21,9 +21,6 @@ observed_casks:
 # Codex records declined candidates here while revising the batch PR.
 # A security advisory always wakes a snooze early.
 snoozes:
-  "pi:pi-mcp-adapter":
-    candidate: "2.33.0"
-    wake_at: "2.34.0"
   "pi:@narumitw/pi-btw":
     candidate: "0.58.1"
     wake_at: "0.59.0"
