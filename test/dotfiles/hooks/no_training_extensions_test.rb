@@ -8,7 +8,7 @@ class NoTrainingExtensionsTest < Minitest::Test
   DATASAFE = File.expand_path("../../../files/home/.pi/agent/extensions/datasafe/index.ts", __dir__)
 
   def test_openrouter_request_preserves_routing_and_denies_collection
-    request = capture_request(DATASAFE, "openrouter", "anthropic/claude-3-haiku", {
+    request = capture_request(DATASAFE, "openrouter", "anthropic/claude-haiku-4.5", {
       provider: {order: ["anthropic"], data_collection: "allow"}
     })
 
@@ -17,7 +17,7 @@ class NoTrainingExtensionsTest < Minitest::Test
   end
 
   def test_vercel_request_preserves_options_and_disallows_training
-    request = capture_request(DATASAFE, "vercel-ai-gateway", "anthropic/claude-3-haiku", {
+    request = capture_request(DATASAFE, "vercel-ai-gateway", "anthropic/claude-haiku-4.5", {
       providerOptions: {gateway: {order: ["anthropic"], disallowPromptTraining: false}}
     })
 
@@ -74,7 +74,8 @@ class NoTrainingExtensionsTest < Minitest::Test
       assert File.exist?(result), "request not captured: #{stdout} #{stderr}"
       assert File.exist?(sent), "outgoing request not captured: #{stdout} #{stderr}"
       assert_includes stdout + stderr, "No compliant providers available"
-      assert_equal JSON.parse(File.read(result)), JSON.parse(File.read(sent))
+      # Pi adds Anthropic's beta header to the outgoing body after the provider hook.
+      assert_equal JSON.parse(File.read(result)).except("betas"), JSON.parse(File.read(sent)).except("betas")
       assert_match(%r{\Ahttps://us\.openrouter\.ai/api/v1/messages}, File.read(url)) if provider == "openrouter"
       JSON.parse(File.read(sent))
     end

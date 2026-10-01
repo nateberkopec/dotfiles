@@ -18,7 +18,7 @@ if [[ -z "$agent_root" ]] && command -v mise >/dev/null 2>&1; then
   dependency_root="$install_root"
 fi
 if [[ -z "$agent_root" ]]; then
-  echo "Pi 0.85.1 is required to type-check Pi extensions" >&2
+  echo "Pi is required to type-check Pi extensions" >&2
   exit 1
 fi
 
