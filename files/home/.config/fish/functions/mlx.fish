@@ -8,6 +8,7 @@ function mlx --description "Run the latest version of a mise-managed command"
   set -e argv[1]
   set -l tool (mise which "$bin" --plugin); or return
   set -lx MISE_MINIMUM_RELEASE_AGE 0s
+  set -lx MISE_FETCH_REMOTE_VERSIONS_CACHE 0s
 
   if string match -q "npm:*" "$tool"
     set -l package (string replace "npm:" "" "$tool")
