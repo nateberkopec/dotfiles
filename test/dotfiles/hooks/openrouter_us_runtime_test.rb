@@ -7,7 +7,7 @@ require "timeout"
 
 class OpenRouterUSRuntimeTest < Minitest::Test
   INDEX = File.expand_path("../../../files/home/.pi/agent/extensions/datasafe/index.ts", __dir__)
-  MODEL_A = "anthropic/claude-3-haiku"
+  MODEL_A = "anthropic/claude-haiku-4.5"
   MODEL_B = "google/gemini-2.5-pro"
   BASE_URL = "https://us.openrouter.ai/api/v1"
 

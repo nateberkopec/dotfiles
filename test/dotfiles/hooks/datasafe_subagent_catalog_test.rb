@@ -8,7 +8,7 @@ class DatasafeSubagentCatalogTest < Minitest::Test
   EXTENSION = File.expand_path("../../../files/home/.pi/agent/extensions/datasafe/index.ts", __dir__)
   KIMI = "accounts/fireworks/routers/kimi-k3-us"
   OLD = "accounts/fireworks/routers/old-us"
-  ROUTER_OLD = "anthropic/claude-3-haiku"
+  ROUTER_OLD = "anthropic/claude-haiku-4.5"
   ROUTER_NEW = "google/gemini-2.5-pro"
 
   def test_running_session_refreshes_external_catalogs_before_subagent_launch
