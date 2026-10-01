@@ -15,6 +15,7 @@ class MlxTest < Minitest::Test
     output = run_mlx("npm:@earendil-works/pi-coding-agent", "mlx pi --model astra", "existing")
 
     assert_includes output, "age=0s"
+    assert_includes output, "cache=0s"
     assert_includes output, "exclude=existing,@earendil-works/*"
     assert_includes output, "args=<x><npm:@earendil-works/pi-coding-agent@latest><--><pi><--model><astra>"
   end
@@ -23,6 +24,7 @@ class MlxTest < Minitest::Test
     output = run_mlx("github:cli/cli", "mlx gh --version")
 
     assert_includes output, "age=0s"
+    assert_includes output, "cache=0s"
     assert_includes output, "exclude=<unset>"
     assert_includes output, "args=<x><github:cli/cli@latest><--><gh><--version>"
   end
@@ -44,6 +46,7 @@ class MlxTest < Minitest::Test
       env = {
         "PATH" => "#{dir}:#{ENV.fetch("PATH")}",
         "FAKE_MISE_TOOL" => tool,
+        "MISE_FETCH_REMOTE_VERSIONS_CACHE" => "7d",
         "AUBE_MINIMUM_RELEASE_AGE_EXCLUDE" => exclusion
       }
       output, status = Open3.capture2e(env, "fish", "--no-config", "--command", "source #{Shellwords.escape(FUNCTION_PATH)}; #{command}")
@@ -60,6 +63,7 @@ class MlxTest < Minitest::Test
         exit
       fi
       printf 'age=%s\n' "${MISE_MINIMUM_RELEASE_AGE-<unset>}"
+      printf 'cache=%s\n' "${MISE_FETCH_REMOTE_VERSIONS_CACHE-<unset>}"
       printf 'exclude=%s\n' "${AUBE_MINIMUM_RELEASE_AGE_EXCLUDE-<unset>}"
       printf 'args='; printf '<%s>' "$@"; printf '\n'
     SH
