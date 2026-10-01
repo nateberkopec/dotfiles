@@ -26,7 +26,7 @@ async function refreshModels(context: RefreshModelsContext) {
 	const stored = context.stored;
 	const storedCheckedAt = stored?.checkedAt ?? 0;
 	if (stored && storedCheckedAt > catalogCheckedAt) {
-		const restored = cachedUSModels(stored.models);
+		const restored = cachedUSModels(stored.models.filter((model): model is Model<Api> => !("type" in model) || model.type === "chat"));
 		if (restored.length > 0 && !(await context.publish({ update: () => {
 			catalog.replace(restored);
 			catalogCheckedAt = storedCheckedAt;
