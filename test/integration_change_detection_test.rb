@@ -42,7 +42,7 @@ class IntegrationChangeDetectionTest < Minitest::Test
   def test_push_with_agent_markdown_and_skill_license_is_optional
     base = head
     %w[
-      .agents/skills/needs-spec/SKILL.md
+      .agents/skills/example/SKILL.md
       files/home/.claude/CLAUDE.md
       files/home/.claude/skills/example/reference.md
       files/home/.claude/skills/example/LICENSE.txt
