@@ -29,7 +29,7 @@ class Dotfiles::Step::InstallPiPackagesStep < Dotfiles::Step
 
   def install_package(package)
     install = command("pi", "install", package)
-    install = env_command({"npm_config_minimum_release_age_exclude" => "pi-subagents@0.74.0"}, install) if package == "npm:pi-subagents@0.74.0"
+    install = env_command({"npm_config_min_release_age_exclude" => "pi-subagents"}, install) if expected_packages.include?("npm:pi-subagents@0.74.0")
     output, status = execute(install)
     install_errors << format_command_error(install, status, output) unless status == 0
   end
