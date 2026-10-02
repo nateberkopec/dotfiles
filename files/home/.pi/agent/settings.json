@@ -12,7 +12,14 @@
     "npm:pi-subagents@0.74.0",
     "npm:pi-web-providers@3.5.1",
     "git:github.com/nateberkopec/pi-openai-guidance@b9e9507ece945fc1dd71d1e838a75fe794576d83",
-    "npm:pi-context-view@0.6.0"
+    "npm:pi-context-view@0.6.0",
+    {
+      "source": "git:github.com/mitsuhiko/agent-stuff@0865c849befd2021490679f96a8dee58c84ac857",
+      "extensions": ["extensions/goal.ts"],
+      "skills": [],
+      "prompts": [],
+      "themes": []
+    }
   ],
   "extensions": [
     "-builtin:mcp"

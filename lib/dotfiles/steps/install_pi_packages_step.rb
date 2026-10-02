@@ -61,7 +61,9 @@ class Dotfiles::Step::InstallPiPackagesStep < Dotfiles::Step
   def expected_packages
     return [] unless settings_exist?
 
-    JSON.parse(@system.read_file(settings_path)).fetch("packages", [])
+    JSON.parse(@system.read_file(settings_path)).fetch("packages", []).map do |package|
+      package.is_a?(Hash) ? package.fetch("source") : package
+    end
   rescue JSON::ParserError
     []
   end
@@ -76,7 +78,7 @@ class Dotfiles::Step::InstallPiPackagesStep < Dotfiles::Step
     output, status = execute(command("pi", "list"))
     return [] unless status == 0
 
-    output.lines.map(&:strip).grep(/^\S+$/)
+    output.lines.filter_map { |line| line.strip[/\A(\S+)(?: \(filtered\))?\z/, 1] }
   end
 
   def install_errors

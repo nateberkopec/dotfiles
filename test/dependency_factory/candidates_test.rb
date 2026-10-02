@@ -104,6 +104,16 @@ class DependencyFactoryCandidatesTest < Minitest::Test
     assert_equal ["go:github.com/noperator/yknotify", "pi:git:github.com/nijaru/pi-fast-mode@85c8b6"], result["observation_only"].map { |pin| pin["name"] }
   end
 
+  def test_filtered_pi_packages_are_read_by_source
+    source = "git:github.com/mitsuhiko/agent-stuff@#{"a" * 40}"
+    settings = JSON.generate("packages" => [{"source" => source, "extensions" => ["extensions/goal.ts"], "skills" => []}])
+    pin = DependencyFactory::Manifests.pi_packages("settings.json", settings).first
+
+    assert_equal "pi:#{source}", pin.name
+    assert_equal source, pin.current
+    assert_equal "unpinned", pin.kind
+  end
+
   private
 
   def pins
