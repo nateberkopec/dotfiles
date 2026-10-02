@@ -39,7 +39,7 @@ class DatasafeFallbackTest < Minitest::Test
 
   def test_explicit_in_session_model_selection_unlocks_missing_default
     with_pi do |dir, mock, calls|
-      File.write(File.join(dir, "settings.json"), JSON.generate("defaultProvider" => "openai-codex", "defaultModel" => "unavailable"))
+      File.write(File.join(dir, "settings.json"), JSON.generate("defaultProvider" => "openai", "defaultModel" => "unavailable"))
       choose = File.join(dir, "choose.ts")
       File.write(choose, <<~TS)
         export default function choose(pi) {

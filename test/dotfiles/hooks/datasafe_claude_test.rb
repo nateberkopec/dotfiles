@@ -50,7 +50,7 @@ class DatasafeClaudeTest < Minitest::Test
 
   def test_missing_default_requires_explicit_model_in_claude_profile
     Dir.mktmpdir("datasafe-claude") do |dir|
-      File.write(File.join(dir, "settings.json"), JSON.generate("defaultProvider" => "openai-codex", "defaultModel" => "unavailable"))
+      File.write(File.join(dir, "settings.json"), JSON.generate("defaultProvider" => "openai", "defaultModel" => "unavailable"))
       sent = File.join(dir, "sent.log")
       mock = File.join(dir, "mock.ts")
       File.write(mock, <<~TS)
@@ -62,7 +62,7 @@ class DatasafeClaudeTest < Minitest::Test
         export default function mock() {}
       TS
       output = pi(dir, "--extension", mock, "--no-session", "-p", "hello")
-      assert_includes output, "blocked silent model fallback from configured default openai-codex/unavailable"
+      assert_includes output, "blocked silent model fallback from configured default openai/unavailable"
       refute File.exist?(sent)
       pi(dir, "--extension", mock, "--provider", "anthropic", "--model", "claude-sonnet-4-6", "--no-session", "-p", "hello")
       assert_match(%r{\Ahttps://api\.anthropic\.com/v1/messages}, File.read(sent))

@@ -9,7 +9,7 @@ const exaZdr = { web_search: "exa", web_contents: "exa" };
 
 export const profiles: Readonly<Record<string, Profile>> = {
 	"usa-no-train": {
-		providers: ["openai", "openai-codex", "meridian", "google-vertex", "fireworks", "openrouter", "vercel-ai-gateway"],
+		providers: ["openai", "meridian", "google-vertex", "fireworks", "openrouter", "vercel-ai-gateway"],
 		web: exaZdr,
 		strategies: ["openrouter", "fireworks", "vercel-ai-gateway"],
 	},
