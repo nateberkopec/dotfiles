@@ -1,13 +1,13 @@
 {
   "lastChangelogVersion": "9999.0.0",
-  "defaultProvider": "openai-codex",
+  "defaultProvider": "openai",
   "defaultModel": "gpt-6-sol",
   "defaultThinkingLevel": "medium",
   "hideThinkingBlock": false,
   "packages": [
     "npm:pi-mcp-adapter@2.37.0",
     "npm:@narumitw/pi-btw@0.61.0",
-    "git:github.com/nijaru/pi-fast-mode@85c8b67a4a3f823e33ab0217a55f37d15e6e6eca",
+    "git:github.com/nateberkopec/pi-fast-mode@6f8605ece71922bc7ff27fdb9333949e9b609afd",
     "git:github.com/nateberkopec/pi-ding@af4d8fbe67f2aff9cebcee31f30a6b0eb69ba8c4",
     "npm:pi-subagents@0.74.0",
     "npm:pi-web-providers@3.5.1",
@@ -28,9 +28,9 @@
     "enabled": true
   },
   "enabledModels": [
-    "openai-codex/gpt-6-sol:medium",
-    "openai-codex/gpt-6-astra:low",
-    "openai-codex/gpt-6-luna:xhigh",
+    "openai/gpt-6-sol:medium",
+    "openai/gpt-6-astra:low",
+    "openai/gpt-6-luna:xhigh",
     "fireworks/accounts/fireworks/routers/kimi-k3-us",
     "meridian/claude-opus-5-5",
     "meridian/claude-fable-5-1"
@@ -38,31 +38,31 @@
   "subagents": {
     "agentOverrides": {
       "delegate": {
-        "model": "openai-codex/gpt-6-sol",
+        "model": "openai/gpt-6-sol",
         "thinking": "medium"
       },
       "reviewer": {
-        "model": "openai-codex/gpt-6-astra",
+        "model": "openai/gpt-6-astra",
         "thinking": "xhigh"
       },
       "oracle": {
-        "model": "openai-codex/gpt-6-astra",
+        "model": "openai/gpt-6-astra",
         "thinking": "xhigh"
       },
       "advisor": {
-        "model": "openai-codex/gpt-6-astra",
+        "model": "openai/gpt-6-astra",
         "thinking": "xhigh"
       },
       "scout": {
-        "model": "openai-codex/gpt-6-sol",
+        "model": "openai/gpt-6-sol",
         "thinking": "low"
       },
       "worker": {
-        "model": "openai-codex/gpt-6-sol",
+        "model": "openai/gpt-6-sol",
         "thinking": "medium"
       },
       "researcher": {
-        "model": "openai-codex/gpt-6-sol",
+        "model": "openai/gpt-6-sol",
         "thinking": "low"
       }
     }
