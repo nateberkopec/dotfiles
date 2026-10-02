@@ -78,7 +78,7 @@ class Dotfiles::Step::InstallPiPackagesStep < Dotfiles::Step
     output, status = execute(command("pi", "list"))
     return [] unless status == 0
 
-    output.lines.map(&:strip).grep(/^\S+$/)
+    output.lines.filter_map { |line| line.strip[/\A(\S+)(?: \(filtered\))?\z/, 1] }
   end
 
   def install_errors

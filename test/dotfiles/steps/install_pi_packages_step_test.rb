@@ -113,7 +113,7 @@ class InstallPiPackagesStepTest < StepTestCase
     assert_should_run
     step.run
     assert_executed("pi install #{package.fetch("source")}")
-    stub_pi_list(package.fetch("source"))
+    stub_pi_list("User packages:\n  #{package.fetch("source")} (filtered)\n    /home/test/.pi/agent/git/github.com/mitsuhiko/agent-stuff\n")
     assert_complete
     assert_equal settings, @fake_system.read_file(File.join(@home, ".pi", "agent", "settings.json"))
   end
