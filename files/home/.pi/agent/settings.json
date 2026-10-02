@@ -1,7 +1,7 @@
 {
   "lastChangelogVersion": "9999.0.0",
   "defaultProvider": "openai",
-  "defaultModel": "gpt-6-sol",
+  "defaultModel": "gpt-6.1-sol",
   "defaultThinkingLevel": "medium",
   "hideThinkingBlock": false,
   "packages": [
@@ -35,7 +35,7 @@
     "enabled": true
   },
   "enabledModels": [
-    "openai/gpt-6-sol:medium",
+    "openai/gpt-6.1-sol:medium",
     "openai/gpt-6-astra:low",
     "openai/gpt-6-luna:xhigh",
     "fireworks/accounts/fireworks/routers/kimi-k3-us",
@@ -45,7 +45,7 @@
   "subagents": {
     "agentOverrides": {
       "delegate": {
-        "model": "openai/gpt-6-sol",
+        "model": "openai/gpt-6.1-sol",
         "thinking": "medium"
       },
       "reviewer": {
@@ -61,15 +61,15 @@
         "thinking": "xhigh"
       },
       "scout": {
-        "model": "openai/gpt-6-sol",
+        "model": "openai/gpt-6.1-sol",
         "thinking": "low"
       },
       "worker": {
-        "model": "openai/gpt-6-sol",
+        "model": "openai/gpt-6.1-sol",
         "thinking": "medium"
       },
       "researcher": {
-        "model": "openai/gpt-6-sol",
+        "model": "openai/gpt-6.1-sol",
         "thinking": "low"
       }
     }
