@@ -16,6 +16,19 @@ class DependencyFactoryUpdateValidationTest < Minitest::Test
     end
   end
 
+  def test_filtered_package_allows_version_update_but_rejects_filter_changes
+    with_checkout(filtered: true) do |root, base|
+      write_settings(root, npm: "2.0.0", filtered: true)
+      output, status = check(root, base)
+      assert status.success?, output
+
+      write_settings(root, npm: "2.0.0", filtered: true, extensions: ["extensions/*.ts"])
+      output, status = check(root, base)
+      refute status.success?, output
+      assert_includes output, "unsafe changes to files/home/.pi/agent/settings.json"
+    end
+  end
+
   def test_git_reference_change_is_rejected
     with_checkout do |root, base|
       write_settings(root, git: "b" * 40)
@@ -28,10 +41,10 @@ class DependencyFactoryUpdateValidationTest < Minitest::Test
 
   private
 
-  def with_checkout
+  def with_checkout(filtered: false)
     Dir.mktmpdir do |root|
       FileUtils.mkdir_p(File.join(root, "files/home/.pi/agent"))
-      write_settings(root)
+      write_settings(root, filtered: filtered)
       git(root, "init", "-q")
       git(root, "add", ".")
       git(root, "-c", "user.name=Test", "-c", "user.email=test@example.test", "commit", "--no-gpg-sign", "-qm", "Fixture")
@@ -39,9 +52,11 @@ class DependencyFactoryUpdateValidationTest < Minitest::Test
     end
   end
 
-  def write_settings(root, npm: "1.0.0", git: "a" * 40)
+  def write_settings(root, npm: "1.0.0", git: "a" * 40, filtered: false, extensions: ["extensions/goal.ts"])
     path = File.join(root, "files/home/.pi/agent/settings.json")
-    File.write(path, JSON.generate("packages" => ["npm:test-package@#{npm}", "git:github.com/example/plugin@#{git}"]))
+    package = "npm:test-package@#{npm}"
+    package = {"source" => package, "extensions" => extensions, "skills" => []} if filtered
+    File.write(path, JSON.generate("packages" => [package, "git:github.com/example/plugin@#{git}"]))
   end
 
   def check(root, base)

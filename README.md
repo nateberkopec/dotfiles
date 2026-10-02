@@ -101,6 +101,17 @@ I'm working on supporting Ubuntu in addition to MacOS. It's in a ~half finished 
 
 See [docs/ubuntu-22.04.md](docs/ubuntu-22.04.md) for Ubuntu setup and GUI test container notes.
 
+## Pi Goals
+
+Pi loads Armin Ronacher's [`goal.ts`](https://github.com/mitsuhiko/agent-stuff/blob/0865c849befd2021490679f96a8dee58c84ac857/extensions/goal.ts) from a pinned upstream Git commit. Only the goal extension is enabled from that package.
+
+- `/goal <objective>` starts a persistent session goal and automatically continues working toward it.
+- `/goal` shows the objective, status, elapsed time, and token usage.
+- `/goal pause`, `/goal resume`, `/goal edit`, and `/goal clear` control the goal.
+- The agent gets `get_goal`, `create_goal`, and `update_goal` tools. Goals are opt-in; ordinary requests do not create one automatically. An explicitly requested token budget can be set through `create_goal`.
+
+Goal state follows the session branch and survives reloads. Automatic continuation stops on completion, blocking, errors, or an exhausted token budget; pause or clear a goal to stop it yourself.
+
 ## Project Layout
 
 ```

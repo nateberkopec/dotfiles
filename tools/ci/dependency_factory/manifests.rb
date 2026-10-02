@@ -32,6 +32,7 @@ module DependencyFactory
 
     def pi_packages(path, content)
       JSON.parse(content).fetch("packages").map do |package|
+        package = package.fetch("source") if package.is_a?(Hash)
         match = package.match(/\Anpm:(.+)@(\d[\w.+-]*)\z/)
         next Pin.new(name: "pi:#{package}", kind: "unpinned", manifest: path, current: package) unless match
         Pin.new(name: "pi:#{match[1]}", kind: "npm", manifest: path, current: match[2], meta: {"package" => match[1]})
