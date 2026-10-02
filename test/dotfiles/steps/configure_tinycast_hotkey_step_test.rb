@@ -9,7 +9,7 @@ class ConfigureTinycastHotkeyStepTest < StepTestCase
 
   def test_depends_on_tinycast_app_install
     assert_includes Dotfiles::Step::ConfigureTinycastHotkeyStep.depends_on,
-      Dotfiles::Step::InstallTinycastAppStep
+      Dotfiles::Step::InstallMiseAppsStep
   end
 
   def test_run_disables_spotlight_hotkey_64

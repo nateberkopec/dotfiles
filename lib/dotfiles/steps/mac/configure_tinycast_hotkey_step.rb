@@ -4,7 +4,7 @@ class Dotfiles::Step::ConfigureTinycastHotkeyStep < Dotfiles::Step
   macos_only
 
   def self.depends_on
-    [Dotfiles::Step::InstallTinycastAppStep]
+    [Dotfiles::Step::InstallMiseAppsStep]
   end
 
   def run
