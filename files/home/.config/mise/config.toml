@@ -25,6 +25,7 @@ uv = "0.12.18"
 "github:pkgforge-dev/ghostty-appimage[bin=ghostty]" = { version = "1.3.1", os = ["linux"] }
 "github:nateberkopec/print-label" = "0.3.1"
 "github:abue-ammar/tinycast" = { version = "0.11.3", asset_pattern = "Tinycast-{{version}}.zip", bin_path = "Tinycast.app/Contents/MacOS", os = ["macos"], arch = ["arm64"] }
+"github:steipete/CodexBar" = { version = "0.70.0", asset_pattern = "CodexBar-macos-universal-{{version}}.zip", bin_path = "CodexBar.app/Contents/MacOS", os = ["macos"] }
 watchexec = "2.7.3"
 fnox = "1.35.3"
 bat = "0.26.1"

@@ -42,7 +42,7 @@ jobs:
       matrix:
         include:
           - os: macos-latest
-            mise_ci_tools: "gum,github:aubepkg/aube,npm:@earendil-works/pi-coding-agent,fzf,aqua:fish-shell/fish-shell,pipx,pipx:playwright,github:abue-ammar/tinycast"
+            mise_ci_tools: "gum,github:aubepkg/aube,npm:@earendil-works/pi-coding-agent,fzf,aqua:fish-shell/fish-shell,pipx,pipx:playwright,github:abue-ammar/tinycast,github:steipete/CodexBar"
           - os: ubuntu-22.04
             mise_ci_tools: "gum,github:aubepkg/aube,npm:@earendil-works/pi-coding-agent,fzf,aqua:fish-shell/fish-shell,pipx,pipx:playwright"
 

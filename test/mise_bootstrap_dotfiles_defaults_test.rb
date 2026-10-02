@@ -51,6 +51,15 @@ class MiseBootstrapDotfilesDefaultsTest < Minitest::Test
     assert_equal ["arm64"], tool.fetch("arch")
   end
 
+  def test_installs_native_codexbar_release
+    tool = config.fetch("tools").fetch("github:steipete/CodexBar")
+
+    assert_equal "0.70.0", tool.fetch("version")
+    assert_equal "CodexBar-macos-universal-{{version}}.zip", tool.fetch("asset_pattern")
+    assert_equal "CodexBar.app/Contents/MacOS", tool.fetch("bin_path")
+    assert_equal ["macos"], tool.fetch("os")
+  end
+
   def test_installs_and_starts_omniwm_only_in_admin_environment
     refute config.fetch("tools").key?("github:BarutSRB/OmniWM")
     refute config.dig("bootstrap", "macos", "launchd", "agents").key?("omniwm")

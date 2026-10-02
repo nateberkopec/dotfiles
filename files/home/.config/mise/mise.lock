@@ -296,6 +296,18 @@ url = "https://github.com/rawnly/splash-cli/releases/download/4.2.0/splash_Darwi
 url_api = "https://api.github.com/repos/rawnly/splash-cli/releases/assets/567336393"
 provenance = "github-attestations"
 
+[[tools."github:steipete/CodexBar"]]
+version = "0.70.0"
+backend = "github:steipete/CodexBar"
+
+[tools."github:steipete/CodexBar".options]
+asset_pattern = "CodexBar-macos-universal-{version}.zip"
+
+[tools."github:steipete/CodexBar"."platforms.macos-arm64"]
+checksum = "sha256:65e06cdf17021bd25ff62028e107d22cb98b0c680d064a73d13ab4a6871cb2da"
+url = "https://github.com/steipete/CodexBar/releases/download/v0.70.0/CodexBar-macos-universal-0.70.0.zip"
+url_api = "https://api.github.com/repos/steipete/CodexBar/releases/assets/600245202"
+
 [[tools.gitleaks]]
 version = "8.30.1"
 backend = "aqua:gitleaks/gitleaks"
