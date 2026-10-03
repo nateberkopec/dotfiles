@@ -22,7 +22,7 @@ Use the `gh-agent` Executor app on server-1 for all GitHub interactions. Given a
 
 Every write requires `model`: provide the actual writing model's runtime ID (`PI_MODEL` in Pi). Missing, blank, and placeholder model names are rejected. The app generates the AI/model disclosure on nonempty prose bodies, including edits; do not add a disclosure manually. Titles, source contents, and commit messages are not decorated. This changes disclosure, not authorization: existing approval and communication requirements still apply.
 
-Ordinary local Git operations and commit attribution are separate. The current HTTPS Git credential helpers still depend on `gh`; do not log out of it until those helpers are replaced and authenticated Git access is verified. Setup, verification, and remaining limitations are documented in `~/.dotfiles/docs/gh-agent.md`.
+Ordinary local Git operations and commit attribution are separate. The current HTTPS Git credential helpers still depend on `gh`; do not log out of it until those helpers are replaced and authenticated Git access is verified.
 
 If there was a relevant github issue for a PR, always reference it in the commit message or PR description (Closes #X).
 

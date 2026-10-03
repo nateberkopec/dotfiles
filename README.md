@@ -89,10 +89,6 @@ We don't trust agents, so destructive actions and secret access require human au
 
 Mise owns declarative state in `files/home/.config/mise/config.toml`: tools, system packages, home files, macOS defaults, and LaunchAgents. Ruby Steps remain for behavior mise cannot express cleanly, such as private Homebrew casks and application-specific setup. Steps can depend on other Steps.
 
-### Agent GitHub access
-
-Agents use the PAT-backed gh-agent Executor app on server-1. See [setup, access boundaries, verification, and Git credential migration status](docs/gh-agent.md).
-
 ### Available Steps
 
 Run `dotf steps` for the current step list, class names, and descriptions. See [lib/dotfiles/steps/](lib/dotfiles/steps/) for the implementations.

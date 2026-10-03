@@ -38,9 +38,3 @@ The work is complete when:
 - The user has the result, verification evidence, and any remaining limitations. If completion is blocked, report the specific blocker rather than treating an unverified workaround as finished.
 
 When an upstream fix becomes available, verify it against the original reproduction and replace the fork through a dotfiles PR. Close the tracking issue only after that replacement ships. At that point, the forked repository can be deleted, but only with explicit user approval.
-
-## GitHub disclosure
-
-Send authorized GitHub prose through the `gh-agent` Executor app on server-1 using the user's intended PAT-backed profile. Supply the actual writing model's runtime ID in `model` (`PI_MODEL` in Pi), including when editing a message. The server generates the AI/model disclosure on nonempty prose bodies; do not add a disclosure manually.
-
-Preserve the communication and approval boundaries above. A token's permissions do not authorize outreach. If the app is unavailable, a needed operation is not exposed, or the selected PAT lacks access, stop and ask the user rather than switching credentials or using `gh` as a fallback.
