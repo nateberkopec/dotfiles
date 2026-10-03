@@ -35,7 +35,7 @@ class DatasafeModesTest < Minitest::Test
     end
   end
 
-  def test_resuming_unavailable_model_does_not_send_fallback_request
+  def test_resuming_unavailable_model_can_use_compliant_fallback
     Dir.mktmpdir("datasafe") do |dir|
       sessions = File.join(dir, "sessions")
       calls = File.join(dir, "calls.log")
@@ -57,16 +57,13 @@ class DatasafeModesTest < Minitest::Test
       assert_equal 1, initial_calls.length
       output, = Open3.capture2e(env.merge("PI_DATASAFE_MODE" => "usa-no-train"), *args,
         "--continue", "-p", "remember?")
-      assert_includes output, "Datasafe blocked silent model fallback"
-      assert_equal initial_calls, File.readlines(calls)
-      output, = Open3.capture2e(env.merge("PI_DATASAFE_MODE" => "unrestricted", "ANTHROPIC_API_KEY" => nil), *args,
-        "--continue", "-p", "still blocked?")
-      assert_includes output, "Datasafe blocked silent model fallback"
-      assert_equal initial_calls, File.readlines(calls)
+      refute_includes output, "Datasafe blocked"
+      assert_equal 2, File.readlines(calls).length
+      assert_match(%r{\Ahttps://api\.openai\.com/}, File.readlines(calls).last)
     end
   end
 
-  def test_missing_configured_default_does_not_fall_back_in_either_mode
+  def test_missing_configured_default_can_fall_back_in_either_mode
     %w[usa-no-train unrestricted].each do |mode|
       Dir.mktmpdir("datasafe") do |dir|
         calls = File.join(dir, "calls.log")
@@ -81,8 +78,8 @@ class DatasafeModesTest < Minitest::Test
           export default function mock() {}
         TS
         output = pi(dir, "--extension", mock, "--no-session", "-p", "secret", mode: mode)
-        assert_includes output, "blocked silent model fallback from configured default anthropic/missing-model"
-        refute File.exist?(calls), "Fallback sent HTTP in #{mode}"
+        refute_includes output, "Datasafe blocked"
+        assert_equal 1, File.readlines(calls).length
       end
     end
   end
