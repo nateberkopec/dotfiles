@@ -44,6 +44,7 @@ time_machine_settings:
   wake_time: "05:15:00"
   exclusions:
   - "~/Documents/Code.nosync"
+  - "~/src"
   - "~/.bun/install/cache"
   - "~/.cache"
   - "~/.npm"
