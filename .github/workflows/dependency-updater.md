@@ -38,7 +38,7 @@ engine:
     - tool_output_token_limit=4096
 # gh-aw-firewall 0.27.44 misresolves model names with query parameters.
 model: gpt-6.1-sol
-timeout-minutes: 60
+timeout-minutes: 120
 
 # gh-aw 0.88.2 does not yet price GPT-6.1 Sol in its firewall catalog.
 models:
@@ -123,6 +123,8 @@ network:
     - go
     - linux-distros
     - node
+    - pypi.org
+    - files.pythonhosted.org
     - ruby
     - rust
     - api.osv.dev
