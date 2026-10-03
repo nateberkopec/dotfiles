@@ -1,0 +1,803 @@
+{
+  "quoted": "2026-10-01",
+  "currency": "USD",
+  "travelers": "2 adults, children aged 2 and 5",
+  "options": [
+    {
+      "code": "A",
+      "label": "Fly-through to Grand Junction, Dec 19 – Jan 4",
+      "leave_singapore": "2026-12-19",
+      "home_singapore": "2027-01-04",
+      "full_days_boston": 7,
+      "full_days_colorado": 6,
+      "extra_workdays": 4,
+      "journeys": [
+        {
+          "journey": "Singapore → Boston",
+          "legs": [
+            {
+              "kind": "flight",
+              "flight": "SQ 34",
+              "from": "SIN",
+              "to": "SFO",
+              "depart_local": "2026-12-19 09:20",
+              "arrive_local": "2026-12-19 09:00",
+              "duration_min": 940
+            },
+            {
+              "kind": "flight",
+              "flight": "UA 1450",
+              "from": "SFO",
+              "to": "BOS",
+              "depart_local": "2026-12-19 11:45",
+              "arrive_local": "2026-12-19 20:20",
+              "duration_min": 335
+            }
+          ],
+          "connections": [
+            {
+              "at": "SFO",
+              "minutes": 165
+            }
+          ],
+          "flying_min": 1275,
+          "driving_min": 0,
+          "door_to_door_min": 1440,
+          "tickets": "Ticket 1"
+        },
+        {
+          "journey": "Boston → Grand Junction",
+          "legs": [
+            {
+              "kind": "flight",
+              "flight": "UA 1611",
+              "from": "BOS",
+              "to": "DEN",
+              "depart_local": "2026-12-27 07:00",
+              "arrive_local": "2026-12-27 09:55",
+              "duration_min": 295
+            },
+            {
+              "kind": "flight",
+              "flight": "UA 5290",
+              "from": "DEN",
+              "to": "GJT",
+              "depart_local": "2026-12-27 11:40",
+              "arrive_local": "2026-12-27 12:45",
+              "duration_min": 65
+            }
+          ],
+          "connections": [
+            {
+              "at": "DEN",
+              "minutes": 105
+            }
+          ],
+          "flying_min": 360,
+          "driving_min": 0,
+          "door_to_door_min": 465,
+          "tickets": "Ticket 1"
+        },
+        {
+          "journey": "Grand Junction → Singapore",
+          "legs": [
+            {
+              "kind": "flight",
+              "flight": "UA 5301",
+              "from": "GJT",
+              "to": "DEN",
+              "depart_local": "2027-01-03 07:30",
+              "arrive_local": "2027-01-03 08:30",
+              "duration_min": 60
+            },
+            {
+              "kind": "flight",
+              "flight": "UA 139",
+              "from": "DEN",
+              "to": "NRT",
+              "depart_local": "2027-01-03 11:00",
+              "arrive_local": "2027-01-04 15:25",
+              "duration_min": 745
+            },
+            {
+              "kind": "flight",
+              "flight": "SQ 637",
+              "from": "NRT",
+              "to": "SIN",
+              "depart_local": "2027-01-04 17:00",
+              "arrive_local": "2027-01-04 23:20",
+              "duration_min": 440
+            }
+          ],
+          "connections": [
+            {
+              "at": "DEN",
+              "minutes": 150
+            },
+            {
+              "at": "NRT",
+              "minutes": 95
+            }
+          ],
+          "flying_min": 1245,
+          "driving_min": 0,
+          "door_to_door_min": 1490,
+          "tickets": "Ticket 1"
+        }
+      ],
+      "cost_usd": {
+        "fares": 7920,
+        "bags": 0,
+        "seats": 0,
+        "rental_car": 0
+      },
+      "total_usd": 7920,
+      "risk_notes": []
+    },
+    {
+      "code": "B",
+      "label": "Denver plus drive, Dec 19 – Jan 4",
+      "leave_singapore": "2026-12-19",
+      "home_singapore": "2027-01-04",
+      "full_days_boston": 7,
+      "full_days_colorado": 6,
+      "extra_workdays": 4,
+      "journeys": [
+        {
+          "journey": "Singapore → Boston",
+          "legs": [
+            {
+              "kind": "flight",
+              "flight": "SQ 34",
+              "from": "SIN",
+              "to": "SFO",
+              "depart_local": "2026-12-19 09:20",
+              "arrive_local": "2026-12-19 09:00",
+              "duration_min": 940
+            },
+            {
+              "kind": "flight",
+              "flight": "UA 1450",
+              "from": "SFO",
+              "to": "BOS",
+              "depart_local": "2026-12-19 11:45",
+              "arrive_local": "2026-12-19 20:20",
+              "duration_min": 335
+            }
+          ],
+          "connections": [
+            {
+              "at": "SFO",
+              "minutes": 165
+            }
+          ],
+          "flying_min": 1275,
+          "driving_min": 0,
+          "door_to_door_min": 1440,
+          "tickets": "Ticket 1"
+        },
+        {
+          "journey": "Boston → Grand Junction",
+          "legs": [
+            {
+              "kind": "flight",
+              "flight": "WN 1902",
+              "from": "BOS",
+              "to": "DEN",
+              "depart_local": "2026-12-27 08:45",
+              "arrive_local": "2026-12-27 11:40",
+              "duration_min": 295
+            },
+            {
+              "kind": "drive",
+              "flight": "Rental car",
+              "from": "Denver",
+              "to": "Grand Junction",
+              "depart_local": "2026-12-27 12:40",
+              "arrive_local": "2026-12-27 16:40",
+              "duration_min": 240
+            }
+          ],
+          "connections": [
+            {
+              "at": "Denver",
+              "minutes": 60
+            }
+          ],
+          "flying_min": 295,
+          "driving_min": 240,
+          "door_to_door_min": 595,
+          "tickets": "Ticket 2"
+        },
+        {
+          "journey": "Grand Junction → Singapore",
+          "legs": [
+            {
+              "kind": "drive",
+              "flight": "Rental car",
+              "from": "Grand Junction",
+              "to": "Denver",
+              "depart_local": "2027-01-03 05:15",
+              "arrive_local": "2027-01-03 09:15",
+              "duration_min": 240
+            },
+            {
+              "kind": "flight",
+              "flight": "UA 139",
+              "from": "DEN",
+              "to": "NRT",
+              "depart_local": "2027-01-03 11:00",
+              "arrive_local": "2027-01-04 15:25",
+              "duration_min": 745
+            },
+            {
+              "kind": "flight",
+              "flight": "SQ 637",
+              "from": "NRT",
+              "to": "SIN",
+              "depart_local": "2027-01-04 17:00",
+              "arrive_local": "2027-01-04 23:20",
+              "duration_min": 440
+            }
+          ],
+          "connections": [
+            {
+              "at": "DEN",
+              "minutes": 105
+            },
+            {
+              "at": "NRT",
+              "minutes": 95
+            }
+          ],
+          "flying_min": 1185,
+          "driving_min": 240,
+          "door_to_door_min": 1625,
+          "tickets": "Ticket 1"
+        }
+      ],
+      "cost_usd": {
+        "fares": 6980,
+        "bags": 140,
+        "seats": 0,
+        "rental_car": 310
+      },
+      "total_usd": 7430,
+      "risk_notes": [
+        "Two separate tickets: a Southwest delay on Dec 27 is not protected by United."
+      ]
+    },
+    {
+      "code": "C",
+      "label": "Via Tokyo overnight flight, Dec 19 – Jan 4",
+      "leave_singapore": "2026-12-19",
+      "home_singapore": "2027-01-04",
+      "full_days_boston": 6,
+      "full_days_colorado": 6,
+      "extra_workdays": 4,
+      "journeys": [
+        {
+          "journey": "Singapore → Boston",
+          "legs": [
+            {
+              "kind": "flight",
+              "flight": "SQ 638",
+              "from": "SIN",
+              "to": "NRT",
+              "depart_local": "2026-12-19 23:55",
+              "arrive_local": "2026-12-20 07:45",
+              "duration_min": 410
+            },
+            {
+              "kind": "flight",
+              "flight": "JL 8",
+              "from": "NRT",
+              "to": "BOS",
+              "depart_local": "2026-12-20 10:30",
+              "arrive_local": "2026-12-20 09:15",
+              "duration_min": 765
+            }
+          ],
+          "connections": [
+            {
+              "at": "NRT",
+              "minutes": 165
+            }
+          ],
+          "flying_min": 1175,
+          "driving_min": 0,
+          "door_to_door_min": 1340,
+          "tickets": "Ticket 1"
+        },
+        {
+          "journey": "Boston → Grand Junction",
+          "legs": [
+            {
+              "kind": "flight",
+              "flight": "UA 1611",
+              "from": "BOS",
+              "to": "DEN",
+              "depart_local": "2026-12-27 07:00",
+              "arrive_local": "2026-12-27 09:55",
+              "duration_min": 295
+            },
+            {
+              "kind": "flight",
+              "flight": "UA 5290",
+              "from": "DEN",
+              "to": "GJT",
+              "depart_local": "2026-12-27 11:40",
+              "arrive_local": "2026-12-27 12:45",
+              "duration_min": 65
+            }
+          ],
+          "connections": [
+            {
+              "at": "DEN",
+              "minutes": 105
+            }
+          ],
+          "flying_min": 360,
+          "driving_min": 0,
+          "door_to_door_min": 465,
+          "tickets": "Ticket 1"
+        },
+        {
+          "journey": "Grand Junction → Singapore",
+          "legs": [
+            {
+              "kind": "flight",
+              "flight": "UA 5301",
+              "from": "GJT",
+              "to": "DEN",
+              "depart_local": "2027-01-03 07:30",
+              "arrive_local": "2027-01-03 08:30",
+              "duration_min": 60
+            },
+            {
+              "kind": "flight",
+              "flight": "UA 139",
+              "from": "DEN",
+              "to": "NRT",
+              "depart_local": "2027-01-03 11:00",
+              "arrive_local": "2027-01-04 15:25",
+              "duration_min": 745
+            },
+            {
+              "kind": "flight",
+              "flight": "SQ 637",
+              "from": "NRT",
+              "to": "SIN",
+              "depart_local": "2027-01-04 17:00",
+              "arrive_local": "2027-01-04 23:20",
+              "duration_min": 440
+            }
+          ],
+          "connections": [
+            {
+              "at": "DEN",
+              "minutes": 150
+            },
+            {
+              "at": "NRT",
+              "minutes": 95
+            }
+          ],
+          "flying_min": 1245,
+          "driving_min": 0,
+          "door_to_door_min": 1490,
+          "tickets": "Ticket 1"
+        }
+      ],
+      "cost_usd": {
+        "fares": 7610,
+        "bags": 0,
+        "seats": 120,
+        "rental_car": 0
+      },
+      "total_usd": 7730,
+      "risk_notes": [
+        "Red-eye from Singapore with a 2- and 5-year-old."
+      ]
+    },
+    {
+      "code": "D",
+      "label": "Denver plus drive, Dec 19 – Jan 3",
+      "leave_singapore": "2026-12-19",
+      "home_singapore": "2027-01-03",
+      "full_days_boston": 6,
+      "full_days_colorado": 6,
+      "extra_workdays": 3,
+      "journeys": [
+        {
+          "journey": "Singapore → Boston",
+          "legs": [
+            {
+              "kind": "flight",
+              "flight": "SQ 34",
+              "from": "SIN",
+              "to": "SFO",
+              "depart_local": "2026-12-19 09:20",
+              "arrive_local": "2026-12-19 09:00",
+              "duration_min": 940
+            },
+            {
+              "kind": "flight",
+              "flight": "UA 1450",
+              "from": "SFO",
+              "to": "BOS",
+              "depart_local": "2026-12-19 11:45",
+              "arrive_local": "2026-12-19 20:20",
+              "duration_min": 335
+            }
+          ],
+          "connections": [
+            {
+              "at": "SFO",
+              "minutes": 165
+            }
+          ],
+          "flying_min": 1275,
+          "driving_min": 0,
+          "door_to_door_min": 1440,
+          "tickets": "Ticket 1"
+        },
+        {
+          "journey": "Boston → Grand Junction",
+          "legs": [
+            {
+              "kind": "flight",
+              "flight": "WN 1902",
+              "from": "BOS",
+              "to": "DEN",
+              "depart_local": "2026-12-26 08:45",
+              "arrive_local": "2026-12-26 11:40",
+              "duration_min": 295
+            },
+            {
+              "kind": "drive",
+              "flight": "Rental car",
+              "from": "Denver",
+              "to": "Grand Junction",
+              "depart_local": "2026-12-26 12:40",
+              "arrive_local": "2026-12-26 16:40",
+              "duration_min": 240
+            }
+          ],
+          "connections": [
+            {
+              "at": "Denver",
+              "minutes": 60
+            }
+          ],
+          "flying_min": 295,
+          "driving_min": 240,
+          "door_to_door_min": 595,
+          "tickets": "Ticket 2"
+        },
+        {
+          "journey": "Grand Junction → Singapore",
+          "legs": [
+            {
+              "kind": "drive",
+              "flight": "Rental car",
+              "from": "Grand Junction",
+              "to": "Denver",
+              "depart_local": "2027-01-02 05:15",
+              "arrive_local": "2027-01-02 09:15",
+              "duration_min": 240
+            },
+            {
+              "kind": "flight",
+              "flight": "UA 139",
+              "from": "DEN",
+              "to": "NRT",
+              "depart_local": "2027-01-02 11:00",
+              "arrive_local": "2027-01-03 15:25",
+              "duration_min": 745
+            },
+            {
+              "kind": "flight",
+              "flight": "SQ 637",
+              "from": "NRT",
+              "to": "SIN",
+              "depart_local": "2027-01-03 17:00",
+              "arrive_local": "2027-01-03 23:20",
+              "duration_min": 440
+            }
+          ],
+          "connections": [
+            {
+              "at": "DEN",
+              "minutes": 105
+            },
+            {
+              "at": "NRT",
+              "minutes": 95
+            }
+          ],
+          "flying_min": 1185,
+          "driving_min": 240,
+          "door_to_door_min": 1625,
+          "tickets": "Ticket 1"
+        }
+      ],
+      "cost_usd": {
+        "fares": 6840,
+        "bags": 140,
+        "seats": 0,
+        "rental_car": 290
+      },
+      "total_usd": 7270,
+      "risk_notes": [
+        "Two separate tickets.",
+        "05:15 departure from Grand Junction for the drive to Denver."
+      ]
+    },
+    {
+      "code": "E",
+      "label": "Fly-through to Grand Junction, Dec 19 – Jan 3",
+      "leave_singapore": "2026-12-19",
+      "home_singapore": "2027-01-03",
+      "full_days_boston": 6,
+      "full_days_colorado": 6,
+      "extra_workdays": 3,
+      "journeys": [
+        {
+          "journey": "Singapore → Boston",
+          "legs": [
+            {
+              "kind": "flight",
+              "flight": "SQ 34",
+              "from": "SIN",
+              "to": "SFO",
+              "depart_local": "2026-12-19 09:20",
+              "arrive_local": "2026-12-19 09:00",
+              "duration_min": 940
+            },
+            {
+              "kind": "flight",
+              "flight": "UA 1450",
+              "from": "SFO",
+              "to": "BOS",
+              "depart_local": "2026-12-19 11:45",
+              "arrive_local": "2026-12-19 20:20",
+              "duration_min": 335
+            }
+          ],
+          "connections": [
+            {
+              "at": "SFO",
+              "minutes": 165
+            }
+          ],
+          "flying_min": 1275,
+          "driving_min": 0,
+          "door_to_door_min": 1440,
+          "tickets": "Ticket 1"
+        },
+        {
+          "journey": "Boston → Grand Junction",
+          "legs": [
+            {
+              "kind": "flight",
+              "flight": "UA 1611",
+              "from": "BOS",
+              "to": "DEN",
+              "depart_local": "2026-12-26 07:00",
+              "arrive_local": "2026-12-26 09:55",
+              "duration_min": 295
+            },
+            {
+              "kind": "flight",
+              "flight": "UA 5290",
+              "from": "DEN",
+              "to": "GJT",
+              "depart_local": "2026-12-26 11:40",
+              "arrive_local": "2026-12-26 12:45",
+              "duration_min": 65
+            }
+          ],
+          "connections": [
+            {
+              "at": "DEN",
+              "minutes": 105
+            }
+          ],
+          "flying_min": 360,
+          "driving_min": 0,
+          "door_to_door_min": 465,
+          "tickets": "Ticket 1"
+        },
+        {
+          "journey": "Grand Junction → Singapore",
+          "legs": [
+            {
+              "kind": "flight",
+              "flight": "UA 5301",
+              "from": "GJT",
+              "to": "DEN",
+              "depart_local": "2027-01-02 07:30",
+              "arrive_local": "2027-01-02 08:30",
+              "duration_min": 60
+            },
+            {
+              "kind": "flight",
+              "flight": "UA 139",
+              "from": "DEN",
+              "to": "NRT",
+              "depart_local": "2027-01-02 11:00",
+              "arrive_local": "2027-01-03 15:25",
+              "duration_min": 745
+            },
+            {
+              "kind": "flight",
+              "flight": "SQ 637",
+              "from": "NRT",
+              "to": "SIN",
+              "depart_local": "2027-01-03 17:00",
+              "arrive_local": "2027-01-03 23:20",
+              "duration_min": 440
+            }
+          ],
+          "connections": [
+            {
+              "at": "DEN",
+              "minutes": 150
+            },
+            {
+              "at": "NRT",
+              "minutes": 95
+            }
+          ],
+          "flying_min": 1245,
+          "driving_min": 0,
+          "door_to_door_min": 1490,
+          "tickets": "Ticket 1"
+        }
+      ],
+      "cost_usd": {
+        "fares": 7690,
+        "bags": 0,
+        "seats": 0,
+        "rental_car": 0
+      },
+      "total_usd": 7690,
+      "risk_notes": []
+    },
+    {
+      "code": "F",
+      "label": "Cheapest: split return via San Francisco, Dec 19 – Jan 3",
+      "leave_singapore": "2026-12-19",
+      "home_singapore": "2027-01-03",
+      "full_days_boston": 6,
+      "full_days_colorado": 6,
+      "extra_workdays": 3,
+      "journeys": [
+        {
+          "journey": "Singapore → Boston",
+          "legs": [
+            {
+              "kind": "flight",
+              "flight": "SQ 34",
+              "from": "SIN",
+              "to": "SFO",
+              "depart_local": "2026-12-19 09:20",
+              "arrive_local": "2026-12-19 09:00",
+              "duration_min": 940
+            },
+            {
+              "kind": "flight",
+              "flight": "UA 1450",
+              "from": "SFO",
+              "to": "BOS",
+              "depart_local": "2026-12-19 11:45",
+              "arrive_local": "2026-12-19 20:20",
+              "duration_min": 335
+            }
+          ],
+          "connections": [
+            {
+              "at": "SFO",
+              "minutes": 165
+            }
+          ],
+          "flying_min": 1275,
+          "driving_min": 0,
+          "door_to_door_min": 1440,
+          "tickets": "Ticket 1"
+        },
+        {
+          "journey": "Boston → Grand Junction",
+          "legs": [
+            {
+              "kind": "flight",
+              "flight": "UA 1611",
+              "from": "BOS",
+              "to": "DEN",
+              "depart_local": "2026-12-26 07:00",
+              "arrive_local": "2026-12-26 09:55",
+              "duration_min": 295
+            },
+            {
+              "kind": "flight",
+              "flight": "UA 5290",
+              "from": "DEN",
+              "to": "GJT",
+              "depart_local": "2026-12-26 11:40",
+              "arrive_local": "2026-12-26 12:45",
+              "duration_min": 65
+            }
+          ],
+          "connections": [
+            {
+              "at": "DEN",
+              "minutes": 105
+            }
+          ],
+          "flying_min": 360,
+          "driving_min": 0,
+          "door_to_door_min": 465,
+          "tickets": "Ticket 2"
+        },
+        {
+          "journey": "Grand Junction → Singapore",
+          "legs": [
+            {
+              "kind": "flight",
+              "flight": "UA 5301",
+              "from": "GJT",
+              "to": "DEN",
+              "depart_local": "2027-01-02 06:15",
+              "arrive_local": "2027-01-02 07:15",
+              "duration_min": 60
+            },
+            {
+              "kind": "flight",
+              "flight": "UA 1820",
+              "from": "DEN",
+              "to": "SFO",
+              "depart_local": "2027-01-02 09:00",
+              "arrive_local": "2027-01-02 10:40",
+              "duration_min": 160
+            },
+            {
+              "kind": "flight",
+              "flight": "SQ 33",
+              "from": "SFO",
+              "to": "SIN",
+              "depart_local": "2027-01-02 13:30",
+              "arrive_local": "2027-01-03 22:20",
+              "duration_min": 1010
+            }
+          ],
+          "connections": [
+            {
+              "at": "DEN",
+              "minutes": 105
+            },
+            {
+              "at": "SFO",
+              "minutes": 170
+            }
+          ],
+          "flying_min": 1230,
+          "driving_min": 0,
+          "door_to_door_min": 1505,
+          "tickets": "Tickets 3a + 3b (separate)"
+        }
+      ],
+      "cost_usd": {
+        "fares": 6120,
+        "bags": 140,
+        "seats": 96,
+        "rental_car": 0
+      },
+      "total_usd": 6356,
+      "risk_notes": [
+        "Return is two separate tickets: bags must be reclaimed and rechecked at SFO.",
+        "A late Denver flight means missing SQ 33 with no protection."
+      ]
+    }
+  ]
+}

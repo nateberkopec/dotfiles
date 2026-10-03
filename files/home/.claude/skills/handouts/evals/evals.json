@@ -1,0 +1,77 @@
+{
+  "skill_name": "handouts",
+  "workflow_assertions": [
+    "For with-skill runs, model discovery and the launch record show that all authored handout text was delegated to the latest available meridian/claude-opus* model.",
+    "For with-skill runs, prose, headings, sidenotes, captions, table labels, translations, and wording revisions originate from that writer; unchanged source pages are exempt."
+  ],
+  "evals": [
+    {
+      "id": 1,
+      "name": "research-reading-handout",
+      "prompt": "Compile these tart cherry research notes into a readable PDF handout for me. Condense until I can read it in 15 minutes or less. I'm a cyclist training 15+ hours per week and want a practical guide to dosing and timing, including what a 4.8x concentrate label does and doesn't tell me. No bibliography. Use only the supplied sources; no fresh research. Save the finished PDF in the specified output directory, not my Inbox. Do not print.",
+      "expected_output": "A comfortable, coherent reading handout with a practical dosing/timing comparison table, accurate treatment of concentrate equivalence and evidence limitations, and no bibliography. Readability, whitespace, and graphics are evaluated by human review.",
+      "files": [
+        "evals/files/tart-cherry-research/cycling-performance.md",
+        "evals/files/tart-cherry-research/practical-safety.md",
+        "evals/files/tart-cherry-research/recovery-evidence.md",
+        "evals/files/tart-cherry-research/sleep-overtraining.md"
+      ],
+      "assertions": [
+        "The delivered handout is a nonempty PDF with A4 pages (portrait or landscape).",
+        "Composed text uses embedded fonts; included source pages are evaluated separately.",
+        "Composed pages have no footers, page-number footers, eyebrows, sidenote headers, or sidenote rules.",
+        "The handout has no bibliography or source-reference apparatus.",
+        "A readable comparison table groups the use cases with their doses and timing, rather than presenting every protocol only as prose.",
+        "The handout distinguishes loading/continued dosing from a single immediate post-ride dose.",
+        "The handout does not assert that a 4.8x concentration ratio establishes polyphenol content or exact equivalence to the studied concentrate.",
+        "Extracted reading text contains no more than 3000 words (15 minutes at 200 words/minute).",
+        "On composed pages, all main-content text, headings, tables, calendars, figures, and captions stay inside the prose column, without entering the gutter or sidenote column or spanning both columns."
+      ]
+    },
+    {
+      "id": 2,
+      "name": "flight-options-comparison",
+      "prompt": "Prepare a PDF handout comparing all six family flight options in the supplied files. Start with a calendar graphic comparing the options and an all-in cost table. For each option include the flight table, a small calendar, full days in each place, extra workdays, and flying versus total journey time. Put these facts in consistent locations so I can compare them easily. Explain the added costs and separate-ticket risks plainly. No new flight searches and no QR codes or invented links. Use only the supplied data. Save the finished PDF in the specified output directory, not my Inbox. Do not print.",
+      "expected_output": "A printable comparison with six complete options, accurate costs/dates/day counts, legible calendars and tables, and consistent option panels. The supplied itineraries are fictional, frozen layout-test data.",
+      "files": [
+        "evals/files/family-flight-options/trip-rules.md",
+        "evals/files/family-flight-options/flight-options-2026-10-01.json"
+      ],
+      "assertions": [
+        "The delivered handout is a nonempty PDF with A4 pages (portrait or landscape).",
+        "Composed text uses embedded fonts; included source pages are evaluated separately.",
+        "Composed pages have no footers, page-number footers, eyebrows, sidenote headers, or sidenote rules.",
+        "All six options A–F appear with correct family totals: A $7920, B $7430, C $7730, D $7270, E $7690, F $6356.",
+        "Options A–C show four extra workdays and D–F show three; Boston full days are A/B seven and C–F six; every option has six Colorado full days.",
+        "Each option shows local flight times and distinguishes flying from total journey time, including the four-hour drive where applicable.",
+        "An opening comparison calendar and option-level calendars are present.",
+        "Option F discloses the separate-ticket SFO bag reclaim/recheck and unprotected missed-connection risk.",
+        "On composed pages, all main-content text, headings, tables, calendars, figures, and captions stay inside the prose column, without entering the gutter or sidenote column or spanning both columns."
+      ]
+    },
+    {
+      "id": 3,
+      "name": "race-day-reference-pack",
+      "prompt": "I'm racing at Kirigaoka tomorrow (October 11, 2026), rider 312 on Kestrel Racing, E2. Prepare an English PDF handout of the info I should have to hand: what to put in my GPS, which parking to use, where to go at the venue, my schedule and deadlines, and support rules. Include the supplied full schedule page and parking map intact; include the course map where useful. Keep the pit pass as a separate unchanged PDF ready for printing, rather than redesigning it. The documents describe a fictional event; don't look up a real race. Save the final PDFs in the specified output directory, not my Inbox. Do not submit a print job.",
+      "expected_output": "A concise English reference section plus intact schedule/map pages, with accurate deadlines and no invented parking-arrival cutoff or official practice session. An unchanged pit pass is delivered separately.",
+      "files": [
+        "evals/files/race-pack/technical-guide.pdf",
+        "evals/files/race-pack/schedule.pdf",
+        "evals/files/race-pack/parking-map.pdf",
+        "evals/files/race-pack/course-map.pdf",
+        "evals/files/race-pack/pit-pass.pdf"
+      ],
+      "assertions": [
+        "The delivered handout is a nonempty PDF with A4 pages (portrait or landscape).",
+        "Composed text uses embedded fonts; included source pages are evaluated separately.",
+        "Composed pages have no footers, page-number footers, eyebrows, sidenote headers, or sidenote rules.",
+        "English reference text identifies Kirigaoka North Branch Office as the GPS destination and rider parking lots 3 and 4.",
+        "The E2/E3 start is 12:40, bike check deadline 12:25, sign-on/call-up deadline 12:30, and license-control cutoff 11:00.",
+        "The handout does not invent an 08:00 parking-arrival deadline or an official practice session; the east access road remains open.",
+        "The supplied schedule and parking-map pages are included intact and legibly, not recreated or cropped.",
+        "The separate delivered pit-pass PDF is byte-identical to the supplied pit-pass PDF.",
+        "On composed pages, all main-content text, headings, tables, calendars, figures, and captions stay inside the prose column, without entering the gutter or sidenote column or spanning both columns."
+      ]
+    }
+  ]
+}
