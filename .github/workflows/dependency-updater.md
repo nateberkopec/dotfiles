@@ -12,6 +12,9 @@ on:
     events: [pull_request_comment]
   roles: [admin]
 
+imports:
+  - shared/dependency-sandbox.md
+
 checkout:
   fetch: ["dependency-update-*"]
   fetch-depth: 0
@@ -110,29 +113,6 @@ tools:
     toolsets: [default, actions]
   web-fetch:
   web-search:
-
-network:
-  allowed:
-    - defaults
-    - github
-    - go
-    - linux-distros
-    - node
-    - ruby
-    - rust
-    - api.osv.dev
-    - appupdates.agilebits.com
-    - blog.rustlang.org
-    - cache.agilebits.com
-    - cmake.org
-    - dl.google.com
-    - formulae.brew.sh
-    - mise-versions.jdx.dev
-    - mise.run
-    - support.1password.com
-    - tmaproduction.blob.core.windows.net
-    - tuf-repo-cdn.sigstore.dev
-    - www.ruby-lang.org
 
 safe-outputs:
   threat-detection:
