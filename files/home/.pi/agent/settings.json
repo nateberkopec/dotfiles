@@ -15,7 +15,7 @@
     "npm:pi-context-view@0.6.0",
     {
       "source": "git:github.com/mitsuhiko/agent-stuff@0865c849befd2021490679f96a8dee58c84ac857",
-      "extensions": ["extensions/goal.ts"],
+      "extensions": ["extensions/goal.ts", "extensions/answer.ts"],
       "skills": [],
       "prompts": [],
       "themes": []
