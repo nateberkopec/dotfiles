@@ -79,6 +79,15 @@ steps:
       install: false
       cache: true
       experimental: true
+  - name: Work around broken Try version listing for this evaluation
+    run: |
+      # mise 2026.10.0 clones tobi/try as a spinel plugin but it has no bin/list-all.
+      # Hold only this tool at the pinned version; both model runs use the same shim.
+      mise ls-remote spinel:tobi/try --json >/dev/null 2>&1 || true
+      plugin="$HOME/.local/share/mise/plugins/spinel-tobi-try/bin"
+      mkdir -p "$plugin"
+      printf '#!/bin/sh\nprintf "1.10.1\\n"\n' > "$plugin/list-all"
+      chmod +x "$plugin/list-all"
   - name: Discover dependency candidates
     env:
       GITHUB_TOKEN: ${{ github.token }}
@@ -179,7 +188,7 @@ Follow `.github/dependency-updater.md`. Event: `${{ github.event_name }}`; comma
 
 - **Failed build:** inspect run `${{ github.event.workflow_run.id }}` and its logs. Confirm the dependency-update label and that `${{ github.event.workflow_run.head_sha }}` remains the PR head. Repair only that PR within the mechanical boundary. If repair cannot pass mechanically, preserve the branch and bail out visibly; do not remove or snooze the update to force success. Refresh its body and inspect required checks after a successful repair.
 - **Slash command:** read the complete triggering PR and apply the user's decisions below to that branch. Refresh its body and reply with decisions and validation.
-- **Evaluation run (GPT-6 Luna):** ignore `/tmp/gh-aw/agent/open-dependency-update-prs.json` (including other evaluation PRs). Prepare one independent dependency-update PR against main from the pinned base commit. Title it `Eval: GPT-6 Luna dependency update` and explain in its body that it is an evaluation for #755, not a production update to merge. Do not edit the workflow or evaluation setup. Never merge.
+- **Evaluation run (GPT-6 Luna):** ignore `/tmp/gh-aw/agent/open-dependency-update-prs.json` (including other evaluation PRs). Prepare one independent dependency-update PR against main from the pinned base commit. Title it `Eval: GPT-6 Luna dependency update` and explain in its body that it is an evaluation for #755, not a production update to merge. The runner pins `spinel:tobi/try` at 1.10.1 because mise's installed plugin cannot list versions; disclose this evaluation-only exclusion in the PR. Do not edit the workflow or evaluation setup. Never merge.
 
 > ${{ steps.sanitized.outputs.text }}
 
