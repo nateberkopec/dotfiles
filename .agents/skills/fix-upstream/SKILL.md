@@ -41,10 +41,6 @@ When an upstream fix becomes available, verify it against the original reproduct
 
 ## GitHub disclosure
 
-Begin every authorized GitHub message with this blockquote, followed by a blank line:
+Send authorized GitHub prose through the `gh-agent` Executor app on server-1 using the user's intended PAT-backed profile. Supply the actual writing model's runtime ID in `model` (`PI_MODEL` in Pi), including when editing a message. The server generates the AI/model disclosure on nonempty prose bodies; do not add a disclosure manually.
 
-```markdown
-> This was written by an agent. Model: <model ID>.
-```
-
-Use the actual writing model's runtime ID (`PI_MODEL` in Pi), including when editing a message. This applies to issue and PR bodies, release notes, and any other authorized GitHub prose; it grants no additional permission to communicate.
+Preserve the communication and approval boundaries above. A token's permissions do not authorize outreach. If the app is unavailable, a needed operation is not exposed, or the selected PAT lacks access, stop and ask the user rather than switching credentials or using `gh` as a fallback.
