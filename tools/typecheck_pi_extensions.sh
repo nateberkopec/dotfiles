@@ -30,6 +30,14 @@ if [[ -z "$ai_root" ]]; then
   exit 1
 fi
 
+tui_root=$(find "$dependency_root" "$agent_root/node_modules" \
+  -path '*/@earendil-works/pi-tui/dist/index.d.ts' -print -quit 2>/dev/null || true)
+tui_root=${tui_root%/dist/index.d.ts}
+if [[ -z "$tui_root" ]]; then
+  echo "Pi's @earendil-works/pi-tui dependency is missing" >&2
+  exit 1
+fi
+
 config=$(mktemp)
 trap 'rm -f "$config"' EXIT
 cat >"$config" <<JSON
@@ -43,7 +51,8 @@ cat >"$config" <<JSON
     "paths": {
       "@earendil-works/pi-ai": ["$ai_root/dist/index.d.ts"],
       "@earendil-works/pi-ai/providers/all": ["$ai_root/dist/providers/all.d.ts"],
-      "@earendil-works/pi-coding-agent": ["$agent_root/dist/index.d.ts"]
+      "@earendil-works/pi-coding-agent": ["$agent_root/dist/index.d.ts"],
+      "@earendil-works/pi-tui": ["$tui_root/dist/index.d.ts"]
     },
     "skipLibCheck": true,
     "strict": true,
@@ -51,6 +60,7 @@ cat >"$config" <<JSON
   },
   "files": [
     "$PWD/files/home/.pi/agent/extensions/caffeinate.ts",
+    "$PWD/files/home/.pi/agent/extensions/notify.ts",
     "$PWD/files/home/.pi/agent/extensions/window-fork.ts",
     "$PWD/files/home/.pi/agent/extensions/meridian.ts",
     "$PWD/files/home/.pi/agent/extensions/datasafe/index.ts",
