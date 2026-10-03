@@ -40,6 +40,10 @@ engine:
 model: gpt-6.1-sol
 timeout-minutes: 60
 
+# gh-aw 0.88.2 does not yet price GPT-6.1 Sol in its firewall catalog.
+models:
+  default-ai-credits-pricing: {input: 2, output: 10}
+
 steps:
   - name: Check dependency publishing token
     env:
@@ -139,7 +143,7 @@ safe-outputs:
   threat-detection:
     engine:
       id: codex
-      model: gpt-6-luna
+      model: gpt-5.6-luna
       # gh-aw 0.86.2 omits the separator before detection args; keep the leading space.
       args:
         - " -c"
