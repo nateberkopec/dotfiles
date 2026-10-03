@@ -51,6 +51,7 @@ cat >"$config" <<JSON
   },
   "files": [
     "$PWD/files/home/.pi/agent/extensions/caffeinate.ts",
+    "$PWD/files/home/.pi/agent/extensions/window-fork.ts",
     "$PWD/files/home/.pi/agent/extensions/meridian.ts",
     "$PWD/files/home/.pi/agent/extensions/datasafe/index.ts",
     "$PWD/files/home/.pi/agent/extensions/toksec/index.ts"
