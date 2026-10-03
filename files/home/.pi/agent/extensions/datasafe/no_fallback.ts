@@ -21,7 +21,7 @@ function explicitCliModel(): boolean {
 
 async function fallbackError(ctx: ExtensionContext): Promise<Fallback | undefined> {
 	const selected = ctx.model;
-	if (!selected) return;
+	if (!selected || explicitCliModel()) return;
 	const branch = ctx.sessionManager.getBranch();
 	const changes = branch.filter((entry) => entry.type === "model_change");
 	const saved = branch.some((entry) => entry.type === "message") ? changes.at(-1) : changes.at(-2);
@@ -29,7 +29,6 @@ async function fallbackError(ctx: ExtensionContext): Promise<Fallback | undefine
 		if (saved.provider === selected.provider && saved.modelId === selected.id) return;
 		return { error: `Datasafe blocked silent model fallback from ${saved.provider}/${saved.modelId} to ${selected.provider}/${selected.id}. Start a new session.`, canSelectModel: false };
 	}
-	if (explicitCliModel()) return;
 	const global = await settings(join(getAgentDir(), "settings.json"));
 	const project = ctx.isProjectTrusted() ? await settings(join(ctx.cwd, ".pi", "settings.json")) : {};
 	const provider = project.defaultProvider ?? global.defaultProvider;

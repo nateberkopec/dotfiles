@@ -55,6 +55,47 @@ class DatasafeFallbackTest < Minitest::Test
     end
   end
 
+  def test_explicit_model_on_fork_is_not_a_silent_fallback
+    with_pi do |dir, mock, calls|
+      sessions = File.join(dir, "sessions")
+      File.write(File.join(dir, "settings.json"), JSON.generate("defaultProvider" => "openai", "defaultModel" => "gpt-4o-mini"))
+      pi(dir, mock, "--session-dir", sessions, "--provider", "openai", "--model", "gpt-4o-mini", "-p", "first")
+      parent = Dir.glob(File.join(sessions, "**", "*.jsonl")).first
+      output = pi(dir, mock, "--session-dir", sessions, "--fork", parent, "--model", "openai/gpt-4o", "-p", "second")
+      refute_includes output, "blocked silent model fallback"
+      assert_equal 2, File.readlines(calls).length
+    end
+  end
+
+  def test_fork_cannot_select_model_outside_datasafe_policy
+    with_pi do |dir, mock, calls|
+      sessions = File.join(dir, "sessions")
+      pi(dir, mock, "--session-dir", sessions, "--provider", "anthropic", "--model", "claude-sonnet-4-6", "-p", "first", mode: "claude-only")
+      parent = Dir.glob(File.join(sessions, "**", "*.jsonl")).first
+      output = pi(dir, mock, "--session-dir", sessions, "--fork", parent, "--model", "openai/gpt-4o-mini", "-p", "second", mode: "claude-only")
+      assert_match(/No models match|not found|not available|Unknown model/i, output)
+      assert_equal 1, File.readlines(calls).length
+    end
+  end
+
+  def test_unrequested_model_change_on_resume_stays_blocked
+    with_pi do |dir, mock, calls|
+      sessions = File.join(dir, "sessions")
+      File.write(File.join(dir, "settings.json"), JSON.generate("defaultProvider" => "openai", "defaultModel" => "gpt-4o-mini"))
+      pi(dir, mock, "--session-dir", sessions, "--provider", "openai", "--model", "gpt-4o-mini", "-p", "first")
+      parent = Dir.glob(File.join(sessions, "**", "*.jsonl")).first
+      entries = File.readlines(parent).map do |line|
+        entry = JSON.parse(line)
+        entry["modelId"] = "unavailable-model" if entry["type"] == "model_change"
+        JSON.generate(entry) + "\n"
+      end
+      File.write(parent, entries.join)
+      output = pi(dir, mock, "--session-dir", sessions, "--session", parent, "-p", "second")
+      assert_includes output, "blocked silent model fallback from openai/unavailable-model"
+      assert_equal 1, File.readlines(calls).length
+    end
+  end
+
   def test_restoring_the_same_model_can_make_a_request
     with_pi do |dir, mock, calls|
       sessions = File.join(dir, "sessions")
