@@ -1,16 +1,6 @@
 ---
 on:
-  schedule:
-    - cron: "0 18 * * 0" # Monday 03:00 JST
   workflow_dispatch:
-  workflow_run:
-    workflows: [Integration Tests, Lint, Unit Tests]
-    types: [completed]
-    branches: ["dependency-update-*"]
-  slash_command:
-    name: dependency-update
-    events: [pull_request_comment]
-  roles: [admin]
 
 checkout:
   fetch: ["dependency-update-*"]
@@ -47,7 +37,7 @@ engine:
     - -c
     - tool_output_token_limit=4096
 # gh-aw-firewall 0.27.44 misresolves model names with query parameters.
-model: gpt-5.6-luna
+model: gpt-6.1-sol
 timeout-minutes: 60
 
 steps:
@@ -55,6 +45,8 @@ steps:
     env:
       GH_TOKEN: ${{ secrets.DEPENDENCY_FACTORY_PAT }}
     run: bash tools/ci/check_dependency_factory_token.sh
+  - name: Evaluate against the same main commit
+    run: git switch --detach ad21ead74b3d25900ba30860138717b77a558783
   - name: Find open dependency-update pull requests
     env:
       GH_TOKEN: ${{ github.token }}
@@ -68,7 +60,7 @@ steps:
         base=$(gh api "repos/${GITHUB_REPOSITORY}/compare/$base...$head" --jq .merge_base_commit.sha)
         jq --arg base "$base" '{number, base: $base, head: .head.sha}' /tmp/gh-aw/agent/pr.json > /tmp/gh-aw/agent/pr-context.json
       else
-        jq -n --arg base "$GITHUB_SHA" '{base: $base}' > /tmp/gh-aw/agent/pr-context.json
+        jq -n --arg base "$(git rev-parse HEAD)" '{base: $base}' > /tmp/gh-aw/agent/pr-context.json
       fi
       gh api "repos/${GITHUB_REPOSITORY}/issues?state=open&labels=dependency-update&per_page=100" \
         --jq '[.[] | select(.pull_request != null) | {number, url: .pull_request.html_url, title}]' \
@@ -138,7 +130,7 @@ safe-outputs:
   threat-detection:
     engine:
       id: codex
-      model: gpt-5.6-luna
+      model: gpt-6-luna
       # gh-aw 0.86.2 omits the separator before detection args; keep the leading space.
       args:
         - " -c"
@@ -146,7 +138,7 @@ safe-outputs:
   create-pull-request:
     patch-format: bundle
     github-token: ${{ secrets.DEPENDENCY_FACTORY_PAT }}
-    labels: [dependency-update]
+    labels: [dependency-eval]
     base-branch: main
     draft: false
     fallback-as-issue: false
@@ -165,19 +157,19 @@ safe-outputs:
     patch-format: bundle
     github-token: ${{ secrets.DEPENDENCY_FACTORY_PAT }}
     target: "${{ github.event.workflow_run.pull_requests[0].number || github.event.issue.number || 'triggering' }}"
-    required-labels: [dependency-update]
+    required-labels: [dependency-eval]
     fallback-as-pull-request: false
     if-no-changes: ignore
     allowed-files: *dependency-files
     protected-files: allowed
   update-pull-request:
     target: "${{ github.event.workflow_run.pull_requests[0].number || github.event.issue.number || 'triggering' }}"
-    required-labels: [dependency-update]
+    required-labels: [dependency-eval]
     title: false
     body: true
   add-comment:
     target: "*"
-    required-labels: [dependency-update]
+    required-labels: [dependency-eval]
   noop: false
 ---
 
@@ -187,7 +179,7 @@ Follow `.github/dependency-updater.md`. Event: `${{ github.event_name }}`; comma
 
 - **Failed build:** inspect run `${{ github.event.workflow_run.id }}` and its logs. Confirm the dependency-update label and that `${{ github.event.workflow_run.head_sha }}` remains the PR head. Repair only that PR within the mechanical boundary. If repair cannot pass mechanically, preserve the branch and bail out visibly; do not remove or snooze the update to force success. Refresh its body and inspect required checks after a successful repair.
 - **Slash command:** read the complete triggering PR and apply the user's decisions below to that branch. Refresh its body and reply with decisions and validation.
-- **Scheduled/manual run:** read `/tmp/gh-aw/agent/open-dependency-update-prs.json`. If a PR is open, comment there with this run's link and explain that the batch was skipped; make no changes. Otherwise prepare one PR.
+- **Evaluation run (GPT-6.1 Sol):** ignore `/tmp/gh-aw/agent/open-dependency-update-prs.json` (including other evaluation PRs). Prepare one independent dependency-update PR against main from the pinned base commit. Title it `Eval: GPT-6.1 Sol dependency update` and explain in its body that it is an evaluation for #755, not a production update to merge. Do not edit the workflow or evaluation setup. Never merge.
 
 > ${{ steps.sanitized.outputs.text }}
 
