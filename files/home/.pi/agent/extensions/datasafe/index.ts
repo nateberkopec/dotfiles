@@ -5,7 +5,6 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { regionalInferenceBaseUrl } from "./catalog.ts";
 import { registerFireworksUS, assertFireworksUSModel } from "./fireworks.ts";
-import { preventModelFallback } from "./no_fallback.ts";
 import { registerOpenRouterUS, denyOpenRouterCollection } from "./openrouter.ts";
 import { profile } from "./profiles.ts";
 import { applyUSInferenceRegion, createVercelUSProvider } from "./vercel.ts";
@@ -100,7 +99,6 @@ export default async function datasafe(pi: ExtensionAPI) {
 		return { block: true, reason: `Datasafe requires ${backend} for ${event.toolName}` };
 	});
 
-	preventModelFallback(pi);
 	pi.on("session_start", (_event, ctx) => {
 		if (ctx.mode === "tui" && profile.status) ctx.ui.setStatus("datasafe", profile.status);
 	});
