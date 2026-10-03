@@ -13,8 +13,8 @@
     "git:github.com/nateberkopec/pi-openai-guidance@b9e9507ece945fc1dd71d1e838a75fe794576d83",
     "npm:pi-context-view@0.6.0",
     {
-      "source": "git:github.com/mitsuhiko/agent-stuff@0865c849befd2021490679f96a8dee58c84ac857",
-      "extensions": ["extensions/goal.ts", "extensions/answer.ts"],
+      "source": "git:github.com/nateberkopec/agent-stuff@2d648af3c75238bda4c2866d0c4cf561386e9871",
+      "extensions": ["extensions/goal.ts", "extensions/answer.ts", "extensions/notify.ts", "extensions/split-fork.ts"],
       "skills": [],
       "prompts": [],
       "themes": []
