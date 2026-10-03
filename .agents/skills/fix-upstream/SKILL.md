@@ -38,13 +38,3 @@ The work is complete when:
 - The user has the result, verification evidence, and any remaining limitations. If completion is blocked, report the specific blocker rather than treating an unverified workaround as finished.
 
 When an upstream fix becomes available, verify it against the original reproduction and replace the fork through a dotfiles PR. Close the tracking issue only after that replacement ships. At that point, the forked repository can be deleted, but only with explicit user approval.
-
-## GitHub disclosure
-
-Begin every authorized GitHub message with this blockquote, followed by a blank line:
-
-```markdown
-> This was written by an agent. Model: <model ID>.
-```
-
-Use the actual writing model's runtime ID (`PI_MODEL` in Pi), including when editing a message. This applies to issue and PR bodies, release notes, and any other authorized GitHub prose; it grants no additional permission to communicate.
