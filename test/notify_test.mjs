@@ -123,6 +123,14 @@ test("invalid fleet status fails closed", async () => {
 	assert.deepEqual(await capture(() => h([{ role: "assistant", content: "Done" }])), []);
 });
 
+test("invalid active subagent counts fail closed", async () => {
+	for (const active of [-1, 0.5, NaN, Infinity, "0", null, undefined]) {
+		const h = harness();
+		h.state.active = active;
+		assert.deepEqual(await capture(() => h([{ role: "assistant", content: "Done" }])), [], `active=${String(active)}`);
+	}
+});
+
 test("works without pi-subagents installed", async () => {
 	const h = harness();
 	h.state.installed = false;
