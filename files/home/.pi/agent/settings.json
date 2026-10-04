@@ -5,8 +5,8 @@
   "defaultThinkingLevel": "medium",
   "hideThinkingBlock": false,
   "packages": [
-    "npm:pi-mcp-adapter@2.37.0",
-    "npm:@narumitw/pi-btw@0.61.0",
+    "npm:pi-mcp-adapter@4.0.0",
+    "npm:@narumitw/pi-btw@0.61.1",
     "git:github.com/nateberkopec/pi-fast-mode@6f8605ece71922bc7ff27fdb9333949e9b609afd",
     "npm:pi-subagents@0.75.0",
     "npm:pi-intercom@0.16.0",
