@@ -29,8 +29,8 @@ class Dotfiles::Step::InstallPiPackagesStep < Dotfiles::Step
 
   def install_package(package)
     install = command("pi", "install", package)
-    if expected_packages.include?("npm:pi-subagents@0.74.0")
-      raise "Remove the temporary pi-subagents 0.74.0 release-age exception (expired 2026-10-09)" if Time.now.utc >= Time.utc(2026, 10, 9)
+    if expected_packages.include?("npm:pi-subagents@0.75.0")
+      raise "Remove the temporary pi-subagents 0.75.0 release-age exception (expired 2026-10-09)" if Time.now.utc >= Time.utc(2026, 10, 9)
       install = env_command({"npm_config_min_release_age_exclude" => "pi-subagents"}, install)
     end
     output, status = execute(install)
