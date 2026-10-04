@@ -67,4 +67,77 @@ async function capture(fn) {
 	return writes;
 }
 
- testPLACEHOLDER
+test("notifies when settled with the last assistant response, not a tool response", async () => {
+	const end = harness();
+	const writes = await capture(() => end([
+		{ role: "assistant", content: "Earlier" },
+		{ role: "assistant", content: [{ type: "text", text: "**Done** with [link](https://example.com)" }] },
+		{ role: "toolResult", content: "Ignored" },
+	]));
+	assert.equal(writes.length, 1);
+	assert.match(writes[0], /^\x1b\]777;notify;π;Done with link\x07$/);
+});
+
+test("does not emit terminal escapes in noninteractive modes", async () => {
+	const end = harness();
+	assert.deepEqual(await capture(() => end([{ role: "assistant", content: "Done" }], "print")), []);
+});
+
+test("falls back for empty responses and sanitizes control characters", async () => {
+	const end = harness();
+	assert.deepEqual(await capture(() => end([])), ["\x1b]777;notify;Ready for input;\x07"]);
+	const [notification] = await capture(() => end([{ role: "assistant", content: "Hi\x1b]777;notify;bad\x07" }]));
+	assert.equal(notification.match(/\x1b/g)?.length, 1);
+	assert.equal(notification.match(/\x07/g)?.length, 1);
+});
+
+test("waiting on a debugging subagent is not a request for human input", async () => {
+	const h = harness();
+	h.state.active = 1;
+	assert.deepEqual(await capture(() => h([
+		{ role: "assistant", content: "Started the debugging subagent on GPT-6.1 Sol, xhigh." },
+	])), []);
+	h.state.active = 0;
+	h.state.pending = true;
+	assert.deepEqual(await capture(() => h.dispatch("agent_settled")), []);
+	h.state.pending = false;
+	h.state.idle = false;
+	assert.deepEqual(await capture(() => h.dispatch("agent_settled")), []);
+	h.state.idle = true;
+	await h.dispatch("agent_end", { messages: [{ role: "assistant", content: "Diagnosis complete. Which fix do you want?" }] });
+	assert.equal((await capture(() => h.dispatch("agent_settled"))).length, 1);
+	assert.deepEqual(await capture(() => h.dispatch("agent_settled")), []);
+});
+
+test("agent_end is not the human-ready boundary", async () => {
+	const h = harness();
+	await h.dispatch("agent_start");
+	assert.deepEqual(await capture(() => h.dispatch("agent_end", {
+		messages: [{ role: "assistant", content: "Waiting on background work" }],
+	})), []);
+});
+
+test("invalid fleet status fails closed", async () => {
+	const h = harness();
+	h.state.malformed = true;
+	assert.deepEqual(await capture(() => h([{ role: "assistant", content: "Done" }])), []);
+});
+
+test("works without pi-subagents installed", async () => {
+	const h = harness();
+	h.state.installed = false;
+	assert.equal((await capture(() => h([{ role: "assistant", content: "Done" }]))).length, 1);
+});
+
+test("new work or a session switch during the fleet query invalidates readiness", async () => {
+	for (const interrupt of [
+		(h) => h.dispatch("agent_start"),
+		(h) => h.dispatch("session_tree"),
+		(h) => h.events.emit("subagent:async-started"),
+		(h) => { h.state.pending = true; },
+	]) {
+		const h = harness();
+		h.state.beforeReply = () => interrupt(h);
+		assert.deepEqual(await capture(() => h([{ role: "assistant", content: "Done" }])), []);
+	}
+});
