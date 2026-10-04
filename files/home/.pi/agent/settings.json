@@ -9,6 +9,7 @@
     "npm:@narumitw/pi-btw@0.61.0",
     "git:github.com/nateberkopec/pi-fast-mode@6f8605ece71922bc7ff27fdb9333949e9b609afd",
     "npm:pi-subagents@0.75.0",
+    "npm:pi-intercom@0.16.0",
     "npm:pi-web-providers@3.5.1",
     "git:github.com/nateberkopec/pi-openai-guidance@b9e9507ece945fc1dd71d1e838a75fe794576d83",
     "npm:pi-context-view@0.6.0",
