@@ -60,6 +60,7 @@ cat >"$config" <<JSON
   },
   "files": [
     "$PWD/files/home/.pi/agent/extensions/caffeinate.ts",
+    "$PWD/files/home/.pi/agent/extensions/you-should-know.ts",
     "$PWD/files/home/.pi/agent/extensions/notify.ts",
     "$PWD/files/home/.pi/agent/extensions/window-fork.ts",
     "$PWD/files/home/.pi/agent/extensions/meridian.ts",
