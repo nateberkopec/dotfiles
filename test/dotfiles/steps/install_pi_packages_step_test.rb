@@ -48,26 +48,26 @@ class InstallPiPackagesStepTest < StepTestCase
     assert_executed("pi install npm:pi-ding@0.2.2")
   end
 
-  def test_only_pi_subagents_0_74_0_bypasses_release_age_gate
-    packages = ["npm:pi-subagents@0.74.0", "npm:pi-ding@0.2.2"]
+  def test_only_pi_subagents_0_75_0_bypasses_release_age_gate
+    packages = ["npm:pi-subagents@0.75.0", "npm:pi-ding@0.2.2"]
     stub_settings(JSON.generate("packages" => packages))
     stub_pi_available
     stub_pi_list("")
 
     step.run
 
-    assert_executed("npm_config_min_release_age_exclude=pi-subagents pi install npm:pi-subagents@0.74.0")
+    assert_executed("npm_config_min_release_age_exclude=pi-subagents pi install npm:pi-subagents@0.75.0")
     assert_executed("npm_config_min_release_age_exclude=pi-subagents pi install npm:pi-ding@0.2.2")
   end
 
   def test_other_subagents_versions_do_not_bypass_release_age_gate
-    stub_settings('{"packages":["npm:pi-subagents@0.75.0"]}')
+    stub_settings('{"packages":["npm:pi-subagents@0.74.0"]}')
     stub_pi_available
     stub_pi_list("")
 
     step.run
 
-    assert_executed("pi install npm:pi-subagents@0.75.0")
+    assert_executed("pi install npm:pi-subagents@0.74.0")
   end
 
   def test_complete_reports_missing_pi
