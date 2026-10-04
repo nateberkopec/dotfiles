@@ -135,7 +135,7 @@ export default function conversationTitle(pi: ExtensionAPI) {
 					headers: auth.headers,
 					env: auth.env,
 					maxTokens: 64,
-					reasoningEffort: "minimal",
+					reasoningEffort: "low",
 					cacheRetention: "none",
 					sessionId: uuidv7(),
 					signal: controller.signal,
@@ -143,6 +143,10 @@ export default function conversationTitle(pi: ExtensionAPI) {
 					maxRetries: 0,
 				},
 			);
+
+			if (response.stopReason === "error") {
+				throw new Error(response.errorMessage || "Title generation failed");
+			}
 
 			const generatedTitle = cleanTitle(response.content
 				.filter((block): block is { type: "text"; text: string } => block.type === "text")
