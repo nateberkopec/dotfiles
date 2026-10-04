@@ -105,29 +105,27 @@ class FireworksCatalogTest < Minitest::Test
       refute File.exist?(calls), "--list-models must not wait for network discovery"
 
       Open3.popen3(env, "pi", "--no-extensions", "--extension", mock, "--mode", "rpc", "--no-session") do |stdin, stdout, errors, wait|
+        ids = []
         begin
           Timeout.timeout(10) do
+            # Cache persistence precedes publication to the active registry.
             loop do
-              begin
-                ids = JSON.parse(File.read(File.join(agent_dir, "models-store.json"))).fetch("fireworks").fetch("models").map { |entry| entry.fetch("id") }
-                break if ids.include?("accounts/fireworks/routers/new-model-us")
-              rescue JSON::ParserError
-                # Another process is writing the cache.
+              stdin.puts JSON.generate(id: "models", type: "get_available_models")
+              loop do
+                reply = JSON.parse(stdout.gets || raise("Pi exited without a model registry response"))
+                next unless reply["id"] == "models"
+
+                assert reply.fetch("success"), reply.inspect
+                ids = reply.fetch("data").fetch("models").map { |entry| entry.fetch("id") }
+                break
               end
-              raise "Pi exited before refresh: #{errors.read}" unless wait.alive?
+              break if ids.include?("accounts/fireworks/routers/new-model-us")
+
               sleep 0.05
             end
-            stdin.puts JSON.generate(id: "models", type: "get_available_models")
-            loop do
-              reply = JSON.parse(stdout.gets || raise("Pi exited without a model registry response"))
-              next unless reply["id"] == "models"
-
-              assert reply.fetch("success"), reply.inspect
-              ids = reply.fetch("data").fetch("models").map { |entry| entry.fetch("id") }
-              assert_includes ids, "accounts/fireworks/routers/new-model-us", "online discovery must update the active session registry"
-              break
-            end
           end
+        rescue Timeout::Error
+          flunk "online discovery must update the active session registry; last model IDs: #{ids.inspect}"
         ensure
           stdin.close
           stdout.read
