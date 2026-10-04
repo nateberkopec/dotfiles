@@ -61,6 +61,8 @@ Managed tools are pinned to explicit versions. `dotf run` consumes the committed
 
 `dotf run` aggressively overwrites existing user state. This repo is the source of truth.
 
+Persistent global behavior belongs in dotfiles. Temporary experiments and test setups are the exception; they should not leave permanent changes behind. This applies to the whole computing environment, not just agent configuration. Drift is a reason to review live state, not permission to modify or delete it. This ownership rule determines what belongs in dotfiles; it does not replace authorization to change the machine.
+
 Config should drive data, Steps should drive behavior.
 
 Generated artifacts should not be edited as sources of truth.
