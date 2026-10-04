@@ -90,13 +90,6 @@ export default async function datasafe(pi: ExtensionAPI) {
 
 	pi.on("tool_call", async (event, ctx) => {
 		if (event.toolName === "subagent") await refreshSubagentModels(ctx);
-		if (profile.web === "all" || !event.toolName.startsWith("web_")) return;
-		const backend = profile.web[event.toolName];
-		if (!backend) return { block: true, reason: `Datasafe blocked web capability: ${event.toolName}` };
-		const config = await readFile(join(getAgentDir(), "web-providers.json"), "utf8")
-			.then(JSON.parse).catch(() => null);
-		if (config?.tools?.[event.toolName.slice(4)] === backend) return;
-		return { block: true, reason: `Datasafe requires ${backend} for ${event.toolName}` };
 	});
 
 	pi.on("session_start", (_event, ctx) => {
