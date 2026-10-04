@@ -12,6 +12,7 @@
  */
 
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+import { subagentsRunning } from "./notify/readiness.ts";
 import { Markdown, type MarkdownTheme, stripTerminalSequences } from "@earendil-works/pi-tui";
 
 /**
@@ -90,10 +91,28 @@ const formatNotification = (text: string | null): { title: string; body: string 
 };
 
 export default function (pi: ExtensionAPI) {
-	pi.on("agent_end", (event, ctx) => {
-		if (ctx.mode !== "tui") return;
-		const lastText = extractLastAssistantText(event.messages ?? []);
+	let lastText: string | null = null;
+	let armed = false;
+	let revision = 0;
+	const reset = () => { revision++; armed = false; lastText = null; };
+	const busy = () => { revision++; armed = true; };
+	pi.on("session_start", reset);
+	pi.on("session_tree", reset);
+	pi.on("agent_start", busy);
+	const unsubscribe = pi.events.on("subagent:async-started", busy);
+	pi.on("agent_end", (event) => {
+		lastText = extractLastAssistantText(event.messages ?? []);
+	});
+	// agent_end may be followed by retries, queued messages, or a background child.
+	// Only the parent's settled follow-up can establish that a human is needed.
+	pi.on("agent_settled", async (_event, ctx) => {
+		if (ctx.mode !== "tui" || !armed || !ctx.isIdle() || ctx.hasPendingMessages()) return;
+		const currentRevision = revision;
+		if (await subagentsRunning(pi)) return;
+		if (currentRevision !== revision || !armed || !ctx.isIdle() || ctx.hasPendingMessages()) return;
+		armed = false;
 		const { title, body } = formatNotification(lastText);
 		notify(title, body);
 	});
+	pi.on("session_shutdown", () => { reset(); unsubscribe(); });
 }
