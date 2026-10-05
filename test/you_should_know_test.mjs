@@ -1,7 +1,10 @@
+import "./support/pi_tui_loader.mjs";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import extension from "../files/home/.pi/agent/extensions/you-should-know/index.ts";
+import { SideChat } from "../files/home/.pi/agent/extensions/btw/thread.ts";
 import { ObserverUI } from "../files/home/.pi/agent/extensions/you-should-know/ui.ts";
+import { WarningInbox } from "../files/home/.pi/agent/extensions/you-should-know/inbox.ts";
 import { JEV_MODEL } from "../files/home/.pi/agent/extensions/you-should-know/jev.ts";
 
 process.env.TYPESAFE_API_KEY = "fixture-not-a-secret";
@@ -15,7 +18,7 @@ async function mock(p, run, confidence) {
 	try { await run(calls); } finally { globalThis.fetch = prior; }
 }
 function harness({ response, available = true, mode = "json", signal } = {}) {
-	const hooks = new Map(), commands = new Map(), entries = [], requests = [], notices = [], widgets = [];
+	const hooks = new Map(), commands = new Map(), shortcuts = new Map(), entries = [], requests = [], notices = [], widgets = [];
 	let branch = [], command;
 	const result = response || { stopReason: "stop", content: [{ type: "text", text: "Tests failed; do not deploy." }], usage: { input: 20, output: 10, cost: { total: 0.0001 } } };
 	const ctx = { mode, signal, sessionManager: { getBranch: () => branch, getEntries: () => entries },
@@ -23,8 +26,9 @@ function harness({ response, available = true, mode = "json", signal } = {}) {
 		modelRegistry: { find: (provider, id) => { assert.equal(provider, "openai"); assert.equal(id, "gpt-6-luna"); return available ? { id, provider } : undefined; },
 			streamSimple: (model, context, options) => { requests.push({ model, context, options }); return { result: () => typeof result === "function" ? result(options) : Promise.resolve(result) }; } } };
 	extension({ on: (name, fn) => hooks.set(name, fn), registerCommand: (name, spec) => { commands.set(name, spec.handler); if (name === "ysk-demo") command = spec.handler; },
+		registerShortcut: (key, spec) => shortcuts.set(key, spec.handler),
 		appendEntry: (customType, data) => { const entry = { type: "custom", customType, data }; entries.push(entry); branch.push(entry); } });
-	return { ctx, entries, requests, notices, widgets, commands, command: (args) => command(args, ctx),
+	return { ctx, entries, requests, notices, widgets, commands, shortcuts, command: (args) => command(args, ctx),
 		emit: (name, event = {}) => hooks.get(name)?.(event, ctx),
 		message(role, text) { const message = { role, content: [{ type: "text", text }] }; const entry = { type: "message", message }; branch.push(entry); entries.push(entry); return message; },
 		branch(next) { branch = next; } };
@@ -87,10 +91,14 @@ test("missing Luna never falls back to main model or even calls Jev", async () =
 	const h = harness({ available: false }); h.message("assistant", "Risk"); await h.emit("agent_end");
 	assert.equal(calls.length, 0); assert.equal(h.requests.length, 0); assert.match(h.notices[0][0], /openai\/gpt-6-luna/);
 }));
-test("NONE and below-threshold reviews remove old notes; no fabricated message", async () => {
+test("NONE and below-threshold reviews preserve pending warnings without fabricating new ones", async () => {
 	const h = harness({ response: { stopReason: "stop", content: [{ type: "text", text: "NONE" }] } });
-	await mock(1, async () => { h.message("assistant", "Risk"); await h.emit("agent_end"); assert.equal(notes(h).at(-1).data.note, ""); });
-	await mock(0, async () => { h.message("assistant", "Concern acknowledged"); await h.emit("agent_end"); assert.equal(notes(h).at(-1).data.note, ""); });
+	const stored = { type: "custom", customType: "you-should-know-note", data: { id: "stored", note: "Existing warning", queued: true } };
+	h.entries.push(stored); h.branch([stored]); await h.emit("session_start");
+	await mock(1, async () => { h.message("assistant", "Risk"); await h.emit("agent_end"); });
+	await mock(0, async () => { h.message("assistant", "Concern acknowledged"); await h.emit("agent_end"); });
+	assert.equal(notes(h).length, 1);
+	assert.equal(WarningInbox.restore(h.entries).current.note, "Existing warning");
 });
 test("message_end includes the unpersisted assistant, and final checkpoint does not duplicate it", async () => mock(1, async (calls) => {
 	const h = harness(); h.message("toolResult", "Tests failed"); const message = { role: "assistant", content: [{ type: "text", text: "Tests passed" }] };
@@ -178,16 +186,16 @@ test("offered and understood histories survive resume, dedupe older notes, and r
 	assert.equal(h.entries.some((e) => e.customType === "you-should-know-understood"), false, "dismiss is not understanding");
 	text = "Second concern."; h.message("assistant", "Second claim"); await h.emit("agent_end");
 	await h.commands.get("ysk-understood")("", h.ctx);
-	assert.equal(notes(h).at(-1).data.note, "");
+	assert.equal(WarningInbox.restore(h.entries).pending.length, 0);
 	await h.emit("session_start");
 	text = "FIRST   CONCERN!"; h.message("assistant", "Third claim"); await h.emit("agent_end");
-	assert.equal(notes(h).at(-1).data.note, "", "non-latest offered note is suppressed despite capitalization/punctuation");
+	assert.equal(notes(h).length, 2, "non-latest offered note is suppressed despite capitalization/punctuation");
 	const state = JSON.parse(calls.at(-1).options.body).state;
 	assert.match(state, /offered topics[^\n]*\n\["First concern\.","Second concern\."\]/);
 	assert.match(state, /explicitly understood[^\n]*\n\["Second concern\."\]/);
 	assert.equal(h.requests.at(-1).context.messages[0].content, state, "both models get the same histories");
 	text = "SECOND CONCERN!"; h.message("assistant", "Fourth claim"); await h.emit("agent_end");
-	assert.equal(notes(h).at(-1).data.note, "");
+	assert.equal(notes(h).length, 2);
 	h.branch([]); await h.emit("session_tree"); h.message("assistant", "Fresh branch"); await h.emit("agent_end");
 	assert.equal(notes(h).at(-1).data.note, text, "another branch does not inherit understood topics");
 }));
@@ -207,6 +215,67 @@ test("category none cannot trigger Luna even with a confident warn choice", asyn
 	try { const h = harness(); h.message("assistant", "No consequence"); await h.emit("agent_end"); assert.equal(h.requests.length, 0); }
 	finally { globalThis.fetch = prior; }
 });
+
+test("warnings arriving during card review retain selection and Details uses the original snapshot", async () => mock(1, async () => {
+	let text = "First concern.";
+	const h = harness({ mode: "tui", response: () => Promise.resolve({ stopReason: "stop", content: [{ type: "text", text }] }) });
+	const opened = Promise.withResolvers(), finished = Promise.withResolvers(), theme = { fg: (_color, text) => text, bold: (text) => text };
+	let component;
+	h.ctx.ui.custom = (factory, options) => {
+		assert.equal(options, undefined, "card is inline, not an overlay");
+		component = factory({ requestRender() {} }, theme, {}, (result) => finished.resolve(result));
+		opened.resolve(); return finished.promise;
+	};
+	const original = SideChat.prototype.open, chats = [];
+	SideChat.prototype.open = async function (ctx, spec) { chats.push(spec); };
+	try {
+		h.message("assistant", "First evidence"); await h.emit("agent_end");
+		text = "Second concern."; h.message("assistant", "Second evidence"); await h.emit("agent_end");
+		const card = h.shortcuts.get("ctrl+;")(h.ctx); await opened.promise;
+		component.handleInput("\t");
+		const second = notes(h)[1].data;
+		text = "Third concern."; h.message("assistant", "Third evidence"); await h.emit("agent_end");
+		assert.match(component.render(120).join("\n"), /2 of 3/);
+		assert.match(component.render(120).join("\n"), /Second concern/);
+		component.handleInput("D"); await card;
+		assert.equal(chats.length, 1); assert.equal(chats[0].id, second.id);
+		assert.equal(chats[0].seed[0].content, `Original YSK warning: ${second.note}\n\nOriginal text-only snapshot:\n${second.source}`);
+		assert.doesNotMatch(chats[0].seed[0].content, /Third evidence/);
+		assert.equal(h.entries.some((entry) => entry.customType === "you-should-know-acknowledged"), false);
+	} finally { await h.emit("session_shutdown"); SideChat.prototype.open = original; }
+}));
+
+test("session-tree change closes an active card without acknowledging or opening a stale chat", async () => mock(1, async () => {
+	const h = harness({ mode: "tui" }), opened = Promise.withResolvers(), finished = Promise.withResolvers();
+	const theme = { fg: (_color, text) => text, bold: (text) => text };
+	h.ctx.ui.custom = (factory) => {
+		factory({ requestRender() {} }, theme, {}, (result) => finished.resolve(result));
+		opened.resolve(); return finished.promise;
+	};
+	h.message("assistant", "Evidence"); await h.emit("agent_end");
+	const card = h.shortcuts.get("ctrl+;")(h.ctx); await opened.promise;
+	h.branch([]); await h.emit("session_tree"); await card;
+	assert.equal(h.entries.some((entry) => entry.customType === "you-should-know-acknowledged"), false);
+	assert.equal(h.widgets.at(-1)[1], undefined);
+	await h.emit("session_shutdown");
+}));
+
+test("disabling an active card preserves the queue and restores it on enable/resume", async () => mock(1, async () => {
+	const h = harness({ mode: "tui" }), opened = Promise.withResolvers(), finished = Promise.withResolvers();
+	const theme = { fg: (_color, text) => text, bold: (text) => text };
+	h.ctx.ui.custom = (factory) => {
+		factory({ requestRender() {} }, theme, {}, (result) => finished.resolve(result));
+		opened.resolve(); return finished.promise;
+	};
+	h.message("assistant", "Evidence"); await h.emit("agent_end");
+	const card = h.shortcuts.get("ctrl+;")(h.ctx); await opened.promise;
+	await h.command("off"); await card;
+	assert.equal(WarningInbox.restore(h.entries).pending.length, 1);
+	assert.equal(h.widgets.at(-1)[1], undefined);
+	await h.command("on"); await h.emit("session_start");
+	assert.match(h.widgets.at(-1)[1]({}, theme).render(120).join("\n"), /Tests failed/);
+	await h.emit("session_shutdown");
+}));
 
 test("provider bodies/errors never leak into notices, and unchanged failures do not retry", async () => mock(1, async (calls) => {
 	const h = harness({ response: () => Promise.reject(Error("PRIVATE raw provider body")) }); h.message("assistant", "Risk"); await h.emit("agent_end");

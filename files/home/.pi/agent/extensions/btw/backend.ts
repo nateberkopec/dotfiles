@@ -1,10 +1,10 @@
-import type { ExtensionCommandContext, CreateAgentSessionOptions } from "@earendil-works/pi-coding-agent";
+import type { ExtensionContext, CreateAgentSessionOptions } from "@earendil-works/pi-coding-agent";
 import type { AssistantMessage, Message } from "@earendil-works/pi-ai/compat";
 
 export interface ChatSpec {
 	id: string;
 	title: string;
-	model: NonNullable<ExtensionCommandContext["model"]>;
+	model: NonNullable<ExtensionContext["model"]>;
 	systemPrompt: string;
 	seed: Message[];
 	tools: string[];
@@ -13,7 +13,7 @@ export interface ChatSpec {
 	thinking?: CreateAgentSessionOptions["thinkingLevel"];
 	onUsage?: (message: AssistantMessage) => void;
 }
-export async function createBackend(ctx: ExtensionCommandContext, spec: ChatSpec, onText: (text: string) => void) {
+export async function createBackend(ctx: ExtensionContext, spec: ChatSpec, onText: (text: string) => void) {
 	const { createAgentSession, createExtensionRuntime, ModelRuntime, SessionManager, SettingsManager } =
 		await import("@earendil-works/pi-coding-agent");
 	const registry = ctx.modelRegistry, model = spec.model;

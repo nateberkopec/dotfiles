@@ -1,26 +1,19 @@
 import type { ExtensionContext } from "@earendil-works/pi-coding-agent";
 import type { UsageLedger } from "./usage.ts";
-import type { Decision } from "./jev.ts";
+import { noteLabel, type NoteDecision } from "./decision.ts";
+import type { WarningInbox, Warning } from "./inbox.ts";
+export { noteDecision, noteLabel, type NoteDecision } from "./decision.ts";
 
 export const KEY = "you-should-know";
-export type NoteDecision = Pick<Decision, "confidence" | "category">;
-// VER remains readable when restoring historical warnings; new reviews never produce it.
-const categories: Record<string, string> = { wrong_result: "RESULT", cost: "COST", wasted_work: "WORK",
-	verification: "VER", data_loss: "LOSS", security: "SEC", none: "NONE" };
-export function noteDecision(value: unknown): NoteDecision | undefined {
-	const data = value as NoteDecision | undefined;
-	return data && Number.isFinite(data.confidence) && data.confidence >= 0 && data.confidence <= 1 &&
-		Object.hasOwn(categories, data.category) ? { confidence: data.confidence, category: data.category } : undefined;
-}
-export function noteLabel(decision?: NoteDecision): string {
-	const data = noteDecision(decision);
-	return data ? `YSK (${Math.round(data.confidence * 100)}%|${categories[data.category]}):` : "YSK:";
-}
 export class ObserverUI {
 	private pulse: ReturnType<typeof setInterval> | undefined;
 	private frame = 0;
 	private ctx: ExtensionContext;
 	private ledger: UsageLedger;
+	private closeFocused?: () => void;
+	private refreshFocused?: () => void;
+	private focused = false;
+	private cardEpoch = 0;
 	constructor(ctx: ExtensionContext, ledger: UsageLedger) { this.ctx = ctx; this.ledger = ledger; }
 	footer() {
 		if (this.ctx.mode !== "tui") return;
@@ -39,13 +32,30 @@ export class ObserverUI {
 		}
 		this.footer();
 	}
-	async note(note: string, current: () => boolean, explaining = false, decision?: NoteDecision) {
+	closeCard() { this.cardEpoch++; this.closeFocused?.(); }
+	async review(ctx: ExtensionContext, inbox: WarningInbox, acknowledge: (warning: Warning) => void) {
+		if (this.focused || ctx.mode !== "tui" || !inbox.current) return;
+		const version = this.cardEpoch;
+		this.focused = true;
+		try {
+			const { warningCard } = await import("./card.ts");
+			if (version !== this.cardEpoch) return;
+			ctx.ui.setWidget(KEY, undefined);
+			return await ctx.ui.custom<import("./card.ts").CardResult>((tui, theme, _keys, done) => {
+				this.closeFocused = () => done(undefined); this.refreshFocused = () => tui.requestRender();
+				return warningCard(inbox, theme, this.refreshFocused, done, acknowledge);
+			});
+		} finally { this.focused = false; this.closeFocused = undefined; this.refreshFocused = undefined; }
+	}
+	async note(note: string, current: () => boolean, explaining = false, decision?: NoteDecision, count = 1) {
 		if (this.ctx.mode !== "tui" || !current()) return;
-		if (!note) { this.ctx.ui.setWidget(KEY, undefined); return; }
-		const { Text } = await import("@earendil-works/pi-tui");
-		if (current()) this.ctx.ui.setWidget(KEY, (_tui, theme) => ({
-			render: (width) => new Text(`${theme.fg("accent", theme.bold(noteLabel(explaining ? undefined : decision)))} ${explaining
-				? theme.fg("dim", `${note}${".".repeat(1 + Math.floor(this.frame / 4))}`) : note}`, 0, 0).render(width),
+		this.refreshFocused?.();
+		if (this.focused || !note) { this.ctx.ui.setWidget(KEY, undefined); return; }
+		const { Text } = await import("@earendil-works/pi-tui"), { preview } = await import("./card.ts");
+		if (current() && !this.focused) this.ctx.ui.setWidget(KEY, (_tui, theme) => ({
+			render: (width) => explaining ? new Text(`${theme.fg("accent", theme.bold(noteLabel()))} ${
+				theme.fg("dim", `${note}${".".repeat(1 + Math.floor(this.frame / 4))}`)}`, 0, 0).render(width)
+				: preview(note, decision, count, theme, width),
 			invalidate() {},
 		}));
 	}
