@@ -36,7 +36,7 @@ export function openOverlay(ctx: ExtensionCommandContext, view: ChatView) {
 				};
 				const height = Math.max(1, Math.min(18, (process.stdout.rows ?? 30) - 10));
 				const transcript = new Markdown(view.text(), 0, 0, getMarkdownTheme()).render(inner).slice(-height);
-				return [border("top"), line(theme.fg("accent", theme.bold(view.title))), ...transcript,
+				return [border("top"), line(theme.fg("accent", theme.bold(view.title))), ...transcript.map(line),
 					line(theme.fg("dim", view.status())), line(input.render(inner)[0] ?? ""),
 					line(theme.fg("dim", "Enter: send · Esc: close")), border("bottom")];
 			},
