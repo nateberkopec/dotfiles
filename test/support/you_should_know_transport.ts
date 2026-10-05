@@ -16,7 +16,7 @@ export default function transport(pi: ExtensionAPI) {
 		if (init?.redirect !== "error") throw new Error("Transcript transport must reject redirects");
 		if (url === JEV_URL) return new Response(JSON.stringify({ model: JEV_MODEL, usage: { input_tokens: 100 }, answers: {
 			interrupt: { type: "choice", choice: "warn", confidence: 1, probabilities: { warn: 1, quiet: 0 } },
-			category: { type: "choice", choice: "data_loss", confidence: 1, probabilities: { verification: 0, data_loss: 1, security: 0, none: 0 } },
+			category: { type: "choice", choice: "data_loss", confidence: 1, probabilities: { wrong_result: 0, cost: 0, wasted_work: 0, data_loss: 1, security: 0, none: 0 } },
 		} }));
 		const item = { type: "message", id: "msg_fixture", role: "assistant", status: "in_progress", content: [] };
 		const events: unknown[] = [

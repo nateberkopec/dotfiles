@@ -5,13 +5,13 @@ import { ObserverUI } from "../files/home/.pi/agent/extensions/you-should-know/u
 import { JEV_MODEL } from "../files/home/.pi/agent/extensions/you-should-know/jev.ts";
 
 process.env.TYPESAFE_API_KEY = "fixture-not-a-secret";
-const decision = (p = 1) => ({ model: JEV_MODEL, usage: { input_tokens: 100 }, answers: {
-	interrupt: { type: "choice", choice: p >= 0.5 ? "warn" : "quiet", confidence: 1, probabilities: { warn: p, quiet: 1 - p } },
-	category: { type: "choice", choice: "verification", confidence: 1, probabilities: { verification: 1, data_loss: 0, security: 0, none: 0 } },
+const decision = (p = 1, confidence = Math.abs(2 * p - 1)) => ({ model: JEV_MODEL, usage: { input_tokens: 100 }, answers: {
+	interrupt: { type: "choice", choice: p >= 0.5 ? "warn" : "quiet", confidence, probabilities: { warn: p, quiet: 1 - p } },
+	category: { type: "choice", choice: "wrong_result", confidence: 1, probabilities: { wrong_result: 1, cost: 0, wasted_work: 0, data_loss: 0, security: 0, none: 0 } },
 } });
-async function mock(p, run) {
+async function mock(p, run, confidence) {
 	const prior = globalThis.fetch, calls = [];
-	globalThis.fetch = async (url, options) => { calls.push({ url, options }); return new Response(JSON.stringify(decision(p))); };
+	globalThis.fetch = async (url, options) => { calls.push({ url, options }); return new Response(JSON.stringify(decision(p, confidence))); };
 	try { await run(calls); } finally { globalThis.fetch = prior; }
 }
 function harness({ response, available = true, mode = "json", signal } = {}) {
@@ -35,9 +35,9 @@ const settle = () => new Promise((resolve) => setImmediate(resolve));
 
 for (const outcome of ["note", "NONE", "failure", "cancel", "off", "quiet"]) test(`provisional UI only after the gate and clears on ${outcome}`, async () => mock(outcome === "quiet" ? 0 : 1, async () => {
 	const original = ObserverUI.prototype.note, updates = [], done = Promise.withResolvers(), main = new AbortController();
-	ObserverUI.prototype.note = async function (text, current, explaining = false) {
+	ObserverUI.prototype.note = async function (text, current, explaining = false, decision) {
 		if (current()) updates.push({ text, explaining });
-		return original.call(this, text, current, explaining);
+		return original.call(this, text, current, explaining, decision);
 	};
 	const h = harness({ signal: main.signal, response: () => done.promise });
 	try {
@@ -63,14 +63,20 @@ test("default-on real observer batches Jev and independently calls pinned tool-l
 		assert.equal(h.requests[0].context.tools, undefined); assert.equal(h.requests[0].options.maxRetries, 0);
 		assert.equal(h.requests[0].options.reasoning, "low"); assert.equal(h.requests[0].options.maxTokens, 512);
 		assert.equal(notes(h).at(-1).data.note, "Tests failed; do not deploy."); assert.equal(usage(h).length, 2);
+		assert.deepEqual(notes(h).at(-1).data.decision, { confidence: 1, category: "wrong_result" });
+		const review = h.entries.find((e) => e.customType === "you-should-know-review").data;
+		assert.equal(review.choice, "warn"); assert.equal(review.thresholdMetric, "confidence");
 		await h.emit("agent_end"); assert.equal(calls.length, 1, "unchanged source does not trigger another request");
 	});
 });
-for (const [p, threshold, expected] of [[0.84, 0.85, 0], [0.85, 0.85, 1], [0.99, 1, 0], [0, 0, 1]]) {
-	test(`gate ${p} >= ${threshold}: ${Boolean(expected)}`, async () => mock(p, async () => {
+for (const [p, confidence, threshold, expected] of [
+	[0.99, 0.84, 0.85, 0], [0.9, 0.85, 0.85, 1], [0.85, 0.7, 0.85, 0],
+	[0.99, 0.98, 1, 0], [1, 1, 1, 1], [0, 1, 0.85, 0], [0, 1, 0, 0], [0.5, 0, 0, 1],
+]) {
+	test(`warn confidence gate: p=${p}, confidence=${confidence}, threshold=${threshold}: ${Boolean(expected)}`, async () => mock(p, async () => {
 		const h = harness(); await h.command(String(threshold)); h.message("assistant", "Check this claim"); await h.emit("agent_end");
 		assert.equal(h.requests.length, expected); assert.equal(usage(h).length, expected + 1);
-	}));
+	}, confidence));
 }
 test("off suppresses all requests; commands accept only on/off or finite thresholds", async () => mock(1, async (calls) => {
 	const h = harness(); await h.command("off"); h.message("assistant", "Risk"); await h.emit("agent_end"); assert.equal(calls.length, 0);
@@ -110,10 +116,28 @@ test("active-branch state restores off/threshold, while a new session defaults o
 	h.branch([]); await h.emit("session_start"); h.message("assistant", "New session"); await h.emit("agent_end");
 	assert.equal(calls.length, 1); assert.equal(h.entries.filter((e) => e.customType === "you-should-know-review").at(-1).data.threshold, 0.85);
 }));
+test("warning metadata restores from its note or legacy paired review, not a newer quiet review", async () => {
+	const original = ObserverUI.prototype.note, updates = [];
+	ObserverUI.prototype.note = async function (text, current, explaining, decision) {
+		if (current()) updates.push({ text, decision });
+	};
+	const h = harness(), custom = (customType, data) => ({ type: "custom", customType: `you-should-know-${customType}`, data });
+	try {
+		const older = { confidence: 0.98, category: "security" }, newer = { confidence: 0.8, category: "none" };
+		h.branch([custom("review", newer), custom("note", { note: "Stored warning", decision: older })]);
+		await h.emit("session_start"); assert.deepEqual(updates.at(-1), { text: "Stored warning", decision: older });
+		h.branch([custom("review", older), custom("note", { note: "Legacy warning" }), custom("review", newer)]);
+		await h.emit("session_tree"); assert.deepEqual(updates.at(-1), { text: "Legacy warning", decision: older });
+		h.branch([custom("note", { note: "No recorded score" })]);
+		await h.emit("session_start"); assert.deepEqual(updates.at(-1), { text: "No recorded score", decision: undefined });
+	} finally { await h.emit("session_shutdown"); ObserverUI.prototype.note = original; }
+});
+
 test("only bounded text is sent; thinking and images stay out; notes strip controls", async () => mock(1, async (calls) => {
 	const h = harness({ response: { stopReason: "stop", content: [{ type: "text", text: "\x1b" + "x".repeat(1000) }] } });
 	h.message("assistant", "a".repeat(30000)); await h.emit("agent_end");
-	assert.ok(JSON.parse(calls[0].options.body).state.length < 24100); assert.equal(notes(h).at(-1).data.note.length, 600);
+	const state = JSON.parse(calls[0].options.body).state;
+	assert.ok(state.split("\n\nTranscript:\n")[1].length <= 24000); assert.equal(notes(h).at(-1).data.note.length, 600);
 	assert.equal(notes(h).at(-1).data.note.includes("\x1b"), false);
 }));
 for (const stage of ["jev", "luna"]) test(`main-run cancellation during ${stage} releases agent_end and prevents another checkpoint`, async () => {
@@ -145,6 +169,44 @@ test("main-run signal listener is removed when a review completes", async () => 
 	const h = harness({ signal }); h.message("assistant", "Quiet"); await h.emit("agent_end");
 	assert.equal(added, 1); assert.equal(removed, 1);
 }));
+
+test("offered and understood histories survive resume, dedupe older notes, and remain branch-local", async () => mock(1, async (calls) => {
+	let text = "First concern.";
+	const h = harness({ response: () => Promise.resolve({ stopReason: "stop", content: [{ type: "text", text }] }) });
+	h.message("assistant", "First claim"); await h.emit("agent_end");
+	await h.commands.get("ysk-dismiss")("", h.ctx);
+	assert.equal(h.entries.some((e) => e.customType === "you-should-know-understood"), false, "dismiss is not understanding");
+	text = "Second concern."; h.message("assistant", "Second claim"); await h.emit("agent_end");
+	await h.commands.get("ysk-understood")("", h.ctx);
+	assert.equal(notes(h).at(-1).data.note, "");
+	await h.emit("session_start");
+	text = "FIRST   CONCERN!"; h.message("assistant", "Third claim"); await h.emit("agent_end");
+	assert.equal(notes(h).at(-1).data.note, "", "non-latest offered note is suppressed despite capitalization/punctuation");
+	const state = JSON.parse(calls.at(-1).options.body).state;
+	assert.match(state, /offered topics[^\n]*\n\["First concern\.","Second concern\."\]/);
+	assert.match(state, /explicitly understood[^\n]*\n\["Second concern\."\]/);
+	assert.equal(h.requests.at(-1).context.messages[0].content, state, "both models get the same histories");
+	text = "SECOND CONCERN!"; h.message("assistant", "Fourth claim"); await h.emit("agent_end");
+	assert.equal(notes(h).at(-1).data.note, "");
+	h.branch([]); await h.emit("session_tree"); h.message("assistant", "Fresh branch"); await h.emit("agent_end");
+	assert.equal(notes(h).at(-1).data.note, text, "another branch does not inherit understood topics");
+}));
+
+test("legacy previous-note history migrates, and nothing is marked understood without an explicit action", async () => mock(1, async (calls) => {
+	const h = harness();
+	h.branch([{ type: "custom", customType: "you-should-know-note", data: { note: "", previous: "Old concern." } }]);
+	await h.emit("session_start"); h.message("assistant", "Next claim"); await h.emit("agent_end");
+	assert.match(JSON.parse(calls[0].options.body).state, /\["Old concern\."\]/);
+	assert.match(JSON.parse(calls[0].options.body).state, /explicitly understood[^\n]*\n\[\]/);
+}));
+
+test("category none cannot trigger Luna even with a confident warn choice", async () => {
+	const prior = globalThis.fetch, data = decision();
+	data.answers.category.choice = "none"; data.answers.category.probabilities.wrong_result = 0; data.answers.category.probabilities.none = 1;
+	globalThis.fetch = async () => new Response(JSON.stringify(data));
+	try { const h = harness(); h.message("assistant", "No consequence"); await h.emit("agent_end"); assert.equal(h.requests.length, 0); }
+	finally { globalThis.fetch = prior; }
+});
 
 test("provider bodies/errors never leak into notices, and unchanged failures do not retry", async () => mock(1, async (calls) => {
 	const h = harness({ response: () => Promise.reject(Error("PRIVATE raw provider body")) }); h.message("assistant", "Risk"); await h.emit("agent_end");

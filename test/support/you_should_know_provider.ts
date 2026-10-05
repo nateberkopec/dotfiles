@@ -13,7 +13,7 @@ export default function fixture(pi: ExtensionAPI) {
 			const p = body.state.includes("backup") ? 1 : 0;
 			return new Response(JSON.stringify({ model: JEV_MODEL, usage: { input_tokens: 100 }, answers: {
 				interrupt: { type: "choice", choice: p ? "warn" : "quiet", confidence: 1, probabilities: { warn: p, quiet: 1 - p } },
-				category: { type: "choice", choice: "verification", confidence: 1, probabilities: { verification: 1, data_loss: 0, security: 0, none: 0 } },
+				category: { type: "choice", choice: "wrong_result", confidence: 1, probabilities: { wrong_result: 1, cost: 0, wasted_work: 0, data_loss: 0, security: 0, none: 0 } },
 			} }));
 		};
 	}
