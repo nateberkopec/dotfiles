@@ -13,6 +13,14 @@ test("reads Executor results from structured content or gateway JSON text", () =
   assert.throws(() => executorValue({ isError: true }), /MCP call failed/);
   assert.throws(() => executorValue({ structuredContent: { status: "completed", execution: { ok: false, error: "no" } } }), /operation failed/);
 });
+test("preserves gateway errors and incomplete Executor responses", () => {
+  const text = 'Tool "server-1_execute" not found on server "client-default"';
+  for (const failure of [
+    { isError: true, content: [{ type: "text", text }] },
+    { content: [{ type: "text", text }], details: { error: "tool_not_found" } },
+  ]) assert.throws(() => executorValue(failure), /server-1_execute.*client-default/);
+  assert.throws(() => executorValue({ structuredContent: { status: "approval-required", requestId: "approval-1" } }), /approval-1/);
+});
 test("remote discovers exact profile and passes only serialized data", async () => {
   let code = "";
   const value = await remote(async (args) => {

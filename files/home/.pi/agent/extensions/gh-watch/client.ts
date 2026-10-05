@@ -5,14 +5,16 @@ export type GatewayResult = { isError?: boolean; content?: { type: string; text?
 export type CallGateway = (args: unknown, signal: AbortSignal) => Promise<GatewayResult>;
 
 export function executorValue(result: GatewayResult): unknown {
-  if (result.isError) throw new Error("MCP call failed; inspect the nested MCP error.");
+  const details = result.details as { error?: string; mcpResult?: { structuredContent?: unknown } } | undefined;
+  const text = (result.content ?? []).filter(item => item.type === "text" && item.text).map(item => item.text).join("\n");
+  // The MCP adapter can report routing errors in details without setting isError.
+  if (result.isError || details?.error) throw new Error(`MCP call failed${details?.error ? ` (${details.error})` : ""}: ${text || "No error details returned"}`);
   const candidates = [result.structuredContent];
   for (const item of result.content ?? []) {
     if (item.type !== "text" || !item.text) continue;
     try { candidates.push(JSON.parse(item.text.split("\nstructuredContent:\n")[0])); } catch { /* Gateway may append human-readable text. */ }
   }
   // pi-mcp-adapter preserves the upstream MCP result in details.
-  const details = result.details as { mcpResult?: { structuredContent?: unknown } } | undefined;
   candidates.push(details?.mcpResult?.structuredContent);
   for (const candidate of candidates) {
     const value = candidate as { status?: string; execution?: { ok: boolean; value?: unknown; error?: unknown } } | undefined;
@@ -20,7 +22,7 @@ export function executorValue(result: GatewayResult): unknown {
     if (!value.execution.ok) throw new Error(`Executor operation failed: ${JSON.stringify(value.execution.error)}`);
     return value.execution.value;
   }
-  throw new Error("Executor did not return a completed execution. No automatic retry: check approvals/input or inspect the start key before retrying.");
+  throw new Error(`Executor did not return a completed execution. No automatic retry. Gateway response: ${text || JSON.stringify(result.structuredContent ?? details?.mcpResult?.structuredContent ?? null)}`);
 }
 
 export async function remote(call: CallGateway, action: "start" | "status" | "cancel", input: unknown, signal: AbortSignal, mode: "pr" | "run" = "pr"): Promise<WatchHandle> {
@@ -31,7 +33,7 @@ export async function remote(call: CallGateway, action: "start" | "status" | "ca
   const code = `const found = await tools.search({ query: ${JSON.stringify(name)} });
 if (!found.items.some(item => item.path === ${JSON.stringify(path)})) throw new Error("Expected gh-agent watch tool/profile unavailable; rediscover gh-agent.");
 return await ${path}(${JSON.stringify(input)});`;
-  const handle = executorValue(await call({ tool: "server-1_execute", args: { code } }, signal)) as WatchHandle;
+  const handle = executorValue(await call({ server: "server-1", tool: "server-1_execute", args: { code } }, signal)) as WatchHandle;
   if (!handle || typeof handle.id !== "string" || !["watch_pr_checks", "watch_actions_run"].includes(handle.workflow) ||
     (action === "start" && handle.workflow !== name) ||
     !["queued", "running", "waiting", "paused", "waitingForPause", "complete", "errored", "terminated"].includes(handle.status)) {

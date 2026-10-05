@@ -110,6 +110,36 @@ test("switching sessions suppresses late completion from previous owner", async 
   await tick();
   assert.equal(h.messages.length, 0);
 });
+test("watch calls stay on server-1 when the gateway defaults to a selected client", async () => {
+  const h = harness();
+  const base = h.ctx.executeTool;
+  h.ctx.executeTool = async (name, args, options) => {
+    // The client-picker tool_call hook supplies its selection when server is omitted.
+    const routed = { ...args, server: args.server ?? "client-default" };
+    if (routed.server !== "server-1") return { isError: false, result: {
+      content: [{ type: "text", text: `Tool "${args.tool}" not found on server "${routed.server}"` }],
+      details: { error: "tool_not_found" },
+    } };
+    return base(name, routed, options);
+  };
+  try {
+    await h.tool.execute("start", { action: "start", mode: "run", owner: "example", repo: "repo", run_id: 42 }, undefined, undefined, h.ctx);
+    await tick();
+    for (const action of ["status", "attach", "cancel"]) {
+      if (action === "cancel") h.setStatus("terminated");
+      await h.tool.execute(action, { action, run: "watch-1" }, undefined, undefined, h.ctx);
+    }
+    assert.ok(h.calls.length >= 5, "includes background completion observation");
+    assert.ok(h.calls.every(call => call.args.server === "server-1"));
+  } finally {
+    h.events.get("session_shutdown")();
+  }
+});
+test("failed starts explain how to reconcile with their stable key", async () => {
+  const h = harness();
+  h.ctx.executeTool = async () => { throw new Error("gateway unavailable"); };
+  await assert.rejects(h.tool.execute("start", { action: "start", mode: "run", owner: "example", repo: "repo", run_id: 42, key: "start-key" }, undefined, undefined, h.ctx), /action start.*same arguments.*start-key.*status\/attach require an Executor run ID/);
+});
 test("cancel calls only watch_cancel with model, never GitHub cancel", async () => {
   const h = harness();
   h.setStatus("terminated");

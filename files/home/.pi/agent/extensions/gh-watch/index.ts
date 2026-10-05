@@ -94,7 +94,7 @@ export default function (pi: ExtensionAPI) {
             ...(args.max_wait_seconds === undefined ? {} : { max_wait_seconds: args.max_wait_seconds }),
             model: ctx.model.id, key }, signal ?? new AbortController().signal, mode);
         } catch (error) {
-          throw new Error(`Watch start not confirmed. Do not blindly retry; reconcile using start key ${key}. ${String(error)}`);
+          throw new Error(`Watch start not confirmed. Do not blindly retry. After inspecting the failure, reconcile with action start, the same arguments, and key ${key}; status/attach require an Executor run ID. ${String(error)}`);
         }
       } else {
         if (!args.run) throw new Error(`${args.action} requires an Executor run ID`);
