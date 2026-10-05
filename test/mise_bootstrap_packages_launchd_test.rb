@@ -58,7 +58,8 @@ class MiseBootstrapPackagesLaunchdTest < Minitest::Test
       "MERIDIAN_PORT" => "3456",
       "MERIDIAN_PASSTHROUGH" => "1",
       "MERIDIAN_NO_FILE_CHANGES" => "1",
-      "MERIDIAN_UPSTREAM_IDLE_MS" => "30000"
+      "MERIDIAN_UPSTREAM_IDLE_MS" => "30000",
+      "CLAUDE_CODE_ENABLE_FINE_GRAINED_TOOL_STREAMING" => "1"
     }, agent.fetch("environment"))
     assert_equal true, agent.fetch("run_at_load")
     assert_equal true, agent.fetch("keep_alive")
