@@ -4,11 +4,42 @@ import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { test } from "node:test";
+import { UsageLedger } from "../files/home/.pi/agent/extensions/you-should-know/usage.ts";
 import { fileURLToPath } from "node:url";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const extension = path.join(root, "files/home/.pi/agent/extensions/you-should-know/index.ts");
 const fixture = path.join(root, "test/support/you_should_know_provider.ts");
+
+for (const mode of ["complete", "interrupted"]) test(`real SDK Luna transport rejects redirects and accounts ${mode} SSE usage`, () => {
+	const dir = mkdtempSync(path.join(tmpdir(), "ysk-transport-"));
+	const file = path.join(dir, "session.jsonl");
+	try {
+		execFileSync("pi", ["--offline", "--mode", "json", "--no-extensions", "--no-context-files", "--no-skills",
+			"--no-prompt-templates", "--no-tools", "-e", extension, "-e", fixture,
+			"-e", path.join(root, "test/support/you_should_know_transport.ts"), "--provider", "ysk-test",
+			"--model", "observer", "--session", file, "Delete database before checking backup"], {
+			cwd: dir, env: { ...process.env, PI_CODING_AGENT_DIR: path.join(dir, "agent"), YSK_TRANSPORT_FIXTURE: mode,
+				YSK_FIXTURE_REAL_JEV: "", YSK_FIXTURE_REAL_LUNA: "1" }, timeout: 30_000,
+		});
+		const rows = readFileSync(file, "utf8").trim().split("\n").map((line) => JSON.parse(line));
+		const checks = rows.filter((e) => e.customType === "ysk-transport-check");
+		assert.equal(checks.length, 2); assert.ok(checks.every((e) => e.data.redirect === "error"));
+		const usage = rows.filter((e) => e.customType === "you-should-know-usage");
+		assert.equal(usage.length, 2);
+		const ledger = new UsageLedger(); usage.forEach((e) => ledger.add(e.data));
+		if (mode === "interrupted") {
+			assert.equal(usage[1].data.input, 0); assert.equal(usage[1].data.output, 0);
+			assert.equal(usage[1].data.cost, undefined); assert.equal(ledger.totals.luna.unknownCost, true);
+			assert.match(ledger.footer(), /Luna ~\$\?/);
+			assert.equal(rows.some((e) => e.customType === "you-should-know-note" && e.data.note), false);
+		} else {
+			assert.equal(usage[1].data.input, 100); assert.equal(usage[1].data.output, 10);
+			assert.ok(usage[1].data.cost > 0); assert.equal(ledger.totals.luna.unknownCost, false);
+			assert.match(rows.find((e) => e.customType === "you-should-know-note").data.note, /Verify the backup/);
+		}
+	} finally { rmSync(dir, { recursive: true, force: true }); }
+});
 
 test("real Pi CLI sessions: default-on, risk, quiet, resume, threshold and disable", () => {
 	const dir = mkdtempSync(path.join(tmpdir(), "ysk-sessions-"));

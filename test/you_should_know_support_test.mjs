@@ -47,6 +47,15 @@ test("costs accumulate per provider and ceil only at display; missing usage is u
 	ledger.add(usageRecord("luna", {})); assert.match(ledger.footer(), /Luna ~\$\?/);
 	ledger.add({ provider: "other" }); assert.equal(ledger.totals.jev.calls, 2);
 });
+test("interrupted SDK placeholder zeros are unknown, but reported or genuine zero usage is preserved", () => {
+	const zero = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, totalTokens: 0,
+		cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 } };
+	assert.equal(usageRecord("luna", zero, true).cost, undefined);
+	assert.equal(usageRecord("luna", zero).cost, 0);
+	assert.equal(usageRecord("luna", { ...zero, input: 100, totalTokens: 100 }, true).cost, 0);
+	assert.equal(usageRecord("luna", { ...zero, cost: { total: 0.001 } }, true).cost, 0.001);
+});
+
 test("dim costs above native footer, no padding, spinner animates and stops", async () => {
 	let component, options;
 	const theme = { fg: (color, text) => { assert.equal(color, "dim"); return text; } };

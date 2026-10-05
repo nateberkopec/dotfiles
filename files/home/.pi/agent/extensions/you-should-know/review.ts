@@ -19,9 +19,12 @@ export async function reviewTranscript(ctx: ExtensionContext, source: string, pr
 	const response = await waitFor(() => ctx.modelRegistry.streamSimple(model, {
 		systemPrompt: INSTRUCTIONS,
 		messages: [{ role: "user", content: state, timestamp: Date.now() }],
-	}, { signal, maxTokens: 512, reasoning: "low", maxRetries: 0 }).result());
-	onUsage(usageRecord("luna", response.usage)); signal.throwIfAborted();
-	if (response.stopReason === "error" || response.stopReason === "aborted") throw new Error("Luna failed; no note was fabricated.");
+	}, { signal, maxTokens: 512, reasoning: "low", maxRetries: 0,
+		fetch: (input, init) => fetch(input, { ...init, redirect: "error" }),
+	}).result());
+	const interrupted = response.stopReason === "error" || response.stopReason === "aborted";
+	onUsage(usageRecord("luna", response.usage, interrupted)); signal.throwIfAborted();
+	if (interrupted) throw new Error("Luna failed; no note was fabricated.");
 	const text = response.content.filter((block) => block.type === "text").map((block) => block.text).join(" ")
 		.replace(/[\u0000-\u001f\u007f-\u009f]/g, " ").trim().slice(0, 600);
 	return { decision, note: !text || /^NONE[.!]?$/i.test(text) ? "" : text };

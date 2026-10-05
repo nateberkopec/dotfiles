@@ -8,13 +8,16 @@ export interface UsageRecord {
 interface Totals { calls: number; input: number; output: number; cost: number; unknownCost: boolean }
 const empty = (): Totals => ({ calls: 0, input: 0, output: 0, cost: 0, unknownCost: false });
 const finite = (value: unknown): value is number => typeof value === "number" && Number.isFinite(value) && value >= 0;
-export function usageRecord(provider: Observer, usage: any): UsageRecord {
+export function usageRecord(provider: Observer, usage: any, interrupted = false): UsageRecord {
 	const input = provider === "jev" ? usage?.input_tokens : usage?.input;
 	const output = provider === "jev" ? usage?.output_tokens : usage?.output;
 	// Jev charges input only. Luna's SDK estimate includes cache/reasoning pricing.
 	const cost = provider === "jev" ? finite(input) ? input * 0.042 / 1_000_000 : undefined : usage?.cost?.total;
+	// An interrupted SDK stream may retain initialization zeros without receiving usage.
+	const placeholder = provider === "luna" && interrupted && !(finite(cost) && cost > 0) &&
+		!["input", "output", "cacheRead", "cacheWrite", "totalTokens", "reasoning"].some((key) => finite(usage?.[key]) && usage[key] > 0);
 	return { provider, input: finite(input) ? input : 0, output: finite(output) ? output : 0,
-		cost: finite(cost) ? cost : undefined };
+		cost: finite(cost) && !placeholder ? cost : undefined };
 }
 export class UsageLedger {
 	readonly totals = { jev: empty(), luna: empty() };

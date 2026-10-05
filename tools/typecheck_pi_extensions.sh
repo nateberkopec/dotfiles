@@ -66,7 +66,8 @@ cat >"$config" <<JSON
     "$PWD/files/home/.pi/agent/extensions/datasafe/index.ts",
     "$PWD/files/home/.pi/agent/extensions/toksec/index.ts",
     "$PWD/files/home/.pi/agent/extensions/you-should-know/index.ts",
-    "$PWD/test/support/you_should_know_provider.ts"
+    "$PWD/test/support/you_should_know_provider.ts",
+    "$PWD/test/support/you_should_know_transport.ts"
   ]
 }
 JSON

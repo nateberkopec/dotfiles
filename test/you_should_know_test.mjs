@@ -13,11 +13,11 @@ async function mock(p, run) {
 	globalThis.fetch = async (url, options) => { calls.push({ url, options }); return new Response(JSON.stringify(decision(p))); };
 	try { await run(calls); } finally { globalThis.fetch = prior; }
 }
-function harness({ response, available = true, mode = "json" } = {}) {
+function harness({ response, available = true, mode = "json", signal } = {}) {
 	const hooks = new Map(), entries = [], requests = [], notices = [], widgets = [];
 	let branch = [], command;
 	const result = response || { stopReason: "stop", content: [{ type: "text", text: "Tests failed; do not deploy." }], usage: { input: 20, output: 10, cost: { total: 0.0001 } } };
-	const ctx = { mode, sessionManager: { getBranch: () => branch, getEntries: () => entries },
+	const ctx = { mode, signal, sessionManager: { getBranch: () => branch, getEntries: () => entries },
 		ui: { setWidget: (...args) => widgets.push(args), notify: (...args) => notices.push(args) },
 		modelRegistry: { find: (provider, id) => { assert.equal(provider, "openai"); assert.equal(id, "gpt-6-luna"); return available ? { id, provider } : undefined; },
 			streamSimple: (model, context, options) => { requests.push({ model, context, options }); return { result: () => typeof result === "function" ? result(options) : Promise.resolve(result) }; } } };
@@ -93,6 +93,36 @@ test("only bounded text is sent; thinking and images stay out; notes strip contr
 	assert.ok(JSON.parse(calls[0].options.body).state.length < 24100); assert.equal(notes(h).at(-1).data.note.length, 600);
 	assert.equal(notes(h).at(-1).data.note.includes("\x1b"), false);
 }));
+for (const stage of ["jev", "luna"]) test(`main-run cancellation during ${stage} releases agent_end and prevents another checkpoint`, async () => {
+	const prior = globalThis.fetch, main = new AbortController(), done = Promise.withResolvers();
+	const calls = [];
+	globalThis.fetch = async (url, options) => { calls.push({ url, options }); return stage === "jev" ? done.promise : new Response(JSON.stringify(decision())); };
+	const h = harness({ signal: main.signal, response: () => done.promise });
+	try {
+		h.message("assistant", "Risk"); await h.emit("message_end", { message: { role: "assistant", content: [] } }); await settle();
+		const final = h.emit("agent_end"); main.abort();
+		assert.equal(stage === "jev" ? calls[0].options.signal.aborted : h.requests[0].options.signal.aborted, true);
+		// Pi may clear ctx.signal before agent_end; remember cancellation for this turn.
+		h.ctx.signal = undefined; h.message("assistant", "Later changed text"); await final; await h.emit("agent_end");
+		assert.equal(calls.length, 1);
+		done.resolve(stage === "jev" ? new Response(JSON.stringify(decision())) : { stopReason: "stop", content: [{ type: "text", text: "STALE" }] });
+		await settle(); assert.equal(notes(h).some((e) => e.data.note), false);
+	} finally { globalThis.fetch = prior; await h.emit("session_shutdown"); }
+});
+test("already-aborted contexts do not review; a new agent turn can review normally", async () => mock(0, async (calls) => {
+	const main = new AbortController(); main.abort(); const h = harness({ signal: main.signal });
+	h.message("assistant", "Risk"); await h.emit("agent_end"); assert.equal(calls.length, 0);
+	h.ctx.signal = new AbortController().signal; await h.emit("agent_start"); await h.emit("agent_end"); assert.equal(calls.length, 1);
+}));
+test("main-run signal listener is removed when a review completes", async () => mock(0, async () => {
+	const signal = new AbortController().signal; const add = signal.addEventListener.bind(signal), remove = signal.removeEventListener.bind(signal);
+	let added = 0, removed = 0;
+	signal.addEventListener = (...args) => { added++; return add(...args); };
+	signal.removeEventListener = (...args) => { removed++; return remove(...args); };
+	const h = harness({ signal }); h.message("assistant", "Quiet"); await h.emit("agent_end");
+	assert.equal(added, 1); assert.equal(removed, 1);
+}));
+
 test("provider bodies/errors never leak into notices, and unchanged failures do not retry", async () => mock(1, async (calls) => {
 	const h = harness({ response: () => Promise.reject(Error("PRIVATE raw provider body")) }); h.message("assistant", "Risk"); await h.emit("agent_end");
 	assert.equal(h.notices[0][0].includes("PRIVATE"), false); assert.equal(usage(h).length, 1);

@@ -5,7 +5,7 @@ import { UsageLedger, type UsageRecord } from "./usage.ts";
 import { KEY, ObserverUI } from "./ui.ts";
 
 export default function youShouldKnow(pi: ExtensionAPI) {
-	let enabled = true, threshold = 0.85, note = "", previous = "", lastSource = "", lastStarted = 0, warned = "";
+	let enabled = true, threshold = 0.85, note = "", previous = "", lastSource = "", lastStarted = 0, warned = "", runCancelled = false;
 	let epoch = 0, ledger = new UsageLedger(), ui: ObserverUI | undefined;
 	let controller: AbortController | undefined, pending: Promise<void> | undefined;
 	const cancel = () => { controller?.abort(); controller = undefined; pending = undefined; ui?.stop(); };
@@ -16,7 +16,7 @@ export default function youShouldKnow(pi: ExtensionAPI) {
 	};
 	const restore = async (_event: unknown, ctx: ExtensionContext) => {
 		cancel(); epoch++; enabled = true; threshold = 0.85; note = ""; previous = "";
-		lastSource = ""; lastStarted = 0; warned = ""; ledger = new UsageLedger();
+		lastSource = ""; lastStarted = 0; warned = ""; runCancelled = false; ledger = new UsageLedger();
 		for (const entry of ctx.sessionManager.getBranch()) {
 			if (entry.type !== "custom") continue;
 			const data = entry.data as any;
@@ -36,7 +36,8 @@ export default function youShouldKnow(pi: ExtensionAPI) {
 		ui = new ObserverUI(ctx, ledger); ui.footer(); await display(ctx);
 	};
 	const review = (ctx: ExtensionContext, final = false, assistant?: { content?: unknown }): Promise<void> | undefined => {
-		if (!enabled || pending || (!final && Date.now() - lastStarted < 30_000)) return pending;
+		if (!enabled || runCancelled || ctx.signal?.aborted) return;
+		if (pending || (!final && Date.now() - lastStarted < 30_000)) return pending;
 		const source = transcript(ctx, assistant);
 		if (!source || source === lastSource) return;
 		lastSource = source; lastStarted = Date.now();
@@ -48,6 +49,9 @@ export default function youShouldKnow(pi: ExtensionAPI) {
 			ledger.add(record); pi.appendEntry(`${KEY}-usage`, record); screen.footer();
 		};
 		const interrupted = new Promise<undefined>((resolve) => request.signal.addEventListener("abort", () => resolve(undefined), { once: true }));
+		const runSignal = ctx.signal;
+		const abortRun = () => { if (version === epoch) runCancelled = true; request.abort(); };
+		runSignal?.addEventListener("abort", abortRun, { once: true });
 		const timer = setTimeout(() => request.abort(), 40_000);
 		pending = (async () => {
 			try {
@@ -65,7 +69,7 @@ export default function youShouldKnow(pi: ExtensionAPI) {
 					? error.message : "YSK request failed; no fallback or retry was attempted.";
 				if (message !== warned) { warned = message; ctx.ui.notify(message, "warning"); }
 			} finally {
-				clearTimeout(timer);
+				clearTimeout(timer); runSignal?.removeEventListener("abort", abortRun);
 				if (controller === request) { waiting(false); controller = undefined; pending = undefined; }
 			}
 		})();
@@ -86,6 +90,7 @@ export default function youShouldKnow(pi: ExtensionAPI) {
 	});
 	pi.on("session_start", restore);
 	pi.on("session_tree", restore);
+	pi.on("agent_start", () => { runCancelled = false; });
 	pi.on("message_end", (event, ctx) => { if (event.message.role === "assistant") void review(ctx, false, event.message); });
 	pi.on("agent_end", async (_event, ctx) => { const version = epoch; await pending; if (version === epoch) await review(ctx, true); });
 	pi.on("session_shutdown", cancel);
