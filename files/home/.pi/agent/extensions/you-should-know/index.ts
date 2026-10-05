@@ -55,7 +55,8 @@ export default function youShouldKnow(pi: ExtensionAPI) {
 		const timer = setTimeout(() => request.abort(), 40_000);
 		pending = (async () => {
 			try {
-				const operation = reviewTranscript(ctx, source, previous, threshold, request.signal, usage, waiting);
+				const operation = reviewTranscript(ctx, source, previous, threshold, request.signal, usage, waiting,
+					() => screen.note("Reviewing a possible issue", () => controller === request && !request.signal.aborted, true));
 				const result = await Promise.race([operation, interrupted]);
 				if (!result || request.signal.aborted || controller !== request) return;
 				const { probability, confidence, category, model } = result.decision;
@@ -70,7 +71,7 @@ export default function youShouldKnow(pi: ExtensionAPI) {
 				if (message !== warned) { warned = message; ctx.ui.notify(message, "warning"); }
 			} finally {
 				clearTimeout(timer); runSignal?.removeEventListener("abort", abortRun);
-				if (controller === request) { waiting(false); controller = undefined; pending = undefined; }
+				if (controller === request) { waiting(false); controller = undefined; pending = undefined; await display(ctx); }
 			}
 		})();
 		return pending;

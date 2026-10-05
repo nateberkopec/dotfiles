@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { registerHooks } from "node:module";
 import { decide, JEV_MODEL, JEV_URL } from "../files/home/.pi/agent/extensions/you-should-know/jev.ts";
 import { UsageLedger, usageRecord } from "../files/home/.pi/agent/extensions/you-should-know/usage.ts";
 import { ObserverUI } from "../files/home/.pi/agent/extensions/you-should-know/ui.ts";
@@ -68,6 +69,29 @@ test("dim costs above native footer, no padding, spinner animates and stops", as
 	finally { ui.waiting(false); }
 	assert.match(component.render(80)[0], /^· YSK/);
 });
+test("provisional note has animated dim dots; resolved notes stay static", async (t) => {
+	t.mock.timers.enable({ apis: ["setInterval"] });
+	const hooks = registerHooks({ resolve: (specifier, context, next) => specifier === "@earendil-works/pi-tui"
+		? { url: `data:text/javascript,${encodeURIComponent('export class Text { constructor(text) { this.text = text; } render() { return [this.text]; } }')}`, shortCircuit: true }
+		: next(specifier, context) });
+	const widgets = new Map(), theme = { fg: (color, text) => `<${color}>${text}</${color}>`, bold: (text) => `<bold>${text}</bold>` };
+	const ctx = { mode: "tui", ui: { setWidget: (key, factory) => widgets.set(key, factory?.({}, theme)) } };
+	const ui = new ObserverUI(ctx, new UsageLedger());
+	try {
+		await ui.note("Reviewing a possible issue", () => true, true); ui.waiting(true);
+		const provisional = widgets.get("you-should-know"), first = provisional.render(80)[0];
+		assert.match(first, /<accent><bold>YSK:<\/bold><\/accent> <dim>Reviewing a possible issue\.<\/dim>/);
+		t.mock.timers.tick(400);
+		assert.match(provisional.render(80)[0], /issue\.\.<\/dim>/);
+		t.mock.timers.tick(400); assert.match(provisional.render(80)[0], /issue\.\.\.<\/dim>/);
+		t.mock.timers.tick(400); assert.match(provisional.render(80)[0], /issue\.<\/dim>/);
+		await ui.note("Verify the backup.", () => true); const resolved = widgets.get("you-should-know");
+		const text = resolved.render(80)[0]; ui.waiting(false); assert.equal(resolved.render(80)[0], text);
+		assert.match(text, /Verify the backup\.$/);
+		await ui.note("", () => true); assert.equal(widgets.get("you-should-know"), undefined);
+	} finally { ui.stop(); hooks.deregister(); }
+});
+
 test("no note means no message widget row", async () => {
 	const calls = []; const ctx = { mode: "tui", ui: { setWidget: (...args) => calls.push(args) } };
 	await new ObserverUI(ctx, new UsageLedger()).note("", () => true);

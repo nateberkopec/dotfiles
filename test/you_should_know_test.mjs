@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import extension from "../files/home/.pi/agent/extensions/you-should-know/index.ts";
+import { ObserverUI } from "../files/home/.pi/agent/extensions/you-should-know/ui.ts";
 import { JEV_MODEL } from "../files/home/.pi/agent/extensions/you-should-know/jev.ts";
 
 process.env.TYPESAFE_API_KEY = "fixture-not-a-secret";
@@ -31,6 +32,28 @@ function harness({ response, available = true, mode = "json", signal } = {}) {
 const notes = (h) => h.entries.filter((e) => e.customType === "you-should-know-note");
 const usage = (h) => h.entries.filter((e) => e.customType === "you-should-know-usage");
 const settle = () => new Promise((resolve) => setImmediate(resolve));
+
+for (const outcome of ["note", "NONE", "failure", "cancel", "off", "quiet"]) test(`provisional UI only after the gate and clears on ${outcome}`, async () => mock(outcome === "quiet" ? 0 : 1, async () => {
+	const original = ObserverUI.prototype.note, updates = [], done = Promise.withResolvers(), main = new AbortController();
+	ObserverUI.prototype.note = async function (text, current, explaining = false) {
+		if (current()) updates.push({ text, explaining });
+		return original.call(this, text, current, explaining);
+	};
+	const h = harness({ signal: main.signal, response: () => done.promise });
+	try {
+		h.message("assistant", "Check this claim"); const final = h.emit("agent_end"); await settle();
+		if (outcome === "quiet") { await final; assert.equal(updates.some((u) => u.explaining), false); return; }
+		assert.deepEqual(updates.at(-1), { text: "Reviewing a possible issue", explaining: true });
+		assert.equal(notes(h).length, 0, "provisional state is never persisted as a warning");
+		if (outcome === "cancel") main.abort();
+		else if (outcome === "off") await h.command("off");
+		else done.resolve({ stopReason: outcome === "failure" ? "error" : "stop", content: [{ type: "text", text: outcome === "note" ? "Verify the backup." : "NONE" }] });
+		await final;
+		assert.deepEqual(updates.at(-1), { text: outcome === "note" ? "Verify the backup." : "", explaining: false });
+		done.resolve({ stopReason: "stop", content: [{ type: "text", text: "STALE" }] }); await settle();
+		assert.notEqual(updates.at(-1).text, "STALE");
+	} finally { await h.emit("session_shutdown"); ObserverUI.prototype.note = original; }
+}));
 
 test("default-on real observer batches Jev and independently calls pinned tool-less Luna", async () => {
 	await mock(1, async (calls) => {
