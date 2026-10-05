@@ -24,6 +24,16 @@ When you run `dotf run` it will:
 | `dotf help` | Show help |
 | `mise run spotlight:status` | Show the managed Spotlight policy and indexing state ([details](docs/spotlight.md)) |
 
+## Pi observer
+
+YSK is default-on. It checks recent user, assistant and tool-result text with direct TypeSafe `jev-1.13.0`; only `P(warn) >= 0.85` calls the independent, tool-less `openai/gpt-6-luna` reviewer. Export `TYPESAFE_API_KEY` before launching Pi. Missing credentials, an incompatible Datasafe profile or an unavailable Luna model fail closed without fallback or retries.
+
+`/ysk-demo off` disables it for the session, `/ysk-demo on` enables it, and `/ysk-demo 0.95` sets any threshold from 0 through 1. The command controls the real observer, not a synthetic demo. Settings and notes restore from the active session branch.
+
+Warnings appear only as **YSK:** followed by the note above the prompt; no warning means no widget row. Dim Jev/Luna costs sit above the standard footer, rounded up to $0.001, with a one-character waiting spinner (`·` when idle). These are separate estimates, not invoice totals or main-agent context usage.
+
+Reviews use at most 24,000 transcript characters, throttle intermediate checkpoints to 30 seconds, and check changed text at turn end. They time out after 40 seconds. Thinking and image blocks are excluded. No observer message enters the main agent's context; notes and sanitized usage metadata are non-context session entries.
+
 ## Installation
 
 Clone this repo:

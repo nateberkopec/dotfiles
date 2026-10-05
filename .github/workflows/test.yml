@@ -52,7 +52,7 @@ jobs:
       run: tools/typecheck_pi_extensions.sh
 
     - name: Test Pi extensions
-      run: node --test test/plan_follow_test.mjs test/window_fork_test.mjs test/notify_test.mjs test/conversation_title_test.mjs
+      run: node --test test/plan_follow_test.mjs test/window_fork_test.mjs test/notify_test.mjs test/conversation_title_test.mjs test/you_should_know_test.mjs test/you_should_know_support_test.mjs test/you_should_know_sessions_test.mjs
 
     - name: Run tests with managed Bash startup
       timeout-minutes: 5
