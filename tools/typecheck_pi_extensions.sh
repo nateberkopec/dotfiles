@@ -72,7 +72,7 @@ cat >"$config" <<JSON
     "$PWD/files/home/.pi/agent/extensions/meridian.ts",
     "$PWD/files/home/.pi/agent/extensions/datasafe/index.ts",
     "$PWD/files/home/.pi/agent/extensions/toksec/index.ts",
-    "$PWD/files/home/.pi/agent/extensions/gh-watch/index.ts"
+    "$PWD/files/home/.pi/agent/extensions/executor-watch/index.ts"
   ]
 }
 JSON
