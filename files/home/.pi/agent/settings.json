@@ -20,7 +20,8 @@
     }
   ],
   "extensions": [
-    "-builtin:mcp"
+    "-builtin:mcp",
+    "-extensions/herdr-agent-state.ts"
   ],
   "npmCommand": [
     "mise",
