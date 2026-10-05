@@ -63,9 +63,11 @@ export default function (pi: ExtensionAPI) {
   pi.registerTool({
     name: "gh_watch",
     label: "Watch GitHub CI",
-    description: "Watch a specific GitHub Actions run through gh-agent on server-1. start returns immediately and automatically delivers completion; return control instead of polling or waiting. status inspects; attach restores delivery for an existing Executor watch; cancel stops only the observer workflow, not GitHub CI. Uses the existing MCP gateway and selected gh-agent PAT. This observes one run, not every PR check. No GitHub writes or automatic rerun/merge.",
+    description: "Watch GitHub CI through gh-agent on server-1. Default mode pr waits for ALL reported checks on a pinned PR head, like gh pr checks --watch, without fail-fast. Explicit mode run watches one Actions run attempt. start returns immediately and delivers one consolidated completion; return control, do not poll. A changed PR head or timeout is not green. status inspects; attach restores delivery; cancel stops only the watcher, not GitHub CI. No GitHub writes or automatic rerun/merge.",
     parameters: Type.Object({
       action: Type.Union([Type.Literal("start"), Type.Literal("status"), Type.Literal("attach"), Type.Literal("cancel")]),
+      mode: Type.Optional(Type.Union([Type.Literal("pr"), Type.Literal("run")], { default: "pr", description: "Default pr = all PR checks; run = one Actions run" })),
+      pr_number: Type.Optional(Type.Integer({ minimum: 1, maximum: 2147483647 })),
       owner: Type.Optional(Type.String({ pattern: "^[A-Za-z0-9_.-]+$", maxLength: 100 })),
       repo: Type.Optional(Type.String({ pattern: "^[A-Za-z0-9_.-]+$", maxLength: 100 })),
       run_id: Type.Optional(Type.Integer({ minimum: 1, maximum: Number.MAX_SAFE_INTEGER })),
@@ -78,14 +80,19 @@ export default function (pi: ExtensionAPI) {
       const call = gateway(ctx);
       let value: WatchHandle;
       if (args.action === "start") {
-        if (!args.owner || !args.repo || !args.run_id) throw new Error("start requires owner, repo, and run_id");
+        const mode = args.mode ?? "pr";
+        if (!args.owner || !args.repo) throw new Error("start requires owner and repo");
+        if (mode === "pr" && (!args.pr_number || args.run_id !== undefined || args.attempt !== undefined)) {
+          throw new Error("Default PR mode requires pr_number and no run_id/attempt. For one Actions run, explicitly supply mode run.");
+        }
+        if (mode === "run" && (!args.run_id || args.pr_number !== undefined)) throw new Error("Run mode requires run_id and no pr_number");
         if (!ctx.model?.id) throw new Error("The writing model runtime ID is unavailable");
         const key = args.key ?? randomUUID();
         try {
-          value = await remote(call, "start", { owner: args.owner, repo: args.repo, run_id: args.run_id,
-            ...(args.attempt === undefined ? {} : { attempt: args.attempt }),
+          value = await remote(call, "start", { owner: args.owner, repo: args.repo,
+            ...(mode === "pr" ? { pr_number: args.pr_number } : { run_id: args.run_id, ...(args.attempt === undefined ? {} : { attempt: args.attempt }) }),
             ...(args.max_wait_seconds === undefined ? {} : { max_wait_seconds: args.max_wait_seconds }),
-            model: ctx.model.id, key }, signal ?? new AbortController().signal);
+            model: ctx.model.id, key }, signal ?? new AbortController().signal, mode);
         } catch (error) {
           throw new Error(`Watch start not confirmed. Do not blindly retry; reconcile using start key ${key}. ${String(error)}`);
         }

@@ -23,8 +23,8 @@ export function executorValue(result: GatewayResult): unknown {
   throw new Error("Executor did not return a completed execution. No automatic retry: check approvals/input or inspect the start key before retrying.");
 }
 
-export async function remote(call: CallGateway, action: "start" | "status" | "cancel", input: unknown, signal: AbortSignal): Promise<WatchHandle> {
-  const name = action === "start" ? "watch_actions_run" : action === "status" ? "watch_get" : "watch_cancel";
+export async function remote(call: CallGateway, action: "start" | "status" | "cancel", input: unknown, signal: AbortSignal, mode: "pr" | "run" = "pr"): Promise<WatchHandle> {
+  const name = action === "start" ? (mode === "pr" ? "watch_pr_checks" : "watch_actions_run") : action === "status" ? "watch_get" : "watch_cancel";
   const catalog = action === "status" ? "queries" : "mutations";
   // Search on each execution to fail clearly on profile/deployment drift, rather than silently using a different credential.
   const path = `tools["gh-agent"].profiles[${JSON.stringify(profile)}].${catalog}.${name}`;
@@ -32,7 +32,8 @@ export async function remote(call: CallGateway, action: "start" | "status" | "ca
 if (!found.items.some(item => item.path === ${JSON.stringify(path)})) throw new Error("Expected gh-agent watch tool/profile unavailable; rediscover gh-agent.");
 return await ${path}(${JSON.stringify(input)});`;
   const handle = executorValue(await call({ tool: "server-1_execute", args: { code } }, signal)) as WatchHandle;
-  if (!handle || typeof handle.id !== "string" || handle.workflow !== "watch_actions_run" ||
+  if (!handle || typeof handle.id !== "string" || !["watch_pr_checks", "watch_actions_run"].includes(handle.workflow) ||
+    (action === "start" && handle.workflow !== name) ||
     !["queued", "running", "waiting", "paused", "waitingForPause", "complete", "errored", "terminated"].includes(handle.status)) {
     throw new Error("Invalid gh-agent watch handle");
   }

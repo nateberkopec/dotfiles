@@ -53,16 +53,39 @@ test("attach delivers completion through followUp and persists removal", async (
 });
 test("start uses current model and returns without waiting; shutdown aborts observation only", async () => {
   const h = harness();
-  const result = await h.tool.execute("call", { action: "start", owner: "example", repo: "repo", run_id: 42 }, void 0, void 0, h.ctx);
+  const result = await h.tool.execute("call", { action: "start", mode: "run", owner: "example", repo: "repo", run_id: 42 }, void 0, void 0, h.ctx);
   assert.ok(result.content[0].text.includes("Return control"));
   assert.ok(h.calls[0].args.args.code.includes('"model":"gpt-6.1-sol"'));
   assert.equal(h.calls[0].name, "mcp");
+  assert.ok(h.calls[0].args.args.code.includes("mutations.watch_actions_run"));
   h.events.get("session_shutdown")();
   await tick();
   assert.equal(h.messages.length, 0);
   assert.ok(h.calls.some((call) => call.options.signal.aborted));
   assert.deepEqual(h.entries.at(-1).data.pending, ["watch-1"]);
   assert.ok(!h.calls.some((call) => call.args.args.code.includes("mutations.watch_cancel")));
+});
+test("default start watches all PR checks, not an individual Actions run", async () => {
+  const h = harness();
+  const base = h.ctx.executeTool;
+  h.ctx.executeTool = async (...args) => {
+    const result = await base(...args);
+    result.result.structuredContent.execution.value.workflow = "watch_pr_checks";
+    return result;
+  };
+  await h.tool.execute("call", { action: "start", owner: "example", repo: "repo", pr_number: 850 }, undefined, undefined, h.ctx);
+  assert.ok(h.calls[0].args.args.code.includes("mutations.watch_pr_checks"));
+  assert.ok(h.calls[0].args.args.code.includes('"pr_number":850'));
+  assert.ok(!h.calls[0].args.args.code.includes('"run_id"'));
+  h.events.get("session_shutdown")();
+});
+test("rejects ambiguous or missing watch targets before remote calls", async () => {
+  const h = harness();
+  for (const args of [
+    { run_id: 42 }, { pr_number: 850, run_id: 42 }, { pr_number: 850, attempt: 1 },
+    { mode: "run", pr_number: 850 }, { mode: "run" },
+  ]) await assert.rejects(h.tool.execute("call", { action: "start", owner: "example", repo: "repo", ...args }, undefined, undefined, h.ctx));
+  assert.equal(h.calls.length, 0);
 });
 test("reload restores exact handles and requests attach, never starts replacement", async () => {
   const h = harness();
