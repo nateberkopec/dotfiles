@@ -1,41 +1,39 @@
-// All remote calls use Pi's configured MCP gateway; this extension handles no credentials.
+// Polls through Pi's configured MCP gateway; this extension handles no credentials.
 export const profile = "ins_e2cd8dae-9c1d-4c99-a570-3220f7ee63ca";
 export type WatchHandle = { id: string; workflow: string; status: string; output?: unknown; error?: string };
-export type GatewayResult = { isError?: boolean; content?: { type: string; text?: string }[]; structuredContent?: unknown; details?: unknown };
-export type CallGateway = (args: unknown, signal: AbortSignal) => Promise<GatewayResult>;
+export type TrackingError = { id: string; status: "tracking_error"; error: string };
+type ToolResult = { content?: { type: string; text?: string }[]; details?: unknown };
+type RuntimeCall = { version: 1; server: string; tool: string; args: unknown; result?: Promise<{ ok: true; result: ToolResult } | { ok: false; error: Error }> };
+export type Emit = (channel: string, request: RuntimeCall) => void;
 
-export function executorValue(result: GatewayResult): unknown {
-  const details = result.details as { error?: string; mcpResult?: { structuredContent?: unknown } } | undefined;
+export function executorValue(result: ToolResult): unknown {
   const text = (result.content ?? []).filter(item => item.type === "text" && item.text).map(item => item.text).join("\n");
-  // The MCP adapter can report routing errors in details without setting isError.
-  if (result.isError || details?.error) throw new Error(`MCP call failed${details?.error ? ` (${details.error})` : ""}: ${text || "No error details returned"}`);
-  const candidates = [result.structuredContent];
+  const candidates: unknown[] = [];
   for (const item of result.content ?? []) {
     if (item.type !== "text" || !item.text) continue;
     try { candidates.push(JSON.parse(item.text.split("\nstructuredContent:\n")[0])); } catch { /* Gateway may append human-readable text. */ }
   }
   // pi-mcp-adapter preserves the upstream MCP result in details.
-  candidates.push(details?.mcpResult?.structuredContent);
+  candidates.push((result.details as { mcpResult?: { structuredContent?: unknown } } | undefined)?.mcpResult?.structuredContent);
   for (const candidate of candidates) {
     const value = candidate as { status?: string; execution?: { ok: boolean; value?: unknown; error?: unknown } } | undefined;
     if (value?.status !== "completed" || !value.execution) continue;
     if (!value.execution.ok) throw new Error(`Executor operation failed: ${JSON.stringify(value.execution.error)}`);
     return value.execution.value;
   }
-  throw new Error(`Executor did not return a completed execution. No automatic retry. Gateway response: ${text || JSON.stringify(result.structuredContent ?? details?.mcpResult?.structuredContent ?? null)}`);
+  throw new Error(`Executor did not return a completed execution: ${text || "no response text"}`);
 }
 
-export async function remote(call: CallGateway, action: "start" | "status" | "cancel", input: unknown, signal: AbortSignal, mode: "pr" | "run" = "pr"): Promise<WatchHandle> {
-  const name = action === "start" ? (mode === "pr" ? "watch_pr_checks" : "watch_actions_run") : action === "status" ? "watch_get" : "watch_cancel";
-  const catalog = action === "status" ? "queries" : "mutations";
-  // Search on each execution to fail clearly on profile/deployment drift, rather than silently using a different credential.
-  const path = `tools["gh-agent"].profiles[${JSON.stringify(profile)}].${catalog}.${name}`;
-  const code = `const found = await tools.search({ query: ${JSON.stringify(name)} });
-if (!found.items.some(item => item.path === ${JSON.stringify(path)})) throw new Error("Expected gh-agent watch tool/profile unavailable; rediscover gh-agent.");
-return await ${path}(${JSON.stringify(input)});`;
-  const handle = executorValue(await call({ server: "server-1", tool: "server-1_execute", args: { code } }, signal)) as WatchHandle;
+export async function watchGet(emit: Emit, run: string): Promise<WatchHandle> {
+  // Pin the server so a selected-client default can't reroute the call.
+  const request: RuntimeCall = { version: 1, server: "server-1", tool: "server-1_execute",
+    args: { code: `return await tools["gh-agent"].profiles[${JSON.stringify(profile)}].queries.watch_get(${JSON.stringify({ run })});` } };
+  emit("pi-mcp-adapter:runtime-tool-call:v1", request);
+  if (!request.result) throw new Error("pi-mcp-adapter is not loaded");
+  const outcome = await request.result;
+  if (!outcome.ok) throw outcome.error;
+  const handle = executorValue(outcome.result) as WatchHandle;
   if (!handle || typeof handle.id !== "string" || !["watch_pr_checks", "watch_actions_run"].includes(handle.workflow) ||
-    (action === "start" && handle.workflow !== name) ||
     !["queued", "running", "waiting", "paused", "waitingForPause", "complete", "errored", "terminated"].includes(handle.status)) {
     throw new Error("Invalid gh-agent watch handle");
   }
@@ -45,22 +43,22 @@ export const terminal = (run: WatchHandle) => ["complete", "errored", "terminate
 
 export async function observe(
   run: string,
-  call: CallGateway,
+  get: (run: string) => Promise<WatchHandle>,
   signal: AbortSignal,
-  deliver: (value: WatchHandle | { id: string; status: "tracking_error" }) => void,
+  deliver: (value: WatchHandle | TrackingError) => void,
   sleep: (signal: AbortSignal) => Promise<void>,
 ) {
   let errors = 0;
   while (!signal.aborted) {
     try {
-      const value = await remote(call, "status", { run }, signal);
+      const value = await get(run);
       if (signal.aborted) return;
       errors = 0;
       if (terminal(value)) { deliver(value); return; }
-    } catch {
+    } catch (error) {
       if (signal.aborted) return;
       // Don't lose a job on one network failure; don't silently poll forever either.
-      if (++errors >= 5) { deliver({ id: run, status: "tracking_error" }); return; }
+      if (++errors >= 5) { deliver({ id: run, status: "tracking_error", error: String(error) }); return; }
     }
     try { await sleep(signal); } catch { return; }
   }
