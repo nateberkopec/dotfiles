@@ -38,6 +38,12 @@ if [[ -z "$tui_root" ]]; then
   exit 1
 fi
 
+typebox_types=$(node -e '
+  const { createRequire } = require("node:module");
+  const resolve = createRequire(process.argv[1] + "/package.json").resolve;
+  console.log(resolve("typebox").replace(/\.mjs$/, ".d.mts"));
+' "$agent_root")
+
 config=$(mktemp)
 trap 'rm -f "$config"' EXIT
 cat >"$config" <<JSON
@@ -53,7 +59,8 @@ cat >"$config" <<JSON
       "@earendil-works/pi-ai/compat": ["$ai_root/dist/compat.d.ts"],
       "@earendil-works/pi-ai/providers/all": ["$ai_root/dist/providers/all.d.ts"],
       "@earendil-works/pi-coding-agent": ["$agent_root/dist/index.d.ts"],
-      "@earendil-works/pi-tui": ["$tui_root/dist/index.d.ts"]
+      "@earendil-works/pi-tui": ["$tui_root/dist/index.d.ts"],
+      "typebox": ["$typebox_types"]
     },
     "skipLibCheck": true,
     "strict": true,
