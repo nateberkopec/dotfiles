@@ -42,12 +42,13 @@ export default function youShouldKnow(pi: ExtensionAPI) {
 		display(ctx);
 	};
 	const review = (ctx: ExtensionContext, final = false, assistantText = ""): Promise<void> | undefined => {
-		if (!enabled || !ctx.model || pending || (!final && Date.now() - lastStarted < 30_000)) return pending;
+		if (!enabled || pending || (!final && Date.now() - lastStarted < 30_000)) return pending;
 		// message_end fires before Pi appends the finalized assistant to the branch.
 		const source = (transcript(ctx) + (assistantText ? `\n\nassistant: ${assistantText}` : "")).trim().slice(-24_000);
 		if (!source || source === lastSource) return;
+		const model = ctx.modelRegistry.find("openai", "gpt-6-luna");
+		if (!model) { ctx.ui.notify("You should know: openai/gpt-6-luna is unavailable", "warning"); return; }
 		lastSource = source; lastStarted = Date.now();
-		const model = ctx.model;
 		const request = new AbortController(); controller = request;
 		const timer = setTimeout(() => request.abort(), 30_000);
 		request.signal.addEventListener("abort", () => clearTimeout(timer), { once: true });

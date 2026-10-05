@@ -28,6 +28,7 @@ test("real Pi CLI sessions: default-off, risk, quiet, resume, dismiss and disabl
 		const risk = run("risk", "/you-should-know on", "Delete database before checking backup");
 		assert.match(notes(risk)[0].data.note, /Verify the backup/);
 		assert.equal(reviews(risk).length, 1, "finalized assistant is reviewed once, not once before persistence and again after");
+		assert.equal(reviews(risk)[0].data.model, "gpt-6-luna", "observer uses Luna while the main session uses the fixture model");
 		assert.equal(risk.filter((e) => e.message?.role === "assistant").length, 1, "side agent never enters main transcript");
 		const resumed = run("risk", "Check the backup");
 		assert.equal(reviews(resumed).length, 2, "opt-in survives a real process restart");

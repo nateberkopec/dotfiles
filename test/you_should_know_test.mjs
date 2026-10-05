@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import extension from "../files/home/.pi/agent/extensions/you-should-know.ts";
 
-function harness({ mode = "tui", result, branch = [] } = {}) {
+function harness({ mode = "tui", result, branch = [], observerAvailable = true } = {}) {
 	const hooks = new Map(), entries = [], widgets = [], notices = [], requests = [];
 	let command;
 	const response = result || { stopReason: "stop", content: [{ type: "text", text: "The backup has not been verified." }], usage: { totalTokens: 10 } };
@@ -10,7 +10,10 @@ function harness({ mode = "tui", result, branch = [] } = {}) {
 		mode, model: { id: "test-model" },
 		sessionManager: { getBranch: () => branch },
 		ui: { setWidget: (...args) => widgets.push(args), notify: (...args) => notices.push(args) },
-		modelRegistry: { streamSimple(model, context, options) {
+		modelRegistry: { find(provider, id) {
+			assert.equal(provider, "openai"); assert.equal(id, "gpt-6-luna");
+			return observerAvailable ? { provider, id } : undefined;
+		}, streamSimple(model, context, options) {
 			requests.push({ model, context, options });
 			return { result: () => typeof response === "function" ? response(options) : Promise.resolve(response) };
 		} },
@@ -27,11 +30,27 @@ test("off by default, opt-in observer has no tools and never injects model conte
 	await h.emit("agent_end"); assert.equal(h.requests.length, 0);
 	await h.command("on"); await h.emit("agent_end");
 	assert.equal(h.requests.length, 1);
+	assert.deepEqual(h.requests[0].model, { provider: "openai", id: "gpt-6-luna" });
+	assert.equal(h.entries.find((e) => e.customType.endsWith("-review")).data.model, "gpt-6-luna");
 	assert.equal(h.requests[0].context.tools, undefined);
 	assert.match(h.requests[0].context.systemPrompt, /untrusted data/);
 	assert.deepEqual(h.widgets.at(-1)[1], ["You should know: The backup has not been verified."]);
 	assert.equal(h.entries.filter((e) => e.customType.endsWith("-review")).length, 1);
 	await h.emit("agent_end"); assert.equal(h.requests.length, 1);
+});
+
+test("missing pinned observer warns without falling back to the main model", async () => {
+	const h = harness({ observerAvailable: false });
+	await h.command("on"); h.assistant("Risky change"); await h.emit("agent_end");
+	assert.equal(h.requests.length, 0);
+	assert.match(h.notices.at(-1)[0], /openai\/gpt-6-luna is unavailable/);
+});
+
+test("pinned observer does not require a main session model", async () => {
+	const h = harness(); h.ctx.model = undefined;
+	await h.command("on"); h.assistant("Risky change"); await h.emit("agent_end");
+	assert.equal(h.requests.length, 1);
+	assert.equal(h.requests[0].model.id, "gpt-6-luna");
 });
 
 test("NONE is quiet and headless mode stores notes without widgets", async () => {

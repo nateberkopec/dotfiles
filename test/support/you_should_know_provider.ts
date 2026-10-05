@@ -3,14 +3,16 @@ import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
 // Deterministic, network-free provider for testing the real Pi session lifecycle.
 export default function fixture(pi: ExtensionAPI) {
-	pi.registerProvider("ysk-test", {
+	for (const [provider, id] of [["ysk-test", "observer"], ["openai", "gpt-6-luna"]] as const) {
+	pi.registerProvider(provider, {
 		api: "ysk-test-api", apiKey: "fixture-not-a-secret", baseUrl: "https://invalid.example",
-		models: [{ id: "observer", name: "Observer fixture", reasoning: false, input: ["text"],
+		models: [{ id, name: "Observer fixture", reasoning: false, input: ["text"],
 			cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 }, contextWindow: 64000, maxTokens: 1024 }],
 		streamSimple(model, context) {
 			const stream = new AssistantMessageEventStream();
 			const observer = getCurrentSystemPrompt(context.messages).includes("quiet, independent observer");
 			if (observer && getCurrentTools(context.messages).length) throw new Error("Observer must have no tools");
+			if (observer && (model.provider !== "openai" || model.id !== "gpt-6-luna")) throw new Error("Observer must use the pinned Luna model");
 			const source = JSON.stringify(context.messages);
 			const text = observer ? source.includes("backup") ? "Verify the backup can be restored before deleting the database." : "NONE"
 				: source.includes("backup") ? "I will delete the database now and check the backup afterward." : "2 + 2 = 4.";
@@ -22,4 +24,5 @@ export default function fixture(pi: ExtensionAPI) {
 			return stream;
 		},
 	});
+	}
 }
