@@ -232,7 +232,8 @@ stderr_path = "/tmp/yknotify.err"
 program = "~/.local/bin/mise"
 args = ["exec", "--", "meridian"]
 working_directory = "~"
-environment = { MERIDIAN_HOST = "127.0.0.1", MERIDIAN_PORT = "3456", MERIDIAN_PASSTHROUGH = "1", MERIDIAN_NO_FILE_CHANGES = "1", MERIDIAN_UPSTREAM_IDLE_MS = "30000" }
+# Stream large tool arguments without tripping the 30-second upstream idle watchdog.
+environment = { MERIDIAN_HOST = "127.0.0.1", MERIDIAN_PORT = "3456", MERIDIAN_PASSTHROUGH = "1", MERIDIAN_NO_FILE_CHANGES = "1", MERIDIAN_UPSTREAM_IDLE_MS = "30000", CLAUDE_CODE_ENABLE_FINE_GRAINED_TOOL_STREAMING = "1" }
 run_at_load = true
 keep_alive = true
 kickstart = true
