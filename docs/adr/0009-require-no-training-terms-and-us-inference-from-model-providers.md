@@ -47,7 +47,7 @@ Scope is Pi only, including Pi's web-search providers. I really only use Pi and 
 
 ## Verification table
 
-Current as of September 2026. This only reflects providers I actually use.
+Provider-specific verification dates are noted below. This only reflects providers I actually use.
 
 | Provider | Operator | US inference | No-training basis | Status |
 |---|---|---|---|---|
@@ -58,6 +58,7 @@ Current as of September 2026. This only reflects providers I actually use.
 | fireworks | Fireworks, US | US endpoint, documented US-only routers, non-US IDs blocked | [privacy policy](https://fireworks.ai/privacy-policy), no training without explicit opt-in | compliant |
 | openrouter | OpenRouter, US; upstreams vary | US endpoint, catalog filtered to US availability | [account toggle](https://openrouter.ai/docs/guides/privacy/provider-logging) off for paid models, confirmed 2026-09-24; [`provider.data_collection: deny`](https://openrouter.ai/docs/guides/routing/provider-selection) injected 2026-09-28 | compliant |
 | vercel-ai-gateway | Vercel, US; upstreams vary | `inferenceRegion` US zone injected | [Vercel does not train](https://vercel.com/docs/ai-gateway/faq); [`disallowPromptTraining: true`](https://vercel.com/docs/ai-gateway/security-and-compliance/disallow-prompt-training) injected 2026-09-28 | compliant |
+| typesafe (Jev API) | TypeSafe AI, Inc., US | [Privacy policy](https://typesafe.ai/legal/privacy-policy): Services, including APIs, hosted in the US; US storage and processing | [Terms of Service](https://typesafe.ai/terms-and-conditions) and privacy policy prohibit training or fine-tuning on inputs; [MCA §4.1](https://typesafe.ai/legal/mca) prohibits training on inputs and outputs without prior customer consent. No-training, not a ZDR claim. Reviewed 2026-10-05. | compliant |
 | exa (web tools) | Exa, US | US company | Account ZDR enabled, confirmed by account owner 2026-09-27. [ZDR availability](https://exa.ai/docs/admin/security/zero-data-retention) covers Search and Contents, but explicitly excludes Answer; Research is not listed. Without ZDR, [Exa's privacy policy](https://exa.ai/privacy-policy) permits use of query data to train models. | Search and Contents: `usa-no-train`; Answer and Research: unrestricted only pending separate no-training evidence |
 
 If you're a Speedshop customer, in the absence of any other agreement between us, I only use the compliant providers and tools above to work on your project.
