@@ -1,7 +1,21 @@
 import type { ExtensionContext } from "@earendil-works/pi-coding-agent";
 import type { UsageLedger } from "./usage.ts";
+import type { Decision } from "./jev.ts";
 
 export const KEY = "you-should-know";
+export type NoteDecision = Pick<Decision, "confidence" | "category">;
+// VER remains readable when restoring historical warnings; new reviews never produce it.
+const categories: Record<string, string> = { wrong_result: "RESULT", cost: "COST", wasted_work: "WORK",
+	verification: "VER", data_loss: "LOSS", security: "SEC", none: "NONE" };
+export function noteDecision(value: unknown): NoteDecision | undefined {
+	const data = value as NoteDecision | undefined;
+	return data && Number.isFinite(data.confidence) && data.confidence >= 0 && data.confidence <= 1 &&
+		Object.hasOwn(categories, data.category) ? { confidence: data.confidence, category: data.category } : undefined;
+}
+export function noteLabel(decision?: NoteDecision): string {
+	const data = noteDecision(decision);
+	return data ? `YSK (${Math.round(data.confidence * 100)}%|${categories[data.category]}):` : "YSK:";
+}
 export class ObserverUI {
 	private pulse: ReturnType<typeof setInterval> | undefined;
 	private frame = 0;
@@ -25,12 +39,12 @@ export class ObserverUI {
 		}
 		this.footer();
 	}
-	async note(note: string, current: () => boolean, explaining = false) {
+	async note(note: string, current: () => boolean, explaining = false, decision?: NoteDecision) {
 		if (this.ctx.mode !== "tui" || !current()) return;
 		if (!note) { this.ctx.ui.setWidget(KEY, undefined); return; }
 		const { Text } = await import("@earendil-works/pi-tui");
 		if (current()) this.ctx.ui.setWidget(KEY, (_tui, theme) => ({
-			render: (width) => new Text(`${theme.fg("accent", theme.bold("YSK:"))} ${explaining
+			render: (width) => new Text(`${theme.fg("accent", theme.bold(noteLabel(explaining ? undefined : decision)))} ${explaining
 				? theme.fg("dim", `${note}${".".repeat(1 + Math.floor(this.frame / 4))}`) : note}`, 0, 0).render(width),
 			invalidate() {},
 		}));

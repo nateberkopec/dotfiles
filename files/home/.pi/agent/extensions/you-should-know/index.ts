@@ -2,29 +2,32 @@ import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-a
 import { reviewTranscript } from "./review.ts";
 import { transcript } from "./transcript.ts";
 import { UsageLedger, type UsageRecord } from "./usage.ts";
-import { KEY, ObserverUI } from "./ui.ts";
+import { KEY, ObserverUI, noteDecision, type NoteDecision } from "./ui.ts";
 import { registerChat } from "./chat.ts";
+import { TopicHistory } from "./history.ts";
 
 export default function youShouldKnow(pi: ExtensionAPI) {
-	let enabled = true, threshold = 0.85, note = "", previous = "", lastSource = "", lastStarted = 0, warned = "", runCancelled = false;
+	let enabled = true, threshold = 0.85, note = "", lastSource = "", lastStarted = 0, warned = "", runCancelled = false;
 	let epoch = 0, ledger = new UsageLedger(), ui: ObserverUI | undefined;
 	let controller: AbortController | undefined, pending: Promise<void> | undefined;
 	let issueId = "", issueSource = "";
+	let decision: NoteDecision | undefined, history = new TopicHistory();
 	const cancel = () => { controller?.abort(); controller = undefined; pending = undefined; ui?.stop(); };
 	const view = (ctx: ExtensionContext) => ui ??= new ObserverUI(ctx, ledger);
 	const display = (ctx: ExtensionContext) => {
 		const version = epoch, text = enabled ? note : "";
-		return view(ctx).note(text, () => epoch === version && text === (enabled ? note : ""));
+		return view(ctx).note(text, () => epoch === version && text === (enabled ? note : ""), false, decision);
 	};
 	const chat = registerChat(pi, () => ({ id: issueId, note: enabled ? note : "", source: issueSource }), async (ctx) => {
-		note = ""; issueId = ""; issueSource = ""; pi.appendEntry(`${KEY}-note`, { note, previous }); await display(ctx);
+		note = ""; issueId = ""; issueSource = ""; decision = undefined; pi.appendEntry(`${KEY}-note`, { note }); await display(ctx);
 	}, (ctx) => {
 		const version = epoch;
 		return (record) => { if (version === epoch) { ledger.add(record); pi.appendEntry(`${KEY}-usage`, record); view(ctx).footer(); } };
 	});
 	const restore = async (_event: unknown, ctx: ExtensionContext) => {
-		cancel(); chat.restore(ctx); epoch++; enabled = true; threshold = 0.85; note = ""; previous = ""; issueId = ""; issueSource = "";
-		lastSource = ""; lastStarted = 0; warned = ""; runCancelled = false; ledger = new UsageLedger();
+		cancel(); chat.restore(ctx); epoch++; enabled = true; threshold = 0.85; note = ""; history = new TopicHistory(); issueId = ""; issueSource = "";
+		lastSource = ""; lastStarted = 0; warned = ""; runCancelled = false; ledger = new UsageLedger(); decision = undefined;
+		let lastReview: NoteDecision | undefined;
 		for (const entry of ctx.sessionManager.getBranch()) {
 			if (entry.type !== "custom") continue;
 			const data = entry.data as any;
@@ -32,9 +35,13 @@ export default function youShouldKnow(pi: ExtensionAPI) {
 				if (typeof data?.enabled === "boolean") enabled = data.enabled;
 				if (Number.isFinite(data?.threshold) && data.threshold >= 0 && data.threshold <= 1) threshold = data.threshold;
 			}
+			if (entry.customType === `${KEY}-understood`) history.understand(data?.note);
+			if (entry.customType === `${KEY}-review`) lastReview = noteDecision(data);
 			if (entry.customType === `${KEY}-note` && typeof data?.note === "string") {
+				decision = noteDecision(data.decision) ?? lastReview;
 				note = data.note.replace(/[\u0000-\u001f\u007f-\u009f]/g, " ").slice(0, 600);
-				previous = typeof data.previous === "string" ? data.previous.slice(0, 600) : note;
+				history.offer(data.previous); // Recover the last offered topic from older cleared-note entries.
+				history.offer(note);
 				issueId = typeof data.id === "string" ? data.id : "";
 				issueSource = typeof data.source === "string" ? data.source.slice(-24_000) : "";
 			}
@@ -65,16 +72,17 @@ export default function youShouldKnow(pi: ExtensionAPI) {
 		const timer = setTimeout(() => request.abort(), 40_000);
 		pending = (async () => {
 			try {
-				const operation = reviewTranscript(ctx, source, previous, threshold, request.signal, usage, waiting,
+				const operation = reviewTranscript(ctx, source, history, threshold, request.signal, usage, waiting,
 					() => screen.note("Reviewing a possible issue", () => controller === request && !request.signal.aborted, true));
 				const result = await Promise.race([operation, interrupted]);
 				if (!result || request.signal.aborted || controller !== request) return;
-				const { probability, confidence, category, model } = result.decision;
-				pi.appendEntry(`${KEY}-review`, { probability, confidence, category, model, threshold });
-				note = result.note === previous ? "" : result.note;
-				if (note) previous = note;
+				const { choice, probability, confidence, category, model } = result.decision;
+				pi.appendEntry(`${KEY}-review`, { choice, probability, confidence, category, model, threshold, thresholdMetric: "confidence" });
+				note = history.has(result.note) ? "" : result.note;
+				if (note) history.offer(note);
 				issueId = note ? crypto.randomUUID() : ""; issueSource = note ? source : "";
-				pi.appendEntry(`${KEY}-note`, { note, previous, id: issueId, source: issueSource }); await display(ctx);
+				decision = note ? { confidence, category } : undefined;
+				pi.appendEntry(`${KEY}-note`, { note, id: issueId, source: issueSource, decision }); await display(ctx);
 			} catch (error) {
 				if (request.signal.aborted || controller !== request) return;
 				const message = error instanceof Error && /^(TYPESAFE_API_KEY|YSK is|Jev HTTP|Jev returned|openai\/gpt-6-luna|Luna failed)/.test(error.message)
@@ -87,8 +95,17 @@ export default function youShouldKnow(pi: ExtensionAPI) {
 		})();
 		return pending;
 	};
+	pi.registerCommand("ysk-understood", {
+		description: "Mark the current Heads-up understood, suppress that topic, and hide it.",
+		handler: async (_args, ctx) => {
+			if (!note) { ctx.ui.notify("No current YSK warning to mark understood.", "warning"); return; }
+			cancel(); history.understand(note); pi.appendEntry(`${KEY}-understood`, { note });
+			note = ""; issueId = ""; issueSource = ""; decision = undefined; chat.close();
+			pi.appendEntry(`${KEY}-note`, { note }); await display(ctx);
+		},
+	});
 	pi.registerCommand("ysk-demo", {
-		description: "YSK observer: on, off, or a threshold from 0 to 1 (default on)",
+		description: "YSK observer: on, off, or a warn-confidence threshold from 0 to 1 (default 0.85)",
 		handler: async (args, ctx) => {
 			const action = args.trim(), value = Number(action);
 			if (action === "on" || action === "off") { cancel(); enabled = action === "on"; }
@@ -97,7 +114,7 @@ export default function youShouldKnow(pi: ExtensionAPI) {
 			lastSource = ""; lastStarted = 0; warned = "";
 			if (!enabled) { note = ""; issueId = ""; issueSource = ""; chat.close(); }
 			pi.appendEntry(`${KEY}-state`, { enabled, threshold });
-			pi.appendEntry(`${KEY}-note`, { note, previous, id: issueId, source: issueSource }); view(ctx).footer(); await display(ctx);
+			pi.appendEntry(`${KEY}-note`, { note, id: issueId, source: issueSource, decision }); view(ctx).footer(); await display(ctx);
 		},
 	});
 	pi.on("session_start", restore);

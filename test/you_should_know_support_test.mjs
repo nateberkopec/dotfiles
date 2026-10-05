@@ -3,12 +3,12 @@ import { test } from "node:test";
 import { registerHooks } from "node:module";
 import { decide, JEV_MODEL, JEV_URL } from "../files/home/.pi/agent/extensions/you-should-know/jev.ts";
 import { UsageLedger, usageRecord } from "../files/home/.pi/agent/extensions/you-should-know/usage.ts";
-import { ObserverUI } from "../files/home/.pi/agent/extensions/you-should-know/ui.ts";
+import { ObserverUI, noteLabel } from "../files/home/.pi/agent/extensions/you-should-know/ui.ts";
 
 process.env.TYPESAFE_API_KEY = "fixture-not-a-secret";
 const answer = () => ({ model: JEV_MODEL, answers: {
 	interrupt: { type: "choice", choice: "warn", confidence: 1, probabilities: { warn: 1, quiet: 0 } },
-	category: { type: "choice", choice: "verification", confidence: 1, probabilities: { verification: 1, data_loss: 0, security: 0, none: 0 } },
+	category: { type: "choice", choice: "wrong_result", confidence: 1, probabilities: { wrong_result: 1, cost: 0, wasted_work: 0, data_loss: 0, security: 0, none: 0 } },
 } });
 test("pinned native Jev batches once, refuses redirects, and never logs HTTP bodies", async () => {
 	const calls = [];
@@ -85,11 +85,20 @@ test("provisional note has animated dim dots; resolved notes stay static", async
 		assert.match(provisional.render(80)[0], /issue\.\.<\/dim>/);
 		t.mock.timers.tick(400); assert.match(provisional.render(80)[0], /issue\.\.\.<\/dim>/);
 		t.mock.timers.tick(400); assert.match(provisional.render(80)[0], /issue\.<\/dim>/);
-		await ui.note("Verify the backup.", () => true); const resolved = widgets.get("you-should-know");
+		await ui.note("Verify the backup.", () => true, false, { confidence: 0.99, category: "security" }); const resolved = widgets.get("you-should-know");
 		const text = resolved.render(80)[0]; ui.waiting(false); assert.equal(resolved.render(80)[0], text);
+		assert.match(text, /<bold>YSK \(99%\|SEC\):<\/bold>/);
 		assert.match(text, /Verify the backup\.$/);
 		await ui.note("", () => true); assert.equal(widgets.get("you-should-know"), undefined);
 	} finally { ui.stop(); hooks.deregister(); }
+});
+
+test("warning labels show rounded confidence and category, not fabricated legacy scores", () => {
+	for (const [category, tag] of [["security", "SEC"], ["data_loss", "LOSS"], ["wrong_result", "RESULT"], ["cost", "COST"], ["wasted_work", "WORK"], ["verification", "VER"], ["none", "NONE"]]) {
+		assert.equal(noteLabel({ confidence: 0.875, category }), `YSK (88%|${tag}):`);
+	}
+	for (const value of [undefined, null, {}, { confidence: NaN, category: "security" },
+		{ confidence: 2, category: "security" }, { confidence: 0.99, category: "unknown" }]) assert.equal(noteLabel(value), "YSK:");
 });
 
 test("no note means no message widget row", async () => {
