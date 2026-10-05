@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>YSK backtest</title><link rel="stylesheet" href="/style.css"><script src="/app.js" defer></script></head>
+<body>
+<header><h1>YSK backtest</h1><label class="load">Open session<input id="file" type="file" accept=".jsonl,application/json"></label></header>
+<section class="setup" aria-label="Replay controls">
+ <div><strong id="session-name">Loading session…</strong><p id="session-detail"></p></div>
+ <div class="controls"><label for="confidence">Min. confidence <input id="confidence" type="number" min="0" max="100" value="85">%</label><button id="run" class="primary">Run replay</button><button id="stop" hidden>Stop replay</button><button id="recorded">Recorded warnings</button></div>
+ <p class="disclosure">Replay sends historical text to Jev and Luna using your configured credentials. No tools run. No ratings or results are saved.</p>
+</section>
+<section class="status-bar" aria-label="Replay progress"><span id="status" role="status" aria-live="polite">Loading…</span><span id="usage"></span></section>
+<p id="error" role="alert" hidden></p>
+<main>
+ <section class="warning-pane" aria-label="Warning reviewer">
+  <nav aria-label="Warning navigation"><button id="previous" aria-label="Previous warning">Previous</button><span id="position">0 / 0</span><button id="next" aria-label="Next warning">Next</button></nav>
+  <div id="timeline" aria-label="Jump to warning"></div>
+  <article><div id="meta"></div><h2 id="warning-title">No recorded warnings</h2><p id="warning"></p><p id="guidance">Run the current policy to generate warnings from this session.</p></article>
+  <dl id="decision"></dl>
+  <p class="read-only">View only. Ask yourself: was this worth interrupting for?</p>
+ </section>
+ <section class="context-pane" aria-label="Historical context"><div class="context-heading"><h2>What the observer could see</h2><span id="checkpoint"></span></div><p id="context-detail">Select a warning to inspect its historical snapshot.</p><pre id="context" tabindex="0"></pre></section>
+</main>
+<footer>Replay uses the selected branch up to each assistant checkpoint, never later conversation. Intermediate checks approximate the 30-second throttle; final responses are always eligible. New replay histories contain only replay-generated offers, not hypothetical user acknowledgments.</footer>
+</body></html>
