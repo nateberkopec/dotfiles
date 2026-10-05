@@ -15,16 +15,16 @@ async function mock(p, run) {
 	try { await run(calls); } finally { globalThis.fetch = prior; }
 }
 function harness({ response, available = true, mode = "json", signal } = {}) {
-	const hooks = new Map(), entries = [], requests = [], notices = [], widgets = [];
+	const hooks = new Map(), commands = new Map(), entries = [], requests = [], notices = [], widgets = [];
 	let branch = [], command;
 	const result = response || { stopReason: "stop", content: [{ type: "text", text: "Tests failed; do not deploy." }], usage: { input: 20, output: 10, cost: { total: 0.0001 } } };
 	const ctx = { mode, signal, sessionManager: { getBranch: () => branch, getEntries: () => entries },
 		ui: { setWidget: (...args) => widgets.push(args), notify: (...args) => notices.push(args) },
 		modelRegistry: { find: (provider, id) => { assert.equal(provider, "openai"); assert.equal(id, "gpt-6-luna"); return available ? { id, provider } : undefined; },
 			streamSimple: (model, context, options) => { requests.push({ model, context, options }); return { result: () => typeof result === "function" ? result(options) : Promise.resolve(result) }; } } };
-	extension({ on: (name, fn) => hooks.set(name, fn), registerCommand: (name, spec) => { assert.equal(name, "ysk-demo"); command = spec.handler; },
+	extension({ on: (name, fn) => hooks.set(name, fn), registerCommand: (name, spec) => { commands.set(name, spec.handler); if (name === "ysk-demo") command = spec.handler; },
 		appendEntry: (customType, data) => { const entry = { type: "custom", customType, data }; entries.push(entry); branch.push(entry); } });
-	return { ctx, entries, requests, notices, widgets, command: (args) => command(args, ctx),
+	return { ctx, entries, requests, notices, widgets, commands, command: (args) => command(args, ctx),
 		emit: (name, event = {}) => hooks.get(name)?.(event, ctx),
 		message(role, text) { const message = { role, content: [{ type: "text", text }] }; const entry = { type: "message", message }; branch.push(entry); entries.push(entry); return message; },
 		branch(next) { branch = next; } };

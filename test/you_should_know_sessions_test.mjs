@@ -41,6 +41,25 @@ for (const mode of ["complete", "interrupted"]) test(`real SDK Luna transport re
 	} finally { rmSync(dir, { recursive: true, force: true }); }
 });
 
+for (const mode of ["complete", "interrupted"]) test(`YSK side-chat actual SDK transport: ${mode}, no redirects or tools`, () => {
+	const dir = mkdtempSync(path.join(tmpdir(), "ysk-chat-transport-")), file = path.join(dir, "session.jsonl");
+	const run = (mode, prompt) => execFileSync("pi", ["--offline", "--mode", "json", "--no-extensions", "--no-context-files", "--no-skills",
+		"--no-prompt-templates", "--no-tools", "-e", extension, "-e", fixture, "-e", path.join(root, "test/support/you_should_know_transport.ts"),
+		"--provider", "ysk-test", "--model", "observer", "--session", file, prompt], {
+		cwd: dir, env: { ...process.env, PI_CODING_AGENT_DIR: path.join(dir, "agent"), YSK_TRANSPORT_FIXTURE: mode, YSK_FIXTURE_REAL_JEV: "", YSK_FIXTURE_REAL_LUNA: "1" }, timeout: 30_000,
+	});
+	try {
+		run("complete", "Delete database before checking backup"); run(mode, "/ysk-chat Explain this concern");
+		const rows = readFileSync(file, "utf8").trim().split("\n").map((line) => JSON.parse(line));
+		assert.equal(rows.filter((r) => r.customType === "ysk-transport-check").length, 3);
+		assert.ok(rows.filter((r) => r.customType === "ysk-transport-check").every((r) => r.data.redirect === "error"));
+		const usage = rows.filter((r) => r.customType === "you-should-know-usage"); assert.equal(usage.length, 3);
+		assert.equal(rows.filter((r) => r.customType === "ysk-chat-turn").length, mode === "complete" ? 1 : 0);
+		if (mode === "interrupted") assert.equal(usage.at(-1).data.cost, undefined);
+		else assert.ok(usage.at(-1).data.cost > 0);
+	} finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
 test("real Pi CLI sessions: default-on, risk, quiet, resume, threshold and disable", () => {
 	const dir = mkdtempSync(path.join(tmpdir(), "ysk-sessions-"));
 	const run = (name, ...prompts) => {

@@ -3,19 +3,27 @@ import { reviewTranscript } from "./review.ts";
 import { transcript } from "./transcript.ts";
 import { UsageLedger, type UsageRecord } from "./usage.ts";
 import { KEY, ObserverUI } from "./ui.ts";
+import { registerChat } from "./chat.ts";
 
 export default function youShouldKnow(pi: ExtensionAPI) {
 	let enabled = true, threshold = 0.85, note = "", previous = "", lastSource = "", lastStarted = 0, warned = "", runCancelled = false;
 	let epoch = 0, ledger = new UsageLedger(), ui: ObserverUI | undefined;
 	let controller: AbortController | undefined, pending: Promise<void> | undefined;
+	let issueId = "", issueSource = "";
 	const cancel = () => { controller?.abort(); controller = undefined; pending = undefined; ui?.stop(); };
 	const view = (ctx: ExtensionContext) => ui ??= new ObserverUI(ctx, ledger);
 	const display = (ctx: ExtensionContext) => {
 		const version = epoch, text = enabled ? note : "";
 		return view(ctx).note(text, () => epoch === version && text === (enabled ? note : ""));
 	};
+	const chat = registerChat(pi, () => ({ id: issueId, note: enabled ? note : "", source: issueSource }), async (ctx) => {
+		note = ""; issueId = ""; issueSource = ""; pi.appendEntry(`${KEY}-note`, { note, previous }); await display(ctx);
+	}, (ctx) => {
+		const version = epoch;
+		return (record) => { if (version === epoch) { ledger.add(record); pi.appendEntry(`${KEY}-usage`, record); view(ctx).footer(); } };
+	});
 	const restore = async (_event: unknown, ctx: ExtensionContext) => {
-		cancel(); epoch++; enabled = true; threshold = 0.85; note = ""; previous = "";
+		cancel(); chat.restore(ctx); epoch++; enabled = true; threshold = 0.85; note = ""; previous = ""; issueId = ""; issueSource = "";
 		lastSource = ""; lastStarted = 0; warned = ""; runCancelled = false; ledger = new UsageLedger();
 		for (const entry of ctx.sessionManager.getBranch()) {
 			if (entry.type !== "custom") continue;
@@ -27,6 +35,8 @@ export default function youShouldKnow(pi: ExtensionAPI) {
 			if (entry.customType === `${KEY}-note` && typeof data?.note === "string") {
 				note = data.note.replace(/[\u0000-\u001f\u007f-\u009f]/g, " ").slice(0, 600);
 				previous = typeof data.previous === "string" ? data.previous.slice(0, 600) : note;
+				issueId = typeof data.id === "string" ? data.id : "";
+				issueSource = typeof data.source === "string" ? data.source.slice(-24_000) : "";
 			}
 		}
 		// Match native footer accounting: all session branches represent money already spent.
@@ -63,7 +73,8 @@ export default function youShouldKnow(pi: ExtensionAPI) {
 				pi.appendEntry(`${KEY}-review`, { probability, confidence, category, model, threshold });
 				note = result.note === previous ? "" : result.note;
 				if (note) previous = note;
-				pi.appendEntry(`${KEY}-note`, { note, previous }); await display(ctx);
+				issueId = note ? crypto.randomUUID() : ""; issueSource = note ? source : "";
+				pi.appendEntry(`${KEY}-note`, { note, previous, id: issueId, source: issueSource }); await display(ctx);
 			} catch (error) {
 				if (request.signal.aborted || controller !== request) return;
 				const message = error instanceof Error && /^(TYPESAFE_API_KEY|YSK is|Jev HTTP|Jev returned|openai\/gpt-6-luna|Luna failed)/.test(error.message)
@@ -84,9 +95,9 @@ export default function youShouldKnow(pi: ExtensionAPI) {
 			else if (action && Number.isFinite(value) && value >= 0 && value <= 1) { cancel(); threshold = value; }
 			else { ctx.ui.notify("Usage: /ysk-demo on|off|<0–1>", "warning"); return; }
 			lastSource = ""; lastStarted = 0; warned = "";
-			if (!enabled) note = "";
+			if (!enabled) { note = ""; issueId = ""; issueSource = ""; chat.close(); }
 			pi.appendEntry(`${KEY}-state`, { enabled, threshold });
-			pi.appendEntry(`${KEY}-note`, { note, previous }); view(ctx).footer(); await display(ctx);
+			pi.appendEntry(`${KEY}-note`, { note, previous, id: issueId, source: issueSource }); view(ctx).footer(); await display(ctx);
 		},
 	});
 	pi.on("session_start", restore);
@@ -94,5 +105,5 @@ export default function youShouldKnow(pi: ExtensionAPI) {
 	pi.on("agent_start", () => { runCancelled = false; });
 	pi.on("message_end", (event, ctx) => { if (event.message.role === "assistant") void review(ctx, false, event.message); });
 	pi.on("agent_end", async (_event, ctx) => { const version = epoch; await pending; if (version === epoch) await review(ctx, true); });
-	pi.on("session_shutdown", cancel);
+	pi.on("session_shutdown", () => { cancel(); chat.close(); });
 }

@@ -25,7 +25,10 @@ export default function fixture(pi: ExtensionAPI) {
 			cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 }, contextWindow: 64000, maxTokens: 1024 }],
 		streamSimple(model, context) {
 			const stream = createAssistantMessageEventStream();
-			const observer = getCurrentSystemPrompt(context.messages).includes("quiet, independent");
+			const system = getCurrentSystemPrompt(context.messages);
+			const observer = system.includes("quiet, independent");
+			pi.appendEntry("side-chat-fixture-request", { provider: model.provider, model: model.id, system,
+				tools: getCurrentTools(context.messages).map((tool) => tool.name), source: JSON.stringify(context.messages) });
 			if (observer && getCurrentTools(context.messages).length) throw new Error("Observer must have no tools");
 			if (observer && (model.provider !== "openai" || model.id !== "gpt-6-luna")) throw new Error("Observer must use the pinned Luna model");
 			const source = JSON.stringify(context.messages);

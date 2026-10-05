@@ -50,6 +50,7 @@ cat >"$config" <<JSON
     "noEmit": true,
     "paths": {
       "@earendil-works/pi-ai": ["$ai_root/dist/index.d.ts"],
+      "@earendil-works/pi-ai/compat": ["$ai_root/dist/compat.d.ts"],
       "@earendil-works/pi-ai/providers/all": ["$ai_root/dist/providers/all.d.ts"],
       "@earendil-works/pi-coding-agent": ["$agent_root/dist/index.d.ts"],
       "@earendil-works/pi-tui": ["$tui_root/dist/index.d.ts"]
@@ -66,6 +67,7 @@ cat >"$config" <<JSON
     "$PWD/files/home/.pi/agent/extensions/datasafe/index.ts",
     "$PWD/files/home/.pi/agent/extensions/toksec/index.ts",
     "$PWD/files/home/.pi/agent/extensions/you-should-know/index.ts",
+    "$PWD/files/home/.pi/agent/extensions/btw/index.ts",
     "$PWD/test/support/you_should_know_provider.ts",
     "$PWD/test/support/you_should_know_transport.ts"
   ]
