@@ -1,4 +1,4 @@
-import type { ExtensionAPI, ExtensionCommandContext, ExtensionContext } from "@earendil-works/pi-coding-agent";
+import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import type { Message } from "@earendil-works/pi-ai/compat";
 import { createBackend, textOf, type ChatSpec } from "./backend.ts";
 
@@ -35,13 +35,13 @@ export class SideChat {
 		this.turns = this.turns.slice(-8);
 	}
 	reset() { this.close(); this.turns = []; this.pi.appendEntry(`${this.key}-chat-reset`, {}); }
-	inject(ctx: ExtensionCommandContext) {
+	inject(ctx: ExtensionContext) {
 		if (this.busy || !this.spec || !this.turns.some((t) => t.id === this.spec?.id)) {
 			ctx.ui.notify("No completed side conversation to hand off.", "warning"); return;
 		}
 		this.pi.sendUserMessage(`${this.spec.title} side conversation:\n\n${this.transcript()}`, ctx.isIdle() ? {} : { deliverAs: "followUp" });
 	}
-	async open(ctx: ExtensionCommandContext, spec: ChatSpec, question: string) {
+	async open(ctx: ExtensionContext, spec: ChatSpec, question: string) {
 		if (this.spec?.id !== spec.id) this.close();
 		if (!this.busy) this.spec = spec;
 		const version = this.version;
@@ -60,7 +60,7 @@ export class SideChat {
 			.map((m) => `${m.role === "user" ? "**You:**" : "**Assistant:**"}\n${textOf(m)}`).join("\n\n");
 		return [this.spec?.opening, history, this.question ? `**You:** ${textOf({ content: this.question })}\n\n${this.partial || "…"}` : ""].filter(Boolean).join("\n\n");
 	}
-	private async ask(ctx: ExtensionCommandContext, question: string) {
+	private async ask(ctx: ExtensionContext, question: string) {
 		if (this.busy) { ctx.ui.notify("Side chat is still responding.", "warning"); return; }
 		const version = this.version, spec = this.spec!;
 		this.busy = true; this.question = question; this.partial = ""; this.status = "Responding…"; this.overlay?.refresh();

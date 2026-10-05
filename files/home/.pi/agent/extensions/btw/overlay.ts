@@ -1,7 +1,7 @@
 // Adapted from Armin Ronacher's agent-stuff/extensions/btw.ts at 0865c849befd2021490679f96a8dee58c84ac857.
 // Modified: configurable title, narrow sizing, native cursor handling, close without a dialog.
 // Apache-2.0; see LICENSE in this directory.
-import type { ExtensionCommandContext } from "@earendil-works/pi-coding-agent";
+import type { ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { Input, Markdown, truncateToWidth, visibleWidth, type Focusable } from "@earendil-works/pi-tui";
 import { getMarkdownTheme } from "@earendil-works/pi-coding-agent";
 
@@ -12,7 +12,7 @@ export interface ChatView {
 	submit: (question: string) => void;
 	cancel: () => void;
 }
-export function openOverlay(ctx: ExtensionCommandContext, view: ChatView) {
+export function openOverlay(ctx: ExtensionContext, view: ChatView) {
 	let refresh = () => {}, close = () => {}, closed = false;
 	void ctx.ui.custom<void>((tui, theme, keys, done) => {
 		const input = new Input();

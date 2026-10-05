@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { registerHooks } from "node:module";
+import "./support/pi_tui_loader.mjs";
 import { decide, JEV_MODEL, JEV_URL } from "../files/home/.pi/agent/extensions/you-should-know/jev.ts";
 import { UsageLedger, usageRecord } from "../files/home/.pi/agent/extensions/you-should-know/usage.ts";
 import { ObserverUI, noteLabel } from "../files/home/.pi/agent/extensions/you-should-know/ui.ts";
@@ -71,9 +71,6 @@ test("dim costs above native footer, no padding, spinner animates and stops", as
 });
 test("provisional note has animated dim dots; resolved notes stay static", async (t) => {
 	t.mock.timers.enable({ apis: ["setInterval"] });
-	const hooks = registerHooks({ resolve: (specifier, context, next) => specifier === "@earendil-works/pi-tui"
-		? { url: `data:text/javascript,${encodeURIComponent('export class Text { constructor(text) { this.text = text; } render() { return [this.text]; } }')}`, shortCircuit: true }
-		: next(specifier, context) });
 	const widgets = new Map(), theme = { fg: (color, text) => `<${color}>${text}</${color}>`, bold: (text) => `<bold>${text}</bold>` };
 	const ctx = { mode: "tui", ui: { setWidget: (key, factory) => widgets.set(key, factory?.({}, theme)) } };
 	const ui = new ObserverUI(ctx, new UsageLedger());
@@ -86,11 +83,11 @@ test("provisional note has animated dim dots; resolved notes stay static", async
 		t.mock.timers.tick(400); assert.match(provisional.render(80)[0], /issue\.\.\.<\/dim>/);
 		t.mock.timers.tick(400); assert.match(provisional.render(80)[0], /issue\.<\/dim>/);
 		await ui.note("Verify the backup.", () => true, false, { confidence: 0.99, category: "security" }); const resolved = widgets.get("you-should-know");
-		const text = resolved.render(80)[0]; ui.waiting(false); assert.equal(resolved.render(80)[0], text);
+		const text = resolved.render(120).join("\n"); ui.waiting(false); assert.equal(resolved.render(120).join("\n"), text);
 		assert.match(text, /<bold>YSK \(99%\|SEC\):<\/bold>/);
 		assert.match(text, /Verify the backup\.$/);
 		await ui.note("", () => true); assert.equal(widgets.get("you-should-know"), undefined);
-	} finally { ui.stop(); hooks.deregister(); }
+	} finally { ui.stop(); }
 });
 
 test("warning labels show rounded confidence and category, not fabricated legacy scores", () => {

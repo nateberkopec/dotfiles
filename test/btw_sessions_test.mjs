@@ -5,6 +5,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { test } from "node:test";
+import { WarningInbox } from "../files/home/.pi/agent/extensions/you-should-know/inbox.ts";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 function fixture(run) {
@@ -49,7 +50,7 @@ test("real SDK side conversations: isolated models/tools, snapshot, history, res
 	assert.equal(entries(rows, "btw-chat-reset").length, 1);
 	assert.ok(!entries(rows, "side-chat-fixture-request").at(-1).data.source.includes("What should I check next?"));
 	rows = run("/ysk-dismiss", "/ysk-chat Explain again");
-	assert.equal(entries(rows, "you-should-know-note").at(-1).data.note, "");
+	assert.equal(WarningInbox.restore(rows).pending.length, 0);
 	assert.equal(entries(rows, "ysk-chat-turn").length, 2, "dismissed warning cannot silently use main model/context");
 }));
 

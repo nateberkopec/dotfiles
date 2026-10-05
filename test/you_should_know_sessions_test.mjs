@@ -4,12 +4,18 @@ import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { test } from "node:test";
+import { WarningInbox } from "../files/home/.pi/agent/extensions/you-should-know/inbox.ts";
 import { UsageLedger } from "../files/home/.pi/agent/extensions/you-should-know/usage.ts";
 import { fileURLToPath } from "node:url";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const extension = path.join(root, "files/home/.pi/agent/extensions/you-should-know/index.ts");
 const fixture = path.join(root, "test/support/you_should_know_provider.ts");
+
+test("real terminal card: shortcut, action navigation, selected-warning Details, acknowledgments and draft preservation", () => {
+	const output = execFileSync("python3", [path.join(root, "test/support/you_should_know_card.py")], { encoding: "utf8", timeout: 45_000 });
+	assert.match(output, /PASS: real Ctrl\+; card/);
+});
 
 for (const mode of ["complete", "interrupted"]) test(`real SDK Luna transport rejects redirects and accounts ${mode} SSE usage`, () => {
 	const dir = mkdtempSync(path.join(tmpdir(), "ysk-transport-"));
@@ -85,10 +91,12 @@ test("real Pi CLI sessions: default-on, risk, quiet, resume, threshold and disab
 		assert.equal(reviews(resumed).length, 2, "enabled observer survives a real process restart");
 		const disabled = run("risk", "/ysk-demo off", "Check backup again");
 		assert.equal(reviews(disabled).length, 2);
-		assert.equal(notes(disabled).at(-1).data.note, "");
+		assert.equal(WarningInbox.restore(disabled).pending.length, 1, "disabling hides without discarding the warning");
+		const enabled = run("risk", "/ysk-demo on");
+		assert.equal(WarningInbox.restore(enabled).current.note, notes(risk)[0].data.note);
 		const quiet = run("quiet", "What is 2 + 2?");
 		assert.equal(reviews(quiet).length, 1);
-		assert.equal(notes(quiet).at(-1).data.note, "");
+		assert.equal(notes(quiet).length, 0);
 		assert.equal(quiet.filter((e) => e.customType === "you-should-know-usage").length, 1, "quiet gate skips Luna");
 		const threshold = run("threshold", "/ysk-demo .95", "What is 2 + 2?");
 		assert.equal(reviews(threshold)[0].data.threshold, 0.95);
