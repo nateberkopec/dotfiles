@@ -144,11 +144,4 @@ export default function (pi: ExtensionAPI) {
       return { content: [{ type: "text", text: "Human attention marked. Ask the user your question and return control. Background work does not clear this request." }], details: { reason: human } };
     },
   });
-  pi.registerCommand("human-attention", {
-    description: "Show the human-attention request, or clear it with /human-attention clear",
-    handler: async (args, ctx) => {
-      if (args.trim() === "clear") clearHuman();
-      ctx.ui.notify(human ? `Human attention: ${human}` : "No human-attention request.", "info");
-    },
-  });
 }

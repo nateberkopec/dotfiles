@@ -198,7 +198,7 @@ test("user dialogs override working and return to working without clearing a sep
   await h.request("Need your approval");
   h.handlers.get("ui_prompt_end")({ kind: "confirm" });
   assert.equal(h.entries.at(-1).data.reason, "Need your approval");
-  await h.commands.get("human-attention").handler("clear", h.ctx);
+  h.handlers.get("input")({ source: "interactive" }, h.ctx);
   await h.expect("working");
   h.handlers.get("ui_prompt_start")({ kind: "input", title: "Answer" });
   await h.expect("blocked");
@@ -214,6 +214,12 @@ test("existing blocked overlays remain supported until pi-subagents stops emitti
   await h.expect("blocked");
   h.bus.emit("herdr:blocked", { active: false });
   await h.expect("working");
+});
+
+test("attention is tool-only, without slash commands", async t => {
+  const h = await harness(t);
+  assert.equal(h.commands.size, 0);
+  assert.ok(h.tools.has("human_attention"));
 });
 
 test("non-TUI sessions never publish or allow the attention tool", async t => {
