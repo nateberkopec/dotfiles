@@ -21,8 +21,7 @@ export function createReporter(env: NodeJS.ProcessEnv) {
         socket.destroy();
         resolve(ok);
       }
-      socket.on("error", () => finish(false));
-      socket.on("end", () => finish(false));
+      for (const event of ["error", "end"]) socket.on(event, () => finish(false));
       socket.on("connect", () => socket.write(JSON.stringify(request) + "\n"));
       socket.on("data", data => {
         buffer += data;
