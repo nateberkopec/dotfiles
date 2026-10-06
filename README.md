@@ -69,8 +69,6 @@ Generated artifacts should not be edited as sources of truth.
 
 Temporary forks and their immutable pins are recorded in [upstream workarounds](docs/upstream-workarounds.md).
 
-Pi's Herdr workflow dots and explicit human-attention requests are managed by the [owned status extension](docs/pi-herdr-status.md).
-
 We do not store secrets on the system in plaintext.
 
 As far as OS settings go, I prefer low/no animation and performance.
