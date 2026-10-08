@@ -41,7 +41,14 @@ test("timebomb: the pinned Aube still requires Pi's argument translation", () =>
 		mkdirSync(fixture);
 		mkdirSync(join(dir, "install"));
 		writeFileSync(join(dir, "install/package.json"), "{}");
-		writeFileSync(join(fixture, "package.json"), JSON.stringify({ name: "pi-timebomb-fixture", version: "1.0.0" }));
+		writeFileSync(
+			join(fixture, "package.json"),
+			JSON.stringify({
+				name: "pi-timebomb-fixture",
+				version: "1.0.0",
+				peerDependencies: { "pi-timebomb-host-api": "9999.0.0" },
+			}),
+		);
 
 		const result = spawnSync(
 			"aube",
