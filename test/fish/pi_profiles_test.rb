@@ -30,6 +30,15 @@ class PiProfilesTest < Minitest::Test
     end
   end
 
+  def test_sessions_are_noninteractive_without_changing_the_parent_shell
+    with_functions do |dir, source|
+      File.write(File.join(dir, "bin", "pi"), "#!/bin/sh\nprintf '%s\\n' \"$NONINTERACTIVE\"\n")
+      %w[pi pi-claude pi-unsafe].each do |launcher|
+        assert_equal "1\nparent:unset\n", run_fish(dir, source, "#{launcher} --print hello; echo parent:(set -q NONINTERACTIVE; and echo set; or echo unset)", "NONINTERACTIVE" => nil)
+      end
+    end
+  end
+
   private
 
   def with_functions
