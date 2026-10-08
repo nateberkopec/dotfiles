@@ -20,9 +20,13 @@ function invalidateSudoTimestamp(): string | undefined {
 	return undefined;
 }
 
-function runDotf(executable: string, repository: string, setChild: (child?: ChildProcess) => void): Promise<RunResult> {
+function runDotf(executable: string, repository: string, sudo: boolean, setChild: (child?: ChildProcess) => void): Promise<RunResult> {
+	const env = { ...process.env };
+	delete env.DOTF_NO_SUDO;
+	if (sudo) delete env.NONINTERACTIVE;
+	else env.NONINTERACTIVE = "1";
 	return new Promise((resolve) => {
-		const child = spawn(executable, ["run"], { cwd: repository, stdio: "inherit" });
+		const child = spawn(executable, sudo ? ["run"] : ["run", "--no-sudo"], { cwd: repository, stdio: "inherit", env });
 		setChild(child);
 
 		let finished = false;
@@ -47,7 +51,7 @@ function failure(result: RunResult): string | undefined {
 	return failures.length ? failures.join("; ") : undefined;
 }
 
-export async function executeDotf(ctx: ExtensionContext): Promise<RunResult> {
+export async function executeDotf(ctx: ExtensionContext, sudo = true): Promise<RunResult> {
 	if (ctx.mode !== "tui") throw new Error("dotf_run requires Pi's interactive TUI");
 
 	const repository = join(homedir(), ".dotfiles");
@@ -64,14 +68,14 @@ export async function executeDotf(ctx: ExtensionContext): Promise<RunResult> {
 		void (async () => {
 			let run: RunResult = { exitCode: null, signal: null };
 			try {
-				const error = invalidateSudoTimestamp();
+				const error = sudo ? invalidateSudoTimestamp() : undefined;
 				if (error) run.error = error;
-				else run = await runDotf(executable, repository, (runningChild) => { child = runningChild; });
+				else run = await runDotf(executable, repository, sudo, (runningChild) => { child = runningChild; });
 			} catch (error) {
 				run.error = error instanceof Error ? error.message : String(error);
 			} finally {
 				try {
-					const cleanupError = invalidateSudoTimestamp();
+					const cleanupError = sudo ? invalidateSudoTimestamp() : undefined;
 					if (cleanupError) run.cleanupError = cleanupError;
 				} catch (error) {
 					run.cleanupError = error instanceof Error ? error.message : String(error);

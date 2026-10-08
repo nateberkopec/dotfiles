@@ -49,6 +49,6 @@ class Dotfiles::Step::InstallDebianDesktopAppsStep < Dotfiles::Step
   end
 
   def skip?
-    ENV["CI"] || (@system.respond_to?(:running_container?) && @system.running_container?)
+    ENV["DOTF_NO_SUDO"] == "1" || ENV["CI"] || (@system.respond_to?(:running_container?) && @system.running_container?)
   end
 end

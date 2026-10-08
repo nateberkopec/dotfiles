@@ -137,7 +137,7 @@ run_mise_bootstrap() {
         args+=(-E admin)
     fi
     args+=(bootstrap --yes --locked)
-    if ! mise_packages_supported; then
+    if [ "${DOTF_NO_SUDO:-}" = "1" ] || ! mise_packages_supported; then
         args+=(--skip packages)
     fi
     if [ "${DEBUG:-false}" != "true" ]; then
@@ -202,6 +202,16 @@ record_successful_run() {
 }
 
 cmd_run() {
+    case "${1:-}" in
+        "") ;;
+        --no-sudo) export DOTF_NO_SUDO=1 ;;
+        *) echo "Error: Unknown run option '$1'" >&2; return 1 ;;
+    esac
+    [ $# -le 1 ] || { echo "Error: Too many run options" >&2; return 1; }
+    if [ "${DOTF_NO_SUDO:-}" = "1" ]; then
+        export NONINTERACTIVE=1
+        echo "No-sudo mode: skipping system packages, privileged steps, and migrations."
+    fi
     acquire_dotf_lock
     init_logging
     debug "Starting dotf run command"
@@ -214,14 +224,20 @@ cmd_run() {
 
     cd "$DOTFILES_DIR"
     local migration_command=(ruby -r ./lib/dotfiles.rb -e "Dotfiles::MigrationRunner.new('$LOG_FILE').run_if_existing_machine")
-    if [ "${DEBUG:-false}" = "true" ]; then
+    if [ "${DOTF_NO_SUDO:-}" = "1" ]; then
+        debug "Deferring migrations until a sudo-capable run"
+    elif [ "${DEBUG:-false}" = "true" ]; then
         "${migration_command[@]}"
     else
         "${migration_command[@]}" >> "$LOG_FILE"
     fi
     ruby -r ./lib/dotfiles.rb -e "Dotfiles::Runner.new('$LOG_FILE').run"
     run_mise_prune
-    record_successful_run
+    if [ "${DOTF_NO_SUDO:-}" != "1" ]; then
+        record_successful_run
+    else
+        echo "User-level setup complete; run dotf run to finish privileged work."
+    fi
 
     debug "Run complete"
 }
@@ -269,8 +285,13 @@ Logging:
   The latest 30 dotf logs are kept automatically.
   Set DEBUG=true to also output logs and subprocess output to the console.
 
+Run options:
+  --no-sudo  Apply user-level setup only; defer privileged work and migrations.
+             Does not mark the checkout as fully applied.
+
 Examples:
-  dotf run                              # Initial setup
+  dotf run                              # Initial setup (sudo-capable)
+  dotf run --no-sudo                    # User-level setup without sudo
   dotf migrate                          # Run pending migrations on this machine
   DEBUG=true dotf run                   # Run with debug output to console
 EOF
@@ -286,7 +307,8 @@ main() {
 
     case "$1" in
         run)
-            cmd_run
+            shift
+            cmd_run "$@"
             ;;
         migrate)
             cmd_migrate

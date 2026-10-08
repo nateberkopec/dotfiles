@@ -65,7 +65,7 @@ class Dotfiles
       end
 
       def ci_or_noninteractive?
-        ENV["CI"] || ENV["NONINTERACTIVE"]
+        ENV["DOTF_NO_SUDO"] == "1" || ENV["CI"] || ENV["NONINTERACTIVE"]
       end
     end
   end

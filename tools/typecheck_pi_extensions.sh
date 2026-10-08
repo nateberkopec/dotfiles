@@ -67,6 +67,7 @@ cat >"$config" <<JSON
     "target": "ES2023"
   },
   "files": [
+    "$PWD/.pi/extensions/dotf_run/index.ts",
     "$PWD/files/home/.pi/agent/extensions/caffeinate.ts",
     "$PWD/files/home/.pi/agent/extensions/notify.ts",
     "$PWD/files/home/.pi/agent/extensions/window-fork.ts",

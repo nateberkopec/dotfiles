@@ -13,10 +13,12 @@ class Dotfiles::Step::InstallBrewCasksStep < Dotfiles::Step
   end
 
   def should_run?
+    return false if ENV["DOTF_NO_SUDO"] == "1"
     packages.any? { |type, name| !installed?(type, name) }
   end
 
   def run
+    return if ENV["DOTF_NO_SUDO"] == "1"
     debug "Installing Homebrew packages..."
     @system.execute!(env_command({"HOMEBREW_NO_ENV_HINTS" => "1"}, "brew", "update-if-needed"))
     2.times do
@@ -30,6 +32,7 @@ class Dotfiles::Step::InstallBrewCasksStep < Dotfiles::Step
 
   def complete?
     super
+    return true if ENV["DOTF_NO_SUDO"] == "1"
     packages.each do |type, name|
       next if installed?(type, name)
 
