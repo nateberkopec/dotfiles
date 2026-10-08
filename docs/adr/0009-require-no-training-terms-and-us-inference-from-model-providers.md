@@ -36,6 +36,8 @@ Model author is irrelevant. Data at rest, gateway processing, and TLS terminatio
 
 The big two US labs (OpenAI, Anthropic) are approved by default. This introduces some ambiguity because OpenAI and Anthropic don't necessarily guarantee inference is performed in the US. However, I basically think these companies are too important and under too much scrutiny to be mishandling data, so for them we basically only require premise 1.
 
+OpenAI offers [US regional processing through `https://us.api.openai.com/v1`](https://developers.openai.com/api/docs/guides/your-data) for supported API endpoints and models, subject to account eligibility and regional configuration. We do not currently use this endpoint because it is not available for our ChatGPT Pro subscription workloads (Sign in with ChatGPT), which still rely on the OpenAI exception above.
+
 Anthropic offers [US-only inference controls for its first-party API](https://platform.claude.com/docs/en/manage-claude/data-residency): `inference_geo: "us"` on Claude 4.6 and later, with workspace-level restrictions available to enforce US-only routing. These API controls are not currently available to us for Claude Max subscription workloads, including Meridian, so those workloads still rely on the Anthropic exception above.
 
 Sometimes a provider/upstream has multiple inference services, only some of which guarantee no-train (e.g.: Google Vertex vs Antigravity). In that case, we do only use no-train endpoints. 
