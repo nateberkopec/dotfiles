@@ -71,6 +71,7 @@ cat >"$config" <<JSON
     "$PWD/files/home/.pi/agent/extensions/notify.ts",
     "$PWD/files/home/.pi/agent/extensions/window-fork.ts",
     "$PWD/files/home/.pi/agent/extensions/meridian.ts",
+    "$PWD/files/home/.pi/agent/extensions/conversation_title.ts",
     "$PWD/files/home/.pi/agent/extensions/datasafe/index.ts",
     "$PWD/files/home/.pi/agent/extensions/toksec/index.ts",
     "$PWD/files/home/.pi/agent/extensions/executor-watch/index.ts",
