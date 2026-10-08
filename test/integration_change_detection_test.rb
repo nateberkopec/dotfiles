@@ -43,9 +43,9 @@ class IntegrationChangeDetectionTest < Minitest::Test
     base = head
     %w[
       .agents/skills/example/SKILL.md
-      files/home/.claude/CLAUDE.md
-      files/home/.claude/skills/example/reference.md
-      files/home/.claude/skills/example/LICENSE.txt
+      files/home/.agents/AGENTS.md
+      files/home/.agents/skills/example/reference.md
+      files/home/.agents/skills/example/LICENSE.txt
       files/home/.agents/researcher.md
       files/home/.pi/agent/agents/reviewer.md
     ].each { |path| write(path, "prose\n") }

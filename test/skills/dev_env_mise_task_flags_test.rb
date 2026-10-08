@@ -4,7 +4,7 @@ require "open3"
 require "tmpdir"
 
 class DevEnvMiseTaskFlagsTest < Minitest::Test
-  CHECK = File.expand_path("../../files/home/.claude/skills/dev-env-setup/scripts/check-dev-env.fish", __dir__)
+  CHECK = File.expand_path("../../files/home/.agents/skills/dev-env-setup/scripts/check-dev-env.fish", __dir__)
 
   def setup
     skip "fish is required for checker tests" unless system("fish", "--version", out: File::NULL, err: File::NULL)

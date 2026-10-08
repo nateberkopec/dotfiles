@@ -17,7 +17,7 @@ logs/
 vendor/bundle/
 node_modules/
 files/home/.pi/agent/auth.json
-files/home/.claude/skills/.system/
+files/home/.agents/skills/.system/
 files/home/.local/state/
 tmp/
 __pycache__/

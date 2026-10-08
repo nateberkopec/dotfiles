@@ -46,12 +46,12 @@ run = "ruby tools/check_human_only_files.rb"
 
 [tasks."lint:secrets"]
 description = "Scan working tree for hardcoded secrets"
-run = "gitleaks dir --redact=75 --no-banner --no-color --max-target-megabytes 5 --config files/home/.claude/skills/dev-env-setup/scripts/check-dev-env/gitleaks-default.toml ."
+run = "gitleaks dir --redact=75 --no-banner --no-color --max-target-megabytes 5 --config files/home/.agents/skills/dev-env-setup/scripts/check-dev-env/gitleaks-default.toml ."
 
 [tasks."lint:dead-code"]
 description = "Check for dead Ruby methods"
-sources = ["**/*.rb", "**/*.rake", "!tmp/**", "!vendor/**", "!.claude/worktrees/**", "!.pi-subagents/**", "bin/*", "Rakefile", ".debride-whitelist", "files/home/.claude/skills/dev-env-setup/scripts/check_dead_code.rb"]
-run = "ruby files/home/.claude/skills/dev-env-setup/scripts/check_dead_code.rb"
+sources = ["**/*.rb", "**/*.rake", "!tmp/**", "!vendor/**", "!.claude/worktrees/**", "!.pi-subagents/**", "bin/*", "Rakefile", ".debride-whitelist", "files/home/.agents/skills/dev-env-setup/scripts/check_dead_code.rb"]
+run = "ruby files/home/.agents/skills/dev-env-setup/scripts/check_dead_code.rb"
 
 [tasks."lint:flog"]
 description = "Run flog complexity checks"
@@ -64,8 +64,8 @@ sources = ["**/*.rb", "!tmp/**", "!vendor/**", "!.claude/worktrees/**", "!.pi-su
 run = "bundle exec rake flay"
 
 [tasks."lint:skills"]
-description = "Validate Claude skills"
-sources = ["files/home/.claude/skills/**", "tools/lint_agent_skills.rb"]
+description = "Validate agent skills"
+sources = ["files/home/.agents/skills/**", "tools/lint_agent_skills.rb"]
 run = "ruby tools/lint_agent_skills.rb"
 
 [tasks."format:javascript"]
