@@ -1,10 +1,9 @@
 # standard:disable Dotfiles/BanFileSystemClasses -- black-box test requires isolated Pi state
 require "test_helper"
-require "open3"
-require "tmpdir"
+require_relative "../../support/meridian_extension_helper"
 
 class MeridianProviderTest < Minitest::Test
-  EXTENSION = File.expand_path("../../../files/home/.pi/agent/extensions/meridian.ts", __dir__)
+  include MeridianExtensionHelper
 
   def test_discovers_local_catalog_in_offline_mode_and_routes_every_model_to_loopback
     output, status = run_wrapper(<<~TS, {"PI_OFFLINE" => "1"})
@@ -32,8 +31,7 @@ class MeridianProviderTest < Minitest::Test
         let beforeHeaders;
         await meridian({
           on: (event, handler) => {
-            if (event !== "before_provider_headers") throw new Error("wrong header event");
-            beforeHeaders = handler;
+            if (event === "before_provider_headers") beforeHeaders = handler;
           },
           registerProvider: (id, config) => { registered = { id, config }; },
         });
@@ -57,6 +55,7 @@ class MeridianProviderTest < Minitest::Test
         if (registered.config.apiKey !== "x") throw new Error("wrong dummy key");
         if (registered.config.headers["x-meridian-agent"] !== "pi") throw new Error("missing Pi adapter header");
         if (registered.config.models[0].maxTokens === 12345) throw new Error("known model did not reuse built-in metadata");
+        if (registered.config.models[0].contextWindow !== 12345) throw new Error("Meridian context window was ignored");
 
         payload = catalog("claude-new-from-meridian");
         const refreshed = await registered.config.refreshModels({
@@ -134,23 +133,6 @@ class MeridianProviderTest < Minitest::Test
     assert status.success?, output
     assert_match(/^anthropic\s+claude-opus-4-6\s/, output)
     refute_match(/^meridian\s+/, output)
-  end
-
-  private
-
-  def run_wrapper(source, env = {}, query = "meridian")
-    Dir.mktmpdir("meridian-provider") do |agent_dir|
-      wrapper = File.join(agent_dir, "verify_meridian.ts")
-      File.write(wrapper, source)
-      run_extension({"PI_OFFLINE" => nil}.merge(env).merge("PI_CODING_AGENT_DIR" => agent_dir), wrapper, query)
-    end
-  end
-
-  def run_extension(env, extension = EXTENSION, query = "claude-opus-4-6")
-    Open3.capture2e(
-      env,
-      "pi", "--no-extensions", "--extension", extension, "--list-models", query
-    )
   end
 end
 # standard:enable Dotfiles/BanFileSystemClasses

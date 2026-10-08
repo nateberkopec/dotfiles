@@ -3,6 +3,7 @@ import path from "node:path";
 import { uuidv7 } from "@earendil-works/pi-ai";
 import { complete } from "@earendil-works/pi-ai/compat";
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
+import { auxiliaryHeaders } from "./meridian/requests.ts";
 
 const STATE_KEY = "conversation-title";
 const TITLE_INTERVAL_MS = 10 * 60 * 1000;
@@ -118,6 +119,7 @@ export default function conversationTitle(pi: ExtensionAPI) {
 			const auth = await ctx.modelRegistry.getApiKeyAndHeaders(model);
 			if (!auth.ok || !auth.apiKey || controller.signal.aborted) return;
 
+			const sessionId = uuidv7();
 			const response = await complete(
 				model,
 				{
@@ -132,12 +134,12 @@ export default function conversationTitle(pi: ExtensionAPI) {
 				},
 				{
 					apiKey: auth.apiKey,
-					headers: auth.headers,
+					headers: auxiliaryHeaders(auth.headers, "title", sessionId),
 					env: auth.env,
 					maxTokens: 64,
 					reasoningEffort: "low",
 					cacheRetention: "none",
-					sessionId: uuidv7(),
+					sessionId,
 					signal: controller.signal,
 					timeoutMs: 15_000,
 					maxRetries: 0,
