@@ -1,0 +1,22 @@
+onboarding = false
+
+[keys]
+next_agent = "ctrl+alt+j"
+previous_agent = "ctrl+alt+k"
+
+[ui]
+window_title = "{terminal_title}"
+sidebar_width = 44
+sidebar_min_width = 32
+sidebar_max_width = 56
+
+[ui.sidebar.agents]
+row_gap = 0
+rows = [["state_icon", { token = "$workspace_agent_title", bold = false, dim = false, fg = "#e5e9f0" }]]
+
+[ui.toast]
+delivery = "system"
+
+[theme]
+name = "terminal"
+auto_switch = false

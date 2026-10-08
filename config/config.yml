@@ -14,6 +14,9 @@ debian_desktop_apps:
     package: google-chrome-stable
     line: "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome-archive-keyring.gpg] http://dl.google.com/linux/chrome/deb/ stable main"
     key_url: https://dl.google.com/linux/linux_signing_key.pub
+# Herdr generates plugins.json from these local source manifests.
+herdr_plugins:
+  - "~/Documents/Code.nosync/business/client_notes/agent_tooling/herdr-workspace-prefix"
 brew_casks:
   - 1password
   - discord
