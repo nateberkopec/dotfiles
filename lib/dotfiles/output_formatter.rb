@@ -2,11 +2,12 @@ require "csv"
 
 class Dotfiles
   class OutputFormatter
-    def initialize(results, popen_call: IO.method(:popen), system_call: Kernel.method(:system), exit_call: Kernel.method(:exit))
+    def initialize(results, popen_call: IO.method(:popen), system_call: Kernel.method(:system), exit_call: Kernel.method(:exit), output: $stdout)
       @results = results
       @popen_call = popen_call
       @system_call = system_call
       @exit_call = exit_call
+      @output = output
     end
 
     def display
@@ -33,8 +34,8 @@ class Dotfiles
     end
 
     def display_step_errors(step_name, step_errors)
-      message_lines = ["❌ #{step_name}", "", *step_errors.map { |err| "• #{err[:message]}" }]
-      gum_style("#ff5555", message_lines)
+      @output.puts "\n❌ #{step_name}"
+      step_errors.each { |err| @output.puts err[:message], "" }
     end
 
     def display_warnings

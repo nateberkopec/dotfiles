@@ -54,6 +54,11 @@ jobs:
     - name: Test Pi extensions
       run: node --test test/*_test.mjs
 
+    - name: Install checksum-pinned Herdr for CLI contract tests
+      run: bash tools/ci/install_herdr.sh
+
     - name: Run tests with managed Bash startup
       timeout-minutes: 5
+      env:
+        REQUIRE_HERDR: "1"
       run: bundle exec rake test

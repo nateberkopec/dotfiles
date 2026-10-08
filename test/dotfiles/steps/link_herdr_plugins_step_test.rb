@@ -30,7 +30,7 @@ class LinkHerdrPluginsStepTest < StepTestCase
     stub_command_exists("herdr")
     assert_should_run
     step.run
-    assert_executed("herdr plugin link --enabled /tmp/home/local-plugin")
+    assert_executed("herdr plugin link /tmp/home/local-plugin --enabled")
     assert_complete
   end
 
@@ -49,11 +49,12 @@ class LinkHerdrPluginsStepTest < StepTestCase
     configure_plugin
     stub_manifest
     stub_command_exists("herdr")
-    @fake_system.stub_command("herdr plugin link --enabled /tmp/home/local-plugin", "invalid manifest", exit_status: 1)
+    @fake_system.stub_command("herdr plugin link /tmp/home/local-plugin --enabled", "invalid manifest\nmanifest details", exit_status: 1)
     step.run
     assert_incomplete
-    assert_match(/invalid manifest/, step.errors.first)
-    @fake_system.stub_command("herdr plugin link --enabled /tmp/home/local-plugin", "", exit_status: 0)
+    assert_includes step.errors.first, "Failed to link Herdr plugin: ~/local-plugin\nExit status: 1\ninvalid manifest\nmanifest details\nCommand:"
+    assert_includes step.errors.first, "herdr plugin link /tmp/home/local-plugin --enabled"
+    @fake_system.stub_command("herdr plugin link /tmp/home/local-plugin --enabled", "", exit_status: 0)
     step.run
     assert_complete
   end
@@ -63,8 +64,8 @@ class LinkHerdrPluginsStepTest < StepTestCase
     stub_manifest
     stub_command_exists("herdr")
     step.run
-    assert_executed("herdr plugin link --enabled /tmp/home/local-plugin")
-    refute_executed("herdr plugin link --enabled /tmp/home/missing-plugin")
+    assert_executed("herdr plugin link /tmp/home/local-plugin --enabled")
+    refute_executed("herdr plugin link /tmp/home/missing-plugin --enabled")
     assert_complete
   end
 
