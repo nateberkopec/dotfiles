@@ -5,7 +5,7 @@ require "open3"
 require "tmpdir"
 
 class DevEnvHkTest < Minitest::Test
-  CHECK = File.expand_path("../../files/home/.claude/skills/dev-env-setup/scripts/check-dev-env.fish", __dir__)
+  CHECK = File.expand_path("../../files/home/.agents/skills/dev-env-setup/scripts/check-dev-env.fish", __dir__)
   GLOBAL_CONFIG = File.expand_path("../../files/home/.config/hk/config.pkl", __dir__)
   SCHEMA = 'amends "package://github.com/jdx/hk/releases/download/v2.0.1/hk@2.0.1#/Config.pkl"'
 

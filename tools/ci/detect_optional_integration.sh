@@ -40,7 +40,7 @@ for file in "${files[@]}"; do
   case "$file" in
     config/dependency-updater.yml|.github/workflows/dependency-updater.md|.github/workflows/dependency-updater.lock.yml)
       ;;
-    test/*|docs/*|README.md|AGENTS.md|.agents/skills/*.md|files/home/.claude/CLAUDE.md|files/home/.claude/skills/*.md|files/home/.claude/skills/*/LICENSE.txt|files/home/.agents/*.md|files/home/.pi/agent/agents/*.md)
+    test/*|docs/*|README.md|AGENTS.md|.agents/skills/*.md|files/home/.agents/*.md|files/home/.agents/skills/*/LICENSE.txt|files/home/.pi/agent/agents/*.md)
       ;;
     *)
       integration_optional=false

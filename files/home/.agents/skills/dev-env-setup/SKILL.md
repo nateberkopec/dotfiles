@@ -8,7 +8,7 @@ description: Set up or audit Nate's standard dev environment in a project direct
 Run the installed checker first:
 
 ```fish
-fish ~/.claude/skills/dev-env-setup/scripts/check-dev-env.fish /path/to/project
+fish ~/.agents/skills/dev-env-setup/scripts/check-dev-env.fish /path/to/project
 ```
 
 Treat its failures as the worklist. Run it again after setup; completion requires every applicable check to pass.
@@ -28,7 +28,7 @@ Read only the branch needed:
 - For gitleaks, baselines, secret handling, and GitHub Actions, read [references/security-and-ci.md](references/security-and-ci.md). Baseline generation must use `--redact=75`; confirm the report contains no recovered values before committing it.
 - For Ruby dependencies, Standard, complexity, dead-code, flog, flay, and Bundler preparation, read [references/ruby-projects.md](references/ruby-projects.md).
 
-Prefer symlinking reusable checker tools from `~/.claude/skills/dev-env-setup/scripts/` rather than copying them.
+Prefer symlinking reusable checker tools from `~/.agents/skills/dev-env-setup/scripts/` rather than copying them.
 
 ## Workflow
 

@@ -157,11 +157,13 @@ sudo /usr/local/libexec/dotfiles-spotlight-controller audit
 "~/.local/bin/dotf" = { source = "~/.dotfiles/bin/dotf", mode = "symlink" }
 "~/.local/share/yknotify/yknotify.sh" = { source = "~/.dotfiles/files/yknotify/yknotify.sh", mode = "copy" }
 "~/.local/share/yknotify/yubikey-icon.png" = { source = "~/.dotfiles/files/yknotify/yubikey-icon.png", mode = "copy" }
-"~/.agents/skills" = { source = "~/.dotfiles/files/home/.claude/skills", mode = "symlink" }
-"~/.codex/skills" = { source = "~/.dotfiles/files/home/.claude/skills", mode = "symlink" }
-"~/.pi/agent/skills/claude" = { source = "~/.dotfiles/files/home/.claude/skills", mode = "symlink" }
-"~/.codex/AGENTS.md" = { source = "~/.dotfiles/files/home/.claude/CLAUDE.md", mode = "symlink" }
-"~/.pi/agent/AGENTS.md" = { source = "~/.dotfiles/files/home/.claude/CLAUDE.md", mode = "symlink" }
+"~/.agents/skills" = { source = "~/.dotfiles/files/home/.agents/skills", mode = "symlink" }
+"~/.claude/skills" = { source = "~/.dotfiles/files/home/.agents/skills", mode = "symlink" }
+"~/.codex/skills" = { source = "~/.dotfiles/files/home/.agents/skills", mode = "symlink" }
+"~/.pi/agent/skills/claude" = { source = "~/.dotfiles/files/home/.agents/skills", mode = "symlink" }
+"~/.claude/CLAUDE.md" = { source = "~/.dotfiles/files/home/.agents/AGENTS.md", mode = "symlink" }
+"~/.codex/AGENTS.md" = { source = "~/.dotfiles/files/home/.agents/AGENTS.md", mode = "symlink" }
+"~/.pi/agent/AGENTS.md" = { source = "~/.dotfiles/files/home/.agents/AGENTS.md", mode = "symlink" }
 
 [bootstrap.macos.defaults.NSGlobalDomain]
 NSAutomaticWindowAnimationsEnabled = 0

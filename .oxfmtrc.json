@@ -8,6 +8,6 @@
     ".claude/worktrees/**",
     ".pi-subagents/**",
     "tools/oxlint/anti-slop/**",
-    "files/home/.claude/skills/**"
+    "files/home/.agents/skills/**"
   ]
 }
