@@ -1,6 +1,6 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { Type } from "typebox";
-import { executeDotf } from "./runner";
+import { executeDotf } from "./runner.ts";
 
 export default function dotfRunExtension(pi: ExtensionAPI) {
 	pi.registerTool({

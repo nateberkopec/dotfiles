@@ -45,5 +45,10 @@ jobs:
     - name: Install gitleaks
       run: mise use -g "gitleaks@$(awk -F '\"' '/^gitleaks = / { print $2 }' files/home/.config/mise/config.toml)"
 
+    - name: Install JavaScript lint dependencies
+      run: |
+        mise install
+        mise exec -- aube install --frozen-lockfile --ignore-scripts
+
     - name: Run lint
       run: mise run lint

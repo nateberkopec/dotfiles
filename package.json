@@ -1,0 +1,11 @@
+{
+  "name": "dotfiles-lint",
+  "private": true,
+  "type": "module",
+  "devDependencies": {
+    "@oxlint/plugins": "1.87.0",
+    "oxfmt": "0.72.0",
+    "oxlint": "1.87.0",
+    "typebox": "1.3.27"
+  }
+}

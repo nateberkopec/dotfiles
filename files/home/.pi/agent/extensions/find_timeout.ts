@@ -1,6 +1,9 @@
 import { isToolCallEventType, type ExtensionAPI } from "@mariozechner/pi-coding-agent";
+import { Type } from "typebox";
+import { Value } from "typebox/value";
 
 const FIND_COMMAND_PATTERN = /(?:^|&&|\|\||[;|\n(])\s*(?:command\s+)?(?:sudo\s+)?find(?:\s|$)/;
+
 const MAX_FIND_TIMEOUT_SECONDS = 2;
 
 function hasFindCommand(command: string): boolean {
@@ -8,13 +11,15 @@ function hasFindCommand(command: string): boolean {
 }
 
 function validFindTimeout(timeout: number | undefined): boolean {
-	return typeof timeout === "number" && timeout > 0 && timeout <= MAX_FIND_TIMEOUT_SECONDS;
+	return Value.Check(Type.Number({ exclusiveMinimum: 0, maximum: MAX_FIND_TIMEOUT_SECONDS }), timeout);
 }
 
 export default function findTimeoutExtension(pi: ExtensionAPI) {
 	pi.on("tool_call", async (event) => {
 		if (!isToolCallEventType("bash", event)) return undefined;
+
 		if (!hasFindCommand(event.input.command)) return undefined;
+
 		if (validFindTimeout(event.input.timeout)) return undefined;
 
 		return {

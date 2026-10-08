@@ -9,7 +9,10 @@ const example = `# Work\n\n- [x] Inspect\n- [ ] Build <!-- active -->\n- [ ] Dep
 
 test("classifies unordered checklist work and ignores nested checklist items", () => {
 	const result = parsePlan(`${example}  - [ ] nested\n`);
-	assert.deepEqual(result.items.map((item) => item.status), ["done", "active", "blocked", "available"]);
+	assert.deepEqual(
+		result.items.map((item) => item.status),
+		["done", "active", "blocked", "available"],
+	);
 	assert.equal(result.error, undefined);
 });
 
@@ -30,21 +33,37 @@ async function harness() {
 	const entries = [];
 	const sent = [];
 	const widgets = [];
+
 	const pi = {
-		on(name, fn) { handlers.set(name, fn); },
+		on(name, fn) {
+			handlers.set(name, fn);
+		},
 		registerCommand() {},
-		appendEntry(customType, data) { entries.push({ type: "custom", customType, data }); },
-		sendUserMessage(message) { sent.push(message); },
+		appendEntry(customType, data) {
+			entries.push({ type: "custom", customType, data });
+		},
+		sendUserMessage(message) {
+			sent.push(message);
+		},
 	};
+
 	const ctx = {
-		cwd, hasUI: true,
+		cwd,
+		hasUI: true,
 		hasPendingMessages: () => false,
 		sessionManager: { getBranch: () => entries },
-		ui: { setWidget(_key, lines) { widgets.push(lines); }, notify() {} },
+		ui: {
+			setWidget(_key, lines) {
+				widgets.push(lines);
+			},
+			notify() {},
+		},
 	};
+
 	planFollow(pi);
 	await handlers.get("session_start")({}, ctx);
 	await handlers.get("input")({ source: "interactive", text: "/plan-follow PLAN.md" }, ctx);
+
 	return { cwd, file, handlers, ctx, sent, widgets, entries };
 }
 
@@ -87,7 +106,7 @@ test("an interrupted run does not restart, and human input pauses the plan", asy
 	await h.handlers.get("input")({ source: "interactive", text: "Let's discuss this" }, h.ctx);
 	await finishRun(h);
 	assert.equal(h.sent.length, 0);
-	assert.match((await readFile(h.file, "utf8")), /Build/);
+	assert.match(await readFile(h.file, "utf8"), /Build/);
 });
 
 test("restores the selected plan from session entries", async () => {

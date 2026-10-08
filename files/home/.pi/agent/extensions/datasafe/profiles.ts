@@ -4,7 +4,7 @@ export interface Profile {
 	status?: string;
 }
 
-export const profiles: Readonly<Record<string, Profile>> = {
+export const profiles = {
 	"usa-no-train": {
 		providers: ["openai", "meridian", "google-vertex", "fireworks", "openrouter", "vercel-ai-gateway"],
 		strategies: ["openrouter", "fireworks", "vercel-ai-gateway"],
@@ -19,6 +19,7 @@ export const profiles: Readonly<Record<string, Profile>> = {
 		strategies: [],
 		status: "[WARNING: UNRESTRICTED]",
 	},
-};
+} satisfies Record<string, Profile>;
 
-export const profile = profiles[process.env.PI_DATASAFE_MODE ?? ""] ?? profiles["usa-no-train"];
+export const profile: Profile =
+	Object.entries(profiles).find(([name]) => name === process.env.PI_DATASAFE_MODE)?.[1] ?? profiles["usa-no-train"];

@@ -26,19 +26,20 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-    - name: Set up Node
-      uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-      with:
-        node-version: '24.11.1'
-
-    - name: Install pinned Pi runtime and TypeScript
-      run: npm install --global @earendil-works/pi-coding-agent@0.99.0 typescript@5.9.2
-
     - name: Set up Ruby
       uses: ruby/setup-ruby@4c56a21280b36d862b5fc31348f463d60bdc55d5 # v1.301.0
       with:
         ruby-version: 'ruby'
         bundler-cache: true
+
+    - name: Install mise-managed Node, Pi runtime, and TypeScript
+      uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
+      with:
+        cache: true
+        experimental: true
+
+    - name: Install frozen JavaScript dependencies
+      run: mise exec -- aube install --frozen-lockfile --ignore-scripts
 
     - name: Set up uv for skill-creator script tests
       uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0

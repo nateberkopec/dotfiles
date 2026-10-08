@@ -1,5 +1,7 @@
 export const STATUS_KEY = "toksec";
+
 export const CUSTOM_TYPE = "toksec";
+
 export const MIN_GENERATION_MS = 50;
 
 export type ModelRef = {

@@ -4,51 +4,52 @@ import { uuidv7 } from "@earendil-works/pi-ai";
 import { complete } from "@earendil-works/pi-ai/compat";
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { auxiliaryHeaders } from "./meridian/requests.ts";
+import { messageText as extractText } from "./shared/message_text.ts";
+import { Type } from "typebox";
+import { Value } from "typebox/value";
 
 const STATE_KEY = "conversation-title";
+
 const TITLE_INTERVAL_MS = 10 * 60 * 1000;
+
 const MAX_CONVERSATION_CHARS = 12_000;
+
 const SPINNER_FRAMES = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
 
-type Message = { role?: string; content?: unknown };
 type StoredState = { title?: string; updatedAt?: number };
 
-function extractText(content: unknown): string {
-	if (typeof content === "string") return content;
-	if (!Array.isArray(content)) return "";
-
-	return content
-		.flatMap((part) => {
-			if (!part || typeof part !== "object") return [];
-			const block = part as { type?: string; text?: string };
-			return block.type === "text" && block.text ? [block.text] : [];
-		})
-		.join("\n");
-}
+const StoredState = Type.Object({ title: Type.Optional(Type.String()), updatedAt: Type.Optional(Type.Number()) });
 
 function conversationText(ctx: ExtensionContext): string {
 	const messages = ctx.sessionManager
 		.getBranch()
-		.flatMap((entry) => (entry.type === "message" ? [entry.message as Message] : []))
-		.filter((message) => message.role === "user" || message.role === "assistant")
-		.map((message) => `${message.role}: ${extractText(message.content)}`)
-		.filter((text) => !text.endsWith(": "))
+		.flatMap((entry) => {
+			if (entry.type !== "message") return [];
+			const message = entry.message;
+
+			if (message.role !== "user" && message.role !== "assistant") return [];
+			const text = `${message.role}: ${extractText(message.content)}`;
+
+			return text.endsWith(": ") ? [] : [text];
+		})
 		.join("\n\n");
 
 	return messages.slice(-MAX_CONVERSATION_CHARS);
 }
 
 function cleanTitle(text: string): string | undefined {
-	return text
-		.split("\n")
-		.find((line) => line.trim())
-		?.replace(/^title\s*:\s*/i, "")
-		.replace(/[\u0000-\u001f\u007f]/g, "")
-		.replace(/^['"`]+|['"`]+$/g, "")
-		.replace(/[.?!]+$/, "")
-		.trim()
-		.slice(0, 50)
-		.trim() || undefined;
+	return (
+		text
+			.split("\n")
+			.find((line) => line.trim())
+			?.replace(/^title\s*:\s*/i, "")
+			.replace(/\p{Cc}/gu, "")
+			.replace(/^['"`]+|['"`]+$/g, "")
+			.replace(/[.?!]+$/, "")
+			.trim()
+			.slice(0, 50)
+			.trim() || undefined
+	);
 }
 
 function writeGhostty(sequence: string): void {
@@ -81,13 +82,16 @@ export default function conversationTitle(pi: ExtensionAPI) {
 	const displayTitle = (ctx: ExtensionContext, spinner?: string) => {
 		const segments = [`π · ${title}`];
 		const currentTool = Array.from(activeTools.values()).at(-1);
+
 		if (currentTool) segments.push(currentTool);
 		ctx.ui.setTitle(spinner ? `${spinner} ${segments.join(" · ")}` : segments.join(" · "));
 	};
 
 	const stopTimers = () => {
 		if (spinnerTimer) clearInterval(spinnerTimer);
+
 		if (completionTimer) clearTimeout(completionTimer);
+
 		if (restoreTimer) clearTimeout(restoreTimer);
 		spinnerTimer = undefined;
 		completionTimer = undefined;
@@ -110,27 +114,38 @@ export default function conversationTitle(pi: ExtensionAPI) {
 	const updateTitle = async (ctx: ExtensionContext) => {
 		const source = conversationText(ctx);
 		const model = ctx.model;
+
 		if (working || titleRequest || !source || source === lastSource || !model) return;
+
 		if (lastUpdatedAt && Date.now() - lastUpdatedAt < TITLE_INTERVAL_MS) return;
 
 		const controller = new AbortController();
 		titleRequest = controller;
+
 		try {
 			const auth = await ctx.modelRegistry.getApiKeyAndHeaders(model);
+
 			if (!auth.ok || !auth.apiKey || controller.signal.aborted) return;
 
 			const sessionId = uuidv7();
+
 			const response = await complete(
 				model,
 				{
-					messages: [{
-						role: "user",
-						content: [{
-							type: "text",
-							text: "Write a specific 2-6 word terminal tab title describing the outcome this conversation is trying to accomplish. Phrase as GTD-style action beginning with a verb. Output only the title.\n\n" + source,
-						}],
-						timestamp: Date.now(),
-					}],
+					messages: [
+						{
+							role: "user",
+							content: [
+								{
+									type: "text",
+									text:
+										"Write a specific 2-6 word terminal tab title describing the outcome this conversation is trying to accomplish. Phrase as GTD-style action beginning with a verb. Output only the title.\n\n" +
+										source,
+								},
+							],
+							timestamp: Date.now(),
+						},
+					],
 				},
 				{
 					apiKey: auth.apiKey,
@@ -150,10 +165,8 @@ export default function conversationTitle(pi: ExtensionAPI) {
 				throw new Error(response.errorMessage || "Title generation failed");
 			}
 
-			const generatedTitle = cleanTitle(response.content
-				.filter((block): block is { type: "text"; text: string } => block.type === "text")
-				.map((block) => block.text)
-				.join("\n"));
+			const generatedTitle = cleanTitle(extractText(response.content));
+
 			if (!generatedTitle) return;
 
 			title = generatedTitle;
@@ -174,12 +187,14 @@ export default function conversationTitle(pi: ExtensionAPI) {
 		if (ctx.mode !== "tui") return;
 
 		let stored: StoredState | undefined;
+
 		for (const entry of ctx.sessionManager.getBranch().toReversed()) {
 			if (entry.type === "custom" && entry.customType === STATE_KEY) {
-				stored = entry.data as StoredState;
+				stored = Value.Check(StoredState, entry.data) ? entry.data : undefined;
 				break;
 			}
 		}
+
 		title = stored?.title || pi.getSessionName() || path.basename(ctx.cwd);
 		lastUpdatedAt = stored?.updatedAt || 0;
 		restoreTitleAfterPi(ctx);
@@ -193,7 +208,9 @@ export default function conversationTitle(pi: ExtensionAPI) {
 		if (ctx.mode !== "tui") return;
 		working = true;
 		cancelTitleRequest();
+
 		if (spinnerTimer) clearInterval(spinnerTimer);
+
 		if (completionTimer) clearTimeout(completionTimer);
 		completionTimer = undefined;
 		setProgress(3);
@@ -212,6 +229,7 @@ export default function conversationTitle(pi: ExtensionAPI) {
 	pi.on("agent_settled", async (_event, ctx) => {
 		if (ctx.mode !== "tui") return;
 		working = false;
+
 		if (spinnerTimer) clearInterval(spinnerTimer);
 		spinnerTimer = undefined;
 		activeTools.clear();

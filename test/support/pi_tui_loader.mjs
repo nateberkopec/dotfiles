@@ -1,10 +1,24 @@
 import { execFileSync } from "node:child_process";
-import { realpathSync } from "node:fs";
+import { existsSync, realpathSync } from "node:fs";
 import { createRequire, registerHooks } from "node:module";
+import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 
-// Use the installed Pi TUI rather than an imitation of wrapping and key parsing.
-const requirePi = createRequire(realpathSync(execFileSync("which", ["pi"], { encoding: "utf8" }).trim()));
+// Resolve from the real SDK package, not a package-manager-generated CLI wrapper.
+const globalRoot = execFileSync("npm", ["root", "-g"], { encoding: "utf8" }).trim();
+
+let agent = join(globalRoot, "@earendil-works", "pi-coding-agent", "package.json");
+
+if (!existsSync(agent)) {
+	const install = execFileSync("mise", ["where", "npm:@earendil-works/pi-coding-agent"], { encoding: "utf8" }).trim();
+	agent = join(install, "node_modules", "@earendil-works", "pi-coding-agent", "package.json");
+}
+
+const requirePi = createRequire(realpathSync(agent));
+
 const url = pathToFileURL(requirePi.resolve("@earendil-works/pi-tui")).href;
-registerHooks({ resolve: (specifier, context, next) => specifier === "@earendil-works/pi-tui"
-	? { url, shortCircuit: true } : next(specifier, context) });
+
+registerHooks({
+	resolve: (specifier, context, next) =>
+		specifier === "@earendil-works/pi-tui" ? { url, shortCircuit: true } : next(specifier, context),
+});
