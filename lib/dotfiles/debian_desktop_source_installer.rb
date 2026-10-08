@@ -2,8 +2,9 @@ require "securerandom"
 
 class Dotfiles
   class DebianDesktopSourceInstaller
-    def initialize(system: Dotfiles::SystemAdapter.new)
+    def initialize(execute:, system: Dotfiles::SystemAdapter.new)
       @system = system
+      @execute = execute
     end
 
     def install(source = {})
@@ -34,16 +35,16 @@ class Dotfiles
     def install_key(url, destination, temporary)
       return false unless succeeds?(["curl", "-fsSL", url, "-o", temporary[0]])
       return false unless succeeds?(["gpg", "--dearmor", "--output", temporary[1], temporary[0]])
-      succeeds?(["sudo", "install", "-m", "644", temporary[1], destination])
+      succeeds?(["install", "-m", "644", temporary[1], destination], sudo: true)
     end
 
     def install_list(line, destination, temporary)
       @system.write_file(temporary, "#{line}\n")
-      succeeds?(["sudo", "install", "-m", "644", temporary, destination])
+      succeeds?(["install", "-m", "644", temporary, destination], sudo: true)
     end
 
-    def succeeds?(command)
-      @system.execute(command).last == 0
+    def succeeds?(command, sudo: false)
+      @execute.call(command, sudo: sudo).last == 0
     end
 
     def temporary_paths

@@ -34,7 +34,7 @@ class Dotfiles::Step::SetupSSHKeysStep < Dotfiles::Step
   private
 
   def unattended?
-    ENV["CI"] || ENV["NONINTERACTIVE"]
+    Dotfiles::Step::Sudoable.ci_or_noninteractive?
   end
 
   def configure_ssh_agent

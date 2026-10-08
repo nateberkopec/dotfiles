@@ -79,6 +79,16 @@ class DotfCliTest < Minitest::Test
     end
   end
 
+  def test_ci_bootstrap_still_includes_packages_without_noninteractive
+    with_env("CI" => "true", "NONINTERACTIVE" => nil) do
+      with_dotf_script do |tmpdir, script_path, _logs_dir|
+        _stdout, _stderr, status, log = mise_bootstrap_result(tmpdir, script_path, admin: true)
+        assert status.success?
+        refute_includes log, "--skip packages"
+      end
+    end
+  end
+
   def test_acquire_dotf_lock_blocks_second_live_holder
     with_dotf_script do |tmpdir, script_path, _logs_dir|
       lock_dir = File.join(tmpdir, "dotf.lock")

@@ -1,10 +1,11 @@
 class Dotfiles::Step::InstallDebianDesktopAppsStep < Dotfiles::Step
   DESCRIPTION = "Installs configured Debian desktop applications.".freeze
   debian_only
+  prepend Dotfiles::Step::Sudoable
 
   def initialize(source_installer: nil, **kwargs)
     super(**kwargs)
-    @source_installer = source_installer || Dotfiles::DebianDesktopSourceInstaller.new(system: @system)
+    @source_installer = source_installer || Dotfiles::DebianDesktopSourceInstaller.new(system: @system, execute: method(:execute))
   end
 
   def should_run?
@@ -20,8 +21,8 @@ class Dotfiles::Step::InstallDebianDesktopAppsStep < Dotfiles::Step
 
     packages = missing_packages
     return if packages.empty?
-    install_command = sudo_command("env", "DEBIAN_FRONTEND=noninteractive", "apt-get", "install", "-y", *packages)
-    output, status = execute(install_command)
+    install_command = command("env", "DEBIAN_FRONTEND=noninteractive", "apt-get", "install", "-y", *packages)
+    output, status = execute(install_command, sudo: true)
     @install_error = format_command_error(install_command, status, output) unless status == 0
   end
 
@@ -36,8 +37,8 @@ class Dotfiles::Step::InstallDebianDesktopAppsStep < Dotfiles::Step
   private
 
   def update_package_index
-    update_command = sudo_command("apt-get", "update", "-y")
-    output, status = execute(update_command)
+    update_command = command("apt-get", "update", "-y")
+    output, status = execute(update_command, sudo: true)
     return true if status == 0
 
     @install_error = format_command_error(update_command, status, output)
@@ -49,6 +50,6 @@ class Dotfiles::Step::InstallDebianDesktopAppsStep < Dotfiles::Step
   end
 
   def skip?
-    ENV["DOTF_NO_SUDO"] == "1" || ENV["CI"] || (@system.respond_to?(:running_container?) && @system.running_container?)
+    @system.respond_to?(:running_container?) && @system.running_container?
   end
 end

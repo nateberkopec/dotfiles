@@ -4,8 +4,10 @@ require "json"
 # so this step installs declared formulae there in addition to casks.
 class Dotfiles::Step::InstallBrewCasksStep < Dotfiles::Step
   DESCRIPTION = "Installs Homebrew casks, plus formulae on non-admin machines.".freeze
+  SUDO_REQUIRED = false # Homebrew supports CI and a non-admin user's private prefix.
 
   macos_only
+  prepend Dotfiles::Step::Sudoable
 
   def initialize(**kwargs)
     super
@@ -13,12 +15,10 @@ class Dotfiles::Step::InstallBrewCasksStep < Dotfiles::Step
   end
 
   def should_run?
-    return false if ENV["DOTF_NO_SUDO"] == "1"
     packages.any? { |type, name| !installed?(type, name) }
   end
 
   def run
-    return if ENV["DOTF_NO_SUDO"] == "1"
     debug "Installing Homebrew packages..."
     @system.execute!(env_command({"HOMEBREW_NO_ENV_HINTS" => "1"}, "brew", "update-if-needed"))
     2.times do
@@ -32,7 +32,6 @@ class Dotfiles::Step::InstallBrewCasksStep < Dotfiles::Step
 
   def complete?
     super
-    return true if ENV["DOTF_NO_SUDO"] == "1"
     packages.each do |type, name|
       next if installed?(type, name)
 

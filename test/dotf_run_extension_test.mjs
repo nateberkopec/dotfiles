@@ -39,9 +39,8 @@ function harness() {
 }
 
 async function withInheritedMode(run) {
-  const original = { NONINTERACTIVE: process.env.NONINTERACTIVE, DOTF_NO_SUDO: process.env.DOTF_NO_SUDO };
+  const original = { NONINTERACTIVE: process.env.NONINTERACTIVE };
   process.env.NONINTERACTIVE = "1";
-  process.env.DOTF_NO_SUDO = "1";
   try { await run(); }
   finally { for (const [key, value] of Object.entries(original)) { if (value === undefined) delete process.env[key]; else process.env[key] = value; } }
 }
@@ -52,34 +51,34 @@ test("default run enables interactive sudo despite Pi's inherited environment", 
     const child = calls.find((call) => call.options);
     assert.deepEqual(child.args, ["run"]);
     assert.equal(child.options.env.NONINTERACTIVE, undefined);
-    assert.equal(child.options.env.DOTF_NO_SUDO, undefined);
     assert.equal(child.options.stdio, "inherit");
     assert.equal(process.env.NONINTERACTIVE, "1");
     assert.deepEqual(calls.filter((call) => !call.options).map((call) => [call.executable, call.args]), [["/usr/bin/sudo", ["-k"]], ["/usr/bin/sudo", ["-k"]]]);
   });
   assert.deepEqual(h.terminal, ["stop", "start"]);
 });
-test("no-sudo run passes the CLI flag and never touches sudo credentials", async () => {
+test("noninteractive run sets the environment without CLI flags or sudo authentication", async () => {
   const h = harness();
-  const result = await h.tool.execute("call", { sudo: false }, undefined, undefined, h.ctx);
+  const result = await h.tool.execute("call", { interactive: false }, undefined, undefined, h.ctx);
   assert.equal(calls.length, 1);
-  assert.deepEqual(calls[0].args, ["run", "--no-sudo"]);
+  assert.deepEqual(calls[0].args, ["run"]);
   assert.equal(calls[0].options.env.NONINTERACTIVE, "1");
   assert.match(result.content[0].text, /remain pending/);
   assert.deepEqual(h.terminal, ["stop", "start"]);
 });
-test("no-sudo command validates arguments before starting", async () => {
+test("noninteractive command validates arguments before starting", async () => {
   const h = harness();
-  await h.command.handler("--bad", h.ctx);
+  await h.command.handler("unexpected", h.ctx);
   assert.equal(calls.length, 0);
   assert.match(h.notifications[0][0], /Usage/);
-  await h.command.handler("--no-sudo", h.ctx);
-  assert.deepEqual(calls[0].args, ["run", "--no-sudo"]);
+  await h.command.handler("noninteractive", h.ctx);
+  assert.deepEqual(calls[0].args, ["run"]);
+  assert.equal(calls[0].options.env.NONINTERACTIVE, "1");
 });
-test("failed no-sudo runs restore the terminal without invoking sudo", async () => {
+test("failed noninteractive runs restore the terminal without invoking sudo", async () => {
   const h = harness();
   exitCode = 23;
-  await assert.rejects(h.tool.execute("call", { sudo: false }, undefined, undefined, h.ctx), /code 23/);
+  await assert.rejects(h.tool.execute("call", { interactive: false }, undefined, undefined, h.ctx), /code 23/);
   assert.equal(calls.length, 1);
   assert.deepEqual(h.terminal, ["stop", "start"]);
 });

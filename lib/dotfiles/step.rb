@@ -144,10 +144,6 @@ class Dotfiles
       @system.execute(cmd, quiet: quiet)
     end
 
-    def sudo_command(*parts)
-      root? ? command(*parts) : command("sudo", *parts)
-    end
-
     def format_command_error(command, status, output)
       cleaned = output.to_s.strip.gsub(/\s+/, " ")
       display_command = Dotfiles::Command.display(command)
