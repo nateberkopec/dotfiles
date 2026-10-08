@@ -15,6 +15,20 @@ class PiNpmTest < Minitest::Test
     end
   end
 
+  def test_settings_identify_the_wrapper_as_npm_for_pis_git_installs
+    path = File.expand_path("../files/home/.pi/agent/settings.json", __dir__)
+    assert_equal "npm", JSON.parse(File.read(path)).fetch("npmCommand").last
+  end
+
+  def test_git_dependency_installs_omit_development_packages
+    with_tools('printf "%s\\n" "$@"') do |env, command|
+      output, _, status = Open3.capture3(env, "bash", command, "install", "--omit=dev", "--legacy-peer-deps")
+
+      assert status.success?
+      assert_equal "__aube-shim\nnpm\ninstall\n--prod\n--config.auto-install-peers=false\n--config.strict-peer-dependencies=false\n", output
+    end
+  end
+
   def test_aube_rejection_is_propagated_without_an_npm_fallback
     with_tools("exit 42") do |env, command|
       _, _, status = Open3.capture3(env, "bash", command, "install", "rejected-package")

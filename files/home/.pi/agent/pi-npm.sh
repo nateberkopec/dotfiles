@@ -7,6 +7,7 @@ for arg in "$@"; do
     --legacy-peer-deps)
       args+=(--config.auto-install-peers=false --config.strict-peer-dependencies=false)
       ;;
+    --omit=dev) args+=(--prod) ;;
     *) args+=("$arg") ;;
   esac
 done
