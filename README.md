@@ -19,7 +19,8 @@ When you run `dotf run` it will:
 
 | Command | What it does |
 |---------|--------------|
-| `dotf run` | Converge this host to committed tool pins and locks, then apply safe local cleanup. Safe to run many times. |
+| `dotf run` | Converge this host to committed tool pins and locks, then apply safe local cleanup. Safe to run many times; allows sudo authentication. |
+| `env NONINTERACTIVE=1 dotf run` | Apply user-level setup; defer privileged work and migrations without marking the checkout fully applied. |
 | `dotf steps` | List every setup step with its class name and description. |
 | `dotf help` | Show help |
 | `mise run spotlight:status` | Show the managed Spotlight policy and indexing state ([details](docs/spotlight.md)) |

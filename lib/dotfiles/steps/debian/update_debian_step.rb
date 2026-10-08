@@ -1,7 +1,7 @@
 class Dotfiles::Step::UpdateDebianStep < Dotfiles::Step
   DESCRIPTION = "Checks for available Debian/Ubuntu release upgrades.".freeze
 
-  include Dotfiles::Step::Sudoable
+  prepend Dotfiles::Step::Sudoable
 
   debian_only
 
@@ -10,7 +10,7 @@ class Dotfiles::Step::UpdateDebianStep < Dotfiles::Step
   end
 
   def should_run?
-    !ci_or_noninteractive? && release_updates_available.any?
+    release_updates_available.any?
   end
 
   def run
@@ -26,7 +26,6 @@ class Dotfiles::Step::UpdateDebianStep < Dotfiles::Step
 
   def complete?
     super
-    return true if ci_or_noninteractive?
     release_updates_available.each { |release| add_error("Release upgrade available: #{release}") }
     release_updates_available.empty?
   end

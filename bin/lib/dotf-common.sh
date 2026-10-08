@@ -19,6 +19,12 @@ dotf_date() {
     fi
 }
 
+# Explicit noninteractive runs apply user-level setup only. CI can still
+# exercise package installation without opting into this partial-run mode.
+dotf_noninteractive() {
+    [ -n "${NONINTERACTIVE:-}" ]
+}
+
 # Run a command quietly unless DEBUG=true.
 stdout_quiet_unless_debug() {
     if [ "${DEBUG:-false}" = "true" ]; then

@@ -137,7 +137,7 @@ run_mise_bootstrap() {
         args+=(-E admin)
     fi
     args+=(bootstrap --yes --locked)
-    if ! mise_packages_supported; then
+    if dotf_noninteractive || ! mise_packages_supported; then
         args+=(--skip packages)
     fi
     if [ "${DEBUG:-false}" != "true" ]; then
@@ -202,6 +202,10 @@ record_successful_run() {
 }
 
 cmd_run() {
+    [ $# -eq 0 ] || { echo "Usage: dotf run (set NONINTERACTIVE=1 for user-level setup)" >&2; return 1; }
+    if dotf_noninteractive; then
+        echo "Noninteractive mode: skipping system packages, privileged steps, and migrations."
+    fi
     acquire_dotf_lock
     init_logging
     debug "Starting dotf run command"
@@ -214,19 +218,29 @@ cmd_run() {
 
     cd "$DOTFILES_DIR"
     local migration_command=(ruby -r ./lib/dotfiles.rb -e "Dotfiles::MigrationRunner.new('$LOG_FILE').run_if_existing_machine")
-    if [ "${DEBUG:-false}" = "true" ]; then
+    if dotf_noninteractive; then
+        debug "Deferring migrations until an interactive run"
+    elif [ "${DEBUG:-false}" = "true" ]; then
         "${migration_command[@]}"
     else
         "${migration_command[@]}" >> "$LOG_FILE"
     fi
     ruby -r ./lib/dotfiles.rb -e "Dotfiles::Runner.new('$LOG_FILE').run"
     run_mise_prune
-    record_successful_run
+    if dotf_noninteractive; then
+        echo "User-level setup complete; run dotf run interactively to finish privileged work."
+    else
+        record_successful_run
+    fi
 
     debug "Run complete"
 }
 
 cmd_migrate() {
+    if dotf_noninteractive; then
+        echo "Migrations deferred until an interactive run."
+        return 0
+    fi
     acquire_dotf_lock
     init_logging
     debug "Starting dotf migrate command"
@@ -270,7 +284,8 @@ Logging:
   Set DEBUG=true to also output logs and subprocess output to the console.
 
 Examples:
-  dotf run                              # Initial setup
+  dotf run                              # Initial setup (interactive)
+  NONINTERACTIVE=1 dotf run             # User-level setup; privileged work deferred
   dotf migrate                          # Run pending migrations on this machine
   DEBUG=true dotf run                   # Run with debug output to console
 EOF
@@ -286,7 +301,8 @@ main() {
 
     case "$1" in
         run)
-            cmd_run
+            shift
+            cmd_run "$@"
             ;;
         migrate)
             cmd_migrate

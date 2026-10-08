@@ -86,7 +86,6 @@ jobs:
       env:
         DEBUG: true
         CI: true
-        NONINTERACTIVE: true
         AUBE_DISABLE_TARBALL_STREAM: "1"
         GITHUB_TOKEN: ${{ github.token }}
         MISE_CI_TOOLS: ${{ matrix.mise_ci_tools }}
@@ -215,7 +214,6 @@ jobs:
       env:
         DEBUG: true
         CI: true
-        NONINTERACTIVE: true
         AUBE_DISABLE_TARBALL_STREAM: "1"
         GITHUB_TOKEN: ${{ github.token }}
         MISE_CI_TOOLS: "gum,github:aubepkg/aube,npm:@earendil-works/pi-coding-agent,fzf,aqua:fish-shell/fish-shell,pipx,pipx:playwright,github:abue-ammar/tinycast,github:steipete/CodexBar"
@@ -233,7 +231,6 @@ jobs:
           PATH="${home_dir}/.homebrew/bin:${runner_path}:${home_dir}/.local/bin" \
           DEBUG="${DEBUG}" \
           CI="${CI}" \
-          NONINTERACTIVE="${NONINTERACTIVE}" \
           AUBE_DISABLE_TARBALL_STREAM="${AUBE_DISABLE_TARBALL_STREAM}" \
           GITHUB_TOKEN="${GITHUB_TOKEN}" \
           MISE_CI_TOOLS="${MISE_CI_TOOLS}" \

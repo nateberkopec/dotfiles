@@ -3,6 +3,14 @@ class Dotfiles
     module Sudoable
       SUDO_MUTEX = Mutex.new
 
+      def self.noninteractive?
+        !ENV.fetch("NONINTERACTIVE", "").empty?
+      end
+
+      def self.ci_or_noninteractive?
+        ENV["CI"] || noninteractive?
+      end
+
       def should_run?
         return false if skip_sudo_step?
         super
@@ -13,20 +21,26 @@ class Dotfiles
         super
       end
 
+      def run
+        return if skip_sudo_step?
+        super
+      end
+
       private
 
       def execute(command, quiet: true, sudo: false)
         return super(command, quiet: quiet) unless sudo
-        return skip_sudo_command(command) if ci_or_noninteractive?
+        return skip_sudo_command(command) if skip_sudo_step?
         execute_with_sudo(command)
       end
 
       def skip_sudo_command(command)
-        debug "Skipping sudo command in CI/non-interactive environment: #{command}"
+        debug "Skipping privileged command: #{command}"
         ["", 0]
       end
 
       def execute_with_sudo(command)
+        return run_command(command, quiet: false) if root?
         SUDO_MUTEX.synchronize do
           display_sudo_warning(command) if sudo_authentication_required?
           run_command(Dotfiles::Command.prepend(command, "sudo"), quiet: false)
@@ -61,11 +75,13 @@ class Dotfiles
       end
 
       def skip_sudo_step?
-        ci_or_noninteractive? || (@system.macos? && !user_has_admin_rights?)
+        return true if Sudoable.noninteractive?
+        return false unless requires_sudo?
+        Sudoable.ci_or_noninteractive? || (@system.macos? && !user_has_admin_rights?)
       end
 
-      def ci_or_noninteractive?
-        ENV["CI"] || ENV["NONINTERACTIVE"]
+      def requires_sudo?
+        self.class.const_defined?(:SUDO_REQUIRED) ? self.class::SUDO_REQUIRED : true
       end
     end
   end

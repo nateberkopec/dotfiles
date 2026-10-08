@@ -51,10 +51,41 @@ class InstallBrewCasksStepTest < StepTestCase
     @fake_system.stub_command(list_command("formula", "duti"), "", exit_status: 1)
     @fake_system.stub_command(list_command("cask", "ghostty"), "", exit_status: 1)
 
+    assert_should_run
+    assert_incomplete
     step.run
 
     assert_executed(install_command("formula", "duti"))
     assert_executed(install_command("cask", "ghostty", private_appdir: true))
+  end
+
+  def test_non_admin_packages_remain_eligible_in_ci
+    stub_non_admin
+    with_env("CI" => "true", "NONINTERACTIVE" => nil, "BREW_CI_CASKS" => "ghostty") do
+      @fake_system.stub_command(mise_status_command, mise_status_json)
+      @fake_system.stub_command(list_command("formula", "duti"), "", exit_status: 1)
+      @fake_system.stub_command(list_command("cask", "ghostty"), "", exit_status: 1)
+
+      assert_should_run
+      assert_incomplete
+      step.run
+
+      assert_executed(install_command("formula", "duti"))
+      assert_executed(install_command("cask", "ghostty", private_appdir: true))
+    end
+  end
+
+  def test_noninteractive_skips_all_homebrew_operations
+    stub_non_admin
+    write_config(:brew, "brew_casks" => ["ghostty"])
+    %w[1 true].each do |mode|
+      with_env("NONINTERACTIVE" => mode) do
+        refute_should_run
+        assert_complete
+        assert_nil step.run
+      end
+    end
+    refute @fake_system.received_operation?(:execute)
   end
 
   def test_continues_after_denied_formula_and_reports_each_failed_package
@@ -118,12 +149,12 @@ class InstallBrewCasksStepTest < StepTestCase
 
   def stub_admin
     @fake_system.stub_macos
-    @fake_system.stub_command("groups", "admin staff")
+    @fake_system.stub_command(["groups"], "admin staff")
   end
 
   def stub_non_admin
     @fake_system.stub_macos
-    @fake_system.stub_command("groups", "staff")
+    @fake_system.stub_command(["groups"], "staff")
   end
 
   def mise_status_command

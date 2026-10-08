@@ -4,8 +4,10 @@ require "json"
 # so this step installs declared formulae there in addition to casks.
 class Dotfiles::Step::InstallBrewCasksStep < Dotfiles::Step
   DESCRIPTION = "Installs Homebrew casks, plus formulae on non-admin machines.".freeze
+  SUDO_REQUIRED = false # Homebrew supports CI and a non-admin user's private prefix.
 
   macos_only
+  prepend Dotfiles::Step::Sudoable
 
   def initialize(**kwargs)
     super
