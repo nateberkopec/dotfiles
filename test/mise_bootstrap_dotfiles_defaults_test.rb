@@ -6,7 +6,7 @@ class MiseBootstrapDotfilesDefaultsTest < Minitest::Test
     dotfiles = config.fetch("dotfiles")
 
     assert_equal(
-      {"source" => "~/.dotfiles/files/home", "mode" => "copy", "exclude" => [".git-hooks"]},
+      {"source" => "~/.dotfiles/files/home", "mode" => "copy", "exclude" => [".git-hooks", ".agents/skills"]},
       dotfiles.fetch("~")
     )
     assert_equal "template", dotfiles.fetch("~/.config/fish/conf.d/platform.fish").fetch("mode")
