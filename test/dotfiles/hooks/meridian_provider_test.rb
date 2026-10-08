@@ -29,7 +29,29 @@ class MeridianProviderTest < Minitest::Test
           return new Response(JSON.stringify(payload), { status: 200 });
         };
         let registered;
-        await meridian({ registerProvider: (id, config) => { registered = { id, config }; } });
+        let beforeHeaders;
+        await meridian({
+          on: (event, handler) => {
+            if (event !== "before_provider_headers") throw new Error("wrong header event");
+            beforeHeaders = handler;
+          },
+          registerProvider: (id, config) => { registered = { id, config }; },
+        });
+        let sessionId = "session-original";
+        const ctx = { sessionManager: { getSessionId: () => sessionId } };
+        for (const id of ["session-original", "session-original", "session-new", "session-fork"]) {
+          sessionId = id;
+          const headers = { "x-meridian-agent": "pi" };
+          beforeHeaders({ headers }, ctx);
+          if (headers["x-session-affinity"] !== id) throw new Error("wrong conversation identity");
+        }
+        for (const headers of [{}, { "x-meridian-agent": "other" }, {
+          "x-meridian-agent": "pi", "x-session-affinity": "explicit-session",
+        }]) {
+          const original = JSON.stringify(headers);
+          beforeHeaders({ headers }, ctx);
+          if (JSON.stringify(headers) !== original) throw new Error("unrelated or explicit headers changed");
+        }
         if (registered.id !== "meridian") throw new Error("wrong provider id");
         if (registered.config.api !== "anthropic-messages") throw new Error("wrong API");
         if (registered.config.apiKey !== "x") throw new Error("wrong dummy key");
@@ -99,7 +121,7 @@ class MeridianProviderTest < Minitest::Test
         let notice = "";
         const originalError = console.error;
         console.error = (message) => { notice = String(message); };
-        await meridian({ registerProvider: (id, config) => { registered = { id, config }; } });
+        await meridian({ on: pi.on.bind(pi), registerProvider: (id, config) => { registered = { id, config }; } });
         console.error = originalError;
         if (registered.config.models.length !== 0) throw new Error("outage exposed stale models");
         if (!notice.includes("Start Meridian at http://127.0.0.1:3456, then open /model to retry discovery")) {

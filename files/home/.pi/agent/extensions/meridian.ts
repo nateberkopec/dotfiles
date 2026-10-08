@@ -74,6 +74,13 @@ export async function fetchModels(
 }
 
 export default async function meridian(pi: ExtensionAPI) {
+	// Resolve conversation identity per request so session switches and forks stay isolated.
+	pi.on("before_provider_headers", (event, ctx) => {
+		if (event.headers["x-meridian-agent"] !== "pi") return;
+		if (event.headers["x-session-affinity"]) return;
+		event.headers["x-session-affinity"] = ctx.sessionManager.getSessionId();
+	});
+
 	const anthropic = builtinProviders().find((provider) => provider.id === "anthropic");
 	if (!anthropic) throw new Error("Pi does not provide the built-in Anthropic provider");
 
