@@ -9,7 +9,9 @@ class Dotfiles::Step::InstallPiPackagesStep < Dotfiles::Step
 
   def run
     @install_errors = []
-    missing_packages.each { |package| install_package(package) }
+    packages = missing_packages
+    npm_overrides.apply
+    packages.each { |package| install_package(package) }
   end
 
   def complete?
@@ -29,9 +31,8 @@ class Dotfiles::Step::InstallPiPackagesStep < Dotfiles::Step
 
   def install_package(package)
     install = command("pi", "install", package)
-    if expected_packages.include?("npm:pi-subagents@0.75.0")
-      raise "Remove the temporary pi-subagents 0.75.0 release-age exception (expired 2026-10-09)" if Time.now.utc >= Time.utc(2026, 10, 9)
-      install = env_command({"npm_config_min_release_age_exclude" => "pi-subagents"}, install)
+    if package.start_with?("npm:pi-mcp-adapter@") && npm_overrides.release_age_exclusions.any?
+      install = env_command({"npm_config_min_release_age_exclude" => npm_overrides.release_age_exclusions.join(",")}, install)
     end
     output, status = execute(install)
     install_errors << format_command_error(install, status, output) unless status == 0
@@ -46,7 +47,12 @@ class Dotfiles::Step::InstallPiPackagesStep < Dotfiles::Step
     npm_package = package.match(/\Anpm:(.+)@([^@]+)\z/)
     return installed_packages.include?(package) unless npm_package
 
-    installed_npm_version(npm_package[1]) == npm_package[2]
+    installed_npm_version(npm_package[1]) == npm_package[2] &&
+      (npm_package[1] != "pi-mcp-adapter" || npm_overrides.current?)
+  end
+
+  def npm_overrides
+    Dotfiles::PiNpmOverrides.new(home: @home, system: @system)
   end
 
   def installed_npm_version(package)

@@ -16,6 +16,7 @@ class Dotfiles
       require "config"
       require "command"
       require "command_helpers"
+      require "pi_npm_overrides"
       require "platform_restrictable"
       require "system_adapter"
       require "debian_desktop_source_installer"

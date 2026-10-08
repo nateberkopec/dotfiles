@@ -10,7 +10,7 @@ dfr = "./bin/dotf run"
 node = "26.10.0"
 "github:aubepkg/aube" = "2.6.1"
 "npm:typescript" = "7.0.2"
-"npm:@earendil-works/pi-coding-agent" = "0.99.2"
+"npm:@earendil-works/pi-coding-agent" = "1.1.0"
 
 [deps.bundler]
 auto = true

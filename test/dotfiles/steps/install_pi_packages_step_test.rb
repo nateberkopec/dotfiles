@@ -48,7 +48,7 @@ class InstallPiPackagesStepTest < StepTestCase
     assert_executed("pi install npm:pi-ding@0.2.2")
   end
 
-  def test_only_pi_subagents_0_75_0_bypasses_release_age_gate
+  def test_pi_subagents_0_75_0_no_longer_bypasses_release_age_gate
     packages = ["npm:pi-subagents@0.75.0", "npm:pi-ding@0.2.2"]
     stub_settings(JSON.generate("packages" => packages))
     stub_pi_available
@@ -56,8 +56,8 @@ class InstallPiPackagesStepTest < StepTestCase
 
     step.run
 
-    assert_executed("npm_config_min_release_age_exclude=pi-subagents pi install npm:pi-subagents@0.75.0")
-    assert_executed("npm_config_min_release_age_exclude=pi-subagents pi install npm:pi-ding@0.2.2")
+    assert_executed("pi install npm:pi-subagents@0.75.0")
+    assert_executed("pi install npm:pi-ding@0.2.2")
   end
 
   def test_other_subagents_versions_do_not_bypass_release_age_gate
@@ -137,6 +137,36 @@ class InstallPiPackagesStepTest < StepTestCase
 
     assert_incomplete
     assert_includes step.errors.join("\n"), package
+  end
+
+  def test_installed_adapter_is_reinstalled_when_sdk_is_vulnerable
+    stub_settings('{"packages":["npm:pi-mcp-adapter@4.0.0"]}')
+    stub_pi_available
+    stub_installed_npm_package("pi-mcp-adapter", "4.0.0")
+    @fake_system.stub_file_content(File.join(@home, ".pi", "agent", "npm-overrides.json"), '{"@modelcontextprotocol/client":"2.2.0"}')
+    stub_installed_npm_package("@modelcontextprotocol/client", "2.0.0")
+
+    assert_should_run
+    step.run
+
+    assert_executed("npm_config_min_release_age_exclude=@modelcontextprotocol/client pi install npm:pi-mcp-adapter@4.0.0")
+    manifest = JSON.parse(@fake_system.read_file(File.join(@home, ".pi", "agent", "npm", "package.json")))
+    assert_equal({"@modelcontextprotocol/client" => "2.2.0"}, manifest.fetch("overrides"))
+    assert_incomplete
+    stub_installed_npm_package("@modelcontextprotocol/client", "2.2.0")
+    assert_complete
+    refute_should_run
+  end
+
+  def test_invalid_sdk_metadata_fails_closed
+    stub_settings('{"packages":["npm:pi-mcp-adapter@4.0.0"]}')
+    stub_pi_available
+    stub_installed_npm_package("pi-mcp-adapter", "4.0.0")
+    @fake_system.stub_file_content(File.join(@home, ".pi", "agent", "npm-overrides.json"), '{"@modelcontextprotocol/client":"2.2.0"}')
+    @fake_system.stub_file_content(File.join(@home, ".pi", "agent", "npm", "package.json"), '{"overrides":{"@modelcontextprotocol/client":"2.2.0"}}')
+    @fake_system.stub_file_content(File.join(@home, ".pi", "agent", "npm", "node_modules", "@modelcontextprotocol/client", "package.json"), "broken")
+
+    assert_raises(JSON::ParserError) { step.should_run? }
   end
 
   private

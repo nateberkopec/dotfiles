@@ -23,13 +23,7 @@
     "-builtin:mcp",
     "-extensions/herdr-agent-state.ts"
   ],
-  "npmCommand": [
-    "mise",
-    "exec",
-    "node",
-    "--",
-    "npm"
-  ],
+  "npmCommand": ["bash", "pi-npm"],
   "enabledModels": [
     "openai/gpt-6.1-sol:medium",
     "openai/gpt-6-astra:low",
