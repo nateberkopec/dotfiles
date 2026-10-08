@@ -8,6 +8,7 @@ import { WarningInbox } from "../files/home/.pi/agent/extensions/you-should-know
 import { JEV_MODEL } from "../files/home/.pi/agent/extensions/you-should-know/jev.ts";
 
 process.env.TYPESAFE_API_KEY = "fixture-not-a-secret";
+delete process.env.YSK_CONFIDENCE_THRESHOLD;
 const decision = (p = 1, confidence = Math.abs(2 * p - 1)) => ({ model: JEV_MODEL, usage: { input_tokens: 100 }, answers: {
 	interrupt: { type: "choice", choice: p >= 0.5 ? "warn" : "quiet", confidence, probabilities: { warn: p, quiet: 1 - p } },
 	category: { type: "choice", choice: "wrong_result", confidence: 1, probabilities: { wrong_result: 1, cost: 0, wasted_work: 0, data_loss: 0, security: 0, none: 0 } },
@@ -124,6 +125,45 @@ test("active-branch state restores off/threshold, while a new session defaults o
 	h.branch([]); await h.emit("session_start"); h.message("assistant", "New session"); await h.emit("agent_end");
 	assert.equal(calls.length, 1); assert.equal(h.entries.filter((e) => e.customType === "you-should-know-review").at(-1).data.threshold, 0.85);
 }));
+test("global confidence applies across sessions, with persistent overrides and default reset", async () => mock(0.75, async () => {
+	try {
+		process.env.YSK_CONFIDENCE_THRESHOLD = "0.4";
+		const h = harness(); await h.emit("session_start");
+		h.message("assistant", "First concern"); await h.emit("agent_end"); assert.equal(h.requests.length, 1);
+		await h.command("off"); await h.command("on");
+		assert.equal(h.entries.filter((e) => e.customType === "you-should-know-state").at(-1).data.threshold, null);
+		process.env.YSK_CONFIDENCE_THRESHOLD = "0.6";
+		await h.emit("session_tree"); h.message("assistant", "Second concern"); await h.emit("agent_end");
+		assert.equal(h.requests.length, 1, "on/off must not freeze the old global value");
+		await h.command("0"); await h.emit("session_tree");
+		h.message("assistant", "Third concern"); await h.emit("agent_end"); assert.equal(h.requests.length, 2);
+		await h.command("default"); await h.emit("session_tree");
+		h.message("assistant", "Fourth concern"); await h.emit("agent_end"); assert.equal(h.requests.length, 2);
+		assert.equal(h.entries.filter((e) => e.customType === "you-should-know-review").at(-1).data.threshold, 0.6);
+		h.branch([]); process.env.YSK_CONFIDENCE_THRESHOLD = "0.4"; await h.emit("session_start");
+		h.message("assistant", "New session concern"); await h.emit("agent_end"); assert.equal(h.requests.length, 3);
+	} finally { delete process.env.YSK_CONFIDENCE_THRESHOLD; }
+}));
+
+test("legacy numeric session confidence takes precedence over the global default", async () => mock(0.75, async () => {
+	try {
+		process.env.YSK_CONFIDENCE_THRESHOLD = "0";
+		const h = harness(); h.branch([{ type: "custom", customType: "you-should-know-state", data: { enabled: true, threshold: 0.85 } }]);
+		await h.emit("session_start"); h.message("assistant", "Concern"); await h.emit("agent_end");
+		assert.equal(h.requests.length, 0);
+		await h.command("default"); await h.emit("agent_end"); assert.equal(h.requests.length, 1);
+	} finally { delete process.env.YSK_CONFIDENCE_THRESHOLD; }
+}));
+
+test("invalid global confidence warns on session start and uses the built-in default", async () => mock(0.75, async () => {
+	try {
+		process.env.YSK_CONFIDENCE_THRESHOLD = "invalid";
+		const h = harness(); await h.emit("session_start");
+		assert.match(h.notices.at(-1)[0], /YSK_CONFIDENCE_THRESHOLD/);
+		h.message("assistant", "Concern"); await h.emit("agent_end"); assert.equal(h.requests.length, 0);
+	} finally { delete process.env.YSK_CONFIDENCE_THRESHOLD; }
+}));
+
 test("warning metadata restores from its note or legacy paired review, not a newer quiet review", async () => {
 	const original = ObserverUI.prototype.note, updates = [];
 	ObserverUI.prototype.note = async function (text, current, explaining, decision) {

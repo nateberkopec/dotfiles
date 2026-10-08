@@ -31,6 +31,26 @@ Command fallbacks remain available: `/ysk-inbox` reviews the card, `/ysk-dismiss
 
 Pending warnings, original snapshots, metadata, and per-warning acknowledgments survive reload and session resume. They follow the active session branch; a tree navigation restores that branch's warning state. Money spent on all branches remains accounted in the footer.
 
-`/ysk-demo off` hides the card and stops observation without deleting pending warnings. `/ysk-demo on` reveals them again. The same command accepts a warn-confidence threshold from 0 to 1 (default 0.85).
+`/ysk-demo off` hides the card and stops observation without deleting pending warnings. `/ysk-demo on` reveals them again.
+
+## Confidence control
+
+The global warn-confidence default comes from `YSK_CONFIDENCE_THRESHOLD`, a number from 0 to 1. If unset, it is 0.85. Invalid values produce a warning and fall back to 0.85.
+
+To persist a lower default across projects and new Pi sessions, run this in Fish:
+
+```fish
+set -Ux YSK_CONFIDENCE_THRESHOLD 0.5
+```
+
+Restart Pi to pick up the changed environment. To remove the global override:
+
+```fish
+set -eU YSK_CONFIDENCE_THRESHOLD
+```
+
+`/ysk-demo 0.5` sets a session-branch override that survives reload and resume. `/ysk-demo default` clears that override and uses the global default again. Turning observation on or off does not create a confidence override. Existing sessions with previously saved numeric thresholds keep those values until you use `/ysk-demo default`.
+
+This is confidence in Jev's selected answer, not `P(warn)`. Setting it to `0` removes only the confidence filter: Jev must still choose `warn` and a non-`none` category before Luna reviews the transcript, and Luna may still return `NONE`.
 
 Historical sessions used replaceable note snapshots. Migration preserves their last visible warning and its own recorded metadata; it does not resurrect warnings already cleared by the old implementation. Newly recorded warnings use an additive queue with explicit acknowledgments.

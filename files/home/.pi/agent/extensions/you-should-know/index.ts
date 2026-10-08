@@ -6,9 +6,11 @@ import { KEY, ObserverUI } from "./ui.ts";
 import { WarningInbox, REVIEW_SHORTCUT, type Warning } from "./inbox.ts";
 import { registerChat } from "./chat.ts";
 import { TopicHistory } from "./history.ts";
+import { globalThreshold } from "./config.ts";
 
 export default function youShouldKnow(pi: ExtensionAPI) {
-	let enabled = true, threshold = 0.85, lastSource = "", lastStarted = 0, warned = "", runCancelled = false;
+	let enabled = true, threshold = globalThreshold(), lastSource = "", lastStarted = 0, warned = "", runCancelled = false;
+	let thresholdOverride: number | undefined;
 	let epoch = 0, ledger = new UsageLedger(), ui: ObserverUI | undefined;
 	let controller: AbortController | undefined, pending: Promise<void> | undefined;
 	let inbox = new WarningInbox(), history = new TopicHistory();
@@ -29,7 +31,8 @@ export default function youShouldKnow(pi: ExtensionAPI) {
 		return (record) => { if (version === epoch) { ledger.add(record); pi.appendEntry(`${KEY}-usage`, record); view(ctx).footer(); } };
 	});
 	const restore = async (_event: unknown, ctx: ExtensionContext) => {
-		cancel(); chat.restore(ctx); epoch++; enabled = true; threshold = 0.85; history = new TopicHistory();
+		cancel(); chat.restore(ctx); epoch++; enabled = true; thresholdOverride = undefined;
+		threshold = globalThreshold((message) => ctx.ui.notify(message, "warning")); history = new TopicHistory();
 		inbox = WarningInbox.restore(ctx.sessionManager.getBranch());
 		lastSource = ""; lastStarted = 0; warned = ""; runCancelled = false; ledger = new UsageLedger();
 		for (const entry of ctx.sessionManager.getBranch()) {
@@ -37,7 +40,8 @@ export default function youShouldKnow(pi: ExtensionAPI) {
 			const data = entry.data as any;
 			if (entry.customType === `${KEY}-state`) {
 				if (typeof data?.enabled === "boolean") enabled = data.enabled;
-				if (Number.isFinite(data?.threshold) && data.threshold >= 0 && data.threshold <= 1) threshold = data.threshold;
+				if (data?.threshold === null) { thresholdOverride = undefined; threshold = globalThreshold(); }
+				else if (Number.isFinite(data?.threshold) && data.threshold >= 0 && data.threshold <= 1) threshold = thresholdOverride = data.threshold;
 			}
 			if (entry.customType === `${KEY}-understood`) history.understand(data?.note);
 			if (entry.customType === `${KEY}-note` && typeof data?.note === "string") {
@@ -105,15 +109,18 @@ export default function youShouldKnow(pi: ExtensionAPI) {
 		},
 	});
 	pi.registerCommand("ysk-demo", {
-		description: "YSK observer: on, off, or a warn-confidence threshold from 0 to 1 (default 0.85)",
+		description: "YSK observer: on, off, default (global confidence), or a session confidence threshold from 0 to 1",
 		handler: async (args, ctx) => {
 			const action = args.trim(), value = Number(action);
 			if (action === "on" || action === "off") { cancel(); enabled = action === "on"; }
-			else if (action && Number.isFinite(value) && value >= 0 && value <= 1) { cancel(); threshold = value; }
-			else { ctx.ui.notify("Usage: /ysk-demo on|off|<0–1>", "warning"); return; }
+			else if (action === "default") {
+				cancel(); thresholdOverride = undefined; threshold = globalThreshold((message) => ctx.ui.notify(message, "warning"));
+			}
+			else if (action && Number.isFinite(value) && value >= 0 && value <= 1) { cancel(); threshold = thresholdOverride = value; }
+			else { ctx.ui.notify("Usage: /ysk-demo on|off|default|<0–1>", "warning"); return; }
 			lastSource = ""; lastStarted = 0; warned = "";
 			if (!enabled) chat.close();
-			pi.appendEntry(`${KEY}-state`, { enabled, threshold }); view(ctx).footer(); await display(ctx);
+			pi.appendEntry(`${KEY}-state`, { enabled, threshold: thresholdOverride ?? null }); view(ctx).footer(); await display(ctx);
 		},
 	});
 	const reviewWarnings = async (ctx: ExtensionContext) => {
