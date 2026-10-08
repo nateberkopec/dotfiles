@@ -2,6 +2,7 @@
   "model": "opus",
   "effortLevel": "high",
   "autoMemoryEnabled": false,
+  "syncClaudeAiSkills": false,
   "cleanupPeriodDays": 1,
   "skipDangerousModePermissionPrompt": true
 }
