@@ -8,9 +8,12 @@ class Dotfiles::Step::LinkHerdrPluginsStep < Dotfiles::Step
   def run
     @link_errors = []
     available_plugins.each do |path|
-      link = command("herdr", "plugin", "link", "--enabled", path)
+      link = command("herdr", "plugin", "link", path, "--enabled")
       output, status = execute(link)
-      @link_errors << format_command_error(link, status, output) unless status == 0
+      next if status == 0
+
+      @link_errors << "Failed to link Herdr plugin: #{collapse_path_to_home(path)}\n" \
+        "Exit status: #{status}\n#{output.to_s.strip}\nCommand: #{Dotfiles::Command.display(link)}"
     end
   end
 

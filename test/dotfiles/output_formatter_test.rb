@@ -19,7 +19,7 @@ class OutputFormatterTest < Minitest::Test
   end
 
   def test_display_formats_errors_warnings_and_notices
-    calls, = formatter_calls_for(
+    calls, _, output = formatter_calls_for(
       results(
         errors: [
           {step: "StepA", message: "bad thing"},
@@ -30,9 +30,17 @@ class OutputFormatterTest < Minitest::Test
       )
     )
 
-    assert calls.any? { |(kind, args)| kind == :system && args.include?("#ff5555") && args.include?("❌ StepA") }
+    assert_includes output, "❌ StepA\nbad thing\n\nanother bad thing"
     assert calls.any? { |(kind, args)| kind == :system && args.include?("#ffaa00") && args.include?("Warn") && args.include?("careful") }
     assert calls.any? { |(kind, args)| kind == :system && args.include?("#00aaff") && args.include?("Note") && args.include?("heads up") }
+  end
+
+  def test_errors_preserve_long_commands_and_multiline_output_without_gum_wrapping
+    message = "Failed to link plugin\nunknown option: /#{"long-path/" * 20}\nCommand: herdr plugin link"
+    calls, _, output = formatter_calls_for(results(errors: [{step: "Link Herdr Plugins", message: message}]))
+
+    assert_includes output, message
+    refute calls.any? { |kind, args| kind == :system && args.include?(message) }
   end
 
   private
@@ -40,6 +48,7 @@ class OutputFormatterTest < Minitest::Test
   def formatter_calls_for(results_hash)
     calls = []
     csv = +""
+    output = StringIO.new
 
     popen_call = lambda do |cmd, mode, &block|
       calls << [:popen, cmd, mode]
@@ -58,8 +67,8 @@ class OutputFormatterTest < Minitest::Test
       nil
     end
 
-    Dotfiles::OutputFormatter.new(results_hash, popen_call: popen_call, system_call: system_call, exit_call: exit_call).display
-    [calls, csv]
+    Dotfiles::OutputFormatter.new(results_hash, popen_call: popen_call, system_call: system_call, exit_call: exit_call, output: output).display
+    [calls, csv, output.string]
   end
 
   def results(
