@@ -16,15 +16,19 @@ class HerdrCliContractTest < StepTestCase
     Dir.mktmpdir("dotfiles-herdr-") do |directory|
       # Include spaces to exercise argv handling as well as option order.
       path = "#{directory}/plugin with spaces"
+      FileUtils.mkdir_p(path)
+      File.write("#{path}/herdr-plugin.toml", "[dotfiles_invalid_manifest\n")
       write_config(:herdr, "herdr_plugins" => [path])
       @fake_system.stub_file_content("#{path}/herdr-plugin.toml", "")
       step.run
       command = @fake_system.operations.find { |op, argv| op == :execute && argv.first == "herdr" }[1]
-      # No real manifest: validate parsing without registering a plugin or
-      # contacting the user's running Herdr server.
-      output, status = Open3.capture2e(*command)
+      # Force offline validation in an isolated config; the invalid manifest
+      # cannot be registered and we never contact the user's running server.
+      env = {"HERDR_SOCKET_PATH" => "#{directory}/api.sock", "HERDR_CONFIG_PATH" => "#{directory}/config.toml"}
+      output, status = Open3.capture2e(env, *command)
       refute status.success?
-      assert_includes output, "plugin_manifest_not_found"
+      assert_includes output, "TOML parse error"
+      assert_includes output, "dotfiles_invalid_manifest"
       refute_includes output, "unknown option"
     end
     # standard:enable Dotfiles/BanFileSystemClasses
