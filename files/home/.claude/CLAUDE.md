@@ -18,7 +18,7 @@ I use fish. When writing shell scripts intended for the user, use fish. For temp
 
 Use the `gh-agent` Executor app on server-1 for all GitHub interactions. Given an issue/PR URL (or `/pull/5`), discover and call its GitHub tools through Executor, not `gh` CLI or web search. If it's broken or you need something else, ask user.
 
-Every write requires `model`: provide the actual writing model's runtime ID (`PI_MODEL` in Pi). Missing, blank, and placeholder model names are rejected. 
+Every `gh-agent` write requires `model`: provide the actual writing model's runtime ID (`PI_MODEL` in Pi). Missing, blank, and placeholder model names are rejected. This requirement applies only to `gh-agent`, not other integrations.
 
 GPG sign is on by default, but you should always use --no-gpg-sign unless otherwise instructed.
 
