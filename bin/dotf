@@ -201,11 +201,27 @@ record_successful_run() {
     rm -f "$state_dir/needs-run"
 }
 
+ensure_file_descriptor_limit() {
+    local soft_limit hard_limit target=4000
+    soft_limit="$(ulimit -Sn)"
+    [ "$soft_limit" != "unlimited" ] || return 0
+    [ "$soft_limit" -lt "$target" ] || return 0
+
+    hard_limit="$(ulimit -Hn)"
+    if [ "$hard_limit" != "unlimited" ] && [ "$hard_limit" -lt "$target" ]; then
+        target="$hard_limit"
+    fi
+    if ! ulimit -Sn "$target"; then
+        echo "Warning: could not raise the file descriptor limit to $target; parallel installs may fail." >&2
+    fi
+}
+
 cmd_run() {
     [ $# -eq 0 ] || { echo "Usage: dotf run (set NONINTERACTIVE=1 for user-level setup)" >&2; return 1; }
     if dotf_noninteractive; then
         echo "Noninteractive mode: skipping system packages, privileged steps, and migrations."
     fi
+    ensure_file_descriptor_limit
     acquire_dotf_lock
     init_logging
     debug "Starting dotf run command"
