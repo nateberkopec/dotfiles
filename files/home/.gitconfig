@@ -21,7 +21,6 @@
         ui = true
 [alias]
         commend = commit --amend --no-edit
-        please = push --force-with-lease
         co-main = "!f() { \
                 branch=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@'); \
                 if [ -z \"$branch\" ]; then \
@@ -39,8 +38,6 @@
                 git checkout $branch; \
             }; f"
         co = checkout
-        wt = "!f() { git worktree add .worktrees/$1 $1; }; f"
-        wtn = "!f() { git worktree add -b $1 .worktrees/$1; }; f"
 [core]
         excludesfile = ~/.gitignore
 	editor = code -w
