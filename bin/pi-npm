@@ -1,4 +1,0 @@
-#!/usr/bin/env bash
-set -euo pipefail
-node_bin="$(dirname "$(mise which node)")"
-exec "$node_bin/npm" "$@"
