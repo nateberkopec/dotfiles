@@ -40,7 +40,9 @@ class DotfFileDescriptorSystemTest < Minitest::Test
         }
         ruby() { :; }
         ulimit -Sn #{soft}
-        ulimit -Hn #{hard}
+        if [ "#{hard}" != "unlimited" ]; then
+          ulimit -Hn #{hard}
+        fi
         main run
       BASH
       output, status = Open3.capture2e({"DEBUG" => "true", "NONINTERACTIVE" => "1"}, "/bin/bash", "-c", command)
