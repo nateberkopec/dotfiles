@@ -7,10 +7,19 @@ BUNDLE_PATH = "vendor/bundle"
 dfr = "./bin/dotf run"
 
 [tools]
+node = "26.10.0"
+"github:aubepkg/aube" = "2.6.1"
 "npm:typescript" = "7.0.2"
+"npm:@earendil-works/pi-coding-agent" = "0.99.2"
 
 [deps.bundler]
 auto = true
+
+[deps.javascript]
+auto = true
+sources = ["package.json", "aube-lock.yaml"]
+outputs = ["node_modules/.aube-state"]
+run = "aube install --frozen-lockfile --ignore-scripts"
 
 [deps.hk]
 sources = ["hk.pkl"]
@@ -59,13 +68,22 @@ description = "Validate Claude skills"
 sources = ["files/home/.claude/skills/**", "tools/lint_agent_skills.rb"]
 run = "ruby tools/lint_agent_skills.rb"
 
+[tasks."format:javascript"]
+description = "Format repository-owned JavaScript and TypeScript"
+run = "node_modules/.bin/oxfmt '**/*.{js,mjs,cjs,jsx,ts,mts,cts,tsx}' '.pi/**/*.{js,mjs,cjs,jsx,ts,mts,cts,tsx}'"
+
+[tasks."lint:anti-slop"]
+description = "Check JavaScript and TypeScript with Mulroy's anti-slop rules"
+sources = [".pi/**/*.{js,mjs,cjs,jsx,ts,mts,cts,tsx}", "**/*.ts", "**/*.tsx", "**/*.mts", "**/*.cts", "**/*.js", "**/*.jsx", "**/*.mjs", "**/*.cjs", "!node_modules/**", "!vendor/**", "!tmp/**", "!.claude/worktrees/**", "!.pi-subagents/**", ".oxlintrc.json", "package.json", "aube-lock.yaml"]
+run = "node_modules/.bin/oxlint --config .oxlintrc.json --deny-warnings --no-ignore . .pi/extensions/*/*.ts"
+
 [tasks.lint]
 description = "Run all lint checks"
-depends = ["lint:standard", "lint:complexity", "lint:human-only", "lint:secrets", "lint:dead-code", "lint:flog", "lint:flay", "lint:skills"]
+depends = ["lint:standard", "lint:complexity", "lint:human-only", "lint:secrets", "lint:dead-code", "lint:flog", "lint:flay", "lint:skills", "lint:anti-slop"]
 
 [tasks.test]
 description = "Run the test suite"
-sources = ["**/*.rb", "**/*.ts", "!tmp/**", "!vendor/**", "!.claude/worktrees/**", "!.pi-subagents/**", "test/**/*", "lib/**/*", "tools/typecheck_pi_extensions.sh"]
+sources = [".pi/**/*.{js,mjs,cjs,jsx,ts,mts,cts,tsx}", "**/*.rb", "**/*.ts", "**/*.tsx", "**/*.mts", "**/*.cts", "**/*.js", "**/*.jsx", "**/*.mjs", "**/*.cjs", "!node_modules/**", "!tmp/**", "!vendor/**", "!.claude/worktrees/**", "!.pi-subagents/**", "test/**/*", "lib/**/*", "tools/typecheck_pi_extensions.sh", "package.json", "aube-lock.yaml"]
 run = """
 bundle exec rake test
 tools/typecheck_pi_extensions.sh

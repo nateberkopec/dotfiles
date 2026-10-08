@@ -15,7 +15,8 @@ module DotfScriptHelper
       FileUtils.cp(File.expand_path("../../bin/dotf", __dir__), script_path)
       FileUtils.cp_r(File.expand_path("../../bin/lib", __dir__), File.join(tmpdir, "bin"))
 
-      yield tmpdir, script_path, logs_dir
+      # Runner shell hooks must not invoke real tools inside the stubbed fixture.
+      with_env("BASH_ENV" => nil) { yield tmpdir, script_path, logs_dir }
     end
   end
 

@@ -3,6 +3,7 @@ import { test } from "node:test";
 import compactAt, { parseCap } from "../files/home/.pi/agent/extensions/compact_at.ts";
 
 const MILLION = { provider: "meridian", id: "claude-opus-5", contextWindow: 1_000_000, maxTokens: 128_000 };
+
 const CODEX = { provider: "openai", id: "gpt-6-astra", contextWindow: 272_000, maxTokens: 128_000 };
 
 function harness({ registry = MILLION, branch = [] } = {}) {
@@ -10,31 +11,54 @@ function harness({ registry = MILLION, branch = [] } = {}) {
 	const commands = new Map();
 	const notices = [];
 	let thinkingLevel = "xhigh";
+
 	const ctx = {
 		hasUI: true,
 		model: registry,
-		modelRegistry: { find: (provider, id) => (provider === registry.provider && id === registry.id ? registry : undefined) },
+		modelRegistry: {
+			find: (provider, id) => (provider === registry.provider && id === registry.id ? registry : undefined),
+		},
 		sessionManager: { getBranch: () => branch },
 		ui: { notify: (message, level) => notices.push({ message, level }) },
 	};
+
 	const pi = {
-		on(name, handler) { handlers.set(name, [...(handlers.get(name) ?? []), handler]); },
-		registerCommand(name, options) { commands.set(name, options); },
-		appendEntry(customType, data) { branch.push({ type: "custom", customType, data }); },
+		on(name, handler) {
+			handlers.set(name, [...(handlers.get(name) ?? []), handler]);
+		},
+		registerCommand(name, options) {
+			commands.set(name, options);
+		},
+		appendEntry(customType, data) {
+			branch.push({ type: "custom", customType, data });
+		},
 		getThinkingLevel: () => thinkingLevel,
-		setThinkingLevel: (level) => { thinkingLevel = level; },
+		setThinkingLevel: (level) => {
+			thinkingLevel = level;
+		},
 		async setModel(model) {
 			ctx.model = model;
 			thinkingLevel = "low";
+
 			return true;
 		},
 	};
+
 	compactAt(pi);
+
 	return {
-		ctx, branch, notices,
-		get thinkingLevel() { return thinkingLevel; },
-		async emit(name, event = {}) { for (const handler of handlers.get(name) ?? []) await handler(event, ctx); },
-		async command(args) { await commands.get("compact-at").handler(args, ctx); },
+		ctx,
+		branch,
+		notices,
+		get thinkingLevel() {
+			return thinkingLevel;
+		},
+		async emit(name, event = {}) {
+			for (const handler of handlers.get(name) ?? []) await handler(event, ctx);
+		},
+		async command(args) {
+			await commands.get("compact-at").handler(args, ctx);
+		},
 	};
 }
 

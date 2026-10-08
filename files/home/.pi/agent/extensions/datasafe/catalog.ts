@@ -1,4 +1,9 @@
-const MODEL_ID_FIELD = "id";
+import { Type, type Static } from "typebox";
+import { Value } from "typebox/value";
+
+export const RegionalCatalog = Type.Object({ data: Type.Array(Type.Object({ id: Type.String() })) });
+
+export type RegionalCatalog = Static<typeof RegionalCatalog>;
 
 interface CatalogModel {
 	id: string;
@@ -10,30 +15,30 @@ export function regionalInferenceBaseUrl(model: CatalogModel, catalogBaseUrl: st
 	return model.api === "anthropic-messages" ? catalogBaseUrl.replace(/\/v1$/, "") : catalogBaseUrl;
 }
 
-function modelIds(payload: unknown): Set<string> {
-	if (!payload || typeof payload !== "object" || !("data" in payload) || !Array.isArray(payload.data)) {
+function modelIds(payload: RegionalCatalog): Set<string> {
+	if (!Value.Check(Type.Object({ data: Type.Array(Type.Unknown()) }), payload)) {
 		throw new Error("OpenRouter US model discovery returned an invalid response");
 	}
 
-	const ids = payload.data.map((entry) => {
-		if (!entry || typeof entry !== "object" || !(MODEL_ID_FIELD in entry) || typeof entry.id !== "string") {
-			throw new Error("OpenRouter US model discovery returned a model without an id");
-		}
-		return entry.id;
-	});
+	if (!Value.Check(RegionalCatalog, payload))
+		throw new Error("OpenRouter US model discovery returned a model without an id");
 
-	return new Set(ids);
+	return new Set(payload.data.map((entry) => entry.id));
 }
 
 export function intersectRegionalModels<T extends CatalogModel>(
 	builtInModels: readonly T[],
-	payload: unknown,
+	payload: RegionalCatalog,
 	baseUrl: string,
 ): T[] {
 	const ids = modelIds(payload);
-	const models = builtInModels.filter((model) => ids.has(model.id))
-		.map((model) => ({ ...model, baseUrl: regionalInferenceBaseUrl(model, baseUrl) }));
+
+	const models = builtInModels.flatMap((model) =>
+		ids.has(model.id) ? [{ ...model, baseUrl: regionalInferenceBaseUrl(model, baseUrl) }] : [],
+	);
+
 	if (models.length === 0) throw new Error("OpenRouter US model discovery matched no built-in models");
+
 	return models;
 }
 
@@ -42,10 +47,17 @@ export function restoreRegionalModels<T extends CatalogModel>(
 	storedModels: readonly CatalogModel[] | undefined,
 	baseUrl: string,
 ): T[] {
-	if (!storedModels?.length || storedModels.some((model) =>
-		model.baseUrl !== baseUrl && model.baseUrl !== regionalInferenceBaseUrl(model, baseUrl))) return [];
+	if (
+		!storedModels?.length ||
+		storedModels.some(
+			(model) => model.baseUrl !== baseUrl && model.baseUrl !== regionalInferenceBaseUrl(model, baseUrl),
+		)
+	)
+		return [];
 
 	const ids = new Set(storedModels.map((model) => model.id));
-	return builtInModels.filter((model) => ids.has(model.id))
-		.map((model) => ({ ...model, baseUrl: regionalInferenceBaseUrl(model, baseUrl) }));
+
+	return builtInModels.flatMap((model) =>
+		ids.has(model.id) ? [{ ...model, baseUrl: regionalInferenceBaseUrl(model, baseUrl) }] : [],
+	);
 }

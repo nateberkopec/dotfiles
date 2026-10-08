@@ -8,37 +8,70 @@ function harness(t, { installed = true, branch = [], child = false } = {}) {
 	const handlers = new Map();
 	const bus = new EventEmitter();
 	let status;
+
 	const ctx = {
 		hasUI: true,
 		isIdle: () => true,
 		hasPendingMessages: () => false,
 		sessionManager: { getBranch: () => branch },
-		ui: { setStatus: (_key, text) => { status = text; }, theme: { fg: (_color, text) => text } },
-	};
-	const pi = {
-		on(name, handler) { handlers.set(name, [...(handlers.get(name) ?? []), handler]); },
-		events: {
-			on(name, handler) { bus.on(name, handler); return () => bus.off(name, handler); },
-			emit(name, data) { bus.emit(name, data); },
+		ui: {
+			setStatus: (_key, text) => {
+				status = text;
+			},
+			theme: { fg: (_color, text) => text },
 		},
-		getAllTools: () => installed ? [{ name: "subagent" }] : [],
-		appendEntry(customType, data) { branch.push({ type: "custom", customType, data }); },
 	};
+
+	const pi = {
+		on(name, handler) {
+			handlers.set(name, [...(handlers.get(name) ?? []), handler]);
+		},
+		events: {
+			on(name, handler) {
+				bus.on(name, handler);
+
+				return () => bus.off(name, handler);
+			},
+			emit(name, data) {
+				bus.emit(name, data);
+			},
+		},
+		getAllTools: () => (installed ? [{ name: "subagent" }] : []),
+		appendEntry(customType, data) {
+			branch.push({ type: "custom", customType, data });
+		},
+	};
+
 	const previousDepth = process.env.PI_SUBAGENT_DEPTH;
+
 	if (child) process.env.PI_SUBAGENT_DEPTH = "1";
 	else delete process.env.PI_SUBAGENT_DEPTH;
+
 	try {
 		toksec(pi);
 	} finally {
 		if (previousDepth === undefined) delete process.env.PI_SUBAGENT_DEPTH;
 		else process.env.PI_SUBAGENT_DEPTH = previousDepth;
 	}
+
 	return {
-		ctx, bus, branch,
-		get status() { return status; },
-		async emit(name, event = {}) { for (const handler of handlers.get(name) ?? []) await handler(event, ctx); },
+		ctx,
+		bus,
+		branch,
+		get status() {
+			return status;
+		},
+		async emit(name, event = {}) {
+			for (const handler of handlers.get(name) ?? []) await handler(event, ctx);
+		},
 		async response({ tokens, ttftMs, generationMs, stopReason = "stop" }) {
-			const message = { role: "assistant", content: [{ type: "text", text: "Hello" }], usage: { output: tokens }, stopReason };
+			const message = {
+				role: "assistant",
+				content: [{ type: "text", text: "Hello" }],
+				usage: { output: tokens },
+				stopReason,
+			};
+
 			await this.emit("before_provider_request");
 			await this.emit("message_start", { message });
 			t.mock.timers.tick(ttftMs);
@@ -49,10 +82,14 @@ function harness(t, { installed = true, branch = [], child = false } = {}) {
 		fleet(totalActive) {
 			bus.removeAllListeners("subagents:rpc:v1:request");
 			bus.on("subagents:rpc:v1:request", (request) => {
-				queueMicrotask(() => bus.emit(`subagents:rpc:v1:reply:${request.requestId}`, {
-					version: 1, requestId: request.requestId, success: true,
-					data: { fleet: { version: 1, totalActive, entries: [] } },
-				}));
+				queueMicrotask(() =>
+					bus.emit(`subagents:rpc:v1:reply:${request.requestId}`, {
+						version: 1,
+						requestId: request.requestId,
+						success: true,
+						data: { fleet: { version: 1, totalActive, entries: [] } },
+					}),
+				);
 			});
 		},
 	};
@@ -149,7 +186,9 @@ test("does not finalize while a new parent run starts during the status request"
 	await h.emit("session_start");
 	await h.emit("input", { source: "interactive" });
 	h.fleet(0);
-	h.bus.on("subagents:rpc:v1:request", () => { void h.emit("agent_start"); });
+	h.bus.on("subagents:rpc:v1:request", () => {
+		void h.emit("agent_start");
+	});
 	t.mock.timers.tick(10_000);
 	await h.emit("agent_settled");
 	assert.match(h.status, /TBHT --\.-s \(--\.-s\)$/);

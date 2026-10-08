@@ -22,6 +22,9 @@ local checks = new Mapping<String, Step> {
   ["skills"] {
     check = "mise run lint:skills"
   }
+  ["anti-slop"] {
+    check = "mise run lint:anti-slop"
+  }
   ["test"] {
     check = "unset $(git rev-parse --local-env-vars); mise run test"
   }

@@ -1,19 +1,28 @@
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { subagentsRunning } from "./subagents.ts";
 import type { TimingValues } from "./types.ts";
+import { Type } from "typebox";
+import { Value } from "typebox/value";
 
 const CUSTOM_TYPE = "toksec-tbht";
+
 type TurnEntry = { version: 1; startedAt: number; endedAt?: number };
 
+const TurnEntry = Type.Object({
+	version: Type.Literal(1),
+	startedAt: Type.Number(),
+	endedAt: Type.Optional(Type.Number()),
+});
+
 function isTurnEntry(data: unknown): data is TurnEntry {
-	if (!data || typeof data !== "object") return false;
-	const entry = data as Partial<TurnEntry>;
-	return entry.version === 1 && typeof entry.startedAt === "number" && Number.isFinite(entry.startedAt) &&
-		(entry.endedAt === undefined || (typeof entry.endedAt === "number" && Number.isFinite(entry.endedAt) && entry.endedAt >= entry.startedAt));
+	return Value.Check(TurnEntry, data) && (data.endedAt === undefined || data.endedAt >= data.startedAt);
 }
 
 /** Latest and mean wall time from human input to a settled parent with no active children. */
-export function trackHumanTurns(pi: ExtensionAPI, update: (ctx: ExtensionContext) => void): () => TimingValues | undefined {
+export function trackHumanTurns(
+	pi: ExtensionAPI,
+	update: (ctx: ExtensionContext) => void,
+): () => TimingValues | undefined {
 	let startedAt: number | undefined;
 	let totalMs = 0;
 	let count = 0;
@@ -27,9 +36,12 @@ export function trackHumanTurns(pi: ExtensionAPI, update: (ctx: ExtensionContext
 		totalMs = 0;
 		count = 0;
 		latest = 0;
+
 		if (isChild) return;
+
 		for (const entry of ctx.sessionManager.getBranch()) {
 			if (entry.type !== "custom" || entry.customType !== CUSTOM_TYPE || !isTurnEntry(entry.data)) continue;
+
 			if (entry.data.endedAt === undefined) startedAt = entry.data.startedAt;
 			else {
 				latest = entry.data.endedAt - entry.data.startedAt;
@@ -38,6 +50,7 @@ export function trackHumanTurns(pi: ExtensionAPI, update: (ctx: ExtensionContext
 				startedAt = undefined;
 			}
 		}
+
 		update(ctx);
 	}
 
@@ -46,18 +59,27 @@ export function trackHumanTurns(pi: ExtensionAPI, update: (ctx: ExtensionContext
 	pi.on("input", (event) => {
 		if (isChild || event.source === "extension") return;
 		revision++;
+
 		// Steering and input during background work belong to the existing span.
 		if (startedAt !== undefined) return;
 		startedAt = Date.now();
 		pi.appendEntry(CUSTOM_TYPE, { version: 1, startedAt } satisfies TurnEntry);
 	});
-	pi.on("agent_start", () => { revision++; });
-	const unsubscribe = pi.events.on("subagent:async-started", () => { revision++; });
+	pi.on("agent_start", () => {
+		revision++;
+	});
+
+	const unsubscribe = pi.events.on("subagent:async-started", () => {
+		revision++;
+	});
+
 	pi.on("agent_settled", async (_event, ctx) => {
 		if (startedAt === undefined || !ctx.isIdle() || ctx.hasPendingMessages()) return;
 		const currentRevision = revision;
 		const endedAt = Math.max(startedAt, Date.now());
+
 		if (await subagentsRunning(pi)) return;
+
 		if (currentRevision !== revision || startedAt === undefined || !ctx.isIdle() || ctx.hasPendingMessages()) return;
 		pi.appendEntry(CUSTOM_TYPE, { version: 1, startedAt, endedAt } satisfies TurnEntry);
 		latest = endedAt - startedAt;
@@ -66,6 +88,11 @@ export function trackHumanTurns(pi: ExtensionAPI, update: (ctx: ExtensionContext
 		startedAt = undefined;
 		update(ctx);
 	});
-	pi.on("session_shutdown", () => { revision++; startedAt = undefined; unsubscribe(); });
-	return () => count > 0 ? { latest, average: totalMs / count } : undefined;
+	pi.on("session_shutdown", () => {
+		revision++;
+		startedAt = undefined;
+		unsubscribe();
+	});
+
+	return () => (count > 0 ? { latest, average: totalMs / count } : undefined);
 }

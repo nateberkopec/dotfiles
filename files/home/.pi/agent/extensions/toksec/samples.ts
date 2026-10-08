@@ -1,4 +1,6 @@
 import type { ExtensionContext } from "@earendil-works/pi-coding-agent";
+import { Type } from "typebox";
+import { Value } from "typebox/value";
 import { CUSTOM_TYPE, MIN_GENERATION_MS, type AggregateStats, type ModelRef, type ToksecEntry } from "./types.ts";
 
 export function sameModel(a: ModelRef | undefined, b: ModelRef | undefined): boolean {
@@ -7,7 +9,9 @@ export function sameModel(a: ModelRef | undefined, b: ModelRef | undefined): boo
 
 export function currentModel(ctx: ExtensionContext): ModelRef | undefined {
 	const model = ctx.model;
+
 	if (!model) return undefined;
+
 	return { provider: model.provider, id: model.id };
 }
 
@@ -20,7 +24,9 @@ export function addSample(
 	sample: Pick<ToksecEntry, "outputTokens" | "generationMs" | "ttftMs">,
 ): void {
 	if (!Number.isFinite(sample.outputTokens) || sample.outputTokens <= 0) return;
+
 	if (!Number.isFinite(sample.generationMs) || sample.generationMs < MIN_GENERATION_MS) return;
+
 	if (!Number.isFinite(sample.ttftMs) || sample.ttftMs < 0) return;
 
 	stats.latest = { outputTokens: sample.outputTokens, generationMs: sample.generationMs, ttftMs: sample.ttftMs };
@@ -30,27 +36,28 @@ export function addSample(
 	stats.ttftMs += sample.ttftMs;
 }
 
+const Sample = Type.Object({
+	version: Type.Literal(1),
+	kind: Type.Literal("sample"),
+	provider: Type.String(),
+	modelId: Type.String(),
+	outputTokens: Type.Number(),
+	generationMs: Type.Number(),
+	ttftMs: Type.Number(),
+});
+
 function isToksecEntry(data: unknown): data is ToksecEntry {
-	if (!data || typeof data !== "object") return false;
-	const entry = data as Partial<ToksecEntry>;
-	return (
-		entry.version === 1 &&
-		entry.kind === "sample" &&
-		typeof entry.provider === "string" &&
-		typeof entry.modelId === "string" &&
-		typeof entry.outputTokens === "number" &&
-		typeof entry.generationMs === "number" &&
-		typeof entry.ttftMs === "number"
-	);
+	return Value.Check(Sample, data);
 }
 
 export function rebuildStats(ctx: ExtensionContext): AggregateStats {
 	const stats = zeroStats();
+
 	for (const entry of ctx.sessionManager.getBranch()) {
-		const custom = entry as { type?: string; customType?: string; data?: unknown };
-		if (custom.type !== "custom" || custom.customType !== CUSTOM_TYPE) continue;
-		if (!isToksecEntry(custom.data)) continue;
-		addSample(stats, custom.data);
+		if (entry.type !== "custom" || entry.customType !== CUSTOM_TYPE) continue;
+
+		if (!isToksecEntry(entry.data)) continue;
+		addSample(stats, entry.data);
 	}
 
 	return stats;

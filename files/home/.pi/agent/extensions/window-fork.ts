@@ -18,17 +18,20 @@ end run`;
 
 function shellQuote(value: string): string {
 	if (value.length === 0) return "''";
+
 	return `'${value.replace(/'/g, `'"'"'`)}'`;
 }
 
 function getPiInvocationParts(): string[] {
 	const currentScript = process.argv[1];
+
 	if (currentScript && existsSync(currentScript)) {
 		return [process.execPath, currentScript];
 	}
 
 	const execName = path.basename(process.execPath).toLowerCase();
 	const isGenericRuntime = /^(node|bun)(\.exe)?$/.test(execName);
+
 	if (!isGenericRuntime) {
 		return [process.execPath];
 	}
@@ -52,6 +55,7 @@ function buildPiStartupInput(sessionFile: string | undefined, prompt: string): s
 
 async function createForkedSession(ctx: ExtensionCommandContext): Promise<string | undefined> {
 	const sessionFile = ctx.sessionManager.getSessionFile();
+
 	if (!sessionFile) {
 		return undefined;
 	}
@@ -88,6 +92,7 @@ export default function (pi: ExtensionAPI): void {
 		handler: async (args, ctx) => {
 			if (process.platform !== "darwin") {
 				ctx.ui.notify("/window-fork currently requires macOS (Ghostty AppleScript).", "warning");
+
 				return;
 			}
 
@@ -97,12 +102,15 @@ export default function (pi: ExtensionAPI): void {
 			const startupInput = buildPiStartupInput(forkedSessionFile, prompt);
 
 			const result = await pi.exec("osascript", ["-e", GHOSTTY_WINDOW_SCRIPT, "--", ctx.cwd, startupInput]);
+
 			if (result.code !== 0) {
 				const reason = result.stderr?.trim() || result.stdout?.trim() || "unknown osascript error";
 				ctx.ui.notify(`Failed to launch Ghostty window: ${reason}`, "error");
+
 				if (forkedSessionFile) {
 					ctx.ui.notify(`Forked session was created: ${forkedSessionFile}`, "info");
 				}
+
 				return;
 			}
 
@@ -110,6 +118,7 @@ export default function (pi: ExtensionAPI): void {
 				const fileName = path.basename(forkedSessionFile);
 				const suffix = prompt ? " and sent prompt" : "";
 				ctx.ui.notify(`Forked to ${fileName} in a new Ghostty window${suffix}.`, "info");
+
 				if (wasBusy) {
 					ctx.ui.notify("Forked from current committed state (in-flight turn continues in original session).", "info");
 				}

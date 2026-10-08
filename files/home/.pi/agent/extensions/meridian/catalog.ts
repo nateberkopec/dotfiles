@@ -1,73 +1,84 @@
 import type { Api, Model, ThinkingLevelMap } from "@earendil-works/pi-ai";
 import type { ProviderModelConfig } from "@earendil-works/pi-coding-agent";
+import { Type, type Static } from "typebox";
+import { Value } from "typebox/value";
 
 export const BASE_URL = "http://127.0.0.1:3456";
+
 export const MODELS_URL = `${BASE_URL}/v1/models`;
+
 const COST = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 };
+
 const EFFORTS = ["low", "medium", "high", "xhigh", "max"] as const;
-type Support = { supported?: boolean };
-type CatalogModel = {
-	id: string;
-	object: "model";
-	owned_by: "anthropic";
-	display_name: string;
-	context_window: number;
-	capabilities: {
-		image_input?: Support;
-		thinking?: Support & { types?: { adaptive?: Support; enabled?: Support } };
-		effort?: Partial<Record<typeof EFFORTS[number], Support>>;
-	};
-};
 
-function isSupport(value: unknown): boolean {
-	return value === undefined || Boolean(value && typeof value === "object" && !Array.isArray(value) &&
-		(Reflect.get(value, "supported") === undefined || typeof Reflect.get(value, "supported") === "boolean"));
+const Support = Type.Object({ supported: Type.Optional(Type.Boolean()) });
+
+const CatalogModel = Type.Object({
+	id: Type.String({ pattern: "^[!-~]{1,256}$" }),
+	object: Type.Literal("model"),
+	owned_by: Type.Literal("anthropic"),
+	display_name: Type.String({ pattern: "\\S" }),
+	context_window: Type.Integer({ minimum: 1, maximum: Number.MAX_SAFE_INTEGER }),
+	capabilities: Type.Object({
+		image_input: Type.Optional(Support),
+		thinking: Type.Optional(
+			Type.Object({
+				supported: Type.Optional(Type.Boolean()),
+				types: Type.Optional(Type.Object({ adaptive: Type.Optional(Support), enabled: Type.Optional(Support) })),
+			}),
+		),
+		effort: Type.Optional(
+			Type.Partial(Type.Object({ low: Support, medium: Support, high: Support, xhigh: Support, max: Support })),
+		),
+	}),
+});
+
+export const Catalog = Type.Object({ object: Type.Literal("list"), data: Type.Array(CatalogModel, { minItems: 1 }) });
+
+export type Catalog = Static<typeof Catalog>;
+
+type CatalogModel = Static<typeof CatalogModel>;
+
+function isAnthropicModel(model: Model<Api>): model is Model<"anthropic-messages"> {
+	return model.api === "anthropic-messages";
 }
 
-function isCatalogModel(value: unknown): value is CatalogModel {
-	if (!value || typeof value !== "object") return false;
-	const model = value as Partial<CatalogModel>;
-	return typeof model.id === "string" && /^[\x21-\x7e]{1,256}$/.test(model.id) &&
-		model.object === "model" && model.owned_by === "anthropic" &&
-		typeof model.display_name === "string" && model.display_name.trim().length > 0 &&
-		typeof model.context_window === "number" && Number.isSafeInteger(model.context_window) &&
-		model.context_window > 0 && Boolean(model.capabilities && typeof model.capabilities === "object" &&
-			!Array.isArray(model.capabilities) && isSupport(model.capabilities.image_input) &&
-			isSupport(model.capabilities.thinking) && isSupport(model.capabilities.thinking?.types?.adaptive) &&
-			isSupport(model.capabilities.thinking?.types?.enabled) && isSupport(model.capabilities.effort) &&
-			EFFORTS.every((level) => isSupport(model.capabilities?.effort?.[level])));
-}
-
-function thinkingMetadata(entry: CatalogModel, known?: Model<Api>) {
+function thinkingMetadata(entry: CatalogModel, known?: Model<"anthropic-messages">) {
 	const thinking = entry.capabilities.thinking;
 	const reasoning = thinking?.supported ?? known?.reasoning ?? false;
 	const adaptive = thinking?.types?.adaptive?.supported;
 	const effort = entry.capabilities.effort;
-	let thinkingLevelMap = known?.thinkingLevelMap;
+	let thinkingLevelMap: ThinkingLevelMap | undefined = known?.thinkingLevelMap;
+
 	if (reasoning && effort) {
 		thinkingLevelMap = { off: thinking?.types?.enabled?.supported === false ? null : known?.thinkingLevelMap?.off };
+
 		for (const level of EFFORTS) thinkingLevelMap[level] = effort[level]?.supported === true ? level : null;
 		thinkingLevelMap.minimal = thinkingLevelMap.low;
 	}
-	return {
-		reasoning,
-		thinkingLevelMap: thinkingLevelMap as ThinkingLevelMap | undefined,
-		compat: { ...known?.compat, ...(adaptive !== undefined ? { forceAdaptiveThinking: adaptive } : {}) },
-	};
+
+	const compat: NonNullable<Model<"anthropic-messages">["compat"]> = { ...known?.compat };
+
+	if (adaptive !== undefined) compat.forceAdaptiveThinking = adaptive;
+
+	return { reasoning, thinkingLevelMap, compat };
 }
 
-export function buildModels(payload: unknown, anthropicModels: readonly Model<Api>[]): ProviderModelConfig[] {
-	if (!payload || typeof payload !== "object" || Reflect.get(payload, "object") !== "list") {
+export function buildModels(payload: Catalog, anthropicModels: readonly Model<Api>[]): ProviderModelConfig[] {
+	if (!Value.Check(Catalog, payload)) {
 		throw new Error("Meridian returned a malformed model catalog");
 	}
-	const data = Reflect.get(payload, "data");
-	if (!Array.isArray(data) || data.length === 0 || !data.every(isCatalogModel)) {
-		throw new Error("Meridian returned a malformed model catalog");
-	}
+
+	const { data } = payload;
+
 	if (new Set(data.map(({ id }) => id)).size !== data.length) throw new Error("Meridian returned duplicate model IDs");
-	const builtIn = new Map(anthropicModels.map((model) => [model.id, model]));
+	const builtIn = new Map<string, Model<"anthropic-messages">>();
+
+	for (const model of anthropicModels) if (isAnthropicModel(model)) builtIn.set(model.id, model);
+
 	return data.map((entry) => {
 		const known = builtIn.get(entry.id);
+
 		return {
 			...known,
 			id: entry.id,
@@ -78,21 +89,31 @@ export function buildModels(payload: unknown, anthropicModels: readonly Model<Ap
 			contextWindow: entry.context_window,
 			maxTokens: known?.maxTokens ?? entry.context_window,
 			input: entry.capabilities.image_input
-				? entry.capabilities.image_input.supported === true ? ["text", "image"] : ["text"]
-				: [...known?.input ?? ["text"]],
+				? entry.capabilities.image_input.supported === true
+					? ["text", "image"]
+					: ["text"]
+				: [...(known?.input ?? ["text"])],
 			...thinkingMetadata(entry, known),
 		};
 	});
 }
 
-export async function fetchCatalog(signal: AbortSignal, fetcher: typeof fetch = fetch): Promise<unknown> {
+export async function fetchCatalog(signal: AbortSignal, fetcher: typeof fetch = fetch): Promise<Catalog> {
 	const response = await fetcher(MODELS_URL, { signal });
+
 	if (!response.ok) throw new Error(`Meridian model discovery failed with HTTP ${response.status}`);
-	return response.json();
+
+	const catalog = await response.json();
+
+	if (!Value.Check(Catalog, catalog)) throw new Error("Meridian returned a malformed model catalog");
+
+	return catalog;
 }
 
 export async function fetchModels(
-	anthropicModels: readonly Model<Api>[], signal: AbortSignal, fetcher: typeof fetch = fetch,
+	anthropicModels: readonly Model<Api>[],
+	signal: AbortSignal,
+	fetcher: typeof fetch = fetch,
 ): Promise<ProviderModelConfig[]> {
 	return buildModels(await fetchCatalog(signal, fetcher), anthropicModels);
 }

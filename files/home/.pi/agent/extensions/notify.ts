@@ -12,6 +12,8 @@
  */
 
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+import type { Message } from "@earendil-works/pi-ai/compat";
+import { messageText } from "./shared/message_text.ts";
 import { subagentsRunning } from "./notify/readiness.ts";
 import { Markdown, type MarkdownTheme, stripTerminalSequences } from "@earendil-works/pi-tui";
 
@@ -23,27 +25,17 @@ const notify = (title: string, body: string): void => {
 	process.stdout.write(`\x1b]777;notify;${title};${body}\x07`);
 };
 
-const isTextPart = (part: unknown): part is { type: "text"; text: string } =>
-	Boolean(part && typeof part === "object" && "type" in part && part.type === "text" && "text" in part);
+type NotificationMessage = { role?: string; content?: Message["content"] };
 
-const extractLastAssistantText = (messages: Array<{ role?: string; content?: unknown }>): string | null => {
+const extractLastAssistantText = (messages: readonly NotificationMessage[]): string | null => {
 	for (let i = messages.length - 1; i >= 0; i--) {
 		const message = messages[i];
+
 		if (message?.role !== "assistant") {
 			continue;
 		}
 
-		const content = message.content;
-		if (typeof content === "string") {
-			return content.trim() || null;
-		}
-
-		if (Array.isArray(content)) {
-			const text = content.filter(isTextPart).map((part) => part.text).join("\n").trim();
-			return text || null;
-		}
-
-		return null;
+		return messageText(message.content).trim() || null;
 	}
 
 	return null;
@@ -68,25 +60,29 @@ const plainMarkdownTheme: MarkdownTheme = {
 
 const simpleMarkdown = (text: string, width = 80): string => {
 	const markdown = new Markdown(text, 0, 0, plainMarkdownTheme);
+
 	return markdown.render(width).join("\n");
 };
 
-const formatNotification = (text: string | null): { title: string; body: string } => {
+const formatNotification = (text: string | null) => {
 	const simplified = text ? simpleMarkdown(text) : "";
+
 	// Markdown emits OSC 8 hyperlinks. Embedding one OSC sequence inside the OSC
 	// 777 notification terminates the notification early and prints its visible
 	// text at the terminal cursor. Remove terminal sequences and remaining control
 	// characters before constructing the outer OSC sequence.
 	const normalized = stripTerminalSequences(simplified)
-		.replace(/[\x00-\x1f\x7f-\x9f]/g, " ")
+		.replace(/\p{Cc}/gu, " ")
 		.replace(/\s+/g, " ")
 		.trim();
+
 	if (!normalized) {
 		return { title: "Ready for input", body: "" };
 	}
 
 	const maxBody = 200;
 	const body = normalized.length > maxBody ? `${normalized.slice(0, maxBody - 1)}…` : normalized;
+
 	return { title: "π", body };
 };
 
@@ -94,8 +90,18 @@ export default function (pi: ExtensionAPI) {
 	let lastText: string | null = null;
 	let armed = false;
 	let revision = 0;
-	const reset = () => { revision++; armed = false; lastText = null; };
-	const busy = () => { revision++; armed = true; };
+
+	const reset = () => {
+		revision++;
+		armed = false;
+		lastText = null;
+	};
+
+	const busy = () => {
+		revision++;
+		armed = true;
+	};
+
 	pi.on("session_start", reset);
 	pi.on("session_tree", reset);
 	pi.on("agent_start", busy);
@@ -108,11 +114,16 @@ export default function (pi: ExtensionAPI) {
 	pi.on("agent_settled", async (_event, ctx) => {
 		if (ctx.mode !== "tui" || !armed || !ctx.isIdle() || ctx.hasPendingMessages()) return;
 		const currentRevision = revision;
+
 		if (await subagentsRunning(pi)) return;
+
 		if (currentRevision !== revision || !armed || !ctx.isIdle() || ctx.hasPendingMessages()) return;
 		armed = false;
 		const { title, body } = formatNotification(lastText);
 		notify(title, body);
 	});
-	pi.on("session_shutdown", () => { reset(); unsubscribe(); });
+	pi.on("session_shutdown", () => {
+		reset();
+		unsubscribe();
+	});
 }

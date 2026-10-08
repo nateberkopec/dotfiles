@@ -1,4 +1,5 @@
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
+import type { AssistantMessage } from "@earendil-works/pi-ai";
 import { trackHumanTurns } from "./human_turns.ts";
 import { formatStatus } from "./format.ts";
 import { addSample, currentModel, rebuildStats, sameModel, zeroStats } from "./samples.ts";
@@ -9,10 +10,18 @@ import {
 	isOutputEvent,
 	outputTokensFromMessage,
 } from "./stream_events.ts";
-import { CUSTOM_TYPE, STATUS_KEY, type ActiveMeasurement, type AggregateStats, type ModelRef, type ToksecEntry } from "./types.ts";
+import {
+	CUSTOM_TYPE,
+	STATUS_KEY,
+	type ActiveMeasurement,
+	type AggregateStats,
+	type ModelRef,
+	type ToksecEntry,
+} from "./types.ts";
 
-function createSample(message: unknown, measurement: ActiveMeasurement): ToksecEntry | undefined {
+function createSample(message: AssistantMessage, measurement: ActiveMeasurement): ToksecEntry | undefined {
 	const firstOutputAt = measurement.firstOutputAt;
+
 	if (!firstOutputAt) return undefined;
 
 	const observedChars = Math.max(measurement.observedChars, charsFromMessage(message));
@@ -61,10 +70,12 @@ export default function toksecExtension(pi: ExtensionAPI) {
 	});
 
 	pi.on("message_start", async (event, ctx) => {
-		const message = event.message as { role?: unknown };
+		const message = event.message;
+
 		if (message.role !== "assistant") return;
 
 		const model = currentModel(ctx) ?? selectedModel;
+
 		if (!model) return;
 
 		active = {
@@ -76,9 +87,10 @@ export default function toksecExtension(pi: ExtensionAPI) {
 	});
 
 	pi.on("message_update", async (event) => {
-		if (!active) return;
+		if (!active || event.message.role !== "assistant") return;
 
 		const assistantEvent = event.assistantMessageEvent;
+
 		if (!isOutputEvent(assistantEvent)) return;
 
 		active.firstOutputAt ??= Date.now();
@@ -98,20 +110,24 @@ export default function toksecExtension(pi: ExtensionAPI) {
 		active = undefined;
 
 		if (!isFinalAssistantMessage(event.message)) return updateStatus(ctx, stats);
+
 		if (!sameModel(measurement.model, selectedModel ?? currentModel(ctx))) return updateStatus(ctx, stats);
 
 		// Non-streaming completions skip message_update; still count the final payload.
 		const finalChars = charsFromMessage(event.message);
+
 		if (!measurement.firstOutputAt && finalChars > 0) {
 			measurement.firstOutputAt = Date.now();
 			measurement.observedChars = Math.max(measurement.observedChars, finalChars);
 		}
 
 		const sample = createSample(event.message, measurement);
+
 		if (!sample) return updateStatus(ctx, stats);
 
 		const previousCount = stats.count;
 		addSample(stats, sample);
+
 		if (stats.count > previousCount) pi.appendEntry(CUSTOM_TYPE, sample);
 		updateStatus(ctx, stats);
 	});

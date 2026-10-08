@@ -15,6 +15,7 @@ logs/
 !files/home/.bundle/
 !files/home/.bundle/config
 vendor/bundle/
+node_modules/
 files/home/.pi/agent/auth.json
 files/home/.claude/skills/.system/
 files/home/.local/state/
