@@ -33,7 +33,6 @@ run = "bundle exec rubocop --config .rubocop-custom.yml --only Metrics/Perceived
 
 [tasks."lint:human-only"]
 description = "Check staged files for human-only paths"
-sources = [".git/index", "tools/check_human_only_files.rb"]
 run = "ruby tools/check_human_only_files.rb"
 
 [tasks."lint:secrets"]
