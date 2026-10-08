@@ -5,6 +5,9 @@
 
 set -e
 
+# shellcheck source=dotf-common.sh
+source "$(dirname "${BASH_SOURCE[0]}")/dotf-common.sh"
+
 [ "$(uname -s)" = "Darwin" ] || exit 0
 
 DOTFILES_HOME="$HOME/.dotfiles/files/home"
@@ -21,7 +24,7 @@ for relative in "${managed_protected_files[@]}"; do
     [ -f "$target" ] && [ -f "$source" ] || continue
 
     if ! chflags noschg,nouchg "$target" 2>/dev/null; then
-        if [ "${DOTF_NO_SUDO:-}" = "1" ]; then
+        if dotf_noninteractive; then
             echo "Error: $target requires sudo to clear immutable flags; run dotf run first." >&2
             exit 1
         fi

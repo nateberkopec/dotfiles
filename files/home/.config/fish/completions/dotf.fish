@@ -12,4 +12,3 @@ complete --command dotf --erase
 complete --command dotf --no-files
 complete --command dotf --condition "not __fish_seen_subcommand_from (__fish_dotf_command_names)" --arguments "(__fish_dotf_commands)"
 complete --command dotf --short-option h --long-option help --description 'Show this help message'
-complete --command dotf --condition '__fish_seen_subcommand_from run' --long-option no-sudo --description 'Apply user-level setup without sudo'

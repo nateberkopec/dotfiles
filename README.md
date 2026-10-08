@@ -20,20 +20,10 @@ When you run `dotf run` it will:
 | Command | What it does |
 |---------|--------------|
 | `dotf run` | Converge this host to committed tool pins and locks, then apply safe local cleanup. Safe to run many times; allows sudo authentication. |
-| `dotf run --no-sudo` | Apply user-level setup without sudo; defer system packages, Homebrew casks, privileged steps, and all migrations. |
+| `env NONINTERACTIVE=1 dotf run` | Apply user-level setup; defer privileged work and migrations without marking the checkout fully applied. |
 | `dotf steps` | List every setup step with its class name and description. |
 | `dotf help` | Show help |
 | `mise run spotlight:status` | Show the managed Spotlight policy and indexing state ([details](docs/spotlight.md)) |
-
-### Agent sessions and sudo
-
-The Fish `pi`, `pi-claude`, and `pi-unsafe` session launchers set `NONINTERACTIVE=1` for Pi and its descendants. This is an automation convention, not a privilege restriction: tools can ignore it, and it does not universally prevent prompts or sudo.
-
-In this repository, Pi's `dotf_run` tool defaults to interactive, sudo-capable execution, explicitly removing inherited `NONINTERACTIVE` and `DOTF_NO_SUDO` from its child environment. Use `dotf_run({ sudo: false })` for user-level setup, or `/dotf-run --no-sudo` from Pi's command prompt. Neither no-sudo path invokes `sudo -k`.
-
-The CLI's `--no-sudo` mode skips repository-managed privileged work, including bootstrap package installation and migrations. Existing system-immutable files that cannot be updated without sudo cause a clear error instead of elevation. Missing system prerequisites can also prevent user-level setup from completing. This mode is not an OS sandbox for arbitrary third-party code.
-
-A no-sudo run leaves migrations pending and preserves the last full-run SHA and update notice. Run normal `dotf run` later to finish convergence. Setting `NONINTERACTIVE=1` alone does **not** provide the CLI's no-sudo behavior.
 
 ## Installation
 

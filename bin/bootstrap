@@ -85,7 +85,7 @@ install_homebrew() {
 }
 
 should_install_homebrew_noninteractively() {
-    [ -n "${CI:-}" ] || [ -n "${NONINTERACTIVE:-}" ] || ! has_terminal
+    [ -n "${CI:-}" ] || dotf_noninteractive || ! has_terminal
 }
 
 has_terminal() {
@@ -109,12 +109,16 @@ bootstrap_homebrew() {
 
     local brew_bin=""
 
-    if [ "${DOTF_NO_SUDO:-}" = "1" ]; then
-        brew_bin="$(resolve_homebrew_bin)"
+    if dotf_noninteractive; then
+        if user_has_admin_rights; then
+            brew_bin="$(resolve_homebrew_bin)" || true
+        elif [ -x "$(private_homebrew_bin)" ]; then
+            brew_bin="$(private_homebrew_bin)"
+        fi
         if [ -n "$brew_bin" ]; then
             configure_homebrew_shellenv "$brew_bin"
         else
-            debug "Deferring Homebrew installation until a sudo-capable run"
+            debug "Deferring Homebrew installation until an interactive run"
         fi
         return 0
     fi
@@ -145,7 +149,7 @@ bootstrap_debian_prereqs() {
         return 0
     fi
 
-    [ "${DOTF_NO_SUDO:-}" != "1" ] || return 0
+    dotf_noninteractive && return 0
 
     debug "Installing Debian prerequisites..."
     sudo apt-get update -y
