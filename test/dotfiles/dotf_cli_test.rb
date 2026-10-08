@@ -142,6 +142,16 @@ class DotfCliTest < Minitest::Test
     end
   end
 
+  def test_run_isolates_inherited_shell_startup_hooks
+    Dir.mktmpdir("dotf-shell-startup") do |tmpdir|
+      startup = File.join(tmpdir, "startup.sh")
+      File.write(startup, "echo 'mise WARN deps: bundler (no previous state)' >&2\n")
+      with_env("BASH_ENV" => startup) do
+        test_run_prepares_dependencies_then_prunes_after_ruby_steps
+      end
+    end
+  end
+
   def test_run_skips_mise_pruning_offline
     assert_mise_pruning_skipped("MISE_OFFLINE" => "1")
   end

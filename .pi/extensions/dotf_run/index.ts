@@ -13,14 +13,27 @@ export default function dotfRunExtension(pi: ExtensionAPI) {
 			"Use dotf_run only when the user has explicitly authorized converging their machine with the current dotfiles checkout.",
 		],
 		parameters: Type.Object({
-			interactive: Type.Optional(Type.Boolean({ description: "Run interactively for sudo authentication (default: true). False applies user-level setup only." })),
+			interactive: Type.Optional(
+				Type.Boolean({
+					description:
+						"Run interactively for sudo authentication (default: true). False applies user-level setup only.",
+				}),
+			),
 		}),
 
 		async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
 			const interactive = params.interactive ?? true;
 			const result = await executeDotf(ctx, interactive);
+
 			return {
-				content: [{ type: "text", text: interactive ? "dotf run completed successfully" : "User-level setup completed; privileged work and migrations remain pending" }],
+				content: [
+					{
+						type: "text",
+						text: interactive
+							? "dotf run completed successfully"
+							: "User-level setup completed; privileged work and migrations remain pending",
+					},
+				],
 				details: result,
 			};
 		},
@@ -31,10 +44,16 @@ export default function dotfRunExtension(pi: ExtensionAPI) {
 		handler: async (args, ctx) => {
 			try {
 				const option = args.trim();
+
 				if (option && option !== "noninteractive") throw new Error("Usage: /dotf-run [noninteractive]");
 				const interactive = option !== "noninteractive";
 				await executeDotf(ctx, interactive);
-				ctx.ui.notify(interactive ? "dotf run completed successfully" : "User-level setup completed; privileged work and migrations remain pending", "info");
+				ctx.ui.notify(
+					interactive
+						? "dotf run completed successfully"
+						: "User-level setup completed; privileged work and migrations remain pending",
+					"info",
+				);
 			} catch (error) {
 				ctx.ui.notify(error instanceof Error ? error.message : String(error), "error");
 			}

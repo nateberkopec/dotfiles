@@ -75,7 +75,7 @@ run = "node_modules/.bin/oxfmt '**/*.{js,mjs,cjs,jsx,ts,mts,cts,tsx}' '.pi/**/*.
 [tasks."lint:anti-slop"]
 description = "Check JavaScript and TypeScript with Mulroy's anti-slop rules"
 sources = [".pi/**/*.{js,mjs,cjs,jsx,ts,mts,cts,tsx}", "**/*.ts", "**/*.tsx", "**/*.mts", "**/*.cts", "**/*.js", "**/*.jsx", "**/*.mjs", "**/*.cjs", "!node_modules/**", "!vendor/**", "!tmp/**", "!.claude/worktrees/**", "!.pi-subagents/**", ".oxlintrc.json", "package.json", "aube-lock.yaml"]
-run = "node_modules/.bin/oxlint --config .oxlintrc.json --deny-warnings . .pi"
+run = "node_modules/.bin/oxlint --config .oxlintrc.json --deny-warnings --no-ignore . .pi/extensions/*/*.ts"
 
 [tasks.lint]
 description = "Run all lint checks"
