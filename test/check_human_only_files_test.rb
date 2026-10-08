@@ -18,8 +18,10 @@ class CheckHumanOnlyFilesTest < Minitest::Test
       _stdout, stderr, status = run_check(repo)
 
       refute status.success?
-      assert_includes stderr, "Human-only files are staged"
+      assert_includes stderr, "Protected documentation changes are staged"
       assert_includes stderr, "README.md"
+      assert_includes stderr, 'See AGENTS.md: "Protected documentation"'
+      assert_includes stderr, "Do not ask for permission to include them."
     end
   end
 
@@ -34,11 +36,11 @@ class CheckHumanOnlyFilesTest < Minitest::Test
     end
   end
 
-  def test_allows_bypass_for_human_only_changes
+  def test_allows_explicit_human_direction
     with_git_repo do |repo|
       write_staged_file(repo, "README.md", "human words\n")
 
-      assert_check_succeeds(repo, "DOTF_ALLOW_HUMAN_ONLY_CHANGES" => "1")
+      assert_check_succeeds(repo, "I_HAVE_EXPLICIT_HUMAN_DIRECTION_TO_MODIFY_DOCS" => "1")
     end
   end
 
@@ -47,6 +49,31 @@ class CheckHumanOnlyFilesTest < Minitest::Test
       write_staged_file(repo, "lib/example.rb", "puts 'ok'\n")
 
       assert_check_succeeds(repo)
+    end
+  end
+
+  def test_rejects_other_override_values
+    with_git_repo do |repo|
+      write_staged_file(repo, "README.md", "human words\n")
+      _stdout, _stderr, status = run_check(repo, "I_HAVE_EXPLICIT_HUMAN_DIRECTION_TO_MODIFY_DOCS" => "true")
+      refute status.success?
+    end
+  end
+
+  def test_blocks_deletions_and_renames
+    ["README.md", "docs/adr/example.md"].each do |path|
+      ["delete", "rename"].each do |operation|
+        with_git_repo do |repo|
+          write_staged_file(repo, path, "human words\n")
+          system("git", "-C", repo, "-c", "user.name=Test", "-c", "user.email=test@example.com",
+            "-c", "core.hooksPath=/dev/null", "commit", "--no-gpg-sign", "-qm", "Initial")
+          args = (operation == "delete") ? ["rm", path] : ["mv", path, "moved.md"]
+          system("git", "-C", repo, *args, out: File::NULL, err: File::NULL)
+          _stdout, stderr, status = run_check(repo)
+          refute status.success?
+          assert_includes stderr, path
+        end
+      end
     end
   end
 
