@@ -5,22 +5,35 @@ require "tmpdir"
 
 # standard:disable Dotfiles/BanFileSystemClasses -- black-box wrapper test requires real temporary executables
 class PiNpmTest < Minitest::Test
-  def test_uses_nodes_bundled_npm_instead_of_the_path_shim
-    Dir.mktmpdir do |dir|
-      FileUtils.mkdir_p(File.join(dir, "node", "bin"))
-      executable(File.join(dir, "mise"), "test \"$*\" = 'which node' || exit 2\nprintf '%s\\n' '#{dir}/node/bin/node'")
-      executable(File.join(dir, "npm"), "exit 99")
-      executable(File.join(dir, "node", "bin", "npm"), 'printf "%s\\n" "$@"')
-      command = File.expand_path("../bin/pi-npm", __dir__)
-
-      output, status = Open3.capture2({"PATH" => "#{dir}:/usr/bin:/bin", "BASH_ENV" => ""}, "bash", command, "install", "pi-mcp-adapter@4.0.0", "--legacy-peer-deps")
+  def test_translates_peer_flags_without_bypassing_aube_or_its_scanner
+    with_tools('printf "%s\\n" "$AUBE_SECURITY_SCANNER" >&2; printf "%s\\n" "$@"') do |env, command|
+      output, error, status = Open3.capture3(env, "bash", command, "install", "pi-mcp-adapter@4.0.0", "--prefix", "/isolated/npm", "--legacy-peer-deps")
 
       assert status.success?
-      assert_equal "install\npi-mcp-adapter@4.0.0\n--legacy-peer-deps\n", output
+      assert_equal "__aube-shim\nnpm\ninstall\npi-mcp-adapter@4.0.0\n--prefix\n/isolated/npm\n--config.auto-install-peers=false\n--config.strict-peer-dependencies=false\n", output
+      assert_equal "/scanner-must-remain\n", error
+    end
+  end
+
+  def test_aube_rejection_is_propagated_without_an_npm_fallback
+    with_tools("exit 42") do |env, command|
+      _, _, status = Open3.capture3(env, "bash", command, "install", "rejected-package")
+
+      assert_equal 42, status.exitstatus
     end
   end
 
   private
+
+  def with_tools(aube)
+    Dir.mktmpdir do |dir|
+      executable(File.join(dir, "mise"), "test \"$1 $2 $3 $4\" = 'exec node -- aube' || exit 2\nshift 4\nexec aube \"$@\"")
+      executable(File.join(dir, "npm"), "exit 99")
+      executable(File.join(dir, "aube"), aube)
+      env = {"PATH" => "#{dir}:/usr/bin:/bin", "BASH_ENV" => "", "AUBE_SECURITY_SCANNER" => "/scanner-must-remain"}
+      yield env, File.expand_path("../files/home/.pi/agent/pi-npm.sh", __dir__)
+    end
+  end
 
   def executable(path, body)
     File.write(path, "#!/bin/sh\n#{body}\n")

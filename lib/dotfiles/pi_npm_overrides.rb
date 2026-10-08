@@ -30,7 +30,7 @@ class Dotfiles::PiNpmOverrides
   private
 
   def installed_versions_match?(name, version)
-    paths = @system.glob(File.join(npm_dir, "node_modules", "**", name, "package.json"))
+    paths = @system.glob(File.join(npm_dir, "node_modules", "**", name, "package.json"), File::FNM_DOTMATCH)
     paths.any? && paths.all? { |path| JSON.parse(@system.read_file(path))["version"] == version }
   end
 

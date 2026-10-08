@@ -44,6 +44,12 @@ with tempfile.TemporaryDirectory(prefix="ysk-card-") as directory:
                     return output
         raise AssertionError(f"Terminal did not render {needle!r}")
 
+    def assert_draft_preserved():
+        # Force an editor redraw: Pi can retain unchanged draft rows without emitting them again.
+        os.write(master, b".")
+        wait_for(b"DRAFT PRESERVED.")
+        os.write(master, b"\x7f")
+
     try:
         startup = wait_for(b"2 more waiting")
         assert b"Ctrl+; review" not in startup
@@ -54,20 +60,20 @@ with tempfile.TemporaryDirectory(prefix="ysk-card-") as directory:
         os.write(master, b"\x1b[C\r")
         chat = wait_for(b"Enter: send")
         assert b"Fixture two" in chat
-        os.write(master, b"\x1b")
-        wait_for(b"DRAFT PRESERVED")
+        os.write(master, b"\x1b[27u")
+        assert_draft_preserved()
         os.write(master, b"\x1b[59;5u")
         wait_for(b"2 of 3")
         os.write(master, b"A")
         wait_for(b"2 of 2")
         os.write(master, b"B")
-        wait_for(b"DRAFT PRESERVED")
+        assert_draft_preserved()
         os.write(master, b"\x1b[59;5u")
         wait_for(b"2 of 2")
         os.write(master, b"a")
         wait_for(b"1 of 1")
         os.write(master, b"a")
-        wait_for(b"DRAFT PRESERVED")
+        assert_draft_preserved()
         # No conversational messages are sent, so Pi intentionally has not flushed a session file.
         # Inspect the session manager's exact entries via a fixture-only command.
         os.write(master, b"\x15/ysk-card-proof\r")

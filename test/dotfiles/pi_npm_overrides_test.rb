@@ -38,6 +38,17 @@ class PiNpmOverridesTest < Minitest::Test
     assert @overrides.current?
   end
 
+  def test_aube_virtual_store_dependencies_are_checked
+    configure
+    @overrides.apply
+    package(".aube/client@2.2.0/node_modules/@modelcontextprotocol/client", "2.2.0")
+
+    assert @overrides.current?
+
+    package(".aube/client@2.0.0/node_modules/@modelcontextprotocol/client", "2.0.0")
+    refute @overrides.current?
+  end
+
   def test_override_without_installed_dependency_is_not_complete
     configure
     @overrides.apply
