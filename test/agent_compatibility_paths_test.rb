@@ -21,7 +21,19 @@ class AgentCompatibilityPathsTest < Minitest::Test
   end
 
   def test_claude_only_keeps_harness_specific_settings
-    assert_equal ["settings.json"], Dir.children(File.join(ROOT, "files/home/.claude"))
+    %w[.claude .codex].each do |harness|
+      directory = File.join(ROOT, "files/home", harness)
+      instructions = (harness == ".claude") ? "CLAUDE.md" : "AGENTS.md"
+      {"skills" => "../.agents/skills", instructions => "../.agents/AGENTS.md"}.each do |name, target|
+        path = File.join(directory, name)
+        assert File.symlink?(path)
+        assert_equal target, File.readlink(path)
+        assert_equal File.realpath(File.join(directory, target)), File.realpath(path)
+      end
+    end
+    assert_equal ["CLAUDE.md", "settings.json", "skills"], Dir.children(File.join(ROOT, "files/home/.claude")).sort
+    settings = JSON.parse(File.read(File.join(ROOT, "files/home/.claude/settings.json")))
+    assert_equal false, settings.fetch("syncClaudeAiSkills")
   end
 
   private
