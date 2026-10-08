@@ -21,6 +21,38 @@ class DotfUpdateNoticeTest < Minitest::Test
     end
   end
 
+  def test_background_fetch_uses_anonymous_https_without_changing_origin
+    with_repositories do |tmpdir, source, checkout, initial_sha|
+      commit_and_push(source, "new change")
+      remote = run_git(checkout, "remote", "get-url", "origin").strip
+      ssh_url = "git@github.com:nateberkopec/dotfiles.git"
+      run_git(checkout, "remote", "set-url", "origin", ssh_url)
+      git = `command -v git`.strip
+      shim_dir = File.join(tmpdir, "shims")
+      FileUtils.mkdir_p(shim_dir)
+      File.write(File.join(shim_dir, "git"), <<~SH)
+        #!/bin/sh
+        case " $* " in
+          *" fetch "*)
+            [ "$GIT_TERMINAL_PROMPT" = 0 ] || exit 91
+            [ "$GIT_ASKPASS" = true ] || exit 92
+            [ "$GIT_SSH_COMMAND" = false ] || exit 93
+            [ "$3" = -c ] && [ "$4" = credential.helper= ] || exit 94
+            [ "$8" = https://github.com/nateberkopec/dotfiles.git ] || exit 95
+            exec #{Shellwords.escape(git)} "$1" "$2" "$3" "$4" "$5" "$6" "$7" #{Shellwords.escape(remote)} "$9"
+            ;;
+        esac
+        exec #{Shellwords.escape(git)} "$@"
+      SH
+      FileUtils.chmod(0o755, File.join(shim_dir, "git"))
+
+      run_check(checkout, File.join(tmpdir, "state"), initial_sha, "PATH" => "#{shim_dir}:#{ENV.fetch("PATH")}")
+
+      assert File.exist?(File.join(tmpdir, "state", "dotfiles", "needs-run"))
+      assert_equal ssh_url, run_git(checkout, "remote", "get-url", "origin").strip
+    end
+  end
+
   def test_stranded_lock_does_not_block_future_checks
     with_repositories do |tmpdir, source, checkout, initial_sha|
       commit_and_push(source, "new change")
@@ -140,13 +172,13 @@ class DotfUpdateNoticeTest < Minitest::Test
     run_git(source, "rev-parse", "HEAD").strip
   end
 
-  def run_check(checkout, state_home, last_run_sha)
+  def run_check(checkout, state_home, last_run_sha, extra_env = {})
     state_dir = File.join(state_home, "dotfiles")
     FileUtils.mkdir_p(state_dir)
     File.write(File.join(state_dir, "last-run-sha"), "#{last_run_sha}\n") if last_run_sha
     command = "source #{Shellwords.escape(FUNCTION_PATH)}; __dotf_refresh_update_notice"
     output, status = Open3.capture2e(
-      GIT_ENV.merge("DOTFILES_DIR" => checkout, "XDG_STATE_HOME" => state_home),
+      GIT_ENV.merge("DOTFILES_DIR" => checkout, "XDG_STATE_HOME" => state_home).merge(extra_env),
       "fish", "--no-config", "--command", command
     )
     assert status.success?

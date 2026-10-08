@@ -29,10 +29,12 @@ function __dotf_refresh_update_notice
     printf '%s\n' "$now" >"$checked_at.tmp.$fish_pid"
     command mv "$checked_at.tmp.$fish_pid" "$checked_at"
 
+    # Public GitHub reads need no SSH key or credential helper.
+    set -l fetch_url (command git -C "$repo" remote get-url origin); or return
+    set fetch_url (string replace --regex '^(git@github\.com:|ssh://git@github\.com/)' 'https://github.com/' -- "$fetch_url")
     set -l fetch_ref refs/dotfiles/update-notice/main
-    if env GIT_TERMINAL_PROMPT=0 \
-            GIT_SSH_COMMAND='ssh -o BatchMode=yes -o ConnectTimeout=3 -o ServerAliveInterval=3 -o ServerAliveCountMax=1' \
-            git -C "$repo" fetch --quiet --no-tags origin "+refs/heads/main:$fetch_ref"; and test -f "$state_dir/last-run-sha"; and read -l applied_sha <"$state_dir/last-run-sha"
+    if env GIT_TERMINAL_PROMPT=0 GIT_ASKPASS=true GIT_SSH_COMMAND=false \
+            git -C "$repo" -c credential.helper= fetch --quiet --no-tags "$fetch_url" "+refs/heads/main:$fetch_ref"; and test -f "$state_dir/last-run-sha"; and read -l applied_sha <"$state_dir/last-run-sha"
         set -l remote_sha (command git -C "$repo" rev-parse "$fetch_ref" 2>/dev/null)
         if test "$remote_sha" = "$applied_sha"; or command git -C "$repo" merge-base --is-ancestor "$remote_sha" "$applied_sha" 2>/dev/null
             command rm -f "$state_dir/needs-run"
