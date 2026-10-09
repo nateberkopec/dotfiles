@@ -57,8 +57,6 @@ time_machine_settings:
 file_associations:
   com.microsoft.VSCode:
   - ".md"
-  company.thebrowser.dia:
-  - ".svg"
 vscode_extension_sources:
   nateberkopec.simple-yaml-tools:
     github: nateberkopec/simple-yaml-tools

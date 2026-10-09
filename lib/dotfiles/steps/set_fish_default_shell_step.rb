@@ -46,7 +46,7 @@ class Dotfiles::Step::SetFishDefaultShellStep < Dotfiles::Step
     if user.empty?
       execute(command("chsh", "-s", fish_path))
     else
-      execute(command("chsh", "-s", fish_path, user))
+      execute(command("chsh", "-s", fish_path, user), sudo: true)
       fallback_to_usermod(user) if @system.linux? && !fish_is_default?
     end
   end

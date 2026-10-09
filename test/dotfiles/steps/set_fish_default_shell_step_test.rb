@@ -60,7 +60,7 @@ class SetFishDefaultShellStepTest < Minitest::Test
     stub_shells("/bin/zsh")
     @step.run
 
-    refute @fake_system.operations.any? { |operation, command, _options| operation == :execute && Array(command).first == "chsh" }
+    refute @fake_system.operations.any? { |operation, command, _options| operation == :execute && Array(command).include?("chsh") }
   end
 
   def test_run_removes_stale_local_fish_symlink
@@ -113,7 +113,7 @@ class SetFishDefaultShellStepTest < Minitest::Test
     @fake_system.stub_command("id -un", "runner\n")
     @fake_system.stub_command("id -u", "1000\n")
     @fake_system.stub_command("getent passwd 1000", "runner:x:1000:1000::/home/runner:/bin/bash")
-    @fake_system.stub_command(["chsh", "-s", "/usr/bin/fish", "runner"], "")
+    @fake_system.stub_command(["sudo", "chsh", "-s", "/usr/bin/fish", "runner"], "")
     @fake_system.stub_command(["sudo", "usermod", "--shell", "/usr/bin/fish", "runner"], "")
 
     @step.run
