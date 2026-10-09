@@ -69,6 +69,8 @@ cat >"$config" <<JSON
   "files": [
     "$PWD/.pi/extensions/dotf_run/index.ts",
     "$PWD/files/home/.pi/agent/extensions/caffeinate.ts",
+    "$PWD/files/home/.pi/agent/extensions/goal.ts",
+    "$PWD/files/home/.pi/agent/extensions/answer.ts",
     "$PWD/files/home/.pi/agent/extensions/notify.ts",
     "$PWD/files/home/.pi/agent/extensions/window-fork.ts",
     "$PWD/files/home/.pi/agent/extensions/meridian.ts",

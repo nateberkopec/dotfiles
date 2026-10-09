@@ -10,14 +10,7 @@
     "npm:pi-subagents@0.75.0",
     "npm:pi-intercom@0.16.0",
     "git:github.com/nateberkopec/pi-openai-guidance@3b48d10fe51b3108edc6fd8b0ec77a2731ebe15e",
-    "npm:pi-context-view@0.6.0",
-    {
-      "source": "git:github.com/nateberkopec/agent-stuff@aadf5ef6bacaedd410c1b8aa804fad9fd4b91fe3",
-      "extensions": ["extensions/goal.ts", "extensions/answer.ts"],
-      "skills": [],
-      "prompts": [],
-      "themes": []
-    }
+    "npm:pi-context-view@0.6.0"
   ],
   "extensions": [
     "-builtin:mcp",

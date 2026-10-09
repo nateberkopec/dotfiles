@@ -1,6 +1,6 @@
 import { execFileSync } from "node:child_process";
 import { existsSync, realpathSync } from "node:fs";
-import { createRequire, registerHooks } from "node:module";
+import { registerHooks } from "node:module";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 
@@ -14,11 +14,11 @@ if (!existsSync(agent)) {
 	agent = join(install, "node_modules", "@earendil-works", "pi-coding-agent", "package.json");
 }
 
-const requirePi = createRequire(realpathSync(agent));
+const parentURL = pathToFileURL(realpathSync(agent)).href;
 
-const url = pathToFileURL(requirePi.resolve("@earendil-works/pi-tui")).href;
+const packages = new Set(["@earendil-works/pi-tui", "@earendil-works/pi-ai", "@earendil-works/pi-ai/compat", "@earendil-works/pi-coding-agent", "typebox"]);
 
 registerHooks({
 	resolve: (specifier, context, next) =>
-		specifier === "@earendil-works/pi-tui" ? { url, shortCircuit: true } : next(specifier, context),
+		next(specifier, packages.has(specifier) ? { ...context, parentURL } : context),
 });
