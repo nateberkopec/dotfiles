@@ -1,0 +1,11 @@
+#!/usr/bin/env -S fish --no-config
+
+if test "$XDG_CONFIG_HOME" = "$HOME/.config/herdr-personal"
+    set -gx XDG_CONFIG_HOME "$HOME/.config"
+end
+if test "$XDG_STATE_HOME" = "$HOME/.local/state/herdr-personal"
+    set -gx XDG_STATE_HOME "$HOME/.local/state"
+end
+
+set -l fish_bin (status fish-path)
+exec "$fish_bin" --login --interactive $argv

@@ -1,5 +1,8 @@
 onboarding = false
 
+[terminal]
+default_shell = "herdr-fish"
+
 [keys]
 next_agent = "ctrl+alt+j"
 previous_agent = "ctrl+alt+k"

@@ -11,7 +11,10 @@ class PersonalHerdr
     @pane_environment = {
       "XDG_CONFIG_HOME" => ENV.fetch("XDG_CONFIG_HOME", File.expand_path("~/.config")),
       "XDG_STATE_HOME" => ENV.fetch("XDG_STATE_HOME", File.expand_path("~/.local/state"))
-    }.flat_map { |key, value| ["--env", "#{key}=#{value}"] }
+    }.flat_map do |key, value|
+      value = File.dirname(value) if value == @environment.fetch(key)
+      ["--env", "#{key}=#{value}"]
+    end
     config = File.join(@environment.fetch("XDG_CONFIG_HOME"), "herdr/spaces.json")
     @spaces = JSON.parse(File.read(config)).fetch("spaces")
     @spaces.each do |space|
