@@ -90,7 +90,7 @@ export async function workflowGet(emit: Emit, { app, run }: Watch): Promise<RunH
 		args: {
 			code: `const profiles = Object.keys(tools.executor.profiles);
 if (profiles.length !== 1) throw new Error("Expected one Executor profile, found " + profiles.length);
-return await tools.executor.profiles[profiles[0]].queries.workflows_get(${JSON.stringify({ path: { app, run } })});`,
+return await tools.executor.profiles[profiles[0]].workflows.get(${JSON.stringify({ path: { app, run } })});`,
 		},
 	};
 
