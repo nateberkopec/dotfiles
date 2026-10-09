@@ -5,6 +5,10 @@ class Dotfiles::Step::VSCodeConfigurationStep < Dotfiles::Step
     "VS Code Configuration"
   end
 
+  def self.depends_on
+    [Dotfiles::Step::InstallBrewCasksStep]
+  end
+
   def run
     install_vscode_extensions
   end
