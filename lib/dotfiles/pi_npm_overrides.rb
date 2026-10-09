@@ -19,6 +19,7 @@ class Dotfiles::PiNpmOverrides
 
     updated = manifest
     updated["overrides"] = updated.fetch("overrides", {}).merge(expected)
+    @system.rm_rf(File.join(npm_dir, "node_modules")) if stale_installation?
     @system.mkdir_p(npm_dir)
     @system.write_file(manifest_path, JSON.pretty_generate(updated) + "\n")
   end
@@ -29,9 +30,21 @@ class Dotfiles::PiNpmOverrides
 
   private
 
+  def stale_installation?
+    expected.flat_map do |name, version|
+      installed_versions(name).map { |installed| installed != version }
+    end.any?
+  end
+
   def installed_versions_match?(name, version)
-    paths = @system.glob(File.join(npm_dir, "node_modules", "**", name, "package.json"), File::FNM_DOTMATCH)
-    paths.any? && paths.all? { |path| JSON.parse(@system.read_file(path))["version"] == version }
+    versions = installed_versions(name)
+    versions.any? && versions.all? { |installed| installed == version }
+  end
+
+  def installed_versions(name)
+    @system.glob(File.join(npm_dir, "node_modules", "**", name, "package.json"), File::FNM_DOTMATCH).map do |path|
+      JSON.parse(@system.read_file(path))["version"]
+    end
   end
 
   def expected

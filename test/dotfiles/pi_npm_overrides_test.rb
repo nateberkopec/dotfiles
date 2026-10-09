@@ -49,6 +49,26 @@ class PiNpmOverridesTest < Minitest::Test
     refute @overrides.current?
   end
 
+  def test_apply_discards_stale_virtual_store_before_reinstall
+    configure
+    package(".aube/client@2.0.0/node_modules/@modelcontextprotocol/client", "2.0.0")
+
+    @overrides.apply
+
+    assert_includes @system.operations, [:rm_rf, File.join(@agent, "npm", "node_modules")]
+    assert_equal "2.2.0", JSON.parse(@system.read_file(File.join(@agent, "npm", "package.json")))["overrides"]["@modelcontextprotocol/client"]
+  end
+
+  def test_apply_preserves_already_safe_installation
+    configure
+    package(".aube/client@2.2.0/node_modules/@modelcontextprotocol/client", "2.2.0")
+
+    @overrides.apply
+
+    refute_includes @system.operations, [:rm_rf, File.join(@agent, "npm", "node_modules")]
+    assert @overrides.current?
+  end
+
   def test_override_without_installed_dependency_is_not_complete
     configure
     @overrides.apply

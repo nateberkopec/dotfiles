@@ -131,9 +131,24 @@ class InstallPiPackagesStepTest < StepTestCase
     manifest = JSON.parse(@fake_system.read_file(File.join(@home, ".pi", "agent", "npm", "package.json")))
     assert_equal({"@modelcontextprotocol/client" => "2.2.0"}, manifest.fetch("overrides"))
     assert_incomplete
+    stub_installed_npm_package("pi-mcp-adapter", "4.0.0")
     stub_installed_npm_package("@modelcontextprotocol/client", "2.2.0")
     assert_complete
     refute_should_run
+  end
+
+  def test_overrides_are_applied_before_pi_list_can_install_packages
+    stub_settings('{"packages":["git:github.com/example/one@abc"]}')
+    stub_pi_available
+    @fake_system.stub_file_content(File.join(@home, ".pi", "agent", "npm-overrides.json"), '{"@modelcontextprotocol/client":"2.2.0"}')
+
+    step.should_run?
+
+    operations = @fake_system.operations
+    write = operations.index { |operation| operation[0] == :write_file && operation[1].end_with?("npm/package.json") }
+    list = operations.index { |operation| operation[0] == :execute && operation[1].join(" ").end_with?("pi list") }
+    assert_operator write, :<, list
+    assert_executed("npm_config_min_release_age_exclude=@modelcontextprotocol/client pi list")
   end
 
   def test_invalid_sdk_metadata_fails_closed
