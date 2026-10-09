@@ -22,7 +22,6 @@ brew_casks:
   - discord
   - ghostty
   - github
-  - orbstack
   - slack
   - steam
   - tailscale-app

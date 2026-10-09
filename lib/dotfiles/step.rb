@@ -135,13 +135,15 @@ class Dotfiles
       Dotfiles.debug(message)
     end
 
-    def execute(command, quiet: true)
-      run_command(command, quiet: quiet)
+    def execute(command, quiet: true, timeout: nil)
+      run_command(command, quiet: quiet, timeout: timeout)
     end
 
-    def run_command(cmd, quiet:)
+    def run_command(cmd, quiet:, timeout: nil)
       debug "Executing: #{Dotfiles::Command.display(cmd)}"
-      @system.execute(cmd, quiet: quiet)
+      return @system.execute(cmd, quiet: quiet) unless timeout
+
+      @system.execute(cmd, quiet: quiet, timeout: timeout)
     end
 
     def format_command_error(command, status, output)

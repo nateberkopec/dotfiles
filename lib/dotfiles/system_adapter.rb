@@ -64,8 +64,10 @@ class Dotfiles
       File.readlines(path)
     end
 
-    def execute(command, quiet: true, sensitive: false)
+    def execute(command, quiet: true, sensitive: false, timeout: nil)
       quiet = false if ENV["DEBUG"] == "true" && !sensitive
+      return execute_timed(command, quiet, timeout) if timeout
+
       quiet ? execute_quiet(command) : execute_verbose(command)
     rescue Errno::ENOENT => e
       [e.message, 127]
@@ -100,6 +102,11 @@ class Dotfiles
     end
 
     private
+
+    def execute_timed(command, quiet, timeout)
+      output, status = Dotfiles::TimedProcess.new(open3_command(command), timeout: timeout, stream: !quiet).run
+      [normalize_output(output), status]
+    end
 
     def open3_command(command)
       command.is_a?(Array) ? command : [command]
