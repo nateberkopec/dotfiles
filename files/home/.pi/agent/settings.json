@@ -9,7 +9,7 @@
     "git:github.com/nateberkopec/pi-fast-mode@6f8605ece71922bc7ff27fdb9333949e9b609afd",
     "npm:pi-subagents@0.75.0",
     "npm:pi-intercom@0.16.0",
-    "git:github.com/nateberkopec/pi-openai-guidance@3b48d10fe51b3108edc6fd8b0ec77a2731ebe15e",
+    "git:github.com/nateberkopec/pi-openai-guidance@381b448a9052498e6a6f407904ab40826f22a703",
     "npm:pi-context-view@0.6.0"
   ],
   "extensions": [
