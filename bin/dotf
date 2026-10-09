@@ -302,6 +302,7 @@ Logging:
 Examples:
   dotf run                              # Initial setup (interactive)
   NONINTERACTIVE=1 dotf run             # User-level setup; privileged work deferred
+  DOTF_HEADLESS=1 dotf run              # No one at the screen; GUI-only checks are waived
   dotf migrate                          # Run pending migrations on this machine
   DEBUG=true dotf run                   # Run with debug output to console
 EOF

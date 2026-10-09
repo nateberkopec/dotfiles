@@ -67,6 +67,10 @@ class Dotfiles
     system("command -v #{command} >/dev/null 2>&1")
   end
 
+  def self.headless?
+    !ENV.fetch("DOTF_HEADLESS", "").empty?
+  end
+
   def self.determine_dotfiles_dir
     env_dir = ENV["DOTFILES_DIR"].to_s.strip
     if !env_dir.empty?

@@ -15,7 +15,7 @@ class Dotfiles::Step::ConfigureDownloadsInboxFolderActionStep < Dotfiles::Step
   def run
     install_compiled_script unless compiled_script_current?
     enable_folder_actions unless folder_actions_enabled?
-    return if attachment_current?
+    return if attachment_current? || Dotfiles.headless?
 
     add_notice(
       title: "Attach the Downloads folder action",
@@ -33,7 +33,7 @@ class Dotfiles::Step::ConfigureDownloadsInboxFolderActionStep < Dotfiles::Step
     add_error("Folder action source missing at #{collapse_path_to_home(source_path)}") unless @system.file_exist?(source_path)
     add_error("Compiled folder action missing or stale at #{collapse_path_to_home(compiled_script_path)}") unless compiled_script_current?
     add_error("Folder Actions are disabled") unless folder_actions_enabled?
-    add_error("Folder action not attached to Downloads: #{collapse_path_to_home(compiled_script_path)}") unless attachment_current?
+    add_error("Folder action not attached to Downloads: #{collapse_path_to_home(compiled_script_path)}") unless attachment_current? || Dotfiles.headless?
     @errors.empty?
   end
 
