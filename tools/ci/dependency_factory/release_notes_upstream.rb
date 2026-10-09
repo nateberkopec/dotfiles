@@ -6,8 +6,8 @@ module DependencyFactory
   class ReleaseNotesUpstream
     REPOSITORIES = {
       "ruby" => "ruby/ruby", "node" => "nodejs/node", "go" => "golang/go", "rust" => "rust-lang/rust",
-      "hk" => "jdx/hk", "mise" => "jdx/mise", "cargo:broot" => "Canop/broot",
-      "cargo:difftastic" => "Wilfred/difftastic", "cargo:starship" => "starship/starship",
+      "hk" => "jdx/hk", "mise" => "jdx/mise", "broot" => "Canop/broot",
+      "difftastic" => "Wilfred/difftastic", "starship" => "starship/starship",
       "pipx" => "pypa/pipx", "pipx:playwright" => "microsoft/playwright", "watchexec" => "watchexec/watchexec",
       "fnox" => "jdx/fnox", "bat" => "sharkdp/bat", "eza" => "eza-community/eza", "cmake" => "Kitware/CMake",
       "fd" => "sharkdp/fd", "fzf" => "junegunn/fzf", "gh" => "cli/cli", "git-lfs" => "git-lfs/git-lfs",
