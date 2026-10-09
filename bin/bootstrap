@@ -109,7 +109,7 @@ bootstrap_homebrew() {
 
     local brew_bin=""
 
-    if dotf_noninteractive; then
+    if dotf_defers_privileged_work; then
         if user_has_admin_rights; then
             brew_bin="$(resolve_homebrew_bin)" || true
         elif [ -x "$(private_homebrew_bin)" ]; then
@@ -149,7 +149,7 @@ bootstrap_debian_prereqs() {
         return 0
     fi
 
-    dotf_noninteractive && return 0
+    dotf_defers_privileged_work && return 0
 
     debug "Installing Debian prerequisites..."
     sudo apt-get update -y

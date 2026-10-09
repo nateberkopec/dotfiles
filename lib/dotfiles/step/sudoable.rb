@@ -43,8 +43,12 @@ class Dotfiles
         return run_command(command, quiet: false) if root?
         SUDO_MUTEX.synchronize do
           display_sudo_warning(command) if sudo_authentication_required?
-          run_command(Dotfiles::Command.prepend(command, "sudo"), quiet: false)
+          run_command(Dotfiles::Command.prepend(command, *sudo_prefix), quiet: false)
         end
+      end
+
+      def sudo_prefix
+        Sudoable.noninteractive? ? ["sudo", "-n"] : ["sudo"]
       end
 
       def sudo_authentication_required?
@@ -75,9 +79,14 @@ class Dotfiles
       end
 
       def skip_sudo_step?
-        return true if Sudoable.noninteractive?
+        return true if Sudoable.noninteractive? && !passwordless_sudo?
         return false unless requires_sudo?
-        Sudoable.ci_or_noninteractive? || (@system.macos? && !user_has_admin_rights?)
+        ENV["CI"] || (@system.macos? && !user_has_admin_rights?)
+      end
+
+      def passwordless_sudo?
+        return @passwordless_sudo unless @passwordless_sudo.nil?
+        @passwordless_sudo = root? || run_command(Dotfiles::Command.argv("sudo", "-n", "true"), quiet: true).last == 0
       end
 
       def requires_sudo?

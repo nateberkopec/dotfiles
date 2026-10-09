@@ -9,6 +9,15 @@ module SystemAssertions
     verify_execution(:execute!, command, quiet: quiet, message: message, expectation: :assert)
   end
 
+  def stub_sudo_requires_password
+    @fake_system.stub_command(["sudo", "-n", "true"], "sudo: a password is required", 1)
+  end
+
+  def refute_executed_beyond_sudo_probe
+    probes = [["id", "-u"], ["sudo", "-n", "true"]]
+    assert_empty(@fake_system.operations.select { |op, command| op == :execute && !probes.include?(command) })
+  end
+
   def defaults_read_command(domain, key = nil, global: false)
     if global
       "defaults read -g #{key}"

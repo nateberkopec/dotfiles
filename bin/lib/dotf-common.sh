@@ -19,10 +19,15 @@ dotf_date() {
     fi
 }
 
-# Explicit noninteractive runs apply user-level setup only. CI can still
-# exercise package installation without opting into this partial-run mode.
+# Noninteractive runs never prompt. They apply user-level setup only unless
+# sudo already works without a password. CI can still exercise package
+# installation without opting into this partial-run mode.
 dotf_noninteractive() {
     [ -n "${NONINTERACTIVE:-}" ]
+}
+
+dotf_defers_privileged_work() {
+    dotf_noninteractive && ! (sudo -n true) >/dev/null 2>&1
 }
 
 # Run a command quietly unless DEBUG=true.

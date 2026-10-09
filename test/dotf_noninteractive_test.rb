@@ -20,8 +20,13 @@ class DotfNoninteractiveTest < Minitest::Test
   end
 
   def test_explicit_migrations_are_also_deferred
-    with_dotf_script do |_dir, script, _logs|
-      output, status = Open3.capture2e({"NONINTERACTIVE" => "1"}, "bash", script, "migrate")
+    with_dotf_script do |dir, script, _logs|
+      stub_bin = File.join(dir, "stub-bin")
+      FileUtils.mkdir_p(stub_bin)
+      File.write(File.join(stub_bin, "sudo"), "#!/bin/sh\nexit 1\n")
+      FileUtils.chmod("+x", File.join(stub_bin, "sudo"))
+      env = {"NONINTERACTIVE" => "1", "PATH" => "#{stub_bin}:#{ENV.fetch("PATH")}"}
+      output, status = Open3.capture2e(env, "bash", script, "migrate")
       assert status.success?, output
       assert_includes output, "Migrations deferred"
     end
@@ -46,6 +51,7 @@ class DotfNoninteractiveTest < Minitest::Test
         ensure_homebrew_env() { :; }
         ensure_mise_env() { :; }
         user_has_admin_rights() { return 0; }
+        sudo() { return 1; }
         is_debian() { return 1; }
         mise() { echo "mise $*"; }
         ruby() { echo "ruby $*"; }
