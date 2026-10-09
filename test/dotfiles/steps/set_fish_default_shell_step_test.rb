@@ -1,6 +1,8 @@
 require "test_helper"
 
 class SetFishDefaultShellStepTest < Minitest::Test
+  include SystemAssertions
+
   def setup
     super
     @fake_system.stub_macos
@@ -31,8 +33,9 @@ class SetFishDefaultShellStepTest < Minitest::Test
     with_ci { assert @step.complete? }
   end
 
-  def test_complete_returns_true_in_noninteractive
+  def test_complete_returns_true_in_noninteractive_without_passwordless_sudo
     stub_shell_mismatch
+    stub_sudo_requires_password
     with_env("NONINTERACTIVE" => "true") { assert @step.complete? }
   end
 

@@ -63,8 +63,9 @@ class InstallDebianDesktopAppsStepTest < StepTestCase
     refute @fake_system.received_operation?(:execute)
   end
 
-  def test_noninteractive_skips_real_source_index_and_package_installation
+  def test_noninteractive_without_passwordless_sudo_skips_real_source_index_and_package_installation
     configure_app
+    stub_sudo_requires_password
     %w[1 true].each do |mode|
       with_env("NONINTERACTIVE" => mode) do
         refute_should_run
@@ -72,7 +73,7 @@ class InstallDebianDesktopAppsStepTest < StepTestCase
         assert_nil step.run
       end
     end
-    refute @fake_system.received_operation?(:execute)
+    refute_executed_beyond_sudo_probe
     refute @fake_system.received_operation?(:write_file)
   end
 

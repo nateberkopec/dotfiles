@@ -75,8 +75,9 @@ class InstallBrewCasksStepTest < StepTestCase
     end
   end
 
-  def test_noninteractive_skips_all_homebrew_operations
+  def test_noninteractive_without_passwordless_sudo_skips_all_homebrew_operations
     stub_non_admin
+    stub_sudo_requires_password
     write_config(:brew, "brew_casks" => ["ghostty"])
     %w[1 true].each do |mode|
       with_env("NONINTERACTIVE" => mode) do
@@ -85,7 +86,7 @@ class InstallBrewCasksStepTest < StepTestCase
         assert_nil step.run
       end
     end
-    refute @fake_system.received_operation?(:execute)
+    refute_executed_beyond_sudo_probe
   end
 
   def test_continues_after_denied_formula_and_reports_each_failed_package

@@ -24,7 +24,7 @@ for relative in "${managed_protected_files[@]}"; do
     [ -f "$target" ] && [ -f "$source" ] || continue
 
     if ! chflags noschg,nouchg "$target" 2>/dev/null; then
-        if dotf_noninteractive; then
+        if dotf_defers_privileged_work; then
             echo "Error: $target requires sudo to clear immutable flags; run dotf run first." >&2
             exit 1
         fi
