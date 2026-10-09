@@ -28,8 +28,8 @@ class Dotfiles
 
       private
 
-      def execute(command, quiet: true, sudo: false)
-        return super(command, quiet: quiet) unless sudo
+      def execute(command, quiet: true, sudo: false, timeout: nil)
+        return super(command, quiet: quiet, timeout: timeout) unless sudo
         return skip_sudo_command(command) if skip_sudo_step?
         execute_with_sudo(command)
       end

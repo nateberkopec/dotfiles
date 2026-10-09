@@ -5,6 +5,7 @@ require "json"
 class Dotfiles::Step::InstallBrewCasksStep < Dotfiles::Step
   DESCRIPTION = "Installs Homebrew casks, plus formulae on non-admin machines.".freeze
   SUDO_REQUIRED = false # Homebrew supports CI and a non-admin user's private prefix.
+  CASK_INSTALL_TIMEOUT_SECONDS = 600
 
   macos_only
   prepend Dotfiles::Step::Sudoable
@@ -86,7 +87,7 @@ class Dotfiles::Step::InstallBrewCasksStep < Dotfiles::Step
     args << "--appdir=#{@home}/Applications" if type == "cask" && !user_has_admin_rights?
     args << name
     install_command = env_command({"HOMEBREW_NO_AUTO_UPDATE" => "1", "HOMEBREW_NO_ENV_HINTS" => "1"}, *args)
-    output, status = execute(install_command)
+    output, status = execute(install_command, timeout: (type == "cask") ? CASK_INSTALL_TIMEOUT_SECONDS : nil)
     if status == 0
       @install_failures.delete([type, name])
     else

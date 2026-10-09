@@ -18,7 +18,7 @@ class InstallBrewCasksStepTest < StepTestCase
     step.run
 
     assert_executed!(update_command)
-    assert_executed(install_command("cask", "firefox"))
+    assert_cask_installed(install_command("cask", "firefox"))
     refute_executed(install_command("cask", "ghostty"))
   end
 
@@ -31,7 +31,7 @@ class InstallBrewCasksStepTest < StepTestCase
     step.run
 
     assert_executed(list_command("cask", "ghostty"))
-    assert_executed(install_command("cask", "homebrew/cask/ghostty"))
+    assert_cask_installed(install_command("cask", "homebrew/cask/ghostty"))
   end
 
   def test_failed_homebrew_refresh_prevents_installation
@@ -56,7 +56,7 @@ class InstallBrewCasksStepTest < StepTestCase
     step.run
 
     assert_executed(install_command("formula", "duti"))
-    assert_executed(install_command("cask", "ghostty", private_appdir: true))
+    assert_cask_installed(install_command("cask", "ghostty", private_appdir: true))
   end
 
   def test_non_admin_packages_remain_eligible_in_ci
@@ -71,7 +71,7 @@ class InstallBrewCasksStepTest < StepTestCase
       step.run
 
       assert_executed(install_command("formula", "duti"))
-      assert_executed(install_command("cask", "ghostty", private_appdir: true))
+      assert_cask_installed(install_command("cask", "ghostty", private_appdir: true))
     end
   end
 
@@ -100,7 +100,7 @@ class InstallBrewCasksStepTest < StepTestCase
 
     step.run
 
-    assert_executed(install_command("cask", "ghostty", private_appdir: true))
+    assert_cask_installed(install_command("cask", "ghostty", private_appdir: true))
     assert_equal 2, @fake_system.operations.count { |operation| Dotfiles::Command.display(operation[1]).include?("brew install --formula duti") }
     assert_incomplete
     assert_includes step.errors.join("\n"), "duti"
@@ -147,6 +147,11 @@ class InstallBrewCasksStepTest < StepTestCase
   end
 
   private
+
+  def assert_cask_installed(command)
+    options = {quiet: true, timeout: Dotfiles::Step::InstallBrewCasksStep::CASK_INSTALL_TIMEOUT_SECONDS}
+    assert @fake_system.received_operation?(:execute, command, options), "Expected cask install `#{command}` with a timeout"
+  end
 
   def stub_admin
     @fake_system.stub_macos

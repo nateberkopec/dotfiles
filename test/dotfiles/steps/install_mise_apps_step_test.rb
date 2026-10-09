@@ -34,6 +34,7 @@ class InstallMiseAppsStepTest < StepTestCase
     stub_releases(admin: true)
     step.run
     each_app do |name, _|
+      assert_executed(["/usr/bin/codesign", "--verify", "--deep", "--strict", source(name)])
       assert_executed(["/usr/bin/ditto", source(name), "/Applications/#{name}.app"])
       assert_executed(["/usr/bin/xattr", "-dr", "com.apple.quarantine", "/Applications/#{name}.app"])
     end
@@ -43,6 +44,7 @@ class InstallMiseAppsStepTest < StepTestCase
     stub_releases
     step.run
     each_app do |name, _|
+      assert_executed(["/usr/bin/codesign", "--verify", "--deep", "--strict", source(name)])
       assert_executed(["/usr/bin/ditto", source(name), destination(name)])
       assert_executed(["/usr/bin/xattr", "-dr", "com.apple.quarantine", destination(name)])
     end
@@ -53,6 +55,7 @@ class InstallMiseAppsStepTest < StepTestCase
     stub_installed_apps
     step.run
     each_app { |name, _| refute_executed(["/usr/bin/ditto", source(name), destination(name)]) }
+    assert_empty step.notices
   end
 
   def test_reports_missing_releases
@@ -64,7 +67,7 @@ class InstallMiseAppsStepTest < StepTestCase
   private
 
   def each_app(&block)
-    {"Tinycast" => "github:abue-ammar/tinycast", "CodexBar" => "github:steipete/CodexBar"}.each(&block)
+    {"Tinycast" => "github:abue-ammar/tinycast", "CodexBar" => "github:steipete/CodexBar", "OrbStack" => "aqua:dotfiles/orbstack"}.each(&block)
   end
 
   def stub_releases(admin: false)

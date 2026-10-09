@@ -87,6 +87,8 @@ class BootstrapTest < Minitest::Test
       assert_equal expected, File.read(global_config)
       refute_includes logged_mise_commands(env), "mise activate bash"
       assert File.exist?(File.join(env.fetch("HOME"), ".config", "mise", "mise.lock"))
+      registry = File.expand_path("../files/home/.config/mise/aqua-registry.yaml", __dir__)
+      assert_equal File.read(registry), File.read(File.join(env.fetch("HOME"), ".config", "mise", "aqua-registry.yaml"))
     end
   end
 
