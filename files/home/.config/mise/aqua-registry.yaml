@@ -1,0 +1,10 @@
+packages:
+  - name: dotfiles/orbstack
+    type: http
+    url: https://cdn-updates.orbstack.dev/arm64/OrbStack_v2.2.3_20963_arm64.dmg
+    format: dmg
+    supported_envs:
+      - darwin/arm64
+    files:
+      - name: orbctl
+        src: OrbStack.app/Contents/MacOS/bin/orbctl

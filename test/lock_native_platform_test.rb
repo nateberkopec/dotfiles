@@ -12,6 +12,7 @@ class LockNativePlatformTest < Minitest::Test
 
       assert status.success?, output
       assert_equal ["lock", "--global", "--platform", platform, "gh"], File.readlines(log, chomp: true)
+      assert_equal File.expand_path("../files/home", __dir__), File.read("#{log}.root").strip
       refute_includes File.read(log), "OmniWM"
     end
   end
@@ -47,6 +48,8 @@ class LockNativePlatformTest < Minitest::Test
           cat "#{File.expand_path("../config/mise.version", __dir__)}"
         else
           printf '%s\n' "$@" > "$ARG_LOG"
+          printf '%s
+' "$MISE_GLOBAL_CONFIG_ROOT" > "$ARG_LOG.root"
         fi
       SH
       FileUtils.chmod("+x", fake)

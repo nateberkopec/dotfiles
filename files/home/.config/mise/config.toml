@@ -29,6 +29,7 @@ uv = "0.12.21"
 "github:nateberkopec/print-label" = "0.3.1"
 "github:abue-ammar/tinycast" = { version = "0.11.3", asset_pattern = "Tinycast-{{version}}.zip", bin_path = "Tinycast.app/Contents/MacOS", os = ["macos"], arch = ["arm64"] }
 "github:steipete/CodexBar" = { version = "0.70.0", asset_pattern = "CodexBar-macos-universal-{{version}}.zip", bin_path = "CodexBar.app/Contents/MacOS", os = ["macos"] }
+"aqua:dotfiles/orbstack" = { version = "2.2.3-20963", os = ["macos"], arch = ["arm64"] }
 watchexec = "2.7.3"
 fnox = "1.36.0"
 bat = "0.26.1"
@@ -63,6 +64,7 @@ spinel_ref = "1c84866b3acaaa6c568c3f239d3f4836f43c5bbb"
 tag_prefix = "v"
 
 [settings]
+aqua.registries = [".config/mise/aqua-registry.yaml"]
 env_shell_expand = false
 idiomatic_version_file_enable_tools = ["ruby", "node"]
 legacy_version_file = true

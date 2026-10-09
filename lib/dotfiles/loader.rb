@@ -25,7 +25,6 @@ class Dotfiles
       require "step/defaultable"
       require "step/sudoable"
       require "step/launchctl"
-      require "step/dmg_installable"
       require "migration"
     end
 

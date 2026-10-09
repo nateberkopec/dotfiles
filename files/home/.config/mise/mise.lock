@@ -10,6 +10,14 @@ url = "https://cache.agilebits.com/dist/1P/op2/pkg/v2.39.0/op_linux_amd64_v2.39.
 [tools.1password-cli."platforms.macos-arm64"]
 url = "https://cache.agilebits.com/dist/1P/op2/pkg/v2.39.0/op_darwin_arm64_v2.39.0.zip"
 
+[[tools."aqua:dotfiles/orbstack"]]
+version = "2.2.3-20963"
+backend = "aqua:dotfiles/orbstack"
+
+[tools."aqua:dotfiles/orbstack"."platforms.macos-arm64"]
+checksum = "sha256:7ca77868f3a0d7d9f57b3f98615aad30cc59d23cc84bbff13f78846df0b493d4"
+url = "https://cdn-updates.orbstack.dev/arm64/OrbStack_v2.2.3_20963_arm64.dmg"
+
 [[tools."aqua:fish-shell/fish-shell"]]
 version = "4.9.3"
 backend = "aqua:fish-shell/fish-shell"

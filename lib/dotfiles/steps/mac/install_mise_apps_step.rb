@@ -1,6 +1,6 @@
 class Dotfiles::Step::InstallMiseAppsStep < Dotfiles::Step
   DESCRIPTION = "Installs mise-managed macOS apps into Applications.".freeze
-  APPS = {"Tinycast" => "github:abue-ammar/tinycast", "CodexBar" => "github:steipete/CodexBar"}.freeze
+  APPS = {"Tinycast" => "github:abue-ammar/tinycast", "CodexBar" => "github:steipete/CodexBar", "OrbStack" => "aqua:dotfiles/orbstack"}.freeze
 
   macos_only
 
@@ -12,14 +12,9 @@ class Dotfiles::Step::InstallMiseAppsStep < Dotfiles::Step
     APPS.each do |name, tool|
       destination = app_destination(name)
       unless app_bundle?(destination)
-        source = app_source(name, tool)
-        if source.empty?
-          add_error("Mise-managed #{name} release not found")
-          next
-        end
-        @system.mkdir_p(File.dirname(destination))
-        @system.rm_rf(destination)
-        execute(command("/usr/bin/ditto", source, destination))
+        next unless install_release(name, tool, destination)
+
+        add_notice(title: "OrbStack setup", message: "Open OrbStack once to finish setup; it installs its CLI and keeps itself updated.") if name == "OrbStack"
       end
       execute(command("/usr/bin/xattr", "-dr", "com.apple.quarantine", destination))
     end
@@ -41,6 +36,24 @@ class Dotfiles::Step::InstallMiseAppsStep < Dotfiles::Step
   end
 
   private
+
+  def install_release(name, tool, destination)
+    source = app_source(name, tool)
+    if source.empty?
+      add_error("Mise-managed #{name} release not found")
+      return false
+    end
+    _, status = execute(command("/usr/bin/codesign", "--verify", "--deep", "--strict", source))
+    if status != 0
+      add_error("Mise-managed #{name} release signature is invalid")
+      return false
+    end
+    @system.mkdir_p(File.dirname(destination))
+    @system.rm_rf(destination)
+    _, status = execute(command("/usr/bin/ditto", source, destination))
+    add_error("Failed to copy mise-managed #{name} release") unless status == 0
+    status == 0
+  end
 
   def app_source(name, tool)
     return "" unless command_exists?("mise")
