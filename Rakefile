@@ -17,10 +17,6 @@ Rake::TestTask.new(:test) do |t|
   t.libs << "test"
   t.test_files = FileList["test/**/*_test.rb"].exclude("test/e2e/**/*")
 end
-
-Rake::TestTask.new("test:e2e") do |t|
-  t.test_files = FileList["test/e2e/*_test.rb"]
-end
 # Run the bounded startup check before the suite can launch other Bash processes.
 Rake::Task[:test].enhance(["test:bash_safety"])
 

@@ -25,7 +25,7 @@ jobs:
       matrix:
         user: [ admin, nonadmin ]
     runs-on: dotfiles-e2e-${{ matrix.user }}
-    timeout-minutes: 30
+    timeout-minutes: 60
     steps:
     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       with:
@@ -33,7 +33,7 @@ jobs:
     - name: Converge
       run: bash tools/e2e/converge.sh "$GITHUB_WORKSPACE" "$RUNNER_TEMP/e2e-logs"
     - name: Check
-      run: bash tools/e2e/check.sh "$RUNNER_TEMP/e2e-logs"
+      run: bash tools/e2e/check.sh "$RUNNER_TEMP/e2e-logs" "$GITHUB_WORKSPACE/test/e2e"
     - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
       if: always()
       with:
@@ -72,7 +72,7 @@ jobs:
     - name: Converge
       run: bash tools/e2e/converge.sh "$GITHUB_WORKSPACE" "$RUNNER_TEMP/e2e-logs"
     - name: Check
-      run: bash tools/e2e/check.sh "$RUNNER_TEMP/e2e-logs"
+      run: bash tools/e2e/check.sh "$RUNNER_TEMP/e2e-logs" "$GITHUB_WORKSPACE/test/e2e"
     - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
       if: always()
       with:
@@ -119,7 +119,7 @@ jobs:
   golden:
     needs: golden-lag
     if: >-
-      always() && (github.event_name == 'schedule' ||
+      always() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'push' && needs.golden-lag.outputs.users != '[]'))
     strategy:
       fail-fast: false
@@ -134,16 +134,17 @@ jobs:
       with:
         fetch-depth: 6
         persist-credentials: false
-    - run: git checkout --detach HEAD~5
+    - name: Check out main~5
+      run: git worktree add --detach "$RUNNER_TEMP/golden" HEAD~5
     - name: Converge
-      run: bash tools/e2e/converge.sh "$GITHUB_WORKSPACE" "$RUNNER_TEMP/e2e-logs"
+      run: bash tools/e2e/converge.sh "$RUNNER_TEMP/golden" "$RUNNER_TEMP/e2e-logs"
     - name: Check
-      run: bash tools/e2e/check.sh "$RUNNER_TEMP/e2e-logs"
+      run: bash tools/e2e/check.sh "$RUNNER_TEMP/e2e-logs" "$GITHUB_WORKSPACE/test/e2e"
     - name: Record the golden commit
       env:
         GH_TOKEN: ${{ github.token }}
         TAG: e2e-golden-${{ matrix.user }}
-      run: bash tools/e2e/tag_golden.sh "$(git rev-parse HEAD)"
+      run: bash tools/e2e/tag_golden.sh "$(git rev-parse HEAD~5)"
     - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
       if: always()
       with:
