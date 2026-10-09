@@ -12,7 +12,7 @@
     "git:github.com/nateberkopec/pi-openai-guidance@3b48d10fe51b3108edc6fd8b0ec77a2731ebe15e",
     "npm:pi-context-view@0.6.0",
     {
-      "source": "git:github.com/mitsuhiko/agent-stuff@0865c849befd2021490679f96a8dee58c84ac857",
+      "source": "git:github.com/nateberkopec/agent-stuff@c89714b8d7ab98a0646f84878bec5eaf0af9170c",
       "extensions": ["extensions/goal.ts", "extensions/answer.ts"],
       "skills": [],
       "prompts": [],
