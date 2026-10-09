@@ -22,7 +22,7 @@ Inference must also run in the US and credibly subject to US rule of law. Anthro
 
 I enforce this in multiple places:
 
-* Account level settings and restrctions (documented but not really enforced here)
+* Account level settings and restrictions (documented but not really enforced here)
 * A safe agent configuration (enforced here)
 
 ## Decision
@@ -44,10 +44,18 @@ Sometimes a provider/upstream has multiple inference services, only some of whic
 
 Code-level enforcement is scoped to Pi, including Pi's web-search providers. Wispr Flow dictation is manually verified against the same policy. I really only use Pi and occasionally Codex or Claude directly, and I don't need code-level enforcement of the latter two (though I have checked the 'don't train on me bro' boxes, documented below). Meridian is governed as the Anthropic account behind it.
 
+### Client personal data and credentials
+
+These rules apply to all client work, regardless of provider:
+
+1. No personally identifiable information (PII) or credentials go into any AI tool. PII is defined as in [OMB Circular A-130](https://csrc.nist.gov/glossary/term/personally_identifiable_information): "information that can be used to distinguish or trace an individual's identity, either alone or when combined with other information that is linked or linkable to a specific individual." I don't deliberately pull PII into an agent's context or onto my machines. Telemetry sometimes carries it incidentally, such as a user ID tag on a trace. When I notice that, I delete it.
+2. No AI agent is given client credentials. Agents may still act on client systems, including making changes, through tools that hold the credentials on the agent's behalf.
+
 ## How it's enforced operationally
 
 1. I maintain the table below for providers I actually use, and I manually verify that the appropriate account level settings are checked.
-2. We have a "datasafe" pi extension I use by default, which ensures I can't accidentlly use upstream providers or tools which are contrary to this policy.
+2. We have a "datasafe" pi extension I use by default, which ensures I can't accidentally use upstream providers or tools which are contrary to this policy.
+3. Agents reach client systems through a broker that holds the credentials. The model never sees a client credential.
 
 ## Verification table
 
