@@ -42,6 +42,11 @@ url_api = "https://api.github.com/repos/sharkdp/bat/releases/assets/323548442"
 version = "1.60.2"
 backend = "github:canop/broot"
 
+[tools.broot."platforms.linux-x64"]
+checksum = "sha256:e238e610ee1fa2cd52353efeb60b43ece470d047529e9b9071c0714c46ced545"
+url = "https://github.com/Canop/broot/releases/download/v1.60.2/broot_1.60.2.zip"
+url_api = "https://api.github.com/repos/Canop/broot/releases/assets/590682619"
+
 [tools.broot."platforms.macos-arm64"]
 checksum = "sha256:e238e610ee1fa2cd52353efeb60b43ece470d047529e9b9071c0714c46ced545"
 url = "https://github.com/Canop/broot/releases/download/v1.60.2/broot_1.60.2.zip"
@@ -78,6 +83,11 @@ url_api = "https://api.github.com/repos/Kitware/CMake/releases/assets/529577557"
 [[tools.difftastic]]
 version = "0.71.0"
 backend = "aqua:Wilfred/difftastic"
+
+[tools.difftastic."platforms.linux-x64"]
+checksum = "sha256:61aea5394a53c56f144637cf39b3a0c0dafa27769731745e5851ff276e6478da"
+url = "https://github.com/Wilfred/difftastic/releases/download/0.71.0/difft-0.71.0-x86_64-unknown-linux-gnu.tar.gz"
+url_api = "https://api.github.com/repos/Wilfred/difftastic/releases/assets/573539079"
 
 [tools.difftastic."platforms.macos-arm64"]
 checksum = "sha256:92acf8890543b6d6f436a87a7a5ec64f82a4b8dbe3a7e564c1e5cbfe60823bc7"
@@ -538,6 +548,11 @@ backend = "spinel:tobi/try"
 [[tools.starship]]
 version = "1.26.0"
 backend = "aqua:starship/starship"
+
+[tools.starship."platforms.linux-x64"]
+checksum = "sha256:321f0dd7af8340a5f2e6a8fec6538a04f617486f9ec70d878f91c09cd8deef22"
+url = "https://github.com/starship/starship/releases/download/v1.26.0/starship-x86_64-unknown-linux-gnu.tar.gz"
+url_api = "https://api.github.com/repos/starship/starship/releases/assets/460374620"
 
 [tools.starship."platforms.macos-arm64"]
 checksum = "sha256:c40b27b11f580411e068f2fa6c1be7830a387c0bc47a94d1d37f32b054c5361d"
