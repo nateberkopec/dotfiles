@@ -4,6 +4,7 @@ class ApplicationsTest < Minitest::Test
   def test_every_cask_app_is_installed_and_signed
     casks = E2E.config.fetch("brew_casks")
     info = JSON.parse(E2E.fish!("brew info --cask --json=v2 #{casks.join(" ")}")).fetch("casks")
+    info = info.reject { |cask| pkg_cask?(cask) } unless E2E.admin?
     problems = info.flat_map { |cask| cask_apps(cask) }.filter_map { |app| problem(app) }
     assert_empty problems
   end
@@ -18,6 +19,10 @@ class ApplicationsTest < Minitest::Test
   end
 
   private
+
+  def pkg_cask?(cask)
+    cask.fetch("artifacts").any? { |artifact| artifact.key?("pkg") }
+  end
 
   def cask_apps(cask)
     cask.fetch("artifacts").filter_map { |artifact| artifact["app"]&.first }.map do |app|

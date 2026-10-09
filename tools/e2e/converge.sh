@@ -10,7 +10,7 @@ cd "$HOME/.dotfiles" || exit 1
 converge() {
     local name="$1"; shift
     local start=$SECONDS
-    env "$@" ./bin/dotf run > "$log_dir/$name.log" 2>&1 < /dev/null
+    env -u CI "$@" ./bin/dotf run > "$log_dir/$name.log" 2>&1 < /dev/null
     echo "$name: exit $? after $((SECONDS - start))s"
 }
 
