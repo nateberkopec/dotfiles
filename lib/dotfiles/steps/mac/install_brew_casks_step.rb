@@ -32,6 +32,7 @@ class Dotfiles::Step::InstallBrewCasksStep < Dotfiles::Step
 
   def complete?
     super
+    notify_admin_only_casks
     packages.each do |type, name|
       next if installed?(type, name)
 
@@ -43,7 +44,34 @@ class Dotfiles::Step::InstallBrewCasksStep < Dotfiles::Step
   private
 
   def packages
-    formulae.map { |name| ["formula", name] } + @config.brew_casks.map { |name| ["cask", name] }
+    formulae.map { |name| ["formula", name] } + (@config.brew_casks - admin_only_casks).map { |name| ["cask", name] }
+  end
+
+  def admin_only_casks
+    return [] if user_has_admin_rights? || @config.brew_casks.empty?
+
+    @admin_only_casks ||= fetch_pkg_casks
+  end
+
+  def fetch_pkg_casks
+    output, status = brew_quiet("info", "--cask", "--json=v2", *@config.brew_casks)
+    return [] unless status == 0
+
+    tokens = pkg_tokens(JSON.parse(output))
+    @config.brew_casks.select { |name| tokens.include?(name.split("/").last) }
+  rescue JSON::ParserError
+    []
+  end
+
+  def pkg_tokens(info)
+    pkg_casks = info.fetch("casks", []).select { |cask| cask.fetch("artifacts", []).any? { |artifact| artifact.key?("pkg") } }
+    pkg_casks.map { |cask| cask.fetch("token") }
+  end
+
+  def notify_admin_only_casks
+    return if admin_only_casks.empty? || notices.any?
+
+    add_notice(title: "Casks that need an admin", message: "These casks run a system installer, so ask this Mac's admin to install them: #{admin_only_casks.join(", ")}")
   end
 
   def installed?(type, name)
