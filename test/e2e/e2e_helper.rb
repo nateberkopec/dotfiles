@@ -22,7 +22,7 @@ module E2E
   end
 
   def run_log(name)
-    File.read(File.join(log_dir, "#{name}.log"), encoding: "UTF-8").gsub(ANSI, "")
+    File.read(File.join(log_dir, "#{name}.log"), encoding: "UTF-8").scrub.gsub(ANSI, "")
   end
 
   def fish(command)
