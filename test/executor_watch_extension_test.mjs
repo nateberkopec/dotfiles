@@ -15,7 +15,7 @@ const outcome = (value) => ({
 	},
 });
 
-const requested = (request) => JSON.parse(request.args.code.match(/workflows_get\((.*)\);$/)[1]).path;
+const requested = (request) => JSON.parse(request.args.code.match(/workflows\.get\((.*)\);$/)[1]).path;
 
 const tick = () => new Promise((resolve) => setImmediate(resolve));
 
@@ -81,7 +81,7 @@ test("attach polls server-1 in the background and wakes an idle session once", a
 	assert.deepEqual(h.messages[0].options, { triggerTurn: true, deliverAs: "followUp" });
 	assert.deepEqual(h.entries.at(-1).data.pending, []);
 	assert.ok(h.requests.every((request) => request.server === "server-1" && request.tool === "server-1_execute"));
-	assert.ok(h.requests.every((request) => request.args.code.includes("queries.workflows_get")));
+	assert.ok(h.requests.every((request) => request.args.code.includes(".workflows.get(")));
 	await advance(15000);
 	assert.equal(h.messages.length, 1);
 	shutdown(h);

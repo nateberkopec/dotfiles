@@ -73,7 +73,7 @@ test("workflowGet pins server-1, discovers the Executor profile, and passes only
 	assert.equal(request.server, "server-1");
 	assert.equal(request.tool, "server-1_execute");
 	assert.ok(request.args.code.includes("Object.keys(tools.executor.profiles)"));
-	assert.ok(request.args.code.includes('queries.workflows_get({"path":{"app":"app_1","run":"wfr_\\";bad()"}})'));
+	assert.ok(request.args.code.includes('workflows.get({"path":{"app":"app_1","run":"wfr_\\";bad()"}})'));
 });
 
 test("workflowGet surfaces adapter errors and rejects handles for other runs", async () => {
