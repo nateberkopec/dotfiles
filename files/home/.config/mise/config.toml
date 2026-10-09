@@ -10,9 +10,9 @@ node = "26.10.0"
 go = "1.27.1"
 rust = "1.99.0"
 hk = "2.4.0"
-"cargo:broot" = "1.60.2"
-"cargo:difftastic" = "0.71.0"
-"cargo:starship" = "1.26.0"
+broot = "1.60.2"
+difftastic = "0.71.0"
+starship = "1.26.0"
 "npm:@openai/codex" = { version = "0.159.3", depends = ["github:aubepkg/aube"] }
 # Temporary SDK-ping timeout fix: https://github.com/rynfar/meridian/issues/1177
 # Return to upstream after verification: https://github.com/nateberkopec/dotfiles/issues/764
