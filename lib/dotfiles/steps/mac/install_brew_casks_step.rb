@@ -56,9 +56,10 @@ class Dotfiles::Step::InstallBrewCasksStep < Dotfiles::Step
 
   def fetch_pkg_casks
     output, status = brew_quiet("info", "--cask", "--json=v2", *@config.brew_casks)
-    return [] unless status == 0
+    json = output[/^\{.*/m]
+    return [] unless status == 0 && json
 
-    tokens = pkg_tokens(JSON.parse(output))
+    tokens = pkg_tokens(JSON.parse(json))
     @config.brew_casks.select { |name| tokens.include?(name.split("/").last) }
   rescue JSON::ParserError
     []
