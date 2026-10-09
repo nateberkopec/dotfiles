@@ -1,8 +1,8 @@
 {
-  "model": "opus",
+  "cleanupPeriodDays": 1,
+  "syncClaudeAiSkills": false,
+  "model": "opus[1m]",
   "effortLevel": "high",
   "autoMemoryEnabled": false,
-  "syncClaudeAiSkills": false,
-  "cleanupPeriodDays": 1,
   "skipDangerousModePermissionPrompt": true
 }
