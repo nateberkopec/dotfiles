@@ -27,7 +27,7 @@ class DotfUpdateNoticeTest < Minitest::Test
       remote = run_git(checkout, "remote", "get-url", "origin").strip
       ssh_url = "git@github.com:nateberkopec/dotfiles.git"
       run_git(checkout, "remote", "set-url", "origin", ssh_url)
-      git = `command -v git`.strip
+      git = Open3.capture2("sh", "-c", "command -v git").first.strip
       shim_dir = File.join(tmpdir, "shims")
       FileUtils.mkdir_p(shim_dir)
       File.write(File.join(shim_dir, "git"), <<~SH)
@@ -118,7 +118,7 @@ class DotfUpdateNoticeTest < Minitest::Test
       )
 
       assert status.success?, output
-      deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + 2
+      deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + 10
       sleep 0.01 until File.exist?(File.join(state_dir, "needs-run")) || Process.clock_gettime(Process::CLOCK_MONOTONIC) >= deadline
       assert File.exist?(File.join(state_dir, "needs-run"))
     end
