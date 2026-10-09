@@ -1,0 +1,46 @@
+#!/usr/bin/env ruby
+
+require "json"
+
+unless ARGV.first == "--session"
+  puts "unrouted: #{ARGV.join(" ")}"
+  exit
+end
+abort "wrong session" unless ARGV.shift(2) == ["--session", "default"]
+abort "inherited Herdr routing" if ENV.keys.any? { |key| key.start_with?("HERDR_") }
+
+home = ENV.fetch("HOME")
+abort "shared machine catalog" unless ENV["XDG_STATE_HOME"] == File.join(home, ".local/state/herdr-personal")
+abort "shared config" unless ENV["XDG_CONFIG_HOME"] == File.join(home, ".config/herdr-personal")
+state = File.join(home, "workspaces.json")
+ready = File.join(home, "ready")
+File.open(File.join(home, "calls.jsonl"), "a") { |file| file.puts(JSON.generate(ARGV)) }
+
+if ARGV == ["server"]
+  File.write(ready, "ready")
+  exit
+end
+abort "server not running" unless File.exist?(ready)
+spaces = File.exist?(state) ? JSON.parse(File.read(state)) : []
+if ARGV.empty?
+  abort "attached before sync" unless spaces.any?
+  puts "attached personal"
+  exit
+end
+
+case ARGV.shift(2)
+when ["workspace", "list"]
+  puts JSON.generate(id: "cli:workspace:list", result: {type: "workspace_list", workspaces: spaces})
+when ["workspace", "create"]
+  abort "focus changed" unless ARGV.delete("--no-focus")
+  options = ARGV.each_slice(2).to_a
+  pane_environment = options.filter_map { |key, value| value if key == "--env" }
+  abort "isolated XDG leaked into panes" unless pane_environment == ["XDG_CONFIG_HOME=#{home}/.config", "XDG_STATE_HOME=#{home}/.local/state"]
+  options = options.to_h
+  abort "invalid cwd" unless File.directory?(options.fetch("--cwd"))
+  spaces << {"label" => options.fetch("--label"), "cwd" => options.fetch("--cwd")}
+  File.write(state, JSON.generate(spaces))
+  puts JSON.generate(id: "cli:workspace:create", result: {type: "workspace_created", workspace: spaces.last})
+else
+  abort "unexpected command"
+end

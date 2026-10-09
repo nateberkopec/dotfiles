@@ -47,7 +47,7 @@ function cleanTitle(text: string): string | undefined {
 			.replace(/^['"`]+|['"`]+$/g, "")
 			.replace(/[.?!]+$/, "")
 			.trim()
-			.slice(0, 50)
+			.slice(0, 27)
 			.trim() || undefined
 	);
 }
@@ -139,7 +139,7 @@ export default function conversationTitle(pi: ExtensionAPI) {
 								{
 									type: "text",
 									text:
-										"Write a specific 2-6 word terminal tab title describing the outcome this conversation is trying to accomplish. Phrase as GTD-style action beginning with a verb. Output only the title.\n\n" +
+										"Write a specific 2-6 word terminal tab title of at most 27 characters including spaces describing the outcome this conversation is trying to accomplish. Phrase as GTD-style action beginning with a verb. Output only the title.\n\n" +
 										source,
 								},
 							],

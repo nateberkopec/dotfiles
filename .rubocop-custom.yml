@@ -19,6 +19,8 @@ Dotfiles/BanFileSystemClasses:
     - 'lib/dotfiles/updater.rb'
     - 'test/dotfiles/hooks/rm_rf_hooks_test.rb'
     - 'test/config_syntax_test.rb'
+    - 'test/herdr_personal_test.rb'
+    - 'test/fish/herdr_test.rb'
     - 'test/dotfiles/hooks/datasafe_claude_test.rb'
     - 'test/dotfiles/hooks/datasafe_fallback_test.rb'
     - 'test/dotfiles/hooks/datasafe_modes_test.rb'

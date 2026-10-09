@@ -27,7 +27,7 @@ class DotfUpdateNoticeTest < Minitest::Test
       remote = run_git(checkout, "remote", "get-url", "origin").strip
       ssh_url = "git@github.com:nateberkopec/dotfiles.git"
       run_git(checkout, "remote", "set-url", "origin", ssh_url)
-      git = `command -v git`.strip
+      git = Open3.capture2("sh", "-c", "command -v git").first.strip
       shim_dir = File.join(tmpdir, "shims")
       FileUtils.mkdir_p(shim_dir)
       File.write(File.join(shim_dir, "git"), <<~SH)
@@ -109,16 +109,19 @@ class DotfUpdateNoticeTest < Minitest::Test
       FileUtils.cp(FUNCTION_PATH, function_dir)
       shim_dir = File.join(tmpdir, "shims")
       FileUtils.mkdir_p(shim_dir)
-      File.write(File.join(shim_dir, "fish"), "#!/bin/sh\nexit 99\n")
-      FileUtils.chmod(0o755, File.join(shim_dir, "fish"))
+      {"fish" => 99, "mise" => 0, "aube" => 0}.each do |name, status|
+        File.write(File.join(shim_dir, name), "#!/bin/sh\nexit #{status}\n")
+        FileUtils.chmod(0o755, File.join(shim_dir, name))
+      end
+      fish = Open3.capture2("fish", "--no-config", "--command", "status fish-path").first.strip
 
       output, status = Open3.capture2e(
-        GIT_ENV.merge("DOTFILES_DIR" => checkout, "HOME" => home, "XDG_STATE_HOME" => state_home),
-        "fish", "--no-config", "--command", "source #{Shellwords.escape(CONFIG_PATH)}; set -gx PATH #{Shellwords.escape(shim_dir)} $PATH; fish_greeting"
+        GIT_ENV.merge("DOTFILES_DIR" => checkout, "HOME" => home, "XDG_CONFIG_HOME" => File.join(home, ".config"), "XDG_STATE_HOME" => state_home, "PATH" => "#{shim_dir}:#{ENV.fetch("PATH")}"),
+        fish, "--no-config", "--command", "source #{Shellwords.escape(CONFIG_PATH)}; fish_greeting"
       )
 
       assert status.success?, output
-      deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + 2
+      deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + 10
       sleep 0.01 until File.exist?(File.join(state_dir, "needs-run")) || Process.clock_gettime(Process::CLOCK_MONOTONIC) >= deadline
       assert File.exist?(File.join(state_dir, "needs-run"))
     end

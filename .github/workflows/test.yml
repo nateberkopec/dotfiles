@@ -58,8 +58,11 @@ jobs:
     - name: Install checksum-pinned Herdr for CLI contract tests
       run: bash tools/ci/install_herdr.sh
 
+    - name: Install pinned Fish for shell routing tests
+      run: mise install aqua:fish-shell/fish-shell@4.9.3
+
     - name: Run tests with managed Bash startup
       timeout-minutes: 5
       env:
         REQUIRE_HERDR: "1"
-      run: bundle exec rake test
+      run: mise exec aqua:fish-shell/fish-shell@4.9.3 -- bundle exec rake test
