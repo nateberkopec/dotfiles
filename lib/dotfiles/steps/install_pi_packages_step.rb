@@ -31,6 +31,9 @@ class Dotfiles::Step::InstallPiPackagesStep < Dotfiles::Step
 
   def install_package(package)
     install = command("pi", "install", package)
+    if package.start_with?("npm:pi-mcp-adapter@") && npm_overrides.release_age_exclusions.any?
+      install = env_command({"npm_config_min_release_age_exclude" => npm_overrides.release_age_exclusions.join(",")}, install)
+    end
     output, status = execute(install)
     install_errors << format_command_error(install, status, output) unless status == 0
   end
