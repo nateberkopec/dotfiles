@@ -1,4 +1,11 @@
 {% if os() == "macos" -%}
+if not test -d /opt/homebrew; and test -d $HOME/.homebrew
+  set -gx HOMEBREW_PREFIX $HOME/.homebrew
+  set -gx HOMEBREW_CELLAR $HOME/.homebrew/Cellar
+  set -gx HOMEBREW_REPOSITORY $HOME/.homebrew
+  fish_add_path -g -m $HOME/.homebrew/bin $HOME/.homebrew/sbin
+end
+
 if status is-interactive
   if test -d /opt/homebrew
     set -gx HOMEBREW_PREFIX /opt/homebrew
