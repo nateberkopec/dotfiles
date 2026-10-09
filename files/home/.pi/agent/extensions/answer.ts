@@ -12,14 +12,12 @@
  * Custom interactive TUI for answering questions.
  *
  * Demonstrates the "prompt generator" pattern with custom TUI:
- * 1. /answer command gets the last assistant message
  * 2. Shows a spinner while extracting questions as structured JSON
  * 3. Presents an interactive TUI to navigate and answer questions
  * 4. Submits the compiled answers when done
  */
 
 import { parseJsonWithRepair, type Model, type Api, type UserMessage } from "@earendil-works/pi-ai";
-import { complete } from "@earendil-works/pi-ai/compat";
 import type { ExtensionAPI, ExtensionContext, ModelRegistry } from "@earendil-works/pi-coding-agent";
 import { BorderedLoader } from "@earendil-works/pi-coding-agent";
 import {
@@ -49,7 +47,7 @@ type ExtractionOutcome =
 	| { status: "cancelled" }
 	| { status: "error"; message: string };
 
-const SYSTEM_PROMPT = `You are a question extractor. Given text from a conversation, extract any questions that need answering.
+const SYSTEM_PROMPT = `You are a question extractor. Given assistant messages in chronological order since the user's last reply, extract the questions that still need answering.
 
 Output a JSON object with this structure:
 {
@@ -64,8 +62,12 @@ Output a JSON object with this structure:
 Rules:
 - Extract all questions that require user input
 - Keep questions in the order they appeared
-- Be concise with question text
-- Include context only when it provides essential information for answering
+- Copy each complete question block verbatim into question, including its title, explanatory paragraphs, all choices, and any recommendation
+- Never summarize, shorten, rephrase, or omit parts of a question block
+- Later status updates may refer to earlier questions; extract the actual earlier questions, not the references
+- If a later message replaces a question or round, use its replacement instead
+- Never invent a question or put a missing-text explanation into the questions array
+- Include context only for essential information outside the question block, copied verbatim
 - If no questions are found, return {"questions": []}
 
 Example output:
@@ -181,6 +183,26 @@ function parseExtractionResult(text: string): ExtractionResult | null {
 	}
 
 	return null;
+}
+
+function restoreQuestionBlock(question: ExtractedQuestion, assistantTexts: string[]): ExtractedQuestion {
+	for (const text of assistantTexts.toReversed()) {
+		const headings = [...text.matchAll(/^(?:❓\s*)?(?:\*\*)?Q\d+\b[^\n]*/gm)];
+
+		for (let i = 0; i < headings.length; i++) {
+			const block = text.slice(headings[i].index, headings[i + 1]?.index ?? text.length).trim();
+
+			if (block.includes(question.question)) {
+				if (question.context && !block.includes(question.context)) {
+					return { question: block, context: question.context };
+				}
+
+				return { question: block };
+			}
+		}
+	}
+
+	return question;
 }
 
 /**
@@ -479,32 +501,33 @@ export default function (pi: ExtensionAPI) {
 				return;
 			}
 
-			// Find the last assistant message on the current branch
 			const branch = ctx.sessionManager.getBranch();
-			let lastAssistantText: string | undefined;
+			const assistantTexts: string[] = [];
 
 			for (let i = branch.length - 1; i >= 0; i--) {
 				const entry = branch[i];
 				if (entry.type === "message") {
 					const msg = entry.message;
-					if ("role" in msg && msg.role === "assistant") {
-						if (msg.stopReason !== "stop") {
+					if (msg.role === "user" || (msg.role === "custom" && msg.customType === "answers")) {
+						break;
+					}
+					if (msg.role === "assistant") {
+						if (assistantTexts.length === 0 && msg.stopReason !== "stop") {
 							ctx.ui.notify(`Last assistant message incomplete (${msg.stopReason})`, "error");
 							return;
 						}
 						const textParts = msg.content
 							.filter((c): c is { type: "text"; text: string } => c.type === "text")
 							.map((c) => c.text);
-						if (textParts.length > 0) {
-							lastAssistantText = textParts.join("\n");
-							break;
+						if (textParts.length > 0 && msg.stopReason === "stop") {
+							assistantTexts.unshift(textParts.join("\n"));
 						}
 					}
 				}
 			}
 
-			if (!lastAssistantText) {
-				ctx.ui.notify("No assistant messages found", "error");
+			if (assistantTexts.length === 0) {
+				ctx.ui.notify("No assistant messages since your last reply", "info");
 				return;
 			}
 
@@ -523,15 +546,15 @@ export default function (pi: ExtensionAPI) {
 					}
 					const userMessage: UserMessage = {
 						role: "user",
-						content: [{ type: "text", text: lastAssistantText! }],
+						content: [{ type: "text", text: assistantTexts.join("\n\n--- Next assistant message ---\n\n") }],
 						timestamp: Date.now(),
 					};
 
-					const response = await complete(
+					const response = await ctx.modelRegistry.streamSimple(
 						extractionModel,
 						{ systemPrompt: SYSTEM_PROMPT, messages: [userMessage] },
 						{ apiKey: auth.apiKey, headers: auth.headers, signal: loader.signal },
-					);
+					).result();
 
 					if (response.stopReason === "aborted") {
 						return { status: "cancelled" };
@@ -549,7 +572,16 @@ export default function (pi: ExtensionAPI) {
 						return { status: "error", message: "question extraction returned invalid JSON" };
 					}
 
-					return { status: "ok", result };
+					if (result.questions.some((q) =>
+						!q.question.trim() || !assistantTexts.some((text) => text.includes(q.question)) ||
+						(q.context && !assistantTexts.some((text) => text.includes(q.context!)))
+					)) {
+						return { status: "error", message: "question extraction did not preserve the original text" };
+					}
+
+					return { status: "ok", result: {
+						questions: result.questions.map((question) => restoreQuestionBlock(question, assistantTexts)),
+					} };
 				};
 
 				doExtract()
@@ -573,7 +605,7 @@ export default function (pi: ExtensionAPI) {
 
 			const extractionResult = extractionOutcome.result;
 			if (extractionResult.questions.length === 0) {
-				ctx.ui.notify("No questions found in the last message", "info");
+				ctx.ui.notify("No unanswered questions found since your last reply", "info");
 				return;
 			}
 
@@ -599,12 +631,12 @@ export default function (pi: ExtensionAPI) {
 	};
 
 	pi.registerCommand("answer", {
-		description: "Extract questions from last assistant message into interactive Q&A",
+		description: "Extract pending questions into interactive Q&A",
 		handler: (_args, ctx) => answerHandler(ctx),
 	});
 
 	pi.registerShortcut("ctrl+.", {
-		description: "Extract and answer questions",
+		description: "Extract and answer pending questions",
 		handler: answerHandler,
 	});
 }
