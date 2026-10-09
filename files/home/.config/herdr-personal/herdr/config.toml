@@ -1,0 +1,22 @@
+onboarding = false
+
+[keys]
+next_agent = "ctrl+alt+j"
+previous_agent = "ctrl+alt+k"
+
+[ui]
+window_title = "Personal: {workspace}"
+sidebar_width = 44
+sidebar_min_width = 32
+sidebar_max_width = 56
+
+[ui.sidebar.agents]
+row_gap = 0
+rows = [["state_icon", "workspace", "terminal_title_stripped"]]
+
+[ui.toast]
+delivery = "system"
+
+[theme]
+name = "terminal"
+auto_switch = false

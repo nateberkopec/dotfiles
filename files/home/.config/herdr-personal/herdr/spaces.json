@@ -1,0 +1,7 @@
+{
+  "spaces": [
+    { "label": "GTD", "cwd": "~/Documents/Code.nosync/personal/gtd" },
+    { "label": "Dotfiles", "cwd": "~/.dotfiles" },
+    { "label": "General", "cwd": "~" }
+  ]
+}
