@@ -12,7 +12,7 @@ export default function overlayFixture(pi: ExtensionAPI) {
 			const failures: string[] = [];
 
 			for (const text of [
-				"**YSK:** Verify the backup first.",
+				"**Assistant:** Verify the backup first.",
 				"**You:** Explain.\n\n**Assistant:** Short answer.\n\nAnother paragraph.",
 				"**Assistant:** 日本語 🙂 café\n\n```sh\necho dry-run\n```\n\n" + "A long wrapped response. ".repeat(30),
 			]) {
@@ -50,7 +50,7 @@ export default function overlayFixture(pi: ExtensionAPI) {
 				} as ExtensionCommandContext;
 
 				openOverlay(fake, {
-					title: "YSK · Luna · no tools",
+					title: "BTW",
 					text: () => text,
 					status: () => "Ready",
 					submit() {},

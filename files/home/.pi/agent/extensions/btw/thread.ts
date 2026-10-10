@@ -99,8 +99,7 @@ export class SideChat {
 		}
 
 		if (question.trim()) await this.ask(ctx, question.trim());
-		else if (ctx.mode !== "tui")
-			ctx.ui.notify(`Usage: /${this.key === "ysk" ? "ysk-chat" : "btw"} <question>`, "warning");
+		else if (ctx.mode !== "tui") ctx.ui.notify("Usage: /btw <question>", "warning");
 	}
 	private transcript() {
 		const messages = this.turns.filter((t) => t.id === this.spec?.id).flatMap((t) => t.messages);
@@ -110,11 +109,7 @@ export class SideChat {
 			.map((m) => `${m.role === "user" ? "**You:**" : "**Assistant:**"}\n${textOf(m)}`)
 			.join("\n\n");
 
-		return [
-			this.spec?.opening,
-			history,
-			this.question ? `**You:** ${textOf({ content: this.question })}\n\n${this.partial || "…"}` : "",
-		]
+		return [history, this.question ? `**You:** ${textOf({ content: this.question })}\n\n${this.partial || "…"}` : ""]
 			.filter(Boolean)
 			.join("\n\n");
 	}

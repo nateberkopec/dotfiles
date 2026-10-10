@@ -5,7 +5,6 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { test } from "node:test";
-import { WarningInbox } from "../files/home/.pi/agent/extensions/you-should-know/inbox.ts";
 import { Type } from "typebox";
 import { Value } from "typebox/value";
 
@@ -28,15 +27,13 @@ function fixture(run) {
 				"--no-prompt-templates",
 				"--no-tools",
 				"-e",
-				path.join(root, "files/home/.pi/agent/extensions/you-should-know/index.ts"),
-				"-e",
 				path.join(root, "files/home/.pi/agent/extensions/btw/index.ts"),
 				"-e",
-				path.join(root, "test/support/you_should_know_provider.ts"),
+				path.join(root, "test/support/btw_provider.ts"),
 				"--provider",
-				"ysk-test",
+				"btw-test",
 				"--model",
-				"observer",
+				"assistant",
 				"--session",
 				file,
 				...prompts,
@@ -46,8 +43,6 @@ function fixture(run) {
 				env: {
 					...process.env,
 					PI_CODING_AGENT_DIR: path.join(dir, "agent"),
-					YSK_FIXTURE_REAL_JEV: "",
-					YSK_FIXTURE_REAL_LUNA: "",
 				},
 				timeout: 30_000,
 			},
@@ -72,45 +67,22 @@ const entries = (rows, type) => rows.filter((r) => r.customType === type);
 
 test("real SDK side conversations: isolated models/tools, snapshot, history, resume and no main injection", () =>
 	fixture((run) => {
-		let rows = run("Delete database before checking backup");
-		const original = entries(rows, "you-should-know-note").at(-1).data;
-		assert.ok(original.id);
-		assert.match(original.source, /backup/);
-		rows = run("/ysk-chat Why is this risky?");
-		const requests = entries(rows, "side-chat-fixture-request");
-		const chat = requests.at(-1).data;
-		assert.equal(chat.model, "gpt-6-luna");
-		assert.deepEqual(chat.tools, []);
-		assert.match(chat.system, /11th-grade reading level or less/);
-		assert.match(chat.source, /Original text-only snapshot/);
-		assert.equal(entries(rows, "ysk-chat-turn").length, 1);
-		assert.equal(entries(rows, "you-should-know-usage").length, 3);
-		rows = run("/btw What should I check next?");
+		run("Check the database backup");
+		let rows = run("/btw What should I check next?");
 		const generic = entries(rows, "side-chat-fixture-request").at(-1).data;
-		assert.equal(generic.model, "observer");
+		assert.equal(generic.model, "assistant");
+		assert.match(generic.source, /Check the database backup/);
 		assert.deepEqual(generic.tools.sort(), ["bash", "edit", "read", "write"]);
 		assert.equal(entries(rows, "btw-chat-turn").length, 1);
-		assert.ok(!generic.source.includes("Why is this risky?"), "YSK side messages do not leak into the main seed");
-		rows = run("/ysk-chat Explain the consequences.");
-		assert.equal(entries(rows, "ysk-chat-turn").length, 2);
+		rows = run("/btw Explain the consequences.");
+		assert.equal(entries(rows, "btw-chat-turn").length, 2);
 		const followup = entries(rows, "side-chat-fixture-request").at(-1).data;
-		assert.match(followup.source, /Why is this risky/);
-		assert.ok(!followup.source.includes("What should I check next?"));
+		assert.match(followup.source, /What should I check next/);
 		assert.equal(rows.filter((r) => r.message?.role === "user").length, 1);
 		assert.equal(rows.filter((r) => r.message?.role === "assistant").length, 1);
 		rows = run("/btw --new Start a fresh side thread");
 		assert.equal(entries(rows, "btw-chat-reset").length, 1);
 		assert.ok(!entries(rows, "side-chat-fixture-request").at(-1).data.source.includes("What should I check next?"));
-		rows = run("/ysk-dismiss", "/ysk-chat Explain again");
-		assert.equal(WarningInbox.restore(rows).pending.length, 0);
-		assert.equal(entries(rows, "ysk-chat-turn").length, 2, "dismissed warning cannot silently use main model/context");
-	}));
-
-test("no current warning means YSK chat makes no model calls", () =>
-	fixture((run) => {
-		const rows = run("/ysk-chat What is wrong?");
-		assert.equal(entries(rows, "side-chat-fixture-request").length, 0);
-		assert.equal(entries(rows, "ysk-chat-turn").length, 0);
 	}));
 
 test("managed configuration removes the old BTW package and does not enable Armin's original command too", () => {

@@ -1,5 +1,5 @@
 import type { ExtensionContext, CreateAgentSessionOptions } from "@earendil-works/pi-coding-agent";
-import type { AssistantMessage, Message } from "@earendil-works/pi-ai/compat";
+import type { Message } from "@earendil-works/pi-ai/compat";
 import { Type } from "typebox";
 import { Value } from "typebox/value";
 import { messageText } from "../shared/message_text.ts";
@@ -11,10 +11,7 @@ export interface ChatSpec {
 	systemPrompt: string;
 	seed: Message[];
 	tools: string[];
-	strict?: boolean;
-	opening?: string;
 	thinking?: CreateAgentSessionOptions["thinkingLevel"];
-	onUsage?: (message: AssistantMessage) => void;
 }
 
 export async function createBackend(ctx: ExtensionContext, spec: ChatSpec, onText: (text: string) => void) {
@@ -38,24 +35,7 @@ export async function createBackend(ctx: ExtensionContext, spec: ChatSpec, onTex
 		if (requested.provider !== model.provider || requested.id !== model.id)
 			throw new Error("Side-chat model changed unexpectedly.");
 
-		const requestOptions: NonNullable<Parameters<typeof registry.streamSimple>[2]> = { ...options };
-
-		if (spec.strict) {
-			requestOptions.maxTokens = 1024;
-			requestOptions.reasoning = "low";
-			requestOptions.maxRetries = 0;
-			requestOptions.fetch = (input: RequestInfo | URL, init?: RequestInit) =>
-				fetch(input, { ...init, redirect: "error" });
-		}
-
-		const stream = registry.streamSimple(requested, context, requestOptions);
-
-		void stream
-			.result()
-			.then((message) => spec.onUsage?.(message))
-			.catch(() => {});
-
-		return stream;
+		return registry.streamSimple(requested, context, options);
 	};
 
 	const manager = SessionManager.inMemory(ctx.cwd);
@@ -68,7 +48,7 @@ export async function createBackend(ctx: ExtensionContext, spec: ChatSpec, onTex
 		model,
 		tools: spec.tools,
 		sessionManager: manager,
-		thinkingLevel: spec.strict ? "low" : (spec.thinking ?? "off"),
+		thinkingLevel: spec.thinking ?? "off",
 		settingsManager: SettingsManager.inMemory({
 			compaction: { enabled: false },
 			retry: { enabled: false },
