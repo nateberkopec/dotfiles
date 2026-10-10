@@ -21,7 +21,7 @@ class HerdrCliContractTest < StepTestCase
       write_config(:herdr, "herdr_plugins" => [path])
       @fake_system.stub_file_content("#{path}/herdr-plugin.toml", "")
       step.run
-      command = @fake_system.operations.find { |op, argv| op == :execute && argv.first == "herdr" }[1]
+      command = @fake_system.operations.find { |op, argv| op == :execute && argv.take(3) == %w[herdr plugin link] }[1]
       # Force offline validation in an isolated config; the invalid manifest
       # cannot be registered and we never contact the user's running server.
       env = {"HERDR_SOCKET_PATH" => "#{directory}/api.sock", "HERDR_CONFIG_PATH" => "#{directory}/config.toml"}

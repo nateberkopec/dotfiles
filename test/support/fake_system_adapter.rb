@@ -87,6 +87,12 @@ class FakeSystemAdapter
     entry.is_a?(Hash) && entry.key?(:symlink)
   end
 
+  def realpath(path)
+    @operations << [:realpath, path]
+    entry = @filesystem[File.expand_path(path)]
+    (entry.is_a?(Hash) && entry.key?(:symlink)) ? realpath(entry[:symlink]) : File.expand_path(path)
+  end
+
   def read_file(path)
     @operations << [:read_file, path]
     @filesystem[File.expand_path(path)] || raise(Errno::ENOENT, path)

@@ -32,6 +32,10 @@ class Dotfiles
       File.symlink?(path)
     end
 
+    def realpath(path)
+      File.realpath(path)
+    end
+
     def read_file(path)
       File.read(path)
     end

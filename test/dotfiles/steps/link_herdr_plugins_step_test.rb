@@ -34,15 +34,31 @@ class LinkHerdrPluginsStepTest < StepTestCase
     assert_complete
   end
 
-  def test_relinks_on_each_run_to_refresh_manifest_and_enabled_state
+  def test_skips_linked_manifest_until_manifest_or_enabled_state_changes
     configure_plugin
     stub_manifest
     stub_command_exists("herdr")
-    2.times do
-      assert_should_run
-      step.run
-      assert_complete
-    end
+    assert_should_run
+    step.run
+    assert_complete
+    plugin = {"plugin_root" => "/tmp/home/local-plugin", "manifest_path" => "/tmp/home/local-plugin/herdr-plugin.toml", "enabled" => true, "source" => {"kind" => "local"}}
+    @fake_system.stub_command("herdr plugin list --json", JSON.generate({"result" => {"plugins" => [plugin]}}))
+    rebuild_step!
+    refute_should_run
+    @fake_system.operations.clear
+    step.run
+    refute_executed("herdr plugin link /tmp/home/local-plugin --enabled")
+    @fake_system.stub_file_content("/tmp/home/local-plugin/herdr-plugin.toml", "id = 'test.plugin'
+version = '0.2.0'")
+    assert_should_run
+    step.run
+    assert_complete
+    refute_should_run
+    plugin["enabled"] = false
+    @fake_system.stub_command("herdr plugin list --json", JSON.generate({"result" => {"plugins" => [plugin]}}))
+    assert_should_run
+    @fake_system.stub_command("herdr plugin list --json", JSON.generate({"result" => {"plugins" => []}}))
+    assert_should_run
   end
 
   def test_failed_link_reports_command_output_and_successful_retry_clears_error
