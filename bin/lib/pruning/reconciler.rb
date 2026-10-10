@@ -46,7 +46,10 @@ module ManagedPruning
 
     def replaced?(path, verified)
       verified.any? do |replacement|
-        path.start_with?(replacement + "/") || replacement.start_with?(path + "/") || @home.same_entry?(path, replacement)
+        old_parts = path.split("/")
+        new_parts = replacement.split("/")
+        depth = [old_parts.length, new_parts.length].min
+        @home.same_entry?(old_parts.take(depth).join("/"), new_parts.take(depth).join("/"))
       end
     end
 

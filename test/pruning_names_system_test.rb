@@ -60,6 +60,24 @@ class PruningNamesSystemTest < Minitest::Test
     assert_equal ["#{@target}/replacement.ts"], managed_paths
   end
 
+  def test_aliased_ledger_spelling_does_not_hide_a_separate_hard_link
+    skip "Requires a case-insensitive filesystem" unless @system.file_exist?(File.join(@home, @target, "EXAMPLE.ts"))
+    @system.execute!(["mv", File.join(@home, @target, "example.ts"), File.join(@home, @target, "EXAMPLE.ts")])
+    successful_run
+    @system.execute!(["mv", File.join(@root, @source, "example.ts"), File.join(@root, @source, "replacement.ts")])
+    @system.execute!(["ln", File.join(@home, @target, "EXAMPLE.ts"), File.join(@home, @target, "replacement.ts")])
+    successful_run
+    successful_run
+
+    refute @system.file_exist?(File.join(@home, @target, "EXAMPLE.ts"))
+    assert_equal ["#{@target}/replacement.ts"], managed_paths
+    @items.clear
+    configure
+    successful_run
+    refute @system.file_exist?(File.join(@home, @target, "replacement.ts"))
+    assert_empty ledger.fetch("items")
+  end
+
   private
 
   def managed_paths

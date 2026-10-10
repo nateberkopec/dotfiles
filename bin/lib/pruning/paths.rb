@@ -42,10 +42,8 @@ module ManagedPruning
       return false unless [left_stat.dev, left_stat.ino] == [right_stat.dev, right_stat.ino]
       return false unless File.identical?(File.dirname(left_path), File.dirname(right_path))
 
-      left_name = File.basename(left_path)
-      right_name = File.basename(right_path)
       names = Dir.children(File.dirname(left_path))
-      left_name == right_name || !(names.include?(left_name) && names.include?(right_name))
+      entry_name(File.basename(left_path), names) == entry_name(File.basename(right_path), names)
     rescue Errno::ENOENT, Errno::ENOTDIR, UnsafeParent
       false
     end
@@ -60,6 +58,15 @@ module ManagedPruning
     end
 
     private
+
+    def entry_name(name, names)
+      return name if names.include?(name)
+
+      folded = name.unicode_normalize(:nfd).downcase(:fold)
+      matches = names.select { |entry| entry.unicode_normalize(:nfd).downcase(:fold) == folded }
+      raise "Ambiguous pruning path spelling: #{name}" unless matches.one?
+      matches.first
+    end
 
     def remove_empty_parents(path)
       while path != @root
