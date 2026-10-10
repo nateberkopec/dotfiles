@@ -1,16 +1,21 @@
+require "json"
+
 class Dotfiles::Step::LinkHerdrPluginsStep < Dotfiles::Step
   DESCRIPTION = "Registers local Herdr plugins from their source manifests.".freeze
 
   def should_run?
-    available_plugins.any? && command_exists?("herdr")
+    available_plugins.any? && command_exists?("herdr") && pending_plugins.any?
   end
 
   def run
     @link_errors = []
-    available_plugins.each do |path|
+    pending_plugins.each do |path|
       link = command("herdr", "plugin", "link", path, "--enabled")
       output, status = execute(link)
-      next if status == 0
+      if status == 0
+        record_manifest(path)
+        next
+      end
 
       @link_errors << "Failed to link Herdr plugin: #{collapse_path_to_home(path)}\n" \
         "Exit status: #{status}\n#{output.to_s.strip}\nCommand: #{Dotfiles::Command.display(link)}"
@@ -32,8 +37,46 @@ class Dotfiles::Step::LinkHerdrPluginsStep < Dotfiles::Step
 
   private
 
+  def record_manifest(path)
+    @system.mkdir_p(File.dirname(fingerprint_path(path)))
+    @system.write_file(fingerprint_path(path), file_hash(File.join(path, "herdr-plugin.toml")))
+  end
+
+  def pending_plugins
+    installed = installed_plugins
+    available_plugins.reject do |path|
+      installed.any? { |plugin| registered?(plugin, path) } && manifest_current?(path)
+    end
+  end
+
+  def installed_plugins
+    output, status = execute(command("herdr", "plugin", "list", "--json"))
+    return [] unless status == 0
+
+    JSON.parse(output).fetch("result").fetch("plugins")
+  rescue JSON::ParserError, KeyError
+    []
+  end
+
+  def registered?(plugin, path)
+    plugin["plugin_root"] == path && plugin["manifest_path"] == File.join(path, "herdr-plugin.toml") &&
+      plugin["enabled"] == true && plugin.dig("source", "kind") == "local"
+  end
+
+  def manifest_current?(path)
+    stamp = fingerprint_path(path)
+    @system.file_exist?(stamp) && @system.read_file(stamp) == file_hash(File.join(path, "herdr-plugin.toml"))
+  end
+
+  def fingerprint_path(path)
+    File.join(@home, ".local", "state", "dotfiles", "herdr-plugins", Digest::SHA256.hexdigest(path))
+  end
+
   def plugin_paths
-    config.fetch("herdr_plugins", []).map { |path| expand_path_with_home(path) }
+    config.fetch("herdr_plugins", []).map do |path|
+      expanded = expand_path_with_home(path)
+      @system.dir_exist?(expanded) ? @system.realpath(expanded) : expanded
+    end.uniq
   end
 
   def available_plugins
