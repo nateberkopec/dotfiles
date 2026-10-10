@@ -249,4 +249,7 @@ pre-dotfiles = 'bash "$HOME/.dotfiles/bin/lib/unprotect-managed-files.sh"'
 post-dotfiles = 'bash "$HOME/.dotfiles/bin/lib/post-dotfiles-hook.sh"'
 pre-defaults = 'bash "$HOME/.dotfiles/bin/lib/pre-defaults-hook.sh"'
 post-defaults = 'bash "$HOME/.dotfiles/bin/lib/post-defaults-hook.sh"'
+# Keep the browser revision aligned with mise's pinned Playwright CLI. The
+# installer is a no-op when the matching browser is already cached.
+post-tools = 'mise exec -- playwright install chromium-headless-shell'
 post-packages = '[ ! -f /etc/debian_version ] || command -v docker >/dev/null 2>&1 || sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y docker.io'

@@ -80,10 +80,7 @@ class MiseBootstrapPackagesLaunchdTest < Minitest::Test
   end
 
   def test_preinstalls_playwright_headless_shell
-    hook_path = File.expand_path("../bin/lib/post-dotfiles-hook.sh", __dir__)
-    hook = Dotfiles::SystemAdapter.new.read_file(hook_path)
-
-    assert_includes hook, "mise exec -- playwright install chromium-headless-shell"
+    assert_equal "mise exec -- playwright install chromium-headless-shell", config.dig("bootstrap", "hooks", "post-tools")
   end
 
   private
