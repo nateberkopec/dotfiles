@@ -21,6 +21,23 @@ class PruningArtifactsSystemTest < Minitest::Test
     assert_includes @system.read_file(File.join(@home, "hook-log")), "bootout gui/#{Process.uid}/dev.mise.example"
   end
 
+  def test_optional_unverified_source_does_not_adopt_external_artifacts
+    artifact = File.join(@home, "generated.plist")
+    @items["extensions"]["optional"] = true
+    @items["extensions"]["artifacts"] = ["generated.plist"]
+    write(File.join(@home, @target, "example.ts"), "external source")
+    write(artifact, "external artifact")
+    configure
+    successful_run
+    assert_empty ledger.fetch("items")
+
+    @items.clear
+    configure
+    successful_run
+    assert_equal "external artifact", @system.read_file(artifact)
+    assert_equal "external source", @system.read_file(File.join(@home, @target, "example.ts"))
+  end
+
   private
 
   def exercise_modified_artifact(artifact, rename: false)

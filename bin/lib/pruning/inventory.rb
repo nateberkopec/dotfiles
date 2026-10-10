@@ -31,9 +31,11 @@ module ManagedPruning
         [destination, deployed(item, path, destination, mode)]
       end.compact
       artifacts = (Array(item["artifacts"]) + @hooks.artifacts(item["hook"])).uniq
-      artifacts.each do |path|
-        fingerprint = target_fingerprint(item, path)
-        files[path] = fingerprint if fingerprint
+      unless files.empty?
+        artifacts.each do |path|
+          fingerprint = target_fingerprint(item, path)
+          files[path] = fingerprint if fingerprint
+        end
       end
       {"files" => files, "desired" => targets + artifacts, "artifacts" => artifacts, "hook" => item["hook"]}
     end
