@@ -35,7 +35,7 @@ module ManagedPruning
         fingerprint = target_fingerprint(item, path)
         files[path] = fingerprint if fingerprint
       end
-      {"files" => files, "desired" => targets + artifacts, "hook" => item["hook"]}
+      {"files" => files, "desired" => targets + artifacts, "artifacts" => artifacts, "hook" => item["hook"]}
     end
 
     def source_paths(source)

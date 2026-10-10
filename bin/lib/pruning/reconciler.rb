@@ -9,10 +9,11 @@ module ManagedPruning
     def run(current)
       previous = @ledger.read
       validate_hooks(previous, current)
+      preserve_artifact_baselines(previous, current)
       desired = current.values.flat_map { |item| item.fetch("desired") }
       verified = current.values.flat_map { |item| item.fetch("files").keys }
       @active_hooks = current.values.filter_map { |item| item["hook"] unless item.fetch("files").empty? }
-      result = current.transform_values { |item| item.except("desired") }
+      result = current.transform_values { |item| item.except("desired", "artifacts") }
       conflicts = []
       previous.each do |id, item|
         carried = carried_files(item, desired - verified)
@@ -29,6 +30,19 @@ module ManagedPruning
     end
 
     private
+
+    def preserve_artifact_baselines(previous, current)
+      owned = previous.values.flat_map { |item| item.fetch("files").to_a }
+      current.each_value do |item|
+        item.fetch("artifacts", []).each do |target|
+          next unless item.fetch("files").key?(target)
+          claims = owned.select { |path, _| path == target || @home.same_entry?(path, target) }
+          fingerprints = claims.map(&:last).uniq
+          raise "Conflicting artifact ownership: #{target}" if fingerprints.length > 1
+          item["files"][target] = fingerprints.first unless fingerprints.empty?
+        end
+      end
+    end
 
     def validate_hooks(previous, current)
       previous.each do |id, item|
