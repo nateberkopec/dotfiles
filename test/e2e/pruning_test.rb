@@ -11,9 +11,10 @@ class PruningTest < Minitest::Test
     @fixture&.close
   end
 
-  def test_real_convergence_preserves_edits_and_retires_the_running_agent
-    output, status = @fixture.converge("adopt")
+  def test_user_level_convergence_preserves_edits_and_retires_the_running_agent
+    output, status = @fixture.converge_user_files("adopt")
     assert status.success?, output
+    assert_includes output, "User-level setup complete"
     owned = @fixture.ledger.fetch(@fixture.id).fetch("files")
     expected = PruningFixture::CONTENTS.keys.map { |name| "#{@fixture.relative}/#{name}" } + [@fixture.plist_relative]
     assert_equal expected.sort, owned.keys.sort
@@ -28,8 +29,9 @@ class PruningTest < Minitest::Test
     File.write(File.join(@fixture.target, "edited.txt"), PruningFixture::CONTENTS.fetch("edited.txt"))
     File.binwrite(@fixture.plist, @fixture.original_plist)
     @fixture.retire_sources
-    output, status = @fixture.converge("retire")
+    output, status = @fixture.converge_user_files("retire")
     assert status.success?, output
+    assert_includes output, "User-level setup complete"
     refute @fixture.ledger.key?(@fixture.id)
     refute File.exist?(@fixture.plist)
     PruningFixture::CONTENTS.each_key { |name| refute File.exist?(File.join(@fixture.target, name)), name }
@@ -46,7 +48,7 @@ class PruningTest < Minitest::Test
     File.write(File.join(@fixture.target, "untracked.txt"), "untracked content")
     @fixture.command!("/usr/libexec/PlistBuddy", "-c", "Add :E2ELocalEdit bool true", @fixture.plist)
     edited_plist = File.binread(@fixture.plist)
-    output, status = @fixture.converge("pending")
+    output, status = @fixture.converge_user_files("pending")
     refute status.success?, output
     assert_includes output, "Preserving modified retired files"
     assert_includes output, "edited.txt"

@@ -43,8 +43,8 @@ class PruningFixture
     output
   end
 
-  def converge(name)
-    output, status = Open3.capture2e({"CI" => nil}, File.join(E2E.dotfiles_dir, "bin/dotf"), "run",
+  def converge_user_files(name)
+    output, status = Open3.capture2e({"CI" => "true"}, File.join(E2E.dotfiles_dir, "bin/dotf"), "run",
       chdir: E2E.dotfiles_dir, stdin_data: "")
     File.write(File.join(E2E.log_dir, "pruning-#{name}.log"), output)
     [output, status]

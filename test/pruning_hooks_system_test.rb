@@ -60,6 +60,29 @@ class PruningHooksSystemTest < Minitest::Test
     assert_includes @system.read_file(File.join(@home, "hook-log")), "bootout gui/#{Process.uid}/dev.mise.example"
   end
 
+  def test_partial_retirement_keeps_an_optional_owned_agent_running
+    @items["extensions"]["optional"] = true
+    artifact = prepare_launch_agent
+    deploy("retired.txt", "retired")
+    successful_run
+    baseline = ledger.fetch("items").fetch("extensions").fetch("files")
+    @system.rm_rf(File.join(@root, @source, "retired.txt"))
+    write(File.join(@home, @target, "example.ts"), "external launcher")
+    successful_run
+
+    refute @system.file_exist?(File.join(@home, "hook-log"))
+    assert @system.file_exist?(artifact)
+    refute @system.file_exist?(File.join(@home, @target, "retired.txt"))
+    assert_equal "external launcher", @system.read_file(File.join(@home, @target, "example.ts"))
+    assert_equal baseline.except("#{@target}/retired.txt"), ledger.fetch("items").fetch("extensions").fetch("files")
+    write(File.join(@home, @target, "example.ts"), "original")
+    @items.clear
+    configure
+    successful_run
+    refute @system.file_exist?(artifact)
+    assert_includes @system.read_file(File.join(@home, "hook-log")), "bootout gui/#{Process.uid}/dev.mise.example"
+  end
+
   private
 
   def prepare_launch_agent

@@ -12,7 +12,7 @@ module ManagedPruning
       preserve_artifact_baselines(previous, current)
       desired = current.values.flat_map { |item| item.fetch("desired") }
       verified = current.values.flat_map { |item| item.fetch("files").keys }
-      @active_hooks = current.values.filter_map { |item| item["hook"] unless item.fetch("files").empty? }
+      @active_hooks = active_hooks(previous, current)
       result = current.transform_values { |item| item.except("desired", "artifacts") }
       conflicts = []
       previous.each do |id, item|
@@ -30,6 +30,17 @@ module ManagedPruning
     end
 
     private
+
+    def active_hooks(previous, current)
+      current.values.filter_map do |item|
+        hook = item["hook"]
+        next unless hook
+        retained = previous.values.any? do |prior|
+          prior["hook"] == hook && !carried_files(prior, item.fetch("desired")).empty?
+        end
+        hook if item.fetch("files").any? || retained
+      end
+    end
 
     def preserve_artifact_baselines(previous, current)
       owned = previous.values.flat_map { |item| item.fetch("files").to_a }
