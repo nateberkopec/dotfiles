@@ -242,6 +242,7 @@ cmd_run() {
         "${migration_command[@]}" >> "$LOG_FILE"
     fi
     ruby -r ./lib/dotfiles.rb -e "Dotfiles::Runner.new('$LOG_FILE').run"
+    ruby "$SCRIPT_DIR/lib/prune-managed-files.rb" > >(tee -a "$LOG_FILE") 2> >(tee -a "$LOG_FILE" >&2)
     run_mise_prune
     if dotf_defers_privileged_work; then
         echo "User-level setup complete; run dotf run interactively to finish privileged work."

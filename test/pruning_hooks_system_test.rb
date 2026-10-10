@@ -1,0 +1,33 @@
+require "test_helper"
+require_relative "support/pruning_system_fixture"
+
+class PruningHooksSystemTest < Minitest::Test
+  include PruningSystemFixture
+
+  def test_failed_cleanup_hooks_preserve_files_and_retry_from_saved_metadata
+    skip "LaunchAgents require macOS" unless RUBY_PLATFORM.include?("darwin")
+    @items["extensions"]["hook"] = {"type" => "launch_agent", "label" => "dev.mise.example"}
+    @items["extensions"]["artifacts"] = ["Library/LaunchAgents/dev.mise.example.plist"]
+    artifact = File.join(@home, "Library/LaunchAgents/dev.mise.example.plist")
+    write(artifact, "generated plist")
+    configure
+    successful_run
+    @items.clear
+    configure
+    executable = File.join(@temporary, "bin/launchctl")
+    write(executable, "#!/bin/sh\nprintf '%s\\n' \"$*\" >> \"$HOME/hook-log\"\n[ \"$1\" = print ]\n")
+    @system.chmod(0o755, executable)
+    output, status = run_pruning
+
+    refute status.success?
+    assert_includes output, "Cannot unload"
+    assert @system.file_exist?(artifact)
+    assert @system.file_exist?(File.join(@home, @target, "example.ts"))
+    assert_equal "launch_agent", ledger.fetch("items").fetch("extensions").fetch("hook").fetch("type")
+    write(executable, "#!/bin/sh\nprintf '%s\\n' \"$*\" >> \"$HOME/hook-log\"\nexit 0\n")
+    successful_run
+    refute @system.file_exist?(artifact)
+    refute @system.file_exist?(File.join(@home, @target, "example.ts"))
+    assert_includes @system.read_file(File.join(@home, "hook-log")), "bootout gui/#{Process.uid}/dev.mise.example"
+  end
+end

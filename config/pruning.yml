@@ -1,0 +1,70 @@
+version: 1
+items:
+  pi-extensions:
+    source: files/home/.pi/agent/extensions
+    target: .pi/agent/extensions
+  pi-prompts:
+    source: files/home/.pi/agent/prompts
+    target: .pi/agent/prompts
+  pi-agents:
+    source: files/home/.pi/agent/agents
+    target: .pi/agent/agents
+  researcher:
+    source: files/home/.agents/researcher.md
+    target: .agents/researcher.md
+  fish-startup:
+    source: files/home/.config/fish/conf.d
+    target: .config/fish/conf.d
+  fish-functions:
+    source: files/home/.config/fish/functions
+    target: .config/fish/functions
+  fish-completions:
+    source: files/home/.config/fish/completions
+    target: .config/fish/completions
+  commands:
+    source: files/home/.local/bin
+    target: .local/bin
+  dotf:
+    source: bin/dotf
+    target: .local/bin/dotf
+    mode: symlink
+  git-hooks:
+    source: files/home/.git-hooks
+    target: .git-hooks
+    optional: true
+  bash-safety:
+    source: files/home/.config/bash/safety.bash
+    target: .config/bash/safety.bash
+  aube-scanner:
+    source: files/home/.config/aube/socket-security-scanner.mjs
+    target: .config/aube/socket-security-scanner.mjs
+  pi-npm:
+    source: files/home/.pi/agent/pi-npm.sh
+    target: .pi/agent/pi-npm.sh
+  herdr-launch:
+    source: files/home/.local/share/dotfiles/herdr-launch.rb
+    target: .local/share/dotfiles/herdr-launch.rb
+  wallpaper:
+    source: files/home/.local/share/dotfiles/launch-woodblock-wallpaper
+    target: .local/share/dotfiles/launch-woodblock-wallpaper
+    hook:
+      type: launch_agent
+      label: dev.mise.woodblock-wallpaper
+  omniwm:
+    source: files/home/.local/share/dotfiles/launch-omniwm
+    target: .local/share/dotfiles/launch-omniwm
+    hook:
+      type: launch_agent
+      label: dev.mise.omniwm
+  time-machine:
+    source: files/home/.local/share/dotfiles/run-time-machine-backup.fish
+    target: .local/share/dotfiles/run-time-machine-backup.fish
+    hook:
+      type: launch_agent
+      label: dev.mise.time-machine-backup
+  yknotify:
+    source: files/yknotify
+    target: .local/share/yknotify
+    hook:
+      type: launch_agent
+      label: dev.mise.yknotify
