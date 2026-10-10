@@ -47,7 +47,7 @@ module ManagedPruning
     def validate(item)
       @hooks.validate(item["hook"])
       item.fetch("files").each do |path, fingerprint|
-        @home.resolve(path)
+        @home.validate(path)
         case fingerprint.fetch("type")
         when "file"
           raise "Invalid file fingerprint" unless fingerprint.fetch("sha256").match?(/\A[0-9a-f]{64}\z/)

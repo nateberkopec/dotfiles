@@ -2,17 +2,22 @@ require "digest"
 
 module ManagedPruning
   class Paths
+    UnsafeParent = Class.new(RuntimeError)
+
     def initialize(root)
       @root = File.realpath(root)
     end
 
-    def resolve(relative)
+    def validate(relative)
       parts = relative.split("/")
       raise "Unsafe pruning path: #{relative}" if relative.empty? || relative.start_with?("/") || parts.any? { |part| ["", ".", ".."].include?(part) }
+      parts
+    end
 
-      parts[0...-1].reduce(@root) do |parent, part|
+    def resolve(relative)
+      validate(relative)[0...-1].reduce(@root) do |parent, part|
         child = File.join(parent, part)
-        raise "Symlinked pruning parent: #{child}" if File.symlink?(child)
+        raise UnsafeParent, "Symlinked pruning parent: #{child}" if File.symlink?(child)
         child
       end
       File.join(@root, relative)

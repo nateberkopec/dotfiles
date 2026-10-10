@@ -24,28 +24,35 @@ module ManagedPruning
       source = @source.resolve(item.fetch("source"))
       mode = item.fetch("mode", "copy")
       raise "Unknown pruning mode: #{mode}" unless ["copy", "symlink"].include?(mode)
-      return {"files" => {}, "desired" => []} unless File.exist?(source) || File.symlink?(source)
-
       paths = source_paths(source)
+      return {"files" => {}, "desired" => []} if paths.empty?
       targets = paths.map { |path| target(item, source, path) }
       files = paths.zip(targets).to_h do |path, destination|
         [destination, deployed(item, path, destination, mode)]
       end.compact
       artifacts = (Array(item["artifacts"]) + @hooks.artifacts(item["hook"])).uniq
       artifacts.each do |path|
-        fingerprint = @home.fingerprint(path)
+        fingerprint = target_fingerprint(item, path)
         files[path] = fingerprint if fingerprint
       end
       {"files" => files, "desired" => targets + artifacts, "hook" => item["hook"]}
     end
 
     def source_paths(source)
-      return [source] unless File.directory?(source)
-      raise "Symlinked pruning source: #{source}" if File.symlink?(source)
+      stat = source_stat(source)
+      stat ? walk_source(source, stat) : []
+    end
 
-      Dir.glob(File.join(source, "**", "*"), File::FNM_DOTMATCH).reject do |path|
-        File.directory?(path) && !File.symlink?(path)
-      end
+    def source_stat(source)
+      File.lstat(source)
+    rescue Errno::ENOENT
+      nil
+    end
+
+    def walk_source(path, stat = File.lstat(path))
+      return [path] unless stat.directory?
+
+      Dir.children(path).sort.flat_map { |name| walk_source(File.join(path, name)) }
     end
 
     def target(item, source, path)
@@ -55,8 +62,8 @@ module ManagedPruning
 
     def deployed(item, source, target, mode)
       relative = source.delete_prefix(@root + "/")
-      expected = @source.fingerprint(relative)
-      actual = @home.fingerprint(target)
+      expected = @source.fingerprint(relative) || raise("Pruning source disappeared: #{relative}")
+      actual = target_fingerprint(item, target)
       matches = if mode == "symlink"
         actual && actual["type"] == "symlink" && File.realpath(@home.resolve(target)) == File.realpath(source)
       else
@@ -66,6 +73,14 @@ module ManagedPruning
       return nil if item["optional"]
 
       raise "Managed file was not successfully deployed: #{target}"
+    end
+
+    def target_fingerprint(item, target)
+      @home.fingerprint(target)
+    rescue Paths::UnsafeParent => error
+      raise unless item["optional"]
+      warn "Skipping optional pruning target #{target}: #{error.message}"
+      nil
     end
   end
 end

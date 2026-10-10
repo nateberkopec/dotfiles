@@ -10,16 +10,18 @@ module ManagedPruning
       previous = @ledger.read
       validate_hooks(previous, current)
       desired = current.values.flat_map { |item| item.fetch("desired") }
+      verified = current.values.flat_map { |item| item.fetch("files").keys }
+      @active_hooks = current.values.filter_map { |item| item["hook"] unless item.fetch("files").empty? }
       result = current.transform_values { |item| item.except("desired") }
       conflicts = []
       previous.each do |id, item|
-        stale = item.fetch("files").keys - desired
-        pending = retire(id, item, stale, current, conflicts)
+        stale = (item.fetch("files").keys - desired).reject { |path| replaced?(path, verified) }
+        pending = retire(id, item, stale, conflicts)
         entry = result[id] ||= {"files" => {}, "hook" => item["hook"]}
         active = current.fetch(id, {"desired" => []}).fetch("desired")
         entry["hook"] = item["hook"] if active.empty?
-        unchanged = item.fetch("files").slice(*active)
-        entry["files"] = unchanged.merge(pending).merge(entry.fetch("files"))
+        carried = item.fetch("files").slice(*(desired - verified))
+        entry["files"] = carried.merge(pending).merge(entry.fetch("files"))
       end
       result.delete_if { |_, item| item.fetch("files").empty? }
       @ledger.write(result)
@@ -36,7 +38,11 @@ module ManagedPruning
       end
     end
 
-    def retire(id, item, stale, current, conflicts)
+    def replaced?(path, verified)
+      verified.any? { |replacement| path.start_with?(replacement + "/") || replacement.start_with?(path + "/") }
+    end
+
+    def retire(id, item, stale, conflicts)
       files = item.fetch("files").slice(*stale)
       modified = stale.reject do |path|
         actual = @home.fingerprint(path)
@@ -47,9 +53,7 @@ module ManagedPruning
         warn "Preserving modified retired files: #{modified.join(", ")}"
         return files
       end
-      active = current.fetch(id, {"desired" => []})
-      retired = active.fetch("desired").empty?
-      @hooks.run(item["hook"]) if retired && !stale.empty?
+      @hooks.run(item["hook"]) if !stale.empty? && !@active_hooks.include?(item["hook"])
       stale.each { |path| @home.remove(path, files.fetch(path)) }
       {}
     rescue SystemCallError, RuntimeError => error
