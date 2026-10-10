@@ -48,8 +48,7 @@ class LinkHerdrPluginsStepTest < StepTestCase
     @fake_system.operations.clear
     step.run
     refute_executed("herdr plugin link /tmp/home/local-plugin --enabled")
-    @fake_system.stub_file_content("/tmp/home/local-plugin/herdr-plugin.toml", "id = 'test.plugin'
-version = '0.2.0'")
+    @fake_system.stub_file_content("/tmp/home/local-plugin/herdr-plugin.toml", "id = 'test.plugin'\nversion = '0.2.0'")
     assert_should_run
     step.run
     assert_complete
