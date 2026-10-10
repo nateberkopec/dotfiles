@@ -9,6 +9,10 @@ on:
   schedule:
     - cron: "17 18 * * *"
   workflow_dispatch:
+    inputs:
+      golden_depth:
+        description: How many commits behind main to build the golden images
+        default: "5"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
@@ -119,7 +123,7 @@ jobs:
   golden:
     needs: golden-lag
     if: >-
-      always() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' ||
+      !cancelled() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'push' && needs.golden-lag.outputs.users != '[]'))
     strategy:
       fail-fast: false
@@ -134,8 +138,12 @@ jobs:
       with:
         fetch-depth: 6
         persist-credentials: false
-    - name: Check out main~5
-      run: git worktree add --detach "$RUNNER_TEMP/golden" HEAD~5
+    - name: Check out the golden commit
+      env:
+        DEPTH: ${{ inputs.golden_depth || '5' }}
+      run: |
+        [[ "$DEPTH" =~ ^[0-5]$ ]] || { echo "golden_depth must be 0-5" >&2; exit 1; }
+        git worktree add --detach "$RUNNER_TEMP/golden" "HEAD~$DEPTH"
     - name: Converge
       run: bash tools/e2e/converge.sh "$RUNNER_TEMP/golden" "$RUNNER_TEMP/e2e-logs"
     - name: Check
@@ -144,7 +152,7 @@ jobs:
       env:
         GH_TOKEN: ${{ github.token }}
         TAG: e2e-golden-${{ matrix.user }}
-      run: bash tools/e2e/tag_golden.sh "$(git rev-parse HEAD~5)"
+      run: bash tools/e2e/tag_golden.sh "$(git -C "$RUNNER_TEMP/golden" rev-parse HEAD)"
     - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
       if: always()
       with:
