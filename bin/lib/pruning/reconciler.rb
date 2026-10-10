@@ -15,12 +15,12 @@ module ManagedPruning
       result = current.transform_values { |item| item.except("desired") }
       conflicts = []
       previous.each do |id, item|
-        stale = (item.fetch("files").keys - desired).reject { |path| replaced?(path, verified) }
+        carried = carried_files(item, desired - verified)
+        stale = (item.fetch("files").keys - desired - carried.keys).reject { |path| replaced?(path, verified) }
         pending = retire(id, item, stale, conflicts)
         entry = result[id] ||= {"files" => {}, "hook" => item["hook"]}
         active = current.fetch(id, {"desired" => []}).fetch("desired")
         entry["hook"] = item["hook"] if active.empty?
-        carried = item.fetch("files").slice(*(desired - verified))
         entry["files"] = carried.merge(pending).merge(entry.fetch("files"))
       end
       result.delete_if { |_, item| item.fetch("files").empty? }
@@ -38,8 +38,16 @@ module ManagedPruning
       end
     end
 
+    def carried_files(item, unverified)
+      item.fetch("files").select do |path, _|
+        unverified.any? { |target| path == target || @home.same_entry?(path, target) }
+      end
+    end
+
     def replaced?(path, verified)
-      verified.any? { |replacement| path.start_with?(replacement + "/") || replacement.start_with?(path + "/") }
+      verified.any? do |replacement|
+        path.start_with?(replacement + "/") || replacement.start_with?(path + "/") || @home.same_entry?(path, replacement)
+      end
     end
 
     def retire(id, item, stale, conflicts)

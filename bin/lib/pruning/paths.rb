@@ -34,6 +34,22 @@ module ManagedPruning
       nil
     end
 
+    def same_entry?(left, right)
+      left_path = resolve(left)
+      right_path = resolve(right)
+      left_stat = File.lstat(left_path)
+      right_stat = File.lstat(right_path)
+      return false unless [left_stat.dev, left_stat.ino] == [right_stat.dev, right_stat.ino]
+      return false unless File.identical?(File.dirname(left_path), File.dirname(right_path))
+
+      left_name = File.basename(left_path)
+      right_name = File.basename(right_path)
+      names = Dir.children(File.dirname(left_path))
+      left_name == right_name || !(names.include?(left_name) && names.include?(right_name))
+    rescue Errno::ENOENT, Errno::ENOTDIR, UnsafeParent
+      false
+    end
+
     def remove(relative, expected)
       actual = fingerprint(relative)
       raise "Retired file changed during cleanup: #{relative}" unless actual.nil? || actual == expected
