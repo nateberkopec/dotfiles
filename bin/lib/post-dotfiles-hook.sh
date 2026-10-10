@@ -9,9 +9,6 @@ set -e
 
 bash "$HOME/.dotfiles/bin/lib/sync-git-hooks.sh"
 
-# Keep the browser revision aligned with mise's pinned Playwright CLI. The
-# installer is a no-op when the matching browser is already cached.
-mise exec -- playwright install chromium-headless-shell
 ruby "$HOME/.dotfiles/bin/lib/install-meridian-pi-scrub.rb"
 
 [ "$(uname -s)" = "Darwin" ] || exit 0
