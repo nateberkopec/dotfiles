@@ -44,17 +44,15 @@ function harness(create) {
 		sendUserMessage: (...args) => sent.push(args),
 	};
 
-	return { ctx, entries, sent, notices, chat: new SideChat(pi, "ysk", create) };
+	return { ctx, entries, sent, notices, chat: new SideChat(pi, "btw", create) };
 }
 
 const spec = {
 	id: "issue",
-	title: "YSK · Luna",
+	title: "BTW",
 	model: { provider: "openai", id: "gpt-6-luna" },
 	seed: [{ role: "user", content: "Original snapshot", timestamp: 0 }],
 	tools: [],
-	strict: true,
-	opening: "Warning",
 };
 
 test("opening without a question makes no request; only explicit handoff reaches main context", async () => {
