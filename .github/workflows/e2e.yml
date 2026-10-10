@@ -92,7 +92,8 @@ jobs:
         FRESH: ${{ needs.fresh.result }}
       run: |
         [ "$FRESH" = success ] && exit 0
-        conclusion="$(gh run list -R "$GITHUB_REPOSITORY" --workflow e2e.yml --event schedule --branch main --status completed -L 1 --json conclusion --jq '.[0].conclusion')"
+        conclusion="$(gh run list -R "$GITHUB_REPOSITORY" --workflow e2e.yml --branch main --status completed -L 50 --json event,conclusion \
+          --jq 'map(select(.event == "schedule" or .event == "workflow_dispatch")) | .[0].conclusion')"
         echo "Latest nightly: ${conclusion:-none}"
         [ "$conclusion" = success ]
 
