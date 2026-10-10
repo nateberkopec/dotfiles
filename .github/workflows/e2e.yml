@@ -1,0 +1,152 @@
+name: E2E
+
+on:
+  pull_request:
+    branches: [ main ]
+    types: [ opened, synchronize, reopened, labeled ]
+  push:
+    branches: [ main ]
+  schedule:
+    - cron: "17 18 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  upgrade:
+    if: github.event_name == 'pull_request'
+    strategy:
+      fail-fast: false
+      matrix:
+        user: [ admin, nonadmin ]
+    runs-on: dotfiles-e2e-${{ matrix.user }}
+    timeout-minutes: 60
+    steps:
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      with:
+        persist-credentials: false
+    - name: Converge
+      run: bash tools/e2e/converge.sh "$GITHUB_WORKSPACE" "$RUNNER_TEMP/e2e-logs"
+    - name: Check
+      run: bash tools/e2e/check.sh "$RUNNER_TEMP/e2e-logs" "$GITHUB_WORKSPACE/test/e2e"
+    - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      if: always()
+      with:
+        name: upgrade-${{ matrix.user }}-logs
+        path: ${{ runner.temp }}/e2e-logs
+
+  duration:
+    needs: upgrade
+    if: always() && github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+    steps:
+    - name: Fail when an upgrade took longer than 5 minutes
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/attempts/$GITHUB_RUN_ATTEMPT/jobs" \
+          --jq '.jobs[] | select(.name | startswith("upgrade")) | "\(.name) \((.completed_at | fromdate) - (.started_at | fromdate))"' \
+          | awk '{ print; if ($NF > 300) slow = 1 } END { exit slow }'
+
+  fresh:
+    if: >-
+      github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'e2e:fresh'))
+    strategy:
+      fail-fast: false
+      matrix:
+        user: [ admin, nonadmin ]
+    runs-on: dotfiles-e2e-fresh-${{ matrix.user }}
+    timeout-minutes: 90
+    steps:
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      with:
+        persist-credentials: false
+    - name: Converge
+      run: bash tools/e2e/converge.sh "$GITHUB_WORKSPACE" "$RUNNER_TEMP/e2e-logs"
+    - name: Check
+      run: bash tools/e2e/check.sh "$RUNNER_TEMP/e2e-logs" "$GITHUB_WORKSPACE/test/e2e"
+    - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      if: always()
+      with:
+        name: fresh-${{ matrix.user }}-logs
+        path: ${{ runner.temp }}/e2e-logs
+
+  nightly-green:
+    needs: fresh
+    if: always() && github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+    steps:
+    - name: Require a green nightly or a green fresh run on this PR
+      env:
+        GH_TOKEN: ${{ github.token }}
+        FRESH: ${{ needs.fresh.result }}
+      run: |
+        [ "$FRESH" = success ] && exit 0
+        conclusion="$(gh run list -R "$GITHUB_REPOSITORY" --workflow e2e.yml --event schedule --branch main --status completed -L 1 --json conclusion --jq '.[0].conclusion')"
+        echo "Latest nightly: ${conclusion:-none}"
+        [ "$conclusion" = success ]
+
+  golden-lag:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    outputs:
+      users: ${{ steps.lag.outputs.users }}
+    steps:
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      with:
+        fetch-depth: 0
+        persist-credentials: false
+    - id: lag
+      run: |
+        users=()
+        for user in admin nonadmin; do
+          lag="$(git rev-list --count "e2e-golden-$user..HEAD" 2>/dev/null || echo 999)"
+          echo "$user golden is $lag commits behind main"
+          [ "$lag" -ge 10 ] && users+=("\"$user\"")
+        done
+        echo "users=[$(IFS=,; echo "${users[*]}")]" >> "$GITHUB_OUTPUT"
+
+  golden:
+    needs: golden-lag
+    if: >-
+      always() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'push' && needs.golden-lag.outputs.users != '[]'))
+    strategy:
+      fail-fast: false
+      matrix:
+        user: ${{ github.event_name == 'push' && fromJSON(needs.golden-lag.outputs.users) || fromJSON('["admin","nonadmin"]') }}
+    runs-on: dotfiles-e2e-${{ github.event_name == 'push' && 'golden-refresh' || 'golden-build' }}-${{ matrix.user }}
+    timeout-minutes: 90
+    permissions:
+      contents: write
+    steps:
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      with:
+        fetch-depth: 6
+        persist-credentials: false
+    - name: Check out main~5
+      run: git worktree add --detach "$RUNNER_TEMP/golden" HEAD~5
+    - name: Converge
+      run: bash tools/e2e/converge.sh "$RUNNER_TEMP/golden" "$RUNNER_TEMP/e2e-logs"
+    - name: Check
+      run: bash tools/e2e/check.sh "$RUNNER_TEMP/e2e-logs" "$GITHUB_WORKSPACE/test/e2e"
+    - name: Record the golden commit
+      env:
+        GH_TOKEN: ${{ github.token }}
+        TAG: e2e-golden-${{ matrix.user }}
+      run: bash tools/e2e/tag_golden.sh "$(git rev-parse HEAD~5)"
+    - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      if: always()
+      with:
+        name: golden-${{ matrix.user }}-logs
+        path: ${{ runner.temp }}/e2e-logs
