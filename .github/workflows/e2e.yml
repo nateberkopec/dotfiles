@@ -123,7 +123,7 @@ jobs:
   golden:
     needs: golden-lag
     if: >-
-      always() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' ||
+      !cancelled() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'push' && needs.golden-lag.outputs.users != '[]'))
     strategy:
       fail-fast: false
