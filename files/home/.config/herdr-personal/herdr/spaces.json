@@ -2,6 +2,9 @@
   "spaces": [
     { "label": "GTD", "cwd": "~/Documents/Code.nosync/personal/gtd" },
     { "label": "Dotfiles", "cwd": "~/.dotfiles" },
-    { "label": "General", "cwd": "~" }
+    { "label": "General", "cwd": "~" },
+    { "label": "Try", "cwd": "~/src/tries" },
+    { "label": "Personal", "cwd": "~/Documents/Code.nosync/personal" },
+    { "label": "Upstream", "cwd": "~/Documents/Code.nosync/upstream" }
   ]
 }

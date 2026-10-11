@@ -12,6 +12,7 @@ standard_folders:
 - Documents/Code.nosync/business
 - Documents/Code.nosync/personal
 - Documents/Code.nosync/upstream
+- src/tries
 debian_desktop_apps:
   - name: 1password
     package: 1password

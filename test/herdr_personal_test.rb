@@ -9,7 +9,7 @@ class HerdrPersonalTest < Minitest::Test
     @home = Dir.mktmpdir("herdr-personal-")
     @source = File.expand_path("../files/home", __dir__)
     @launcher = File.join(@source, ".local/share/dotfiles/herdr-launch.rb")
-    FileUtils.mkdir_p([File.join(@home, ".config/herdr-personal/herdr"), File.join(@home, ".dotfiles"), File.join(@home, "Documents/Code.nosync/personal/gtd")])
+    FileUtils.mkdir_p([File.join(@home, ".config/herdr-personal/herdr"), File.join(@home, ".dotfiles"), File.join(@home, "Documents/Code.nosync/personal/gtd"), File.join(@home, "src/tries"), File.join(@home, "Documents/Code.nosync/upstream")])
     FileUtils.cp(File.join(@source, ".config/herdr-personal/herdr/spaces.json"), File.join(@home, ".config/herdr-personal/herdr/spaces.json"))
     FileUtils.mkdir_p(File.join(@home, "bin"))
     FileUtils.cp(File.expand_path("fixtures/herdr_personal/herdr", __dir__), File.join(@home, "bin/herdr"))
@@ -33,8 +33,8 @@ class HerdrPersonalTest < Minitest::Test
     stdout, stderr, status = run_launcher
     assert status.success?, stderr
     assert_includes stdout, "attached personal"
-    assert_equal ["GTD", "Dotfiles", "General"], spaces.map { |space| space.fetch("label") }
-    assert_equal ["#{@home}/Documents/Code.nosync/personal/gtd", "#{@home}/.dotfiles", @home], spaces.map { |space| space.fetch("cwd") }
+    assert_equal ["GTD", "Dotfiles", "General", "Try", "Personal", "Upstream"], spaces.map { |space| space.fetch("label") }
+    assert_equal ["#{@home}/Documents/Code.nosync/personal/gtd", "#{@home}/.dotfiles", @home, "#{@home}/src/tries", "#{@home}/Documents/Code.nosync/personal", "#{@home}/Documents/Code.nosync/upstream"], spaces.map { |space| space.fetch("cwd") }
 
     existing = spaces.map { |space| space.merge("running_pane" => "keep me") }
     existing << {"label" => "Extra", "running_pane" => "keep me too"}
