@@ -157,6 +157,7 @@ sudo /usr/local/libexec/dotfiles-spotlight-controller audit
 "~" = { source = "~/.dotfiles/files/home", mode = "copy", exclude = [".git-hooks", ".agents/skills", ".claude/skills", ".claude/CLAUDE.md", ".codex/skills", ".codex/AGENTS.md"] }
 "~/.config/fish/conf.d/platform.fish" = { source = "~/.dotfiles/files/templates/platform.fish", mode = "template" }
 "~/.config/ghostty/config.platform" = { source = "~/.dotfiles/files/templates/ghostty-config.platform", mode = "template" }
+"~/.pi/agent/mcp-adapter.json" = { source = "~/.dotfiles/files/templates/mcp-adapter.json.tera", mode = "template" }
 "~/.local/bin/dotf" = { source = "~/.dotfiles/bin/dotf", mode = "symlink" }
 "~/.local/share/yknotify/yknotify.sh" = { source = "~/.dotfiles/files/yknotify/yknotify.sh", mode = "copy" }
 "~/.local/share/yknotify/yubikey-icon.png" = { source = "~/.dotfiles/files/yknotify/yubikey-icon.png", mode = "copy" }
