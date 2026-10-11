@@ -1,4 +1,11 @@
 ---
+agent_resources:
+  .agents/skills: skills
+  .claude/skills: skills
+  .codex/skills: skills
+  .pi/agent/skills/claude: skills
+  .pi/agent/agents/reviewer.md: agents/reviewer.md
+  .agents/researcher.md: agents/researcher.md
 standard_folders:
 - Documents/Inbox
 - Documents/Code.nosync

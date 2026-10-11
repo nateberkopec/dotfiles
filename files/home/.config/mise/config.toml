@@ -154,17 +154,13 @@ sudo /usr/local/libexec/dotfiles-spotlight-controller audit
 # through mise's template engine; explicit entries create command/config links.
 # Git hooks are synced separately so an externally managed directory can be skipped.
 [dotfiles]
-"~" = { source = "~/.dotfiles/files/home", mode = "copy", exclude = [".git-hooks", ".agents/skills", ".claude/skills", ".claude/CLAUDE.md", ".codex/skills", ".codex/AGENTS.md"] }
+"~" = { source = "~/.dotfiles/files/home", mode = "copy", exclude = [".git-hooks", ".claude/CLAUDE.md", ".codex/AGENTS.md"] }
 "~/.config/fish/conf.d/platform.fish" = { source = "~/.dotfiles/files/templates/platform.fish", mode = "template" }
 "~/.config/ghostty/config.platform" = { source = "~/.dotfiles/files/templates/ghostty-config.platform", mode = "template" }
 "~/.pi/agent/mcp-adapter.json" = { source = "~/.dotfiles/files/templates/mcp-adapter.json.tera", mode = "template" }
 "~/.local/bin/dotf" = { source = "~/.dotfiles/bin/dotf", mode = "symlink" }
 "~/.local/share/yknotify/yknotify.sh" = { source = "~/.dotfiles/files/yknotify/yknotify.sh", mode = "copy" }
 "~/.local/share/yknotify/yubikey-icon.png" = { source = "~/.dotfiles/files/yknotify/yubikey-icon.png", mode = "copy" }
-"~/.agents/skills" = { source = "~/.dotfiles/files/home/.agents/skills", mode = "symlink" }
-"~/.claude/skills" = { source = "~/.dotfiles/files/home/.agents/skills", mode = "symlink" }
-"~/.codex/skills" = { source = "~/.dotfiles/files/home/.agents/skills", mode = "symlink" }
-"~/.pi/agent/skills/claude" = { source = "~/.dotfiles/files/home/.agents/skills", mode = "symlink" }
 "~/.claude/CLAUDE.md" = { source = "~/.dotfiles/files/home/.agents/AGENTS.md", mode = "symlink" }
 "~/.codex/AGENTS.md" = { source = "~/.dotfiles/files/home/.agents/AGENTS.md", mode = "symlink" }
 "~/.pi/agent/AGENTS.md" = { source = "~/.dotfiles/files/home/.agents/AGENTS.md", mode = "symlink" }

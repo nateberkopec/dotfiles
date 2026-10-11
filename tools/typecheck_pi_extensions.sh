@@ -67,20 +67,7 @@ cat >"$config" <<JSON
     "target": "ES2023"
   },
   "files": [
-    "$PWD/.pi/extensions/dotf_run/index.ts",
-    "$PWD/files/home/.pi/agent/extensions/caffeinate.ts",
-    "$PWD/files/home/.pi/agent/extensions/goal.ts",
-    "$PWD/files/home/.pi/agent/extensions/answer.ts",
-    "$PWD/files/home/.pi/agent/extensions/notify.ts",
-    "$PWD/files/home/.pi/agent/extensions/window-fork.ts",
-    "$PWD/files/home/.pi/agent/extensions/meridian.ts",
-    "$PWD/files/home/.pi/agent/extensions/conversation_title.ts",
-    "$PWD/files/home/.pi/agent/extensions/datasafe/index.ts",
-    "$PWD/files/home/.pi/agent/extensions/toksec/index.ts",
-    "$PWD/files/home/.pi/agent/extensions/executor-watch/index.ts",
-    "$PWD/files/home/.pi/agent/extensions/herdr-status/index.ts",
-    "$PWD/files/home/.pi/agent/extensions/btw/index.ts",
-    "$PWD/test/support/btw_provider.ts"
+    "$PWD/.pi/extensions/dotf_run/index.ts"
   ]
 }
 JSON
