@@ -57,7 +57,7 @@ class Dotfiles::Step::VSCodeConfigurationStep < Dotfiles::Step
     source = vscode_extension_sources[extension_id]
     return install_marketplace_extension(extension_id) unless source
 
-    install_github_vsix_extension(extension_id, source)
+    install_github_vsix_extension(source)
   end
 
   def install_marketplace_extension(extension_id)
@@ -65,18 +65,18 @@ class Dotfiles::Step::VSCodeConfigurationStep < Dotfiles::Step
     execute_install(command("code", "--install-extension", extension_id))
   end
 
-  def install_github_vsix_extension(extension_id, source)
-    return record_install_error("gh CLI is required to install #{extension_id} from GitHub release assets") unless command_exists?("gh")
-
-    vsix_path = download_github_vsix(extension_id, source)
+  def install_github_vsix_extension(source)
+    vsix_path = download_github_vsix(source)
     execute_install(command("code", "--install-extension", vsix_path)) if vsix_path
   end
 
-  def download_github_vsix(extension_id, source)
+  def download_github_vsix(source)
     @system.mkdir_p(vsix_cache_dir)
-    download_command = command("gh", "release", "download", source.fetch("tag"), "-R", source.fetch("github"), "-p", source.fetch("asset"), "-D", vsix_cache_dir, "--clobber")
+    vsix_path = File.join(vsix_cache_dir, source.fetch("asset"))
+    url = "https://github.com/#{source.fetch("github")}/releases/download/#{source.fetch("tag")}/#{source.fetch("asset")}"
+    download_command = command("curl", "-fsSL", "--retry", "3", "-o", vsix_path, url)
     output, status = execute(download_command)
-    return File.join(vsix_cache_dir, source.fetch("asset")) if status == 0
+    return vsix_path if status == 0
 
     record_install_error(format_command_error(download_command, status, output))
     nil

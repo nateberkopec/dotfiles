@@ -33,12 +33,11 @@ class VSCodeConfigurationStepTest < Minitest::Test
     stub_extension_source
     @fake_system.stub_file_content(@extensions_file, "nateberkopec.simple-yaml-tools\n")
     stub_installed_extensions
-    @fake_system.stub_command("command -v gh >/dev/null 2>&1", "", exit_status: 0)
 
     @step.run
 
     assert @fake_system.received_operation?(:mkdir_p, "/tmp/dotfiles-vscode-extensions")
-    assert @fake_system.received_operation?(:execute, "gh release download v0.0.1 -R nateberkopec/simple-yaml-tools -p simple-yaml-tools-0.0.1.vsix -D /tmp/dotfiles-vscode-extensions --clobber", quiet: true)
+    assert @fake_system.received_operation?(:execute, "curl -fsSL --retry 3 -o /tmp/dotfiles-vscode-extensions/simple-yaml-tools-0.0.1.vsix https://github.com/nateberkopec/simple-yaml-tools/releases/download/v0.0.1/simple-yaml-tools-0.0.1.vsix", quiet: true)
     assert @fake_system.received_operation?(:execute, "code --install-extension /tmp/dotfiles-vscode-extensions/simple-yaml-tools-0.0.1.vsix", quiet: true)
   end
 
@@ -49,11 +48,11 @@ class VSCodeConfigurationStepTest < Minitest::Test
 
     @step.run
 
-    refute @fake_system.received_operation?(:execute, "gh release download v0.0.1 -R nateberkopec/simple-yaml-tools -p simple-yaml-tools-0.0.1.vsix -D /tmp/dotfiles-vscode-extensions --clobber", quiet: true)
+    refute @fake_system.received_operation?(:execute, "curl -fsSL --retry 3 -o /tmp/dotfiles-vscode-extensions/simple-yaml-tools-0.0.1.vsix https://github.com/nateberkopec/simple-yaml-tools/releases/download/v0.0.1/simple-yaml-tools-0.0.1.vsix", quiet: true)
     refute @fake_system.received_operation?(:execute, "code --install-extension /tmp/dotfiles-vscode-extensions/simple-yaml-tools-0.0.1.vsix", quiet: true)
   end
 
-  def test_run_reports_missing_gh_for_github_release_assets
+  def test_run_downloads_github_release_assets_without_gh
     stub_extension_source
     @fake_system.stub_file_content(@extensions_file, "nateberkopec.simple-yaml-tools\n")
     stub_installed_extensions
@@ -61,20 +60,19 @@ class VSCodeConfigurationStepTest < Minitest::Test
 
     @step.run
 
-    assert_includes @step.errors, "gh CLI is required to install nateberkopec.simple-yaml-tools from GitHub release assets"
-    refute @fake_system.received_operation?(:execute, "gh release download v0.0.1 -R nateberkopec/simple-yaml-tools -p simple-yaml-tools-0.0.1.vsix -D /tmp/dotfiles-vscode-extensions --clobber", quiet: true)
+    assert_empty @step.errors
+    assert @fake_system.received_operation?(:execute, "curl -fsSL --retry 3 -o /tmp/dotfiles-vscode-extensions/simple-yaml-tools-0.0.1.vsix https://github.com/nateberkopec/simple-yaml-tools/releases/download/v0.0.1/simple-yaml-tools-0.0.1.vsix", quiet: true)
   end
 
   def test_run_reports_github_download_failures
     stub_extension_source
     @fake_system.stub_file_content(@extensions_file, "nateberkopec.simple-yaml-tools\n")
     stub_installed_extensions
-    @fake_system.stub_command("command -v gh >/dev/null 2>&1", "", exit_status: 0)
-    @fake_system.stub_command("gh release download v0.0.1 -R nateberkopec/simple-yaml-tools -p simple-yaml-tools-0.0.1.vsix -D /tmp/dotfiles-vscode-extensions --clobber", "not found", exit_status: 1)
+    @fake_system.stub_command("curl -fsSL --retry 3 -o /tmp/dotfiles-vscode-extensions/simple-yaml-tools-0.0.1.vsix https://github.com/nateberkopec/simple-yaml-tools/releases/download/v0.0.1/simple-yaml-tools-0.0.1.vsix", "not found", exit_status: 1)
 
     @step.run
 
-    assert_includes @step.errors, "gh release download v0.0.1 -R nateberkopec/simple-yaml-tools -p simple-yaml-tools-0.0.1.vsix -D /tmp/dotfiles-vscode-extensions --clobber failed (status 1): not found"
+    assert_includes @step.errors, "curl -fsSL --retry 3 -o /tmp/dotfiles-vscode-extensions/simple-yaml-tools-0.0.1.vsix https://github.com/nateberkopec/simple-yaml-tools/releases/download/v0.0.1/simple-yaml-tools-0.0.1.vsix failed (status 1): not found"
     refute @fake_system.received_operation?(:execute, "code --install-extension /tmp/dotfiles-vscode-extensions/simple-yaml-tools-0.0.1.vsix", quiet: true)
   end
 
