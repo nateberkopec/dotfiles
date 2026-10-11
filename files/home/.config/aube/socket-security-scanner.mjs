@@ -38,15 +38,35 @@ function socketSettingsPath() {
 	return `${home}/.local/share/socket/settings`;
 }
 
+const retryDelaysMs = [500, 2000, 5000];
+
+function retryable(response) {
+	return response.status === 429 || response.status >= 500;
+}
+
+async function fetchWithRetry(url, options) {
+	for (const delayMs of retryDelaysMs) {
+		try {
+			const response = await fetch(url, options);
+
+			if (!retryable(response)) return response;
+		} catch {}
+
+		await new Promise((resolve) => setTimeout(resolve, delayMs));
+	}
+
+	return fetch(url, options);
+}
+
 async function fetchUnauthenticated(purls) {
 	const urls = purls.map((purl) => `https://firewall-api.socket.dev/purl/${encodeURIComponent(purl)}`);
-	const responses = await Promise.all(urls.map((url) => fetch(url, { headers: { "User-Agent": userAgent } })));
+	const responses = await Promise.all(urls.map((url) => fetchWithRetry(url, { headers: { "User-Agent": userAgent } })));
 
 	return parseResponses(responses);
 }
 
 async function fetchAuthenticated(purls, apiKey) {
-	const response = await fetch("https://api.socket.dev/v0/purl?actions=error,warn", {
+	const response = await fetchWithRetry("https://api.socket.dev/v0/purl?actions=error,warn", {
 		method: "POST",
 		headers: {
 			Authorization: `Bearer ${apiKey}`,
