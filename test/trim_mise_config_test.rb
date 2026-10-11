@@ -32,6 +32,9 @@ class TrimMiseConfigTest < Minitest::Test
         [bootstrap.macos.launchd.agents.meridian]
         program = "meridian"
 
+        [bootstrap.macos.launchd.agents.cua-driver]
+        program = "cua-driver"
+
         [settings]
         experimental = true
       TOML

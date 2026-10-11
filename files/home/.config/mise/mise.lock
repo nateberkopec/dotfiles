@@ -317,6 +317,11 @@ backend = "github:trycua/cua"
 asset_pattern = "cua-driver-rs-{version}-darwin-universal.tar.gz"
 version_prefix = "cua-driver-rs-v"
 
+[tools."github:trycua/cua"."platforms.linux-x64"]
+checksum = "sha256:2d0ade531c07b4d16e8078844fe1b63a0dfa0ee19677c9dcc079b4d3460ab387"
+url = "https://github.com/trycua/cua/releases/download/cua-driver-rs-v0.34.0/cua-driver-rs-0.34.0-darwin-universal.tar.gz"
+url_api = "https://api.github.com/repos/trycua/cua/releases/assets/613769611"
+
 [tools."github:trycua/cua"."platforms.macos-arm64"]
 checksum = "sha256:2d0ade531c07b4d16e8078844fe1b63a0dfa0ee19677c9dcc079b4d3460ab387"
 url = "https://github.com/trycua/cua/releases/download/cua-driver-rs-v0.34.0/cua-driver-rs-0.34.0-darwin-universal.tar.gz"
