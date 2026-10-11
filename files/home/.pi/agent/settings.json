@@ -6,7 +6,7 @@
   "hideThinkingBlock": false,
   "packages": [
     {
-      "source": "git:github.com/nateberkopec/agent-stuff@e1f770ca73d9a2b031797513bcdced7c14a5010c",
+      "source": "git:github.com/nateberkopec/agent-stuff@079478a14883061dd3576b81a8076d41424e16f9",
       "skills": []
     },
     "npm:pi-mcp-adapter@4.0.0",
