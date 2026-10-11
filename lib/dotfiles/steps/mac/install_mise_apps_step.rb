@@ -1,6 +1,6 @@
 class Dotfiles::Step::InstallMiseAppsStep < Dotfiles::Step
   DESCRIPTION = "Installs mise-managed macOS apps into Applications.".freeze
-  APPS = {"Tinycast" => "github:abue-ammar/tinycast", "CodexBar" => "github:steipete/CodexBar", "OrbStack" => "aqua:dotfiles/orbstack"}.freeze
+  APPS = {"Tinycast" => "github:abue-ammar/tinycast", "CodexBar" => "github:steipete/CodexBar", "OrbStack" => "aqua:dotfiles/orbstack", "CuaDriver" => "github:trycua/cua"}.freeze
 
   macos_only
 
@@ -11,10 +11,11 @@ class Dotfiles::Step::InstallMiseAppsStep < Dotfiles::Step
   def run
     APPS.each do |name, tool|
       destination = app_destination(name)
-      unless app_bundle?(destination)
+      unless current_app?(name, destination)
         next unless install_release(name, tool, destination)
 
         add_notice(title: "OrbStack setup", message: "Open OrbStack once to finish setup; it installs its CLI and keeps itself updated.") if name == "OrbStack"
+        add_notice(title: "Cua Driver setup", message: "Grant CuaDriver Accessibility and Screen & System Audio Recording in System Settings, then quit and reopen it. Run cua-driver permissions status to check access.") if name == "CuaDriver"
       end
       execute(command("/usr/bin/xattr", "-dr", "com.apple.quarantine", destination))
     end
@@ -26,7 +27,7 @@ class Dotfiles::Step::InstallMiseAppsStep < Dotfiles::Step
 
     APPS.each_key do |name|
       destination = app_destination(name)
-      if app_bundle?(destination)
+      if current_app?(name, destination)
         add_error("#{name}.app is quarantined") if quarantined?(destination)
       else
         add_error("#{name}.app is not installed in Applications")
@@ -61,6 +62,14 @@ class Dotfiles::Step::InstallMiseAppsStep < Dotfiles::Step
     install_dir, status = execute(command("mise", "--cd", @home, "where", tool))
     path = File.join(install_dir.strip, "#{name}.app")
     (status == 0 && app_bundle?(path)) ? path : ""
+  end
+
+  def current_app?(name, destination)
+    return false unless app_bundle?(destination)
+    return true unless name == "CuaDriver"
+
+    source = app_source(name, APPS.fetch(name))
+    !source.empty? && @system.read_file(File.join(source, "Contents", "Info.plist")) == @system.read_file(File.join(destination, "Contents", "Info.plist"))
   end
 
   def app_bundle?(path)
