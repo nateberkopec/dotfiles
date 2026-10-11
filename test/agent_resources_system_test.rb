@@ -31,6 +31,20 @@ class AgentResourcesSystemTest < Minitest::Test
     refute_match(/Failed to load extension|collision|duplicate skill/i, output)
   end
 
+  def test_older_unchanged_deployed_versions_retire_using_the_pruning_ledger
+    seed_legacy
+    relative = ".pi/agent/extensions/notify.ts"
+    legacy = File.join(@home, relative)
+    File.write(legacy, "previous managed version")
+    data = JSON.parse(File.read(ledger_path))
+    data.fetch("items").fetch("old-resources").fetch("files").fetch(relative)["sha256"] = Digest::SHA256.file(legacy).hexdigest
+    File.write(ledger_path, JSON.generate(data))
+    output, status = link_resources
+    assert status.success?, output
+    refute File.exist?(legacy)
+    assert File.symlink?(File.join(@home, ".pi/agent/agents/reviewer.md"))
+  end
+
   def test_modified_legacy_resources_are_preserved_and_stop_the_transfer
     seed_legacy
     legacy = File.join(@home, ".pi/agent/extensions/notify.ts")

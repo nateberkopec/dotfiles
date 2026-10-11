@@ -17,9 +17,12 @@ class AgentResourceLinks
   def run
     validate_sources
     validate_destinations
-    retire_copies
     ledger = ManagedPruning::Ledger.new(ManagedPruning::Paths.new(@home), ManagedPruning::Hooks.new)
-    ledger.synchronize { transfer_links(ledger) }
+    ledger.synchronize do
+      items = ledger.read
+      retire_copies(items)
+      transfer_links(ledger, items)
+    end
   end
 
   private
@@ -40,12 +43,12 @@ class AgentResourceLinks
     end
   end
 
-  def retire_copies
+  def retire_copies(items)
     existing = @baselines.keys.select do |relative|
       destination = File.join(@home, relative)
       File.exist?(destination) && !package_link?(relative, destination)
     end
-    modified = existing.reject { |relative| unchanged?(relative) }
+    modified = existing.reject { |relative| unchanged?(relative, items) }
     raise "Preserving modified extracted resources: #{modified.join(", ")}" unless modified.empty?
 
     existing.each { |relative| File.unlink(File.join(@home, relative)) }
@@ -56,13 +59,16 @@ class AgentResourceLinks
     source && File.symlink?(destination) && File.realpath(destination) == File.realpath(File.join(@package, source))
   end
 
-  def unchanged?(relative)
+  def unchanged?(relative, items)
     file = File.join(@home, relative)
-    !File.symlink?(file) && File.file?(file) && Digest::SHA256.file(file).hexdigest == @baselines.fetch(relative)
+    return false if File.symlink?(file) || !File.file?(file)
+
+    digest = Digest::SHA256.file(file).hexdigest
+    recorded = items.values.filter_map { |item| item.fetch("files")[relative] }
+    digest == @baselines.fetch(relative) || recorded.any? { |entry| entry["type"] == "file" && entry["sha256"] == digest }
   end
 
-  def transfer_links(ledger)
-    items = ledger.read
+  def transfer_links(ledger, items)
     @links.each do |relative, source|
       destination = File.join(@home, relative)
       FileUtils.mkdir_p(File.dirname(destination))
