@@ -19,7 +19,7 @@ unless File.file?(index) && File.file?(scrub) && Digest::SHA256.file(index).hexd
   FileUtils.mkdir_p(root)
   Dir.mktmpdir("pi-scrub-", root) do |temp|
     archive = File.join(temp, "plugin.tgz")
-    system("curl", "--fail", "--location", "--silent", "--show-error", "--output", archive, RELEASE) || abort("pi-scrub download failed")
+    system("curl", "--fail", "--location", "--silent", "--show-error", "--retry", "3", "--retry-all-errors", "--output", archive, RELEASE) || abort("pi-scrub download failed")
     abort("pi-scrub release checksum mismatch") unless Digest::SHA256.file(archive).hexdigest == SHA256
 
     unpacked = File.join(temp, "unpacked")

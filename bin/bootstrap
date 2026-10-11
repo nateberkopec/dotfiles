@@ -75,7 +75,7 @@ configure_homebrew_shellenv() {
 
 install_homebrew() {
     local install_script
-    install_script="$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    install_script="$(curl -fsSL --retry 3 --retry-all-errors https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
     if should_install_homebrew_noninteractively; then
         NONINTERACTIVE=1 /bin/bash -c "$install_script"
@@ -176,7 +176,7 @@ install_self_managed_mise() {
     version="$(mise_install_version)"
 
     debug "Installing mise ${version} to ${mise_bin}..."
-    curl -fsSL https://mise.run | MISE_VERSION="$version" MISE_INSTALL_PATH="$mise_bin" sh
+    curl -fsSL --retry 3 --retry-all-errors https://mise.run | MISE_VERSION="$version" MISE_INSTALL_PATH="$mise_bin" sh
 }
 
 bootstrap_mise() {
