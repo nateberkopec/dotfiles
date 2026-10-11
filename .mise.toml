@@ -21,6 +21,11 @@ sources = ["package.json", "aube-lock.yaml"]
 outputs = ["node_modules/.aube-state"]
 run = "aube install --frozen-lockfile --ignore-scripts"
 
+[deps.agent-stuff]
+sources = ["files/home/.pi/agent/settings.json", "tools/install-agent-stuff.sh"]
+outputs = ["tmp/agent-stuff/git/github.com/nateberkopec/agent-stuff/skills/dev-env-setup/SKILL.md"]
+run = "bash tools/install-agent-stuff.sh"
+
 [deps.hk]
 sources = ["hk.pkl"]
 outputs = [".git/hooks/pre-commit"]
@@ -46,12 +51,12 @@ run = "ruby tools/check_human_only_files.rb"
 
 [tasks."lint:secrets"]
 description = "Scan working tree for hardcoded secrets"
-run = "gitleaks dir --redact=75 --no-banner --no-color --max-target-megabytes 5 --config files/home/.agents/skills/dev-env-setup/scripts/check-dev-env/gitleaks-default.toml ."
+run = "gitleaks dir --redact=75 --no-banner --no-color --max-target-megabytes 5 --config .gitleaks.toml ."
 
 [tasks."lint:dead-code"]
 description = "Check for dead Ruby methods"
-sources = ["**/*.rb", "**/*.rake", "!tmp/**", "!vendor/**", "!.claude/worktrees/**", "!.pi-subagents/**", "bin/*", "Rakefile", ".debride-whitelist", "files/home/.agents/skills/dev-env-setup/scripts/check_dead_code.rb"]
-run = "ruby files/home/.agents/skills/dev-env-setup/scripts/check_dead_code.rb"
+sources = ["**/*.rb", "**/*.rake", "!tmp/**", "!vendor/**", "!.claude/worktrees/**", "!.pi-subagents/**", "bin/*", "Rakefile", ".debride-whitelist", "files/home/.pi/agent/settings.json", "tmp/agent-stuff/git/github.com/nateberkopec/agent-stuff/skills/dev-env-setup/scripts/check_dead_code.rb"]
+run = "ruby tmp/agent-stuff/git/github.com/nateberkopec/agent-stuff/skills/dev-env-setup/scripts/check_dead_code.rb"
 
 [tasks."lint:flog"]
 description = "Run flog complexity checks"
@@ -63,23 +68,18 @@ description = "Run flay duplication checks"
 sources = ["**/*.rb", "!tmp/**", "!vendor/**", "!.claude/worktrees/**", "!.pi-subagents/**", "Rakefile"]
 run = "bundle exec rake flay"
 
-[tasks."lint:skills"]
-description = "Validate agent skills"
-sources = ["files/home/.agents/skills/**", "tools/lint_agent_skills.rb"]
-run = "ruby tools/lint_agent_skills.rb"
-
 [tasks."format:javascript"]
 description = "Format repository-owned JavaScript and TypeScript"
 run = "node_modules/.bin/oxfmt '**/*.{js,mjs,cjs,jsx,ts,mts,cts,tsx}' '.pi/**/*.{js,mjs,cjs,jsx,ts,mts,cts,tsx}'"
 
-[tasks."lint:anti-slop"]
-description = "Check JavaScript and TypeScript with Mulroy's anti-slop rules"
+[tasks."lint:javascript"]
+description = "Check repository JavaScript and TypeScript"
 sources = [".pi/**/*.{js,mjs,cjs,jsx,ts,mts,cts,tsx}", "**/*.ts", "**/*.tsx", "**/*.mts", "**/*.cts", "**/*.js", "**/*.jsx", "**/*.mjs", "**/*.cjs", "!node_modules/**", "!vendor/**", "!tmp/**", "!.claude/worktrees/**", "!.pi-subagents/**", ".oxlintrc.json", "package.json", "aube-lock.yaml"]
 run = "node_modules/.bin/oxlint --config .oxlintrc.json --deny-warnings --no-ignore . .pi/extensions/*/*.ts"
 
 [tasks.lint]
 description = "Run all lint checks"
-depends = ["lint:standard", "lint:complexity", "lint:human-only", "lint:secrets", "lint:dead-code", "lint:flog", "lint:flay", "lint:skills", "lint:anti-slop"]
+depends = ["lint:standard", "lint:complexity", "lint:human-only", "lint:secrets", "lint:dead-code", "lint:flog", "lint:flay", "lint:javascript"]
 
 [tasks.test]
 description = "Run the test suite"

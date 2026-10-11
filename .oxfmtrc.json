@@ -6,8 +6,6 @@
     "vendor/**",
     "tmp/**",
     ".claude/worktrees/**",
-    ".pi-subagents/**",
-    "tools/oxlint/anti-slop/**",
-    "files/home/.agents/skills/**"
+    ".pi-subagents/**"
   ]
 }

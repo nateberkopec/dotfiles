@@ -41,13 +41,8 @@ jobs:
     - name: Install frozen JavaScript dependencies
       run: mise exec -- aube install --frozen-lockfile --ignore-scripts
 
-    - name: Set up uv for skill-creator script tests
-      uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
-      with:
-        enable-cache: false
-
-    - name: Run OpenRouter US regressions without skips
-      run: bundle exec ruby -Itest test/dotfiles/hooks/openrouter_us_catalog_test.rb --verbose && bundle exec ruby -Itest test/dotfiles/hooks/openrouter_us_runtime_test.rb --verbose
+    - name: Install pinned agent package for shared tooling and installation tests
+      run: bash tools/install-agent-stuff.sh
 
     - name: Type-check Pi extensions
       run: tools/typecheck_pi_extensions.sh

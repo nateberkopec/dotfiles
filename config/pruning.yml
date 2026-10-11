@@ -1,17 +1,5 @@
 version: 1
 items:
-  pi-extensions:
-    source: files/home/.pi/agent/extensions
-    target: .pi/agent/extensions
-  pi-prompts:
-    source: files/home/.pi/agent/prompts
-    target: .pi/agent/prompts
-  pi-agents:
-    source: files/home/.pi/agent/agents
-    target: .pi/agent/agents
-  researcher:
-    source: files/home/.agents/researcher.md
-    target: .agents/researcher.md
   fish-startup:
     source: files/home/.config/fish/conf.d
     target: .config/fish/conf.d

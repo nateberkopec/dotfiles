@@ -82,7 +82,7 @@ class InstallPiPackagesStepTest < StepTestCase
   end
 
   def test_filtered_git_package_installs_source_and_preserves_filters
-    package = {"source" => "git:github.com/mitsuhiko/agent-stuff@#{"a" * 40}", "extensions" => ["extensions/goal.ts"], "skills" => []}
+    package = {"source" => "git:github.com/nateberkopec/agent-stuff@#{"a" * 40}", "extensions" => ["extensions/goal.ts"], "skills" => []}
     settings = JSON.generate("packages" => [package])
     stub_settings(settings)
     stub_pi_available
@@ -91,7 +91,7 @@ class InstallPiPackagesStepTest < StepTestCase
     assert_should_run
     step.run
     assert_executed("pi install #{package.fetch("source")}")
-    stub_pi_list("User packages:\n  #{package.fetch("source")} (filtered)\n    /home/test/.pi/agent/git/github.com/mitsuhiko/agent-stuff\n")
+    stub_pi_list("User packages:\n  #{package.fetch("source")} (filtered)\n    /home/test/.pi/agent/git/github.com/nateberkopec/agent-stuff\n")
     assert_complete
     assert_equal settings, @fake_system.read_file(File.join(@home, ".pi", "agent", "settings.json"))
   end

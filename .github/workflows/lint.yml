@@ -50,5 +50,8 @@ jobs:
         mise install
         mise exec -- aube install --frozen-lockfile --ignore-scripts
 
+    - name: Install pinned agent package for shared tooling
+      run: bash tools/install-agent-stuff.sh
+
     - name: Run lint
       run: mise run lint

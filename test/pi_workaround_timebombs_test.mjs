@@ -89,7 +89,7 @@ test("timebomb: the pinned Aube still requires Pi's argument translation", () =>
 });
 
 test("timebomb: the pinned adapter still requires SDK overrides", () => {
-	const adapter = settings.packages.find((entry) => entry.startsWith("npm:pi-mcp-adapter@"))?.slice(4);
+	const adapter = settings.packages.map((entry) => entry.source ?? entry).find((entry) => entry.startsWith("npm:pi-mcp-adapter@"))?.slice(4);
 	assert(adapter, "Expected a pinned MCP adapter");
 	const manifest = JSON.parse(aube(["view", adapter, "--json"]));
 
