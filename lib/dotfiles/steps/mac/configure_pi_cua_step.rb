@@ -13,6 +13,8 @@ class Dotfiles::Step::ConfigurePiCuaStep < Dotfiles::Step
     config = configuration
     config["mcpServers"] ||= {}
     config["mcpServers"]["cua-driver"] = server
+    config["settings"] ||= {}
+    config["settings"].merge!(script_settings)
     @system.mkdir_p(File.dirname(config_path))
     @system.write_file(config_path, JSON.pretty_generate(config) + "\n")
   end
@@ -21,7 +23,9 @@ class Dotfiles::Step::ConfigurePiCuaStep < Dotfiles::Step
     super
     return true unless allowed_on_platform?
 
-    add_error("Pi's Cua Driver MCP registration is missing or stale") unless configuration.dig("mcpServers", "cua-driver") == server
+    config = configuration
+    add_error("Pi's Cua Driver MCP registration is missing or stale") unless config.dig("mcpServers", "cua-driver") == server
+    add_error("Pi's local MCP code mode is not enabled") unless script_settings.all? { |key, value| config.dig("settings", key) == value }
     errors.empty?
   end
 
@@ -34,7 +38,11 @@ class Dotfiles::Step::ConfigurePiCuaStep < Dotfiles::Step
   end
 
   def server
-    {"command" => File.join(@home, ".local", "share", "dotfiles", "cua-driver"), "args" => ["mcp"]}
+    {"command" => File.join(@home, ".local", "share", "dotfiles", "cua-driver"), "args" => ["mcp"], "directTools" => false}
+  end
+
+  def script_settings
+    {"scriptMode" => true, "scriptSkill" => "model"}
   end
 
   def config_path
