@@ -247,9 +247,10 @@ class DotfCliTest < Minitest::Test
     assert_equal "mise activate bash", commands[3]
     assert_match(/\Aruby -r \.\/lib\/dotfiles\.rb -e Dotfiles::MigrationRunner\.new\('.+'\)\.run_if_existing_machine\z/, commands[4])
     assert_match(/\Aruby -r \.\/lib\/dotfiles\.rb -e Dotfiles::Runner\.new\('.+'\)\.run\z/, commands[5])
-    assert_equal "mise prune --yes", commands[6]
-    assert_equal "mise cache prune --yes", commands[7]
-    assert_equal 8, commands.size
+    assert_match(%r{\Aruby .+/bin/lib/prune-managed-files\.rb\z}, commands[6])
+    assert_equal "mise prune --yes", commands[7]
+    assert_equal "mise cache prune --yes", commands[8]
+    assert_equal 9, commands.size
   end
 
   def assert_mise_pruning_skipped(environment)
