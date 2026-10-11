@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+{% if os() == "macos" %}
+    "cua-driver": {
+      "command": "~/.local/share/dotfiles/cua-driver",
+      "args": ["mcp"],
+      "directTools": false
+    }
+{% endif %}
+  },
+  "settings": {
+    "scriptMode": true,
+    "scriptSkill": "model"
+  }
+}

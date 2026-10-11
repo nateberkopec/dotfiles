@@ -309,6 +309,29 @@ checksum = "sha256:65e06cdf17021bd25ff62028e107d22cb98b0c680d064a73d13ab4a6871cb
 url = "https://github.com/steipete/CodexBar/releases/download/v0.70.0/CodexBar-macos-universal-0.70.0.zip"
 url_api = "https://api.github.com/repos/steipete/CodexBar/releases/assets/600245202"
 
+[[tools."github:trycua/cua"]]
+version = "0.34.0"
+backend = "github:trycua/cua"
+
+[tools."github:trycua/cua".options]
+asset_pattern = "cua-driver-rs-{version}-darwin-universal.tar.gz"
+version_prefix = "cua-driver-rs-v"
+
+[tools."github:trycua/cua"."platforms.linux-x64"]
+checksum = "sha256:2d0ade531c07b4d16e8078844fe1b63a0dfa0ee19677c9dcc079b4d3460ab387"
+url = "https://github.com/trycua/cua/releases/download/cua-driver-rs-v0.34.0/cua-driver-rs-0.34.0-darwin-universal.tar.gz"
+url_api = "https://api.github.com/repos/trycua/cua/releases/assets/613769611"
+
+[tools."github:trycua/cua"."platforms.macos-arm64"]
+checksum = "sha256:2d0ade531c07b4d16e8078844fe1b63a0dfa0ee19677c9dcc079b4d3460ab387"
+url = "https://github.com/trycua/cua/releases/download/cua-driver-rs-v0.34.0/cua-driver-rs-0.34.0-darwin-universal.tar.gz"
+url_api = "https://api.github.com/repos/trycua/cua/releases/assets/613769611"
+
+[tools."github:trycua/cua"."platforms.macos-x64"]
+checksum = "sha256:2d0ade531c07b4d16e8078844fe1b63a0dfa0ee19677c9dcc079b4d3460ab387"
+url = "https://github.com/trycua/cua/releases/download/cua-driver-rs-v0.34.0/cua-driver-rs-0.34.0-darwin-universal.tar.gz"
+url_api = "https://api.github.com/repos/trycua/cua/releases/assets/613769611"
+
 [[tools.gitleaks]]
 version = "8.30.1"
 backend = "aqua:gitleaks/gitleaks"

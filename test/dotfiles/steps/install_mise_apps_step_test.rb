@@ -67,7 +67,7 @@ class InstallMiseAppsStepTest < StepTestCase
   private
 
   def each_app(&block)
-    {"Tinycast" => "github:abue-ammar/tinycast", "CodexBar" => "github:steipete/CodexBar", "OrbStack" => "aqua:dotfiles/orbstack"}.each(&block)
+    {"Tinycast" => "github:abue-ammar/tinycast", "CodexBar" => "github:steipete/CodexBar", "OrbStack" => "aqua:dotfiles/orbstack", "CuaDriver" => "github:trycua/cua"}.each(&block)
   end
 
   def stub_releases(admin: false)

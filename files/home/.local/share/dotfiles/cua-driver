@@ -1,0 +1,13 @@
+#!/bin/bash
+
+set -eu
+
+for app in /Applications/CuaDriver.app "$HOME/Applications/CuaDriver.app"; do
+  binary="$app/Contents/MacOS/cua-driver"
+  if [[ -x "$binary" ]]; then
+    exec "$binary" "$@"
+  fi
+done
+
+printf '%s\n' 'CuaDriver.app is missing; run dotf run to install the mise-managed app.' >&2
+exit 1
