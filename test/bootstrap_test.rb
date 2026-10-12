@@ -79,7 +79,7 @@ class BootstrapTest < Minitest::Test
         File.open(path, "a") do |file|
           file.write(<<~BASH)
             if [[ "$*" == *"plugins ls" ]]; then
-              printf '%s\n' #{Shellwords.escape(plugin)}
+              printf '%s\\n' #{Shellwords.escape(plugin)}
             fi
           BASH
         end
