@@ -1,5 +1,22 @@
 # Prepare one dependency update PR
 
+## Temporary lock transport diagnosis
+
+This branch is a diagnostic run only. Do not apply repository upgrades, change tracked files, commit, or emit create/push/update pull-request outputs. Perform only the controlled probe below, then call `report_incomplete` with its results. The normal update procedure below is retained for comparison, but must not be executed in this diagnostic run.
+
+Use `dependency-candidates.json` for the eligible `mise` and `node (files/home/.config/mise/config.toml)` versions; do not rediscover or pick different versions. Keep the existing network, proxy, TLS, credential, and sandbox restrictions. Never print credential values or proxy URLs. Do not disable verification or bypass the proxy.
+
+1. Under `/tmp/gh-aw/agent`, write a Bash setup script and run it as `bash <script>` with no leading environment assignments. Install the eligible mise CLI at `/tmp/gh-aw/agent/mise-probe` using the same official mise.run installer pattern as `tools/ci/lock_native_platform.sh`, but set `MISE_INSTALL_PATH` to this temporary location and do not change the repository generator pin. Set installer variables inside the script, not in the outer tool command. Confirm its version.
+2. Create three separate temporary directories. In each, create an identical minimal `config.toml` containing only `[tools]` and the exact eligible Node version. Give each case a separate initially empty cache. No project config, machine bootstrap, tool-runtime install, or old lock should participate. Use the same temporary mise binary, `HOME=/home/runner`, global-config root, target `macos-arm64`, and Node pin in all cases.
+3. Write a small `probe-wrapper.sh` under the temporary input directory. Accept the config path, root, cache path, and mise binary as arguments. Inside the script, export the four corresponding environment settings (`HOME`, `MISE_GLOBAL_CONFIG_FILE`, `MISE_GLOBAL_CONFIG_ROOT`, `MISE_CACHE_DIR`). For each of `HOME`, `PATH`, `HTTP_PROXY`, `HTTPS_PROXY`, `ALL_PROXY`, `http_proxy`, `https_proxy`, `all_proxy`, `SSL_CERT_FILE`, `SSL_CERT_DIR`, `CURL_CA_BUNDLE`, `REQUESTS_CA_BUNDLE`, and `NODE_EXTRA_CA_CERTS`, print only a `[DEBUG-miselock-env-38310971097]` name and set/unset boolean, never its value. Then run the temporary mise binary with `lock --global --platform macos-arm64 node`. Keep the normal inherited environment and record the exit code. Do not use `env -i` or remove any inherited settings.
+4. Run three cases from a temporary working directory outside the repository, without changing any other input:
+   - **A:** direct mise invocation with the four leading environment assignments, matching the failed run's command pattern.
+   - **B:** the same four leading assignments followed by `bash probe-wrapper.sh ...`, with matching arguments.
+   - **C:** `bash probe-wrapper.sh ...` with matching arguments and no leading assignments; the settings are exported only inside the script.
+   Keep each complete stdout/stderr in a separate temporary log. Preserve failures rather than treating exit zero as success. Bound excerpts to 20 KB; redact credentials and signed/query download URLs before displaying output.
+5. For each case, inspect its generated lock using the already-installed Ruby/TOML reader. Record whether it has the eligible Node version, a `macos-arm64` platform entry, a nonempty native-generated URL, and a nonempty checksum; list any skipped-count summary. A zero exit code without the required entry is a failed probe. Do not hand-fill missing values or copy platform entries between cases.
+6. Compare B/C's environment-presence booleans and all three cases' actual output/errors. State only what the observations prove; do not call failures transient without evidence. Report exact commands, mise version, Node version, exit codes, entry/checksum presence, and the effective set/unset differences. Stop with `report_incomplete` so this intentionally non-publishing diagnostic cannot be mistaken for a passing dependency publication run.
+
 ## Read the prepared inputs
 
 `/tmp/gh-aw/agent/` contains:
