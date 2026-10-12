@@ -90,6 +90,7 @@ steps:
   - name: Discover dependency candidates
     env:
       GITHUB_TOKEN: ${{ github.token }}
+      MISE_GLOBAL_CONFIG_FILE: ${{ github.workspace }}/files/home/.config/mise/config.toml
     run: |
       bundle exec ruby tools/ci/dependency_candidates.rb /tmp/gh-aw/agent/dependency-candidates.json "$(jq -r .base /tmp/gh-aw/agent/pr-context.json)"
       bundle exec ruby tools/ci/dependency_release_notes.rb /tmp/gh-aw/agent/dependency-candidates.json /tmp/gh-aw/agent/release-notes.json
