@@ -46,7 +46,7 @@ class MiseBootstrapDotfilesDefaultsTest < Minitest::Test
   def test_installs_native_tinycast_release
     tool = config.fetch("tools").fetch("github:abue-ammar/tinycast")
 
-    assert_equal "0.11.3", tool.fetch("version")
+    assert_equal locked_version("github:abue-ammar/tinycast"), tool.fetch("version")
     assert_equal "Tinycast-{{version}}.zip", tool.fetch("asset_pattern")
     assert_equal "Tinycast.app/Contents/MacOS", tool.fetch("bin_path")
     assert_equal ["macos"], tool.fetch("os")
@@ -56,7 +56,7 @@ class MiseBootstrapDotfilesDefaultsTest < Minitest::Test
   def test_installs_native_codexbar_release
     tool = config.fetch("tools").fetch("github:steipete/CodexBar")
 
-    assert_equal "0.70.0", tool.fetch("version")
+    assert_equal locked_version("github:steipete/CodexBar"), tool.fetch("version")
     assert_equal "CodexBar-macos-universal-{{version}}.zip", tool.fetch("asset_pattern")
     assert_equal "CodexBar.app/Contents/MacOS", tool.fetch("bin_path")
     assert_equal ["macos"], tool.fetch("os")
@@ -87,6 +87,11 @@ class MiseBootstrapDotfilesDefaultsTest < Minitest::Test
   end
 
   private
+
+  def locked_version(name)
+    lock = TomlRB.load_file(File.expand_path("../files/home/.config/mise/mise.lock", __dir__))
+    lock.fetch("tools").fetch(name).first.fetch("version")
+  end
 
   def config
     @config ||= TomlRB.load_file(File.expand_path("../files/home/.config/mise/config.toml", __dir__))
