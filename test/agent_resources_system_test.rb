@@ -15,6 +15,9 @@ class AgentResourcesSystemTest < Minitest::Test
     end
     refute File.exist?(File.join(@home, ".pi/agent/extensions/notify.ts"))
     refute File.exist?(File.join(@home, ".pi/agent/prompts/plan-follow.md"))
+    refute File.exist?(File.join(@package, "extensions/meridian.ts"))
+    metadata = JSON.parse(File.read(File.join(@home, ".pi/agent/npm/node_modules/@nateberkopec/pi-meridian/package.json")))
+    assert_equal "0.1.0-beta.1", metadata.fetch("version")
     assert_equal "custom extension", File.read(File.join(@home, ".pi/agent/extensions/custom.ts"))
     claimed = JSON.parse(File.read(ledger_path)).fetch("items").values.flat_map { |item| item.fetch("files").keys }
     refute_includes claimed, ".pi/agent/agents/reviewer.md"
@@ -28,7 +31,7 @@ class AgentResourcesSystemTest < Minitest::Test
     File.unlink(File.join(@home, ".pi/agent/extensions/custom.ts"))
     output, status = Open3.capture2e(environment, "pi", "--no-approve", "--offline", "--list-models", chdir: @directory)
     assert status.success?, output
-    refute_match(/Failed to load extension|collision|duplicate skill/i, output)
+    refute_match(/Failed to load extension|collision|duplicate (skill|provider)/i, output)
   end
 
   def test_older_unchanged_deployed_versions_retire_using_the_pruning_ledger
