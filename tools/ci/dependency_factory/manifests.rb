@@ -3,7 +3,7 @@ require "toml-rb"
 require "yaml"
 
 module DependencyFactory
-  Pin = Struct.new(:name, :kind, :manifest, :current, :meta, keyword_init: true)
+  Pin = Struct.new(:name, :kind, :manifest, :current, :meta)
 
   module Manifests
     PATHS = %w[.mise.toml files/home/.config/mise/config.toml config/mise.version files/home/.pi/agent/settings.json Gemfile.lock config/config.yml].freeze

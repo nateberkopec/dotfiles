@@ -1,4 +1,4 @@
-class FakeRunnerStep < Struct.new(:allowed, :complete_value, :should_run_value, :warnings, :notices, :errors, :run_calls, :should_run_calls, :run_hook, keyword_init: true)
+class FakeRunnerStep < Struct.new(:allowed, :complete_value, :should_run_value, :warnings, :notices, :errors, :run_calls, :should_run_calls, :run_hook)
   def initialize(**kwargs)
     super
     self.warnings ||= []
