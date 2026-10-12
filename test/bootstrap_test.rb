@@ -72,6 +72,24 @@ class BootstrapTest < Minitest::Test
 
       assert_match(/\A#{Regexp.escape(mise_version)} /, File.read(env.fetch("MISE_INSTALL_LOG")))
     end
+    ["spinel-source", "spinel"].each do |plugin|
+      with_bootstrap_stub do |env|
+        write_self_managed_mise_stub(env, mise_version)
+        path = File.join(env.fetch("HOME"), ".local", "bin", "mise")
+        File.open(path, "a") do |file|
+          file.write(<<~BASH)
+            if [[ "$*" == *"plugins ls" ]]; then
+              printf '%s\\n' #{Shellwords.escape(plugin)}
+            fi
+          BASH
+        end
+
+        run_bootstrap_mise(env)
+
+        installs = logged_mise_commands(env).count { |command| command.include?("plugins install spinel-source --yes") }
+        assert_equal((plugin == "spinel-source") ? 0 : 1, installs)
+      end
+    end
     [0, 1, 3].each do |failures|
       with_bootstrap_stub do |env|
         write_self_managed_mise_stub(env, mise_version)
