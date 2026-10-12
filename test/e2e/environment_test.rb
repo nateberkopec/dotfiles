@@ -36,7 +36,10 @@ class EnvironmentTest < Minitest::Test
     assert_equal true, agent.fetch("RunAtLoad")
     refute agent.fetch("KeepAlive", false)
     assert_equal ["/bin/sh", "-p", "-c", 'exec /bin/launchctl setenv AUBE_SHIM_DIR "$HOME/.local/share/aube/shims"'], agent.fetch("ProgramArguments")
-    assert_equal expected, E2E.fish!("/bin/launchctl getenv AUBE_SHIM_DIR").strip
+    service = E2E.fish!("/bin/launchctl print gui/(id -u)/dev.mise.aube-gui-environment")
+    assert_match(/last exit code = 0\b/, service)
+    domain = E2E.fish!("/bin/launchctl print gui/(id -u)")
+    assert_match(/^\s*AUBE_SHIM_DIR => #{Regexp.escape(expected)}$/, domain)
   end
 
   def test_pi_packages_are_installed

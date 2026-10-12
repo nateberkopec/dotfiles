@@ -17,6 +17,9 @@ class TrimMiseConfigTest < Minitest::Test
         "brew:git" = "latest"
         "apt:curl" = "latest"
 
+        [bootstrap.macos.launchd.agents.aube-gui-environment]
+        program = "/bin/sh"
+
         [bootstrap.macos.launchd.agents.yknotify]
         program = "yknotify"
 
