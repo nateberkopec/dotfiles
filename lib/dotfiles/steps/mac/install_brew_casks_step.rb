@@ -16,12 +16,14 @@ class Dotfiles::Step::InstallBrewCasksStep < Dotfiles::Step
   end
 
   def should_run?
+    @installed_packages = {}
     packages.any? { |type, name| !installed?(type, name) }
   end
 
   def run
     debug "Installing Homebrew packages..."
     @system.execute!(env_command({"HOMEBREW_NO_ENV_HINTS" => "1"}, "brew", "update-if-needed"))
+    @installed_packages = {}
     2.times do
       packages.each do |type, name|
         next if installed?(type, name)
@@ -33,6 +35,7 @@ class Dotfiles::Step::InstallBrewCasksStep < Dotfiles::Step
 
   def complete?
     super
+    @installed_packages = {}
     notify_admin_only_casks
     packages.each do |type, name|
       next if installed?(type, name)
@@ -77,9 +80,15 @@ class Dotfiles::Step::InstallBrewCasksStep < Dotfiles::Step
   end
 
   def installed?(type, name)
-    lookup_name = (type == "cask") ? name.split("/").last : name
-    output, status = brew_quiet("list", "--#{type}", "--versions", lookup_name)
-    status == 0 && !output.strip.empty?
+    installed_packages(type).include?(name.split("/").last)
+  end
+
+  def installed_packages(type)
+    @installed_packages ||= {}
+    @installed_packages[type] ||= begin
+      output, status = brew_quiet("list", "--#{type}", "--versions")
+      (status == 0) ? output.lines.map { |line| line.split.first }.compact : []
+    end
   end
 
   def install(type, name)
@@ -89,6 +98,7 @@ class Dotfiles::Step::InstallBrewCasksStep < Dotfiles::Step
     args << name
     install_command = env_command({"HOMEBREW_NO_AUTO_UPDATE" => "1", "HOMEBREW_NO_ENV_HINTS" => "1"}, *args)
     output, status = execute(install_command, timeout: (type == "cask") ? CASK_INSTALL_TIMEOUT_SECONDS : nil)
+    @installed_packages = {}
     if status == 0
       @install_failures.delete([type, name])
     else

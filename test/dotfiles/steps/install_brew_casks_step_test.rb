@@ -10,35 +10,41 @@ class InstallBrewCasksStepTest < StepTestCase
   def test_installs_only_missing_casks_for_admin_user
     stub_admin
     write_config(:brew, "brew_casks" => ["ghostty", "firefox"])
-    @fake_system.stub_command(list_command("cask", "ghostty"), "ghostty 1.0")
-    @fake_system.stub_command(list_command("cask", "firefox"), "", exit_status: 1)
+    @fake_system.stub_command(list_command("cask"), "ghostty 1.0")
     @fake_system.stub_command(update_command, "")
     @fake_system.stub_command(install_command("cask", "firefox"), "")
 
+    assert_should_run
+    assert_equal 1, @fake_system.operations.count { |operation| Dotfiles::Command.display(operation[1]).include?("brew list --cask --versions") }
     step.run
 
     assert_executed!(update_command)
     assert_cask_installed(install_command("cask", "firefox"))
     refute_executed(install_command("cask", "ghostty"))
+    @fake_system.stub_command(list_command("cask"), "ghostty 1.0\nfirefox 2.0\n")
+    assert_complete
+    refute_should_run
   end
 
   def test_qualified_cask_is_checked_by_token_but_installed_by_full_name
     stub_admin
     write_config(:brew, "brew_casks" => ["homebrew/cask/ghostty"])
-    @fake_system.stub_command(list_command("cask", "ghostty"), "", exit_status: 1)
+    @fake_system.stub_command(list_command("cask"), "", exit_status: 1)
 
     assert_should_run
     step.run
 
-    assert_executed(list_command("cask", "ghostty"))
+    assert_executed(list_command("cask"))
     assert_cask_installed(install_command("cask", "homebrew/cask/ghostty"))
+    @fake_system.stub_command(list_command("cask"), "ghostty 1.0")
+    assert_complete
   end
 
   def test_failed_homebrew_refresh_prevents_installation
     stub_admin
     write_config(:brew, "brew_casks" => ["ghostty"])
     @fake_system.stub_command(update_command, "network failure", exit_status: 1)
-    @fake_system.stub_command(list_command("cask", "ghostty"), "", exit_status: 1)
+    @fake_system.stub_command(list_command("cask"), "", exit_status: 1)
 
     assert_raises(RuntimeError) { step.run }
     refute_executed(install_command("cask", "ghostty"))
@@ -48,8 +54,8 @@ class InstallBrewCasksStepTest < StepTestCase
     stub_non_admin
     write_config(:brew, "brew_casks" => ["ghostty"])
     @fake_system.stub_command(mise_status_command, mise_status_json)
-    @fake_system.stub_command(list_command("formula", "duti"), "", exit_status: 1)
-    @fake_system.stub_command(list_command("cask", "ghostty"), "", exit_status: 1)
+    @fake_system.stub_command(list_command("formula"), "", exit_status: 1)
+    @fake_system.stub_command(list_command("cask"), "", exit_status: 1)
 
     assert_should_run
     assert_incomplete
@@ -63,8 +69,8 @@ class InstallBrewCasksStepTest < StepTestCase
     stub_non_admin
     with_env("CI" => "true", "NONINTERACTIVE" => nil, "BREW_CI_CASKS" => "ghostty") do
       @fake_system.stub_command(mise_status_command, mise_status_json)
-      @fake_system.stub_command(list_command("formula", "duti"), "", exit_status: 1)
-      @fake_system.stub_command(list_command("cask", "ghostty"), "", exit_status: 1)
+      @fake_system.stub_command(list_command("formula"), "", exit_status: 1)
+      @fake_system.stub_command(list_command("cask"), "", exit_status: 1)
 
       assert_should_run
       assert_incomplete
@@ -93,8 +99,8 @@ class InstallBrewCasksStepTest < StepTestCase
     stub_non_admin
     write_config(:brew, "brew_casks" => ["ghostty"])
     @fake_system.stub_command(mise_status_command, '{"brew":{"packages":[{"package":"duti"},{"package":"fish"}]}}')
-    %w[duti fish].each { |name| @fake_system.stub_command(list_command("formula", name), "", exit_status: 1) }
-    @fake_system.stub_command(list_command("cask", "ghostty"), "", exit_status: 1)
+    @fake_system.stub_command(list_command("formula"), "", exit_status: 1)
+    @fake_system.stub_command(list_command("cask"), "", exit_status: 1)
     @fake_system.stub_command(install_command("formula", "duti"), "denied by policy", exit_status: 1)
     @fake_system.stub_command(install_command("formula", "fish"), "not allowed", exit_status: 1)
 
@@ -131,7 +137,7 @@ class InstallBrewCasksStepTest < StepTestCase
   def test_complete_reports_missing_package_without_attempted_install
     stub_admin
     write_config(:brew, "brew_casks" => ["ghostty"])
-    @fake_system.stub_command(list_command("cask", "ghostty"), "", exit_status: 1)
+    @fake_system.stub_command(list_command("cask"), "", exit_status: 1)
 
     assert_should_run
     assert_incomplete
@@ -143,7 +149,7 @@ class InstallBrewCasksStepTest < StepTestCase
     write_config(:brew, "brew_casks" => [])
 
     assert_complete
-    refute_executed(list_command("cask", "ghostty"))
+    refute_executed(list_command("cask"))
   end
 
   private
@@ -175,8 +181,8 @@ class InstallBrewCasksStepTest < StepTestCase
     "HOMEBREW_NO_ENV_HINTS=1 brew update-if-needed"
   end
 
-  def list_command(type, name)
-    "HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 brew list --#{type} --versions #{name} 2>&1"
+  def list_command(type)
+    "HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 brew list --#{type} --versions 2>&1"
   end
 
   def install_command(type, name, private_appdir: false)
