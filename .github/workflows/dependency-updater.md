@@ -46,6 +46,13 @@ engine:
     - model_reasoning_effort="max"
     - -c
     - tool_output_token_limit=4096
+    - -c
+    - shell_environment_policy.inherit="all"
+    - -c
+    - shell_environment_policy.ignore_default_excludes=false
+    - -c
+    - >-
+      'shell_environment_policy.include_only=["HOME","PATH","HTTP_PROXY","HTTPS_PROXY","ALL_PROXY","NO_PROXY","http_proxy","https_proxy","all_proxy","no_proxy","SSL_CERT_FILE","SSL_CERT_DIR","CURL_CA_BUNDLE","REQUESTS_CA_BUNDLE","NODE_EXTRA_CA_CERTS","GEM_HOME","GEM_PATH","BUNDLE_PATH","BUNDLE_APP_CONFIG","BUNDLE_GEMFILE","GH_AW_SAFE_OUTPUTS","GH_AW_ASSETS_ALLOWED_EXTS","GH_AW_ASSETS_BRANCH","GH_AW_ASSETS_MAX_SIZE_KB","GITHUB_REPOSITORY","GITHUB_SERVER_URL"]'
 # gh-aw-firewall 0.27.44 misresolves model names with query parameters.
 model: gpt-5.6-luna
 timeout-minutes: 60
