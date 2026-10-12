@@ -125,6 +125,7 @@ network:
     - blog.rustlang.org
     - cache.agilebits.com
     - cmake.org
+    - developer.1password.com
     - dl.google.com
     - formulae.brew.sh
     - mise-versions.jdx.dev
@@ -132,6 +133,7 @@ network:
     - support.1password.com
     - tmaproduction.blob.core.windows.net
     - tuf-repo-cdn.sigstore.dev
+    - www.python.org
     - www.ruby-lang.org
 
 safe-outputs:
