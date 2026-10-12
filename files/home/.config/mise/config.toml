@@ -206,6 +206,12 @@ TrackpadTwoFingerDoubleTapGesture = 1
 [bootstrap.macos.defaults."com.apple.spaces"]
 spans-displays = false
 
+[bootstrap.macos.launchd.agents.aube-gui-environment]
+program = "/bin/sh"
+args = ["-p", "-c", 'exec /bin/launchctl setenv AUBE_SHIM_DIR "$HOME/.local/share/aube/shims"']
+run_at_load = true
+kickstart = true
+
 [bootstrap.macos.launchd.agents.time-machine-backup]
 program = "~/.local/bin/mise"
 args = ["exec", "--", "fish", "run-time-machine-backup.fish"]

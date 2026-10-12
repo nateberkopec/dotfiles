@@ -27,6 +27,18 @@ class EnvironmentTest < Minitest::Test
     assert_empty wrong
   end
 
+  def test_gui_apps_inherit_the_aube_shim_directory
+    expected = File.join(E2E.home, ".local", "share", "aube", "shims")
+    plist = File.join(E2E.home, "Library", "LaunchAgents", "dev.mise.aube-gui-environment.plist")
+    output, stderr, status = Open3.capture3("/usr/bin/plutil", "-convert", "json", "-o", "-", plist)
+    assert status.success?, stderr
+    agent = JSON.parse(output)
+    assert_equal true, agent.fetch("RunAtLoad")
+    refute agent.fetch("KeepAlive", false)
+    assert_equal ["/bin/sh", "-p", "-c", 'exec /bin/launchctl setenv AUBE_SHIM_DIR "$HOME/.local/share/aube/shims"'], agent.fetch("ProgramArguments")
+    assert_equal expected, E2E.fish!("/bin/launchctl getenv AUBE_SHIM_DIR").strip
+  end
+
   def test_pi_packages_are_installed
     settings = JSON.parse(File.read(File.join(E2E.home, ".pi", "agent", "settings.json")))
     expected = settings.fetch("packages").map { |package| package.is_a?(Hash) ? package.fetch("source") : package }
