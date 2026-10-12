@@ -27,6 +27,23 @@ class EnvironmentTest < Minitest::Test
     assert_empty wrong
   end
 
+  def test_gui_apps_inherit_the_aube_shim_directory
+    expected = File.join(E2E.home, ".local", "share", "aube", "shims")
+    plist = File.join(E2E.home, "Library", "LaunchAgents", "dev.mise.aube-gui-environment.plist")
+    output, stderr, status = Open3.capture3("/usr/bin/plutil", "-convert", "json", "-o", "-", plist)
+    assert status.success?, stderr
+    agent = JSON.parse(output)
+    assert_equal true, agent.fetch("RunAtLoad")
+    refute agent.fetch("KeepAlive", false)
+    assert_equal ["/bin/sh", "-p", "-c", 'exec /bin/launchctl setenv AUBE_SHIM_DIR "$HOME/.local/share/aube/shims"'], agent.fetch("ProgramArguments")
+    service = E2E.fish!("/bin/launchctl print gui/(id -u)/dev.mise.aube-gui-environment")
+    assert_equal "not running", service[/^\s*state = (.+)$/, 1]
+    assert_operator service[/^\s*runs = (\d+)$/, 1].to_i, :>, 0
+    assert_equal "0", service[/^\s*last exit code = (\d+)$/, 1]
+    domain = E2E.fish!("/bin/launchctl print gui/(id -u)")
+    assert_equal expected, domain[/^\s*AUBE_SHIM_DIR => (.+)$/, 1]
+  end
+
   def test_pi_packages_are_installed
     settings = JSON.parse(File.read(File.join(E2E.home, ".pi", "agent", "settings.json")))
     expected = settings.fetch("packages").map { |package| package.is_a?(Hash) ? package.fetch("source") : package }
