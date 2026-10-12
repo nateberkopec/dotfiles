@@ -197,6 +197,18 @@ bootstrap_mise() {
 
     seed_global_mise_config
 
+    local attempt status
+    for attempt in 1 2 3; do
+        if "$mise_bin" -C "$HOME" plugins install spinel --yes; then
+            break
+        else
+            status=$?
+        fi
+        [ "$attempt" -lt 3 ] || return "$status"
+        echo "Retrying mise backend setup after failure (${attempt}/3)" >&2
+        sleep "$attempt"
+    done
+
     # Trust mise config in current directory (needed for non-interactive environments)
     if [ -f ".mise.toml" ]; then
         debug "Trusting mise config..."
