@@ -47,13 +47,21 @@ jobs:
     permissions:
       actions: read
     steps:
-    - name: Fail when an upgrade took longer than 5 minutes
+    - name: Fail when paired upgrades take longer than 5 active minutes
       env:
         GH_TOKEN: ${{ github.token }}
       run: |
-        gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/attempts/$GITHUB_RUN_ATTEMPT/jobs" \
-          --jq '.jobs[] | select(.name | startswith("upgrade")) | "\(.name) \((.completed_at | fromdate) - (.started_at | fromdate))"' \
-          | awk '{ print; if ($NF > 300) slow = 1 } END { exit slow }'
+        gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/attempts/$GITHUB_RUN_ATTEMPT/jobs" | jq -r '
+          [.jobs[] | select(.name == "upgrade (admin)" or .name == "upgrade (nonadmin)")]
+          | if length != 2 then error("Expected both upgrade jobs") else . end
+          | map({start: (.started_at | fromdate), end: (.completed_at | fromdate)})
+          | sort_by(.start)
+          | reduce .[] as $job ({end: 0, seconds: 0};
+              .seconds += ([$job.end - ([.end, $job.start] | max), 0] | max)
+              | .end = ([.end, $job.end] | max))
+          | if .seconds > 300 then error("Paired upgrades: \(.seconds) active seconds (limit 300)")
+            else "Paired upgrades: \(.seconds) active seconds (limit 300)" end
+        '
 
   fresh:
     if: >-
