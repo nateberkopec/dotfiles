@@ -33,9 +33,9 @@ class MiseBootstrapDotfilesDefaultsTest < Minitest::Test
   end
 
   def test_builds_native_try_with_pinned_spinel_backend
-    tool = config.fetch("tools").fetch("spinel:tobi/try")
+    tool = config.fetch("tools").fetch("spinel-source:tobi/try")
 
-    assert_match %r{\Ahttps://github\.com/nateberkopec/mise-backend-spinel#[0-9a-f]{40}\z}, config.fetch("plugins").fetch("spinel")
+    assert_match %r{\Ahttps://github\.com/nateberkopec/mise-backend-spinel#[0-9a-f]{40}\z}, config.fetch("plugins").fetch("spinel-source")
     assert_equal "1.10.1", tool.fetch("version")
     assert_equal "try", tool.fetch("bin")
     assert_equal "try.rb", tool.fetch("entrypoint")

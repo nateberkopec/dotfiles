@@ -79,7 +79,7 @@ class BootstrapTest < Minitest::Test
         path = File.join(env.fetch("HOME"), ".local", "bin", "mise")
         File.open(path, "a") do |file|
           file.write(<<~BASH)
-            if [[ "$*" == *"plugins install spinel --yes" ]]; then
+            if [[ "$*" == *"plugins install spinel-source --yes" ]]; then
               printf '%s\\n' attempt >> #{Shellwords.escape(attempts)}
               [ "$(wc -l < #{Shellwords.escape(attempts)})" -gt #{failures} ] || exit 23
             fi

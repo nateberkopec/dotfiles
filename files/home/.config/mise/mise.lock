@@ -572,9 +572,9 @@ checksum = "sha256:56affdd8de5527894dca6dc3d7e0a99a873b0f004d7aabc30ae407d3f48b0
 url = "https://github.com/koalaman/shellcheck/releases/download/v0.11.0/shellcheck-v0.11.0.darwin.aarch64.tar.xz"
 url_api = "https://api.github.com/repos/koalaman/shellcheck/releases/assets/279056932"
 
-[[tools."spinel:tobi/try"]]
+[[tools."spinel-source:tobi/try"]]
 version = "1.10.1"
-backend = "spinel:tobi/try"
+backend = "spinel-source:tobi/try"
 
 [[tools.starship]]
 version = "1.26.0"

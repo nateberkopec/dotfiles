@@ -26,6 +26,8 @@ jobs:
         user: [ admin, nonadmin ]
     runs-on: dotfiles-e2e-${{ matrix.user }}
     timeout-minutes: 60
+    env:
+      MISE_GITHUB_TOKEN: ${{ github.token }}
     steps:
     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       with:
@@ -73,6 +75,8 @@ jobs:
         user: [ admin, nonadmin ]
     runs-on: dotfiles-e2e-fresh-${{ matrix.user }}
     timeout-minutes: 90
+    env:
+      MISE_GITHUB_TOKEN: ${{ github.token }}
     steps:
     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       with:
@@ -138,6 +142,8 @@ jobs:
     timeout-minutes: 90
     permissions:
       contents: write
+    env:
+      MISE_GITHUB_TOKEN: ${{ github.token }}
     steps:
     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       with:
