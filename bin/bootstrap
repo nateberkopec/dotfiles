@@ -199,7 +199,7 @@ bootstrap_mise() {
 
     local attempt status
     for attempt in 1 2 3; do
-        if "$mise_bin" -C "$HOME" plugins install spinel --yes; then
+        if "$mise_bin" -C "$HOME" plugins install spinel-source --yes; then
             break
         else
             status=$?
