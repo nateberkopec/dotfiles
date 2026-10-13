@@ -15,7 +15,9 @@ class EnvironmentTest < Minitest::Test
   end
 
   def test_mise_is_self_managed
-    assert_equal File.join(E2E.home, ".local", "bin", "mise"), E2E.fish!("command -v mise").strip
+    expected = File.join(E2E.home, ".local", "bin", "mise")
+    assert_equal expected, E2E.fish!("command -v mise").strip
+    assert_equal expected, E2E.fish!("cd ~/.dotfiles; mise exec -- /bin/sh -c 'command -v mise'").strip
   end
 
   def test_every_mise_tool_is_installed_at_its_pinned_version
