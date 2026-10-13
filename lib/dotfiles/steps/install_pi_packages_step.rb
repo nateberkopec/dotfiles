@@ -10,7 +10,6 @@ class Dotfiles::Step::InstallPiPackagesStep < Dotfiles::Step
   def run
     @install_errors = []
     packages = missing_packages
-    npm_overrides.apply
     packages.each { |package| install_package(package) }
   end
 
@@ -31,16 +30,8 @@ class Dotfiles::Step::InstallPiPackagesStep < Dotfiles::Step
 
   def install_package(package)
     install = command("pi", "install", package)
-    install = sdk_command(install) if package.start_with?("npm:pi-mcp-adapter@")
     output, status = execute(install)
     install_errors << format_command_error(install, status, output) unless status == 0
-  end
-
-  def sdk_command(install)
-    exclusions = npm_overrides.release_age_exclusions
-    return install if exclusions.empty?
-
-    env_command({"npm_config_min_release_age_exclude" => exclusions.join(",")}, install)
   end
 
   def missing_packages
@@ -52,12 +43,7 @@ class Dotfiles::Step::InstallPiPackagesStep < Dotfiles::Step
     npm_package = package.match(/\Anpm:(.+)@([^@]+)\z/)
     return installed_packages.include?(package) unless npm_package
 
-    installed_npm_version(npm_package[1]) == npm_package[2] &&
-      (npm_package[1] != "pi-mcp-adapter" || npm_overrides.current?)
-  end
-
-  def npm_overrides
-    Dotfiles::PiNpmOverrides.new(home: @home, system: @system)
+    installed_npm_version(npm_package[1]) == npm_package[2]
   end
 
   def installed_npm_version(package)
@@ -86,8 +72,7 @@ class Dotfiles::Step::InstallPiPackagesStep < Dotfiles::Step
   def fetch_installed_packages
     return [] unless pi_available?
 
-    npm_overrides.apply
-    output, status = execute(sdk_command(command("pi", "list")))
+    output, status = execute(command("pi", "list"))
     return [] unless status == 0
 
     output.lines.filter_map { |line| line.strip[/\A(\S+)(?: \(filtered\))?\z/, 1] }

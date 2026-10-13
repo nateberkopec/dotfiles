@@ -1,5 +1,5 @@
 [env]
-_.path = ["./bin"]
+_.path = ["./bin", "{{env.HOME}}/.local/bin"]
 _.file = ".env"
 BUNDLE_PATH = "vendor/bundle"
 
