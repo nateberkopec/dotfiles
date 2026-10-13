@@ -16,7 +16,6 @@ class Dotfiles
       require "config"
       require "command"
       require "command_helpers"
-      require "pi_npm_overrides"
       require "platform_restrictable"
       require "timed_process"
       require "system_adapter"

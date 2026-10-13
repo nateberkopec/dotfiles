@@ -16,26 +16,3 @@ export function assertWrapperNeeded(...results) {
 		);
 	}
 }
-
-export function assertOverridesNeeded(tree, pins, semver) {
-	const versions = [];
-
-	function visit(dependencies = {}) {
-		for (const [name, dependency] of Object.entries(dependencies)) {
-			if (name in pins) {
-				assert(semver.valid(dependency.version), `Invalid native SDK version: ${name}@${dependency.version}`);
-				versions.push([name, dependency.version]);
-			}
-
-			visit(dependency.dependencies);
-		}
-	}
-
-	assert(Array.isArray(tree) && tree.length > 0, "Aube returned no native dependency tree");
-
-	for (const project of tree) visit(project.dependencies);
-	assert(
-		versions.some(([name, version]) => semver.lt(version, pins[name])),
-		"TIMEBOMB: The pinned adapter installs without vulnerable SDK copies or overrides. Remove npm-overrides.json, its helper and tests, SDK release-age exemptions, and the managed pins from the live npm/package.json.",
-	);
-}
