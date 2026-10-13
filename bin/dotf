@@ -151,6 +151,16 @@ run_project_dependencies() {
     run_mise_logged -C "$DOTFILES_DIR" deps bundler
 }
 
+path_diagnostic() {
+    [ "${DOTF_PATH_DIAGNOSTIC:-}" = "1" ] || return 0
+    local ruby="$HOME/.local/share/mise/installs/ruby/4.0.7/bin/ruby"
+    if [ -x "$ruby" ]; then
+        DOTF_PATH_DIAGNOSTIC_STAGE="$1" "$ruby" -e 'nil' >&2
+    else
+        printf 'e2e-entry-diagnostic stage=%s ruby_available=false\n' "$1" >&2
+    fi
+}
+
 run_mise_prune() {
     [ "${MISE_OFFLINE:-}" = "1" ] && return 0
     [ -n "${MISE_CI_TOOLS:-}" ] && return 0
@@ -228,7 +238,10 @@ cmd_run() {
     "$SCRIPT_DIR/bootstrap"
     ensure_homebrew_env
     prepare_mise_env
+    path_diagnostic before_bootstrap
     run_mise_bootstrap
+    path_diagnostic after_bootstrap
+    path_diagnostic before_dependencies
     run_project_dependencies
     ensure_mise_env
 
