@@ -157,8 +157,7 @@ path_diagnostic() {
     if [ -x "$ruby" ]; then
         DOTF_PATH_DIAGNOSTIC_STAGE="$1" "$ruby" -e 'nil' >&2
     else
-        printf 'e2e-path-diagnostic stage=%s ruby_available=false
-' "$1" >&2
+        printf 'e2e-path-diagnostic stage=%s ruby_available=false\n' "$1" >&2
     fi
 }
 
