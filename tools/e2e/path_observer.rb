@@ -35,12 +35,22 @@ if ENV["DOTF_PATH_DIAGNOSTIC"] == "1"
         value = take.call(take.call(2**(tag - 217)).unpack1({217 => "C", 218 => "n", 219 => "N"}.fetch(tag)))
         keep ? value : nil
       when 144..159, 220, 221
-        count = tag < 160 ? tag - 144 : take.call(tag == 220 ? 2 : 4).unpack1(tag == 220 ? "n" : "N")
+        if tag < 160
+          count = tag - 144
+        else
+          width, format = {220 => [2, "n"], 221 => [4, "N"]}.fetch(tag)
+          count = take.call(width).unpack1(format)
+        end
         raise ArgumentError if count > 256
         values = Array.new(count) { parse.call(depth + 1, keep) }
         keep ? values : nil
       when 128..143, 222, 223
-        count = tag < 144 ? tag - 128 : take.call(tag == 222 ? 2 : 4).unpack1(tag == 222 ? "n" : "N")
+        if tag < 144
+          count = tag - 128
+        else
+          width, format = {222 => [2, "n"], 223 => [4, "N"]}.fetch(tag)
+          count = take.call(width).unpack1(format)
+        end
         raise ArgumentError if count > 128
         pairs = []
         count.times do
@@ -73,11 +83,16 @@ if ENV["DOTF_PATH_DIAGNOSTIC"] == "1"
     paths = ENV.fetch("PATH", "").split(File::PATH_SEPARATOR)
     diff = decode.call(ENV["__MISE_DIFF"])
     diff_paths = diff ? diff.fetch("path", []) : []
-    bash_env = ENV["BASH_ENV"]
-    fields = {stage: stage, pid: Process.pid, path_count: paths.length, path_scan_complete: paths.length <= 64, localbin_on_path: paths.include?(localbin), mise_file: File.file?(File.join(localbin, "mise")), mise_executable: File.executable?(File.join(localbin, "mise")), mise_on_scanned_path: signature.call.last, shims_on_path: paths.include?(File.join(home, ".local/share/mise/shims")), system_bin_on_path: paths.include?("/usr/bin"), original_mise_localbin: ENV.fetch("__MISE_ORIG_PATH", "").split(File::PATH_SEPARATOR).include?(localbin), original_bundle_localbin: ENV.fetch("BUNDLER_ORIG_PATH", "").split(File::PATH_SEPARATOR).include?(localbin), diff_ok: !diff.nil?, diff_version: diff ? diff.fetch("v", 1) : "unavailable", diff_path_count: diff_paths.length, diff_localbin: diff_paths.include?(localbin), diff_projectbin: diff_paths.include?(File.join(project, "bin")), diff_shims: diff_paths.include?(File.join(home, ".local/share/mise/shims")), cwd_project: Dir.pwd == project, cwd_home: Dir.pwd == home, bundler_loaded: Object.const_defined?(:Bundler, false) && !Object.autoload?(:Bundler), bash_env: bash_env.nil? ? "unset" : (bash_env.empty? ? "empty" : (bash_env == File.join(home, ".config/bash/safety.bash") ? "managed_safety" : "other")), mutations: mutations, mutation_scan_complete: mutations <= 3}
+    bash_env = case ENV["BASH_ENV"]
+    when nil then "unset"
+    when "" then "empty"
+    when File.join(home, ".config/bash/safety.bash") then "managed_safety"
+    else "other"
+    end
+    fields = {stage: stage, pid: Process.pid, path_count: paths.length, path_scan_complete: paths.length <= 64, localbin_on_path: paths.include?(localbin), mise_file: File.file?(File.join(localbin, "mise")), mise_executable: File.executable?(File.join(localbin, "mise")), mise_on_scanned_path: signature.call.last, shims_on_path: paths.include?(File.join(home, ".local/share/mise/shims")), system_bin_on_path: paths.include?("/usr/bin"), original_mise_localbin: ENV.fetch("__MISE_ORIG_PATH", "").split(File::PATH_SEPARATOR).include?(localbin), original_bundle_localbin: ENV.fetch("BUNDLER_ORIG_PATH", "").split(File::PATH_SEPARATOR).include?(localbin), diff_ok: !diff.nil?, diff_version: diff ? diff.fetch("v", 1) : "unavailable", diff_path_count: diff_paths.length, diff_localbin: diff_paths.include?(localbin), diff_projectbin: diff_paths.include?(File.join(project, "bin")), diff_shims: diff_paths.include?(File.join(home, ".local/share/mise/shims")), cwd_project: Dir.pwd == project, cwd_home: Dir.pwd == home, bundler_loaded: Object.const_defined?(:Bundler, false) && !Object.autoload?(:Bundler), bash_env: bash_env, mutations: mutations, mutation_scan_complete: mutations <= 3}
     %w[__MISE_DIFF __MISE_ORIG_PATH BUNDLER_ORIG_PATH BASH_ENV MISE_SHELL AUBE_SHIM_DIR RUBYOPT MISE_CONFIG_FILE MISE_GLOBAL_CONFIG_FILE].each { |key| fields["present_#{key}"] = ENV.key?(key) }
     warn "e2e-entry-diagnostic #{fields.merge(extra).map { |key, value| "#{key}=#{value}" }.join(" ")}"
-  rescue StandardError
+  rescue
     warn "e2e-entry-diagnostic stage=observer_error diagnostic_ok=false"
   end
   stage = ENV["DOTF_PATH_DIAGNOSTIC_STAGE"]
@@ -93,10 +108,18 @@ if ENV["DOTF_PATH_DIAGNOSTIC"] == "1"
           (pending[key] ||= []).push(signature.call)
         elsif event.event == :c_return
           before = pending[key]&.pop
-          pending.delete(key) if pending[key]&.empty?
+          pending.delete(key) if pending[key] && pending[key].empty?
           if before && before != signature.call
             mutations += 1
-            source = event.path.include?("/bundler-") ? "bundler" : (event.path.end_with?("/rubygems_plugin.rb") ? "mise_rubygems_hook" : (event.path.include?("/rubygems/") ? "rubygems" : "other"))
+            source = if event.path.include?("/bundler-")
+              "bundler"
+            elsif event.path.end_with?("/rubygems_plugin.rb")
+              "mise_rubygems_hook"
+            elsif event.path.include?("/rubygems/")
+              "rubygems"
+            else
+              "other"
+            end
             report.call("path_mutation", {before_path_count: before[0], before_localbin: before[1], before_mise_on_scanned_path: before[2], source: source, line: event.lineno}) if mutations <= 3
           end
         end
@@ -104,7 +127,7 @@ if ENV["DOTF_PATH_DIAGNOSTIC"] == "1"
         if event.method_id == :reshim && calls.zero?
           calls += 1
           report.call("reshim_entry")
-        elsif event.method_id == :"`" && calls == 1
+        elsif event.method_id == :` && calls == 1
           calls += 1
           report.call("reshim_backtick")
           trace.disable
