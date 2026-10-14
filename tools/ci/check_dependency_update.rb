@@ -66,6 +66,7 @@ def pi_settings(content)
         source = pi_settings(JSON.generate("packages" => [package.fetch("source")])).fetch("packages").first
         next package.merge("source" => source)
       end
+      next package if package == "git:github.com/nateberkopec/agent-stuff@main"
       next package if package.start_with?("git:") && package.match?(/@[0-9a-f]{40}\z/)
       match = package.match(/\A(npm:.+)@(\d[\w.+-]*)\z/) or abort "Pi package must use an exact npm version or Git SHA: #{package}"
       "#{match[1]}@#{exact_version(match[2])}"

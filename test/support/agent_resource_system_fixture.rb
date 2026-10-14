@@ -60,7 +60,7 @@ module AgentResourceSystemFixture
     File.write(File.join(@home, ".pi/agent/extensions/custom.ts"), "custom extension")
     baselines = JSON.parse(File.read(File.join(@root, "config/agent_resource_baselines.json")))
     claimed = %w[.pi/agent/agents/reviewer.md .agents/researcher.md .pi/agent/extensions/notify.ts]
-    items = {"old-resources" => {"files" => claimed.to_h { |path| [path, {"type" => "file", "sha256" => baselines.fetch(path)}] }}}
+    items = {"old-resources" => {"files" => claimed.to_h { |path| [path, {"type" => "file", "sha256" => baselines.fetch(path).last}] }}}
     FileUtils.mkdir_p(File.dirname(ledger_path))
     File.write(ledger_path, JSON.generate("version" => 1, "items" => items))
   end

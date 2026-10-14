@@ -6,10 +6,10 @@
   "hideThinkingBlock": false,
   "packages": [
     {
-      "source": "git:github.com/nateberkopec/agent-stuff@adfafb1e0df5e5ab797d455562f33cf84a73484f",
+      "source": "git:github.com/nateberkopec/agent-stuff@main",
       "skills": []
     },
-    "npm:@nateberkopec/pi-meridian@0.1.0-beta.1",
+    "npm:@nateberkopec/pi-meridian@0.1.0-beta.2",
     "npm:pi-mcp-adapter@5.2.0",
     "git:github.com/nateberkopec/pi-fast-mode@6f8605ece71922bc7ff27fdb9333949e9b609afd",
     "npm:pi-subagents@0.76.1",
@@ -20,7 +20,12 @@
   "extensions": [
     "-builtin:mcp"
   ],
-  "npmCommand": ["bash", "-c", "exec bash \"$HOME/.pi/agent/pi-npm.sh\" \"$@\"", "npm"],
+  "npmCommand": [
+    "bash",
+    "-c",
+    "exec bash \"$HOME/.pi/agent/pi-npm.sh\" \"$@\"",
+    "npm"
+  ],
   "enabledModels": [
     "openai/gpt-6.1-sol:medium",
     "openai/gpt-6-astra:low",

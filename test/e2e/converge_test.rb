@@ -8,9 +8,12 @@ class ConvergeTest < Minitest::Test
     assert_empty failed - E2E::ALLOWED_FAILURES
   end
 
-  def test_second_run_runs_no_steps
-    ran = E2E.run_log("second-run").scan(/Running step: (.+?)\s*$/).flatten
+  def test_second_run_refreshes_agents_without_running_steps
+    log = E2E.run_log("second-run")
+    ran = log.scan(/Running step: (.+?)\s*$/).flatten
+    assert_match(/agent-stuff main at [0-9a-f]{40}/, log)
     assert_empty ran - E2E::ALLOWED_FAILURES
+    assert_empty incomplete_steps(log) - E2E::ALLOWED_FAILURES
   end
 
   private

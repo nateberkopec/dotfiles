@@ -1,17 +1,22 @@
 #!/usr/bin/env fish
 
-set -l wrapper_dir (dirname (realpath (status --current-filename)))
-set -l filtered_path
+set -l wrapper_file (status --current-filename)
+set -l bundle_command
 
-for dir in $PATH
-    set -l resolved_dir (realpath "$dir" 2>/dev/null)
-    if test "$resolved_dir" != "$wrapper_dir"
-        set -a filtered_path "$dir"
+for candidate in (command --search --all bundle)
+    if not test "$candidate" -ef "$wrapper_file"
+        set bundle_command "$candidate"
+        break
     end
 end
 
-command env PATH=(string join : $filtered_path) bundle $argv
-set -l bundle_status $status
+set -l bundle_status 127
+if set -q bundle_command[1]
+    command "$bundle_command" $argv
+    set bundle_status $status
+else
+    printf 'bundle: underlying Bundler executable not found\n' >&2
+end
 
 if test $bundle_status -ne 0; and not set -q BUNDLE_PRIVATE_ACTIVE
     set -l subcommand $argv[1]
