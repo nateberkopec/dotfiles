@@ -41,12 +41,12 @@ assert_only_agent_refresh_ran() {
     local label="$1"
     local log_name="$2"
 
-    if ! grep -qE 'Running step: Update Agent Stuff[[:space:]]*$' "$repo_dir/$log_name"; then
+    if ! grep -qE 'agent-stuff main at [0-9a-f]{40}[[:space:]]*$' "$repo_dir/$log_name"; then
         echo "❌ $label did not refresh agent-stuff"
         return 1
     fi
 
-    if grep -F "Running step:" "$repo_dir/$log_name" | grep -vE 'Running step: Update Agent Stuff[[:space:]]*$'; then
+    if grep -F "Running step:" "$repo_dir/$log_name"; then
         echo "❌ $label ran unexpected steps when converged"
         return 1
     fi
