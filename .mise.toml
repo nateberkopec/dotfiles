@@ -14,7 +14,7 @@ node = "26.11.1"
 
 [deps.bundler]
 auto = true
-run = 'PATH="$PATH:$HOME/.local/bin" exec bundle install'
+run = 'export PATH="$PATH:$HOME/.local/bin"; export DOTF_PATH_DIAGNOSTIC=1; export RUBYOPT="${RUBYOPT:+$RUBYOPT }-r$HOME/.dotfiles/tools/e2e/path_observer.rb"; export DOTF_DIAGNOSTIC_PROVIDER=1; export DOTF_DIAGNOSTIC_PROVIDER_HOME="$HOME"; export DOTF_DIAGNOSTIC_PROVIDER_PATH="$PATH"; exec bundle install'
 
 [deps.javascript]
 auto = true
