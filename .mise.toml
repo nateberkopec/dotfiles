@@ -14,7 +14,6 @@ node = "26.11.1"
 
 [deps.bundler]
 auto = true
-run = 'export RUBYOPT="${RUBYOPT:+$RUBYOPT }-r$PWD/tools/ci/bundler_cli_path.rb"; exec ruby -x "$(command -v bundle)" install'
 
 [deps.javascript]
 auto = true
