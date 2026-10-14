@@ -244,13 +244,14 @@ class DotfCliTest < Minitest::Test
     assert_equal "bootstrap", commands[0]
     assert_match(/\Amise -C .+ bootstrap --yes --locked/, commands[1])
     assert_match(/\Amise -C .+ deps bundler\z/, commands[2])
-    assert_equal "mise activate bash", commands[3]
-    assert_match(/\Aruby -r \.\/lib\/dotfiles\.rb -e Dotfiles::MigrationRunner\.new\('.+'\)\.run_if_existing_machine\z/, commands[4])
-    assert_match(/\Aruby -r \.\/lib\/dotfiles\.rb -e Dotfiles::Runner\.new\('.+'\)\.run\z/, commands[5])
-    assert_match(%r{\Aruby .+/bin/lib/prune-managed-files\.rb\z}, commands[6])
-    assert_equal "mise prune --yes", commands[7]
-    assert_equal "mise cache prune --yes", commands[8]
-    assert_equal 9, commands.size
+    assert_match(/\Amise -C .+ run agent:refresh\z/, commands[3])
+    assert_equal "mise activate bash", commands[4]
+    assert_match(/\Aruby -r \.\/lib\/dotfiles\.rb -e Dotfiles::MigrationRunner\.new\('.+'\)\.run_if_existing_machine\z/, commands[5])
+    assert_match(/\Aruby -r \.\/lib\/dotfiles\.rb -e Dotfiles::Runner\.new\('.+'\)\.run\z/, commands[6])
+    assert_match(%r{\Aruby .+/bin/lib/prune-managed-files\.rb\z}, commands[7])
+    assert_equal "mise prune --yes", commands[8]
+    assert_equal "mise cache prune --yes", commands[9]
+    assert_equal 10, commands.size
   end
 
   def assert_mise_pruning_skipped(environment)

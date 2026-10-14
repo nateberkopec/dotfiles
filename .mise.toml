@@ -31,6 +31,14 @@ sources = ["hk.pkl"]
 outputs = [".git/hooks/pre-commit"]
 run = "hk install"
 
+[tasks."agent:refresh"]
+description = "Refresh trusted agent-stuff from main"
+run = '''
+set -eu
+pi update git:github.com/nateberkopec/agent-stuff@main
+git -C "$HOME/.pi/agent/git/github.com/nateberkopec/agent-stuff" log -1 --format='agent-stuff main at %H'
+'''
+
 [tasks.setup]
 description = "Install project dependencies and git hooks"
 run = "mise deps"
