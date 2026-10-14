@@ -65,14 +65,14 @@ class AgentResourceLinks
 
     digest = Digest::SHA256.file(file).hexdigest
     recorded = items.values.filter_map { |item| item.fetch("files")[relative] }
-    digest == @baselines.fetch(relative) || recorded.any? { |entry| entry["type"] == "file" && entry["sha256"] == digest }
+    @baselines.fetch(relative).include?(digest) || recorded.any? { |entry| entry["type"] == "file" && entry["sha256"] == digest }
   end
 
   def transfer_links(ledger, items)
     @links.each do |relative, source|
       destination = File.join(@home, relative)
       FileUtils.mkdir_p(File.dirname(destination))
-      FileUtils.ln_sf(File.join(@package, source), destination)
+      FileUtils.ln_s(File.join(@package, source), destination, force: true, target_directory: false)
       items.each_value { |item| item.fetch("files").delete(relative) }
     end
     items.delete_if { |_, item| item.fetch("files").empty? }
