@@ -96,3 +96,8 @@ run = "./bin/dotf run"
 [tasks.build]
 description = "Build the Ubuntu 22.04 test container"
 run = "docker build --platform linux/amd64 -f tools/ubuntu-22.04/Dockerfile -t dotfiles-ubuntu-22.04 ."
+
+[deps.bundler.env]
+DOTF_DIAGNOSTIC_PROVIDER = "1"
+DOTF_DIAGNOSTIC_PROVIDER_HOME = "{{env.HOME}}"
+DOTF_DIAGNOSTIC_PROVIDER_PATH = "{{env.PATH}}"
