@@ -1,49 +1,211 @@
 {
-  ".pi/agent/extensions/NOTIFY-LICENSE.txt": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
-  ".pi/agent/extensions/answer.ts": "99f092027c3b7d6785a3aed5d92dd00540d1f033fe29e722eec0956ca197e124",
-  ".pi/agent/extensions/btw/LICENSE": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
-  ".pi/agent/extensions/btw/backend.ts": "964d6c8274d50727d499e2ddabd76b55d9e5f7113883c5bc0a36fd6e40035a3d",
-  ".pi/agent/extensions/btw/index.ts": "dd18081a11f06f6c14df58ff5313fc936a0d2d20428156cd36651f6f44a8d000",
-  ".pi/agent/extensions/btw/overlay.ts": "0d9ad6d2c90bd2a6d0cd5f7282332da5b2d3a654f3a168298ff5bb74c1ce4c4b",
-  ".pi/agent/extensions/btw/thread.ts": "bd75927d73abcc35388d193e352c6eddccb840b6086c1c095438c315af74b256",
-  ".pi/agent/extensions/cache_hit_warning.ts": "e344b848af5afa6975be8ce9bc8a77709fafca4ca9c26d171224c731f64ceef7",
-  ".pi/agent/extensions/caffeinate.ts": "2f1e0481b62b6949bf4c97ac4b16fd3eb45c8e2f3267b43df8b51e8c5c7f198c",
-  ".pi/agent/extensions/compact_at.ts": "2aca213f408a05a734e3ef84b4e7d8bd71cd6741f427ca3aefdfb37db991f3b8",
-  ".pi/agent/extensions/conversation_title.ts": "f9f18b4c8087202651059cce0bf5c365550ff2b28cbfe82889117d75ae54c04d",
-  ".pi/agent/extensions/datasafe/catalog.ts": "f20e7f79cc382f1f2c6b05488aeb877bbbb27bb86c1e950d8b213acb99a17807",
-  ".pi/agent/extensions/datasafe/fireworks.ts": "32cdc0eb999ff2b6b23890abad69ab4f4f443eb2ca0de62392a3ab66f344a1d3",
-  ".pi/agent/extensions/datasafe/fireworks_catalog.ts": "5735e0070a988946a059f0b88d03ce43c3dfa08141b77b75a74f5fe6439a5e54",
-  ".pi/agent/extensions/datasafe/index.ts": "02b2e89a6833a536e7e5bef2cabbcbf332fab67457eef93bfc1c1c0ec96f7151",
-  ".pi/agent/extensions/datasafe/openrouter.ts": "6826e0a5577c2efc66c1929a265dc87530e947edde0ff3daab9fc2d77f726f71",
-  ".pi/agent/extensions/datasafe/payload.ts": "df74c86d92f19928d35b09848adb9987a752016825d639356e322303245c771e",
-  ".pi/agent/extensions/datasafe/profiles.ts": "f545dfe74bbc3b5e31d73ef2992efb9239098fe5548b48c14a8d1ad5c5727efb",
-  ".pi/agent/extensions/datasafe/vercel.ts": "97315ea3216e6e66f61c551a4584392eadeaeda58baa5f5ba98dc62beab5be95",
-  ".pi/agent/extensions/executor-watch/client.ts": "56422e2394e36538e289f5c72f040ee4c6e1ff47b42ec8538e773429559bdbd3",
-  ".pi/agent/extensions/executor-watch/index.ts": "a3e33b8b6aacd7e8a7bf99b04bfaa664ef360d63ca4eaa51bc77ac7648589ed3",
-  ".pi/agent/extensions/find_timeout.ts": "390b27a43f0543af7ef31d50fd133f0031e0ac610aab02cd8d57c2aa4fcfe263",
-  ".pi/agent/extensions/goal.ts": "aca9a2f2e7a2f1392444a14cd60f062743ffd67169393fd05ba1d1d1b405e0be",
-  ".pi/agent/extensions/herdr-status/index.ts": "5f83e99196787ef3eb647b34bc11996c6109a0614c5597fae70fd1660bed6780",
-  ".pi/agent/extensions/herdr-status/reporter.ts": "a8df511dd93f9f7c737bfcd841e0432beede53e599dfecc66388d5eae01f999e",
-  ".pi/agent/extensions/meridian/cache.ts": "6a45f44f7a1ea739877ce33605ecd252e3c76c2a8cd4564e915d9b7de5d69158",
-  ".pi/agent/extensions/meridian/catalog.ts": "c32311ef7fe287e4cf6a9f89645f49ac1fbf9815e439dde3b0de4ffa5b203feb",
-  ".pi/agent/extensions/meridian/requests.ts": "034fc5b7def5b79a0e71d38501790d2ce51f16c7a6530b671ed489cc5ba763a7",
-  ".pi/agent/extensions/meridian.ts": "6aea3be4c48db520f45b38b65fc4eaa2a985b87a71ea23845b41d98fd9a88137",
-  ".pi/agent/extensions/notify/readiness.ts": "656fc490a95c9ebb3649814c050853deae3acdc5d252b0f3c8d26fadb9720adb",
-  ".pi/agent/extensions/notify.ts": "054f87d02c1e2fa728852de6d778fe2538aeb51d0f98e223ee9967ed15c9377f",
-  ".pi/agent/extensions/plan_follow.ts": "4143eac64ce8f98f08ccb45ea984b0055527e1eae892cc1e331ec81df57b892e",
-  ".pi/agent/extensions/shared/chat_message.ts": "9e71fb08d75c37e53fdec073746cf698d8d170dbb8bf115b5b4473473228ae93",
-  ".pi/agent/extensions/shared/message_text.ts": "e96bf00c0d4ff4dc4dd4014a3a6b37480b424013de98385bdde0d05f5950c428",
-  ".pi/agent/extensions/shared/subagent_status.ts": "80b1a920944858ce073e830162787d82e8ad30f65eb6b589eb791fd8c2e5245b",
-  ".pi/agent/extensions/shared/wire_value.ts": "992671090ac0049121384b8290b298717fa2cc34023bfbda4e631b60df55ff77",
-  ".pi/agent/extensions/toksec/format.ts": "6968447ec2c070a811b274b80d4091cca2cd05c02452eb645d8f108938a77d26",
-  ".pi/agent/extensions/toksec/human_turns.ts": "c63f95ae302fd8cfddc831b0a2e1f75c1757877bb23ee129e589b7a2c11f6a62",
-  ".pi/agent/extensions/toksec/index.ts": "72875ce31398154c181a8b79ba36348b94a1918e712c1d559cafa2699c7f0b6c",
-  ".pi/agent/extensions/toksec/samples.ts": "bd8cfcb6b1ab798ccdb79fab5526813b470d623ace258926523b0104f03af297",
-  ".pi/agent/extensions/toksec/stream_events.ts": "d6d76f3fef33cdde7df493395381ba6b09c0c2da945ca62290dc785dd3a4cb21",
-  ".pi/agent/extensions/toksec/subagents.ts": "ed80bb21b01a2623be8162a0f6925f193eecd9e18970a93d29c8871e2e8b1f92",
-  ".pi/agent/extensions/toksec/types.ts": "6a9d0e5163273520da0afdfaca0054b915ec98aa84ca41e0a7f8cf8a866d86ad",
-  ".pi/agent/extensions/window-fork.ts": "237392a205f046a11a3facdc6f29e1171f78ce50a1394a6b190814cb911cd281",
-  ".pi/agent/prompts/plan-follow.md": "14b9440a20cf102bdae99a7596d8658a81a33aceece07d2d4c6a04cbd6cda31b",
-  ".pi/agent/agents/reviewer.md": "3182a405904b2784f4cb6b06744385221b5dedf3ce3654fb1babb3738ef7dc14",
-  ".agents/researcher.md": "ee36a9fb0b29c1c1f11bf577164fdccaedfbfe394e2f9b376b22d197317a2370"
+  ".pi/agent/extensions/NOTIFY-LICENSE.txt": [
+    "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2"
+  ],
+  ".pi/agent/extensions/answer.ts": [
+    "8473b5fdec81a1e45ce84b38a3a37caf4174e74e3a9b71087c2634834f457b9a",
+    "99f092027c3b7d6785a3aed5d92dd00540d1f033fe29e722eec0956ca197e124"
+  ],
+  ".pi/agent/extensions/btw/LICENSE": [
+    "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2"
+  ],
+  ".pi/agent/extensions/btw/backend.ts": [
+    "81357c738395345734487b50f61d6856b1e5eae2f16a76f758f199dfa9c8e6cb",
+    "dbf941a1130ba43b38ca615662d9ead4845d9f75f124a0940385b46132fc1b14",
+    "77ced4e6e7a15f657dce82f7b23b6e2150897bec264d54775f96a8919afa2a52",
+    "964d6c8274d50727d499e2ddabd76b55d9e5f7113883c5bc0a36fd6e40035a3d"
+  ],
+  ".pi/agent/extensions/btw/index.ts": [
+    "df4b5c8a40b06cf53a37012bc9636e08fe75e000e3a857ba576c05cf93ecd6a5",
+    "dd18081a11f06f6c14df58ff5313fc936a0d2d20428156cd36651f6f44a8d000"
+  ],
+  ".pi/agent/extensions/btw/overlay.ts": [
+    "1708b131266332856a9f16f4787bc33d8442a1c2c4f5766312827f5546861e57",
+    "3007097b1ba876ab49732a84e1a41b9b62219139f8c9f923cfddbabd239460d7",
+    "0d9ad6d2c90bd2a6d0cd5f7282332da5b2d3a654f3a168298ff5bb74c1ce4c4b"
+  ],
+  ".pi/agent/extensions/btw/thread.ts": [
+    "38d64836b3cdb6b63c0b6529775e929c3727164d6e3dd7e6cad6d864ef6345d7",
+    "e0a251e265091009982e23b815321190258063a09cc56c008527066719403d08",
+    "55122b23bdedf6c8df9b128cc09ef05945e1a8787b874e80b7065ef1ec4e432d",
+    "bd75927d73abcc35388d193e352c6eddccb840b6086c1c095438c315af74b256"
+  ],
+  ".pi/agent/extensions/cache_hit_warning.ts": [
+    "e344b848af5afa6975be8ce9bc8a77709fafca4ca9c26d171224c731f64ceef7"
+  ],
+  ".pi/agent/extensions/caffeinate.ts": [
+    "d31bf19ece311dbb9607c85babac30d1d5fb28652afad8349d4555c7b7b14f94",
+    "2f1e0481b62b6949bf4c97ac4b16fd3eb45c8e2f3267b43df8b51e8c5c7f198c"
+  ],
+  ".pi/agent/extensions/compact_at.ts": [
+    "2aed338b3fd01134eaf3aa437233903c575ab27a560e3bda24c3da06588c3af4",
+    "2aca213f408a05a734e3ef84b4e7d8bd71cd6741f427ca3aefdfb37db991f3b8"
+  ],
+  ".pi/agent/extensions/conversation_title.ts": [
+    "d95c56677a80e1088352f91dc78113839c34856301ec358915b8f5c24600ac57",
+    "272bd6e84f5cc6eb13ce732f0b16e668c5887f71c4f8e8d83fcdb9265fdf04dd",
+    "af004e746757fef8f423e2669cf627605921aabd4087cf740b5441470efc3982",
+    "3fc64acc7b2b80210e8ad0d68af59e90853807ca22cbc605b5398721e67b2600",
+    "8c2e01965d7fcfbcd100a8506044a4df87e406c9ff4fdbf04a415da1dfd1e311",
+    "f9f18b4c8087202651059cce0bf5c365550ff2b28cbfe82889117d75ae54c04d"
+  ],
+  ".pi/agent/extensions/datasafe/catalog.ts": [
+    "e8b6bde85a71c11fe518d3515887769bffcbb818f945c4d701af8aa9ba914166",
+    "f20e7f79cc382f1f2c6b05488aeb877bbbb27bb86c1e950d8b213acb99a17807"
+  ],
+  ".pi/agent/extensions/datasafe/fireworks.ts": [
+    "7d2e5a398f1ed34ed59b4cc1bb6be2e91c8b5e2c930fe8a2c3590e9578705f86",
+    "8cd1257462a90f7ff0de1d45937726747023923eb57aea0244eb427655bb3cbb",
+    "a58bc2d6b58e5f318437443dfd70ed9674c9f120e78f4045cd329992aecaa8d9",
+    "57d6ff3ded2942ff58cae94880d05035cbee5e1488e9880cf5125f97e17da9c4",
+    "32cdc0eb999ff2b6b23890abad69ab4f4f443eb2ca0de62392a3ab66f344a1d3"
+  ],
+  ".pi/agent/extensions/datasafe/fireworks_catalog.ts": [
+    "054aeabf07cb18dd52a9c5ad282d9c2b61ef86eaa44687a151379507b1860d78",
+    "5735e0070a988946a059f0b88d03ce43c3dfa08141b77b75a74f5fe6439a5e54"
+  ],
+  ".pi/agent/extensions/datasafe/index.ts": [
+    "4ff403e5dd91936cc72a4aff7a3d3fbeca0ef4700127d4343af7103383821454",
+    "f993eeb8253e2ee4a8ab688db6adcef62b1e129b0983019b1d30d684899e67ca",
+    "4efbafd2fed4a35830292f2442353dfd162b762f8f7d1e15a802bfc1ed1eb8a4",
+    "6c0271f2b0266e09e97c0f87c107fc92abe8df9011936394e9103908e46fc518",
+    "02b2e89a6833a536e7e5bef2cabbcbf332fab67457eef93bfc1c1c0ec96f7151"
+  ],
+  ".pi/agent/extensions/datasafe/openrouter.ts": [
+    "f085ba728ba4f21732eb4e0b3086600643aa7a72579d758f9812f571d46e9034",
+    "7f29d6ecaa743ee7c982ea40c2173e1f4014dc7c5f8ab42b4b92681ccdf00533",
+    "6826e0a5577c2efc66c1929a265dc87530e947edde0ff3daab9fc2d77f726f71"
+  ],
+  ".pi/agent/extensions/datasafe/payload.ts": [
+    "df74c86d92f19928d35b09848adb9987a752016825d639356e322303245c771e"
+  ],
+  ".pi/agent/extensions/datasafe/profiles.ts": [
+    "3628199e81d88b54dcbd38a15221e5b8d71c0ff3f54d7d60a81c9d88c5a52ed4",
+    "3f5b8447495d9429ef35c73c779b2ff206b88fc9bb765d857ece7367197983f2",
+    "bbcf5b67307eb244d7d7d980b72b5b69f606a3c9459602a491ae64746b42d4b7",
+    "f545dfe74bbc3b5e31d73ef2992efb9239098fe5548b48c14a8d1ad5c5727efb"
+  ],
+  ".pi/agent/extensions/datasafe/vercel.ts": [
+    "b6ba37231d97c8ebe75e82f11e7010f8585655197a9ed518811b1d489b178bc8",
+    "97315ea3216e6e66f61c551a4584392eadeaeda58baa5f5ba98dc62beab5be95"
+  ],
+  ".pi/agent/extensions/executor-watch/client.ts": [
+    "874e4c492a8072065ea37d211e1b8141e8a9951e52121d676f279f49355a05e6",
+    "c0a044345d3bfb713bede110b73b9b4143416541f03b1d0ed5b327e485f1e11d",
+    "56422e2394e36538e289f5c72f040ee4c6e1ff47b42ec8538e773429559bdbd3"
+  ],
+  ".pi/agent/extensions/executor-watch/index.ts": [
+    "bae5b5d79f121d1a6b822c9b34d35b91398edf34f887e060ee1c40366af5c3a6",
+    "a3e33b8b6aacd7e8a7bf99b04bfaa664ef360d63ca4eaa51bc77ac7648589ed3"
+  ],
+  ".pi/agent/extensions/find_timeout.ts": [
+    "390419abd9a2662f0b6fcdb291ac3b67307d3d4e5098b7ed6a873ad9cc747952",
+    "390b27a43f0543af7ef31d50fd133f0031e0ac610aab02cd8d57c2aa4fcfe263"
+  ],
+  ".pi/agent/extensions/goal.ts": [
+    "aca9a2f2e7a2f1392444a14cd60f062743ffd67169393fd05ba1d1d1b405e0be"
+  ],
+  ".pi/agent/extensions/herdr-status/index.ts": [
+    "1cc67531e77ef1b166cf34c09c5b6c6c827d14e56ca9ab20b69000ddb2a0f90c",
+    "5f83e99196787ef3eb647b34bc11996c6109a0614c5597fae70fd1660bed6780"
+  ],
+  ".pi/agent/extensions/herdr-status/reporter.ts": [
+    "95148fc5c41d5a59efb85ef380cdad96adaf7c987c780dd66bef985f5ea1d776",
+    "a8df511dd93f9f7c737bfcd841e0432beede53e599dfecc66388d5eae01f999e"
+  ],
+  ".pi/agent/extensions/meridian/cache.ts": [
+    "2cdf1065c8b09b1414237dd996f85f1e816c82060bf3b7b3a2a6305944264794",
+    "6a45f44f7a1ea739877ce33605ecd252e3c76c2a8cd4564e915d9b7de5d69158"
+  ],
+  ".pi/agent/extensions/meridian/catalog.ts": [
+    "51c1ba438a1bbe01fdc014c12e9e667e358a8f3761b81f86868095b36746b20f",
+    "c32311ef7fe287e4cf6a9f89645f49ac1fbf9815e439dde3b0de4ffa5b203feb"
+  ],
+  ".pi/agent/extensions/meridian/requests.ts": [
+    "08c8d5dd5b0e477f74ab533d793cef0290da17b42b01012a1a0ec58f216414f2",
+    "034fc5b7def5b79a0e71d38501790d2ce51f16c7a6530b671ed489cc5ba763a7"
+  ],
+  ".pi/agent/extensions/meridian.ts": [
+    "d945bbc555d22334ff08faae80873936a63a65aa5efb346cdcd46e67de561138",
+    "50a0fb0584d3337ec0846f2c087a6edc43a60d9dd50060ec4f99d6b09f118f39",
+    "9f5ef146ca73835e7825c85535495ae2b8c0d741148df1086341c9f663e05f15",
+    "a02af726952f4cb97376229cb8644d3acedbb94a5ac54f526ec296bfc9cfd64e",
+    "6aea3be4c48db520f45b38b65fc4eaa2a985b87a71ea23845b41d98fd9a88137"
+  ],
+  ".pi/agent/extensions/notify/readiness.ts": [
+    "77a59b09f765c28eb9284780ec2a985425b88a28f68bbf3cfda1bea4addc745e",
+    "656fc490a95c9ebb3649814c050853deae3acdc5d252b0f3c8d26fadb9720adb"
+  ],
+  ".pi/agent/extensions/notify.ts": [
+    "9da64cb91e93a395a80d8e1843b7e528ee5d3a27fb2d7775044005638cb9c4ce",
+    "d83033e614b0a1d94a4e447632d7bc56d054e351b37d85ace29e16e3304d298e",
+    "054f87d02c1e2fa728852de6d778fe2538aeb51d0f98e223ee9967ed15c9377f"
+  ],
+  ".pi/agent/extensions/plan_follow.ts": [
+    "af42e1a2bcb88c5d252af1de1c5954822b8bfe9b163f93f5ae668c33351a6662",
+    "4143eac64ce8f98f08ccb45ea984b0055527e1eae892cc1e331ec81df57b892e"
+  ],
+  ".pi/agent/extensions/shared/chat_message.ts": [
+    "9e71fb08d75c37e53fdec073746cf698d8d170dbb8bf115b5b4473473228ae93"
+  ],
+  ".pi/agent/extensions/shared/message_text.ts": [
+    "e96bf00c0d4ff4dc4dd4014a3a6b37480b424013de98385bdde0d05f5950c428"
+  ],
+  ".pi/agent/extensions/shared/subagent_status.ts": [
+    "80b1a920944858ce073e830162787d82e8ad30f65eb6b589eb791fd8c2e5245b"
+  ],
+  ".pi/agent/extensions/shared/wire_value.ts": [
+    "992671090ac0049121384b8290b298717fa2cc34023bfbda4e631b60df55ff77"
+  ],
+  ".pi/agent/extensions/toksec/format.ts": [
+    "5fe49592fc836b3823b00b2cb9970370618b6bdfb15e607a5535fa38f12ee09c",
+    "1a1e26fdb877310db54b46c60452e6d78b6054fa17f92d5a5852e3e5f8d899d0",
+    "6968447ec2c070a811b274b80d4091cca2cd05c02452eb645d8f108938a77d26"
+  ],
+  ".pi/agent/extensions/toksec/human_turns.ts": [
+    "ffa280f5ea6076099f7ad173354bd90e7eb12a7b6b01657d31816842c4845002",
+    "c63f95ae302fd8cfddc831b0a2e1f75c1757877bb23ee129e589b7a2c11f6a62"
+  ],
+  ".pi/agent/extensions/toksec/index.ts": [
+    "045672cece7d1188cd25c80becf486455b35538a15074b1e4567457c3c5c4e80",
+    "2d84d7744273ddf96acc95fcb0212581f400b97191abbf4a043658a5f705293b",
+    "28ff15389e80a18a48a2480b36214416b561250971920001eddb015f4b52decc",
+    "72875ce31398154c181a8b79ba36348b94a1918e712c1d559cafa2699c7f0b6c"
+  ],
+  ".pi/agent/extensions/toksec/samples.ts": [
+    "a6c7a37ab2a40389dc76be6d488123b80ab941600345cb9dde22e8186e7954ff",
+    "9c97b1779212e15547bec6d1ba218a46c7f2cc96bbb956f75b062ed9ca4a12bb",
+    "bd8cfcb6b1ab798ccdb79fab5526813b470d623ace258926523b0104f03af297"
+  ],
+  ".pi/agent/extensions/toksec/stream_events.ts": [
+    "d4e5ff1b2b629bd74bcafbd37b1c1ffe0ed465fe4b5163f8cedc266b8ea250f2",
+    "452e12491d155595a78414de2229f9a58f31f5751cf40fc7044ba280e283382a",
+    "d6d76f3fef33cdde7df493395381ba6b09c0c2da945ca62290dc785dd3a4cb21"
+  ],
+  ".pi/agent/extensions/toksec/subagents.ts": [
+    "104cf1fc5108e3e5125980c5f02b9fef8e0b9fa7fde8fb8d0682851bee9a4b9a",
+    "ed80bb21b01a2623be8162a0f6925f193eecd9e18970a93d29c8871e2e8b1f92"
+  ],
+  ".pi/agent/extensions/toksec/types.ts": [
+    "57c61e97f32652dfb472f33ec852d5c7a88cae82043fc614ad0e7af176503058",
+    "e8e31754593ca63a1e67d16ef21441d1e8d9d8e1fa9546799152b536d4142f43",
+    "057d71fa5bea29adbaceb5e0a3471ec348c5b1f4d824d52d3b5e74706c09c4e2",
+    "6a9d0e5163273520da0afdfaca0054b915ec98aa84ca41e0a7f8cf8a866d86ad"
+  ],
+  ".pi/agent/extensions/window-fork.ts": [
+    "9884e9b3d45c6f3815e0dd82e0ab9d5a2b677cbc4033540fe071dedfe5dc0883",
+    "237392a205f046a11a3facdc6f29e1171f78ce50a1394a6b190814cb911cd281"
+  ],
+  ".pi/agent/prompts/plan-follow.md": [
+    "14b9440a20cf102bdae99a7596d8658a81a33aceece07d2d4c6a04cbd6cda31b"
+  ],
+  ".pi/agent/agents/reviewer.md": [
+    "65d53445587ca2c5cd9660f5d47a57c7a4258d807053cfb842d93985ae64bf16",
+    "3182a405904b2784f4cb6b06744385221b5dedf3ce3654fb1babb3738ef7dc14"
+  ],
+  ".agents/researcher.md": [
+    "60c9652beb92922bfcc337253af4f78718c5339f6dc9d0568bd6fc8d287e39f4",
+    "e7e26135d1691d3f5eb73747d48f92fbac08eeae13415699fc067a63a8ccaa42",
+    "ee36a9fb0b29c1c1f11bf577164fdccaedfbfe394e2f9b376b22d197317a2370"
+  ]
 }
