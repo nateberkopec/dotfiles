@@ -37,16 +37,21 @@ assert_self_managed_mise() {
     echo "✅ mise is self-managed at $expected"
 }
 
-assert_no_steps_ran() {
+assert_only_agent_refresh_ran() {
     local label="$1"
     local log_name="$2"
 
-    if grep -F "Running step:" "$repo_dir/$log_name"; then
-        echo "❌ $label was not a no-op when converged"
+    if ! grep -qE 'Running step: Update Agent Stuff[[:space:]]*$' "$repo_dir/$log_name"; then
+        echo "❌ $label did not refresh agent-stuff"
         return 1
     fi
 
-    echo "✅ $label was a no-op when converged"
+    if grep -F "Running step:" "$repo_dir/$log_name" | grep -vE 'Running step: Update Agent Stuff[[:space:]]*$'; then
+        echo "❌ $label ran unexpected steps when converged"
+        return 1
+    fi
+
+    echo "✅ $label ran no steps beyond the agent-stuff refresh"
 }
 
 find_fish_bin() {
@@ -102,5 +107,5 @@ run_dotfiles output.log
 assert_self_managed_mise
 check_ci_packages "Post-run" assert_installed
 run_dotfiles output-second.log
-assert_no_steps_ran "Second dotf run" output-second.log
+assert_only_agent_refresh_ran "Second dotf run" output-second.log
 check_fish

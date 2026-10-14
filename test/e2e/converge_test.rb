@@ -8,9 +8,12 @@ class ConvergeTest < Minitest::Test
     assert_empty failed - E2E::ALLOWED_FAILURES
   end
 
-  def test_second_run_runs_no_steps
-    ran = E2E.run_log("second-run").scan(/Running step: (.+?)\s*$/).flatten
-    assert_empty ran - E2E::ALLOWED_FAILURES
+  def test_second_run_only_refreshes_agent_resources
+    log = E2E.run_log("second-run")
+    ran = log.scan(/Running step: (.+?)\s*$/).flatten
+    assert_includes ran, "Update Agent Stuff"
+    assert_empty ran - E2E::ALLOWED_FAILURES - ["Update Agent Stuff"]
+    assert_empty incomplete_steps(log) - E2E::ALLOWED_FAILURES
   end
 
   private

@@ -1,8 +1,8 @@
 class Dotfiles::Step::LinkAgentResourcesStep < Dotfiles::Step
-  DESCRIPTION = "Links shared agent resources from the pinned Pi package.".freeze
+  DESCRIPTION = "Links shared agent resources from the refreshed Pi package.".freeze
 
   def self.depends_on
-    [Dotfiles::Step::InstallPiPackagesStep]
+    [Dotfiles::Step::UpdateAgentStuffStep]
   end
 
   def should_run?
