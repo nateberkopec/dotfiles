@@ -14,6 +14,7 @@ node = "26.11.1"
 
 [deps.bundler]
 auto = true
+run = 'PATH="$PATH:$HOME/.local/bin" exec bundle install'
 
 [deps.javascript]
 auto = true
@@ -104,6 +105,3 @@ run = "./bin/dotf run"
 [tasks.build]
 description = "Build the Ubuntu 22.04 test container"
 run = "docker build --platform linux/amd64 -f tools/ubuntu-22.04/Dockerfile -t dotfiles-ubuntu-22.04 ."
-
-[deps.bundler.env]
-PATH = '{{env.PATH}}:{{env.HOME}}/.local/bin'
