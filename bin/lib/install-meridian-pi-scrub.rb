@@ -34,7 +34,7 @@ unless File.file?(index) && File.file?(scrub) && Digest::SHA256.file(index).hexd
         writeFileSync(`${root}/dist/${name}.js`, stripTypeScriptTypes(readFileSync(`${root}/src/${name}.ts`, 'utf8')));
       }
     JS
-    system("node", "--disable-warning=ExperimentalWarning", "-e", build, unpacked) || abort("pi-scrub build failed")
+    system("mise", "exec", "node", "--", "node", "--disable-warning=ExperimentalWarning", "-e", build, unpacked) || abort("pi-scrub build failed")
     abort("pi-scrub index checksum mismatch") unless Digest::SHA256.file(File.join(unpacked, "dist/index.js")).hexdigest == INDEX_SHA256
     abort("pi-scrub scrub checksum mismatch") unless Digest::SHA256.file(File.join(unpacked, "dist/scrub.js")).hexdigest == SCRUB_SHA256
     FileUtils.rm_rf(destination)
