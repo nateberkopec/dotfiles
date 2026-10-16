@@ -1,2 +1,3 @@
 # Managed by dotfiles. Harden npm installs that flow through aube.
 paranoid = true
+minimumReleaseAgeExclude = ["@rynfar/meridian@1.83.0"]

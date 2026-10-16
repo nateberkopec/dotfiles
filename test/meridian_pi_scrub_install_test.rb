@@ -9,7 +9,7 @@ class MeridianPiScrubInstallTest < Minitest::Test
   def test_bootstrap_hook_installs_pinned_plugin
     assert_includes File.read(HOOK), "ruby \"$HOME/.dotfiles/bin/lib/install-meridian-pi-scrub.rb\""
     source = File.read(INSTALLER)
-    assert_includes source, "meridian-plugin-pi-scrub-v"
+    assert_includes source, "https://codeload.github.com/rynfar/meridian-plugin-pi-scrub/tar.gz/"
     assert_includes source, "Digest::SHA256.file(archive).hexdigest == SHA256"
     assert_includes source, '".config/meridian/plugins.json"'
     output, status = Open3.capture2e("ruby", "-c", INSTALLER)
