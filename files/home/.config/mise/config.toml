@@ -14,9 +14,7 @@ broot = "1.61.0"
 difftastic = "0.71.0"
 starship = "1.26.0"
 "npm:@openai/codex" = { version = "0.162.1", depends = ["github:aubepkg/aube"] }
-# Temporary SDK-ping timeout fix: https://github.com/rynfar/meridian/issues/1177
-# Return to upstream after verification: https://github.com/nateberkopec/dotfiles/issues/764
-"github:nateberkopec/meridian" = { version = "1.76.5-nate.1", depends = ["node"], bin_path = "bin", minimum_release_age = "0d" }
+"npm:@rynfar/meridian" = { version = "1.83.0", depends = ["github:aubepkg/aube"], minimum_release_age = "0d" }
 "npm:sfw" = { version = "2.0.6", depends = ["github:aubepkg/aube"] }
 pipx = "1.17.12"
 uv = "0.13.0"
