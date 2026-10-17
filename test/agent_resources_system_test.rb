@@ -14,7 +14,7 @@ class AgentResourcesSystemTest < Minitest::Test
       assert_equal File.realpath(File.join(@package, source)), File.realpath(destination)
     end
     refute File.exist?(File.join(@home, ".pi/agent/extensions/notify.ts"))
-    refute File.exist?(File.join(@home, ".pi/agent/prompts/plan-follow.md"))
+    refute File.exist?(File.join(@home, ".pi/agent/extensions/cache_hit_warning.ts"))
     refute File.exist?(File.join(@package, "extensions/meridian.ts"))
     metadata = JSON.parse(File.read(File.join(@home, ".pi/agent/npm/node_modules/@nateberkopec/pi-meridian/package.json")))
     assert_equal "0.1.0-beta.2", metadata.fetch("version")

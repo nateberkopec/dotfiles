@@ -49,7 +49,7 @@ module AgentResourceSystemFixture
   end
 
   def seed_legacy
-    %w[extensions/notify.ts prompts/plan-follow.md agents/reviewer.md].each do |relative|
+    %w[extensions/notify.ts extensions/cache_hit_warning.ts agents/reviewer.md].each do |relative|
       target = File.join(@home, ".pi/agent", relative)
       FileUtils.mkdir_p(File.dirname(target))
       FileUtils.cp(File.join(@package, relative), target)
