@@ -21,7 +21,7 @@ Dotfiles/BanFileSystemClasses:
     - 'test/config_syntax_test.rb'
     - 'test/agent_resources_system_test.rb'
     - 'test/support/agent_resource_system_fixture.rb'
-    - 'test/herdr_personal_test.rb'
+    - 'test/herdr_session_template_test.rb'
     - 'test/e2e/**/*'
     - 'test/fish/herdr_test.rb'
     - 'test/dotfiles/hooks/datasafe_claude_test.rb'

@@ -1,0 +1,23 @@
+#!/usr/bin/env ruby
+
+require "json"
+
+state = ENV.fetch("FAKE_HERDR_STATE")
+File.open(File.join(state, "calls.jsonl"), "a") { |file| file.puts JSON.generate(ARGV) }
+path = File.join(state, "workspaces.json")
+spaces = File.exist?(path) ? JSON.parse(File.read(path)) : []
+
+case ARGV.first(2)
+when ["workspace", "list"]
+  puts JSON.generate(id: "cli:workspace:list", result: {workspaces: spaces})
+when ["workspace", "create"]
+  options = ARGV.drop(2)
+  abort "focus changed" unless options.delete("--no-focus")
+  options = options.each_slice(2).to_h
+  abort "cwd must be absolute" unless options.fetch("--cwd").start_with?("/")
+  space = {"workspace_id" => "w#{spaces.length + 1}", "label" => options.fetch("--label"), "cwd" => options.fetch("--cwd")}
+  File.write(path, JSON.generate(spaces + [space]))
+  puts JSON.generate(id: "cli:workspace:create", result: {workspace: space})
+else
+  abort "unexpected herdr command: #{ARGV.join(" ")}"
+end

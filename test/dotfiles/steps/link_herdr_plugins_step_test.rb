@@ -3,98 +3,62 @@ require "test_helper"
 class LinkHerdrPluginsStepTest < StepTestCase
   step_class Dotfiles::Step::LinkHerdrPluginsStep
 
-  def test_no_plugins_by_default
-    refute_should_run
-    assert_complete
-  end
+  PLUGIN = "/tmp/home/.local/share/dotfiles/herdr-plugins/session-template".freeze
+  LINK = "herdr plugin link #{PLUGIN} --enabled".freeze
 
-  def test_missing_checkout_is_skipped_with_notice
-    configure_plugin
+  def test_nothing_to_link_without_deployed_plugins
     refute_should_run
     assert_complete
-    assert_match(/restore the local checkout/, step.notices.first.fetch(:message))
   end
 
   def test_missing_herdr_is_skipped_with_notice
-    configure_plugin
-    stub_manifest
+    deploy_plugin
     @fake_system.stub_command("command -v herdr >/dev/null 2>&1", "", exit_status: 1)
     refute_should_run
     assert_complete
     assert_match(/Install Herdr/, step.notices.first.fetch(:message))
   end
 
-  def test_links_available_manifest_with_expanded_home
-    configure_plugin
-    stub_manifest
-    stub_command_exists("herdr")
+  def test_links_deployed_plugins_that_herdr_does_not_know
+    deploy_plugin
+    herdr_plugins([])
     assert_should_run
     step.run
-    assert_executed("herdr plugin link /tmp/home/local-plugin --enabled")
+    assert_executed(LINK)
+    herdr_plugins([linked])
     assert_complete
   end
 
-  def test_skips_linked_manifest_until_manifest_or_enabled_state_changes
-    configure_plugin
-    stub_manifest
-    stub_command_exists("herdr")
-    assert_should_run
-    step.run
-    assert_complete
-    plugin = {"plugin_root" => "/tmp/home/local-plugin", "manifest_path" => "/tmp/home/local-plugin/herdr-plugin.toml", "enabled" => true, "source" => {"kind" => "local"}}
-    @fake_system.stub_command("herdr plugin list --json", JSON.generate({"result" => {"plugins" => [plugin]}}))
-    rebuild_step!
+  def test_skips_plugins_that_are_already_linked_and_enabled
+    deploy_plugin
+    herdr_plugins([linked])
     refute_should_run
-    @fake_system.operations.clear
-    step.run
-    refute_executed("herdr plugin link /tmp/home/local-plugin --enabled")
-    @fake_system.stub_file_content("/tmp/home/local-plugin/herdr-plugin.toml", "id = 'test.plugin'\nversion = '0.2.0'")
-    assert_should_run
-    step.run
     assert_complete
-    refute_should_run
-    plugin["enabled"] = false
-    @fake_system.stub_command("herdr plugin list --json", JSON.generate({"result" => {"plugins" => [plugin]}}))
-    assert_should_run
-    @fake_system.stub_command("herdr plugin list --json", JSON.generate({"result" => {"plugins" => []}}))
+    herdr_plugins([linked.merge("enabled" => false)])
     assert_should_run
   end
 
-  def test_failed_link_reports_command_output_and_successful_retry_clears_error
-    configure_plugin
-    stub_manifest
-    stub_command_exists("herdr")
-    @fake_system.stub_command("herdr plugin link /tmp/home/local-plugin --enabled", "invalid manifest\nmanifest details", exit_status: 1)
+  def test_failed_link_reports_command_output
+    deploy_plugin
+    herdr_plugins([])
+    @fake_system.stub_command(LINK, "TOML parse error", exit_status: 1)
     step.run
     assert_incomplete
-    assert_includes step.errors.first, "Failed to link Herdr plugin: ~/local-plugin\nExit status: 1\ninvalid manifest\nmanifest details\nCommand:"
-    assert_includes step.errors.first, "herdr plugin link /tmp/home/local-plugin --enabled"
-    @fake_system.stub_command("herdr plugin link /tmp/home/local-plugin --enabled", "", exit_status: 0)
-    step.run
-    assert_complete
-  end
-
-  def test_only_links_available_sources
-    write_config(:herdr, "herdr_plugins" => ["~/local-plugin", "~/missing-plugin"])
-    stub_manifest
-    stub_command_exists("herdr")
-    step.run
-    assert_executed("herdr plugin link /tmp/home/local-plugin --enabled")
-    refute_executed("herdr plugin link /tmp/home/missing-plugin --enabled")
-    assert_complete
+    assert_includes step.errors.first, "TOML parse error"
   end
 
   private
 
-  def stub_command_exists(name)
-    @fake_system.stub_command("command -v #{name} >/dev/null 2>&1", "", exit_status: 0)
+  def deploy_plugin
+    @fake_system.stub_file_content("#{PLUGIN}/herdr-plugin.toml", "id = 'dotfiles.session-template'")
   end
 
-  def configure_plugin
-    write_config(:herdr, "herdr_plugins" => ["~/local-plugin"])
+  def herdr_plugins(plugins)
+    @fake_system.stub_command("command -v herdr >/dev/null 2>&1", "", exit_status: 0)
+    @fake_system.stub_command("herdr plugin list --json", JSON.generate({"result" => {"plugins" => plugins}}))
   end
 
-  def stub_manifest
-    @fake_system.stub_file_content("/tmp/home/local-plugin/herdr-plugin.toml", "id = 'test.plugin'")
+  def linked
+    {"plugin_root" => PLUGIN, "enabled" => true, "source" => {"kind" => "local"}}
   end
 end

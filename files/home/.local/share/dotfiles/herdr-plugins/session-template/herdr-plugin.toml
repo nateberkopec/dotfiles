@@ -1,0 +1,15 @@
+id = "dotfiles.session-template"
+name = "Session Template"
+version = "0.1.0"
+min_herdr_version = "0.9.3"
+description = "Create the workspaces a named session's template declares and keep them in template order"
+platforms = ["macos", "linux"]
+
+[[startup]]
+command = ["node", "index.mjs"]
+
+[[actions]]
+id = "sync"
+title = "Sync session template"
+contexts = ["workspace"]
+command = ["node", "index.mjs"]
