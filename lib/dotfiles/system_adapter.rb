@@ -1,4 +1,5 @@
 require "fileutils"
+require "find"
 require "open3"
 
 class Dotfiles
@@ -54,6 +55,14 @@ class Dotfiles
 
     def rm_rf(path)
       FileUtils.rm_rf(path)
+    end
+
+    def lstat(path)
+      File.lstat(path)
+    end
+
+    def find_files(path, &block)
+      Find.find(path, &block)
     end
 
     def chmod(mode, path)
