@@ -58,9 +58,8 @@ module AgentResourceSystemFixture
     FileUtils.cp(File.join(@package, "agents/researcher.md"), File.join(@home, ".agents/researcher.md"))
     File.symlink(File.join(@root, "removed-skills"), File.join(@home, ".agents/skills"))
     File.write(File.join(@home, ".pi/agent/extensions/custom.ts"), "custom extension")
-    baselines = JSON.parse(File.read(File.join(@root, "config/agent_resource_baselines.json")))
-    claimed = %w[.pi/agent/agents/reviewer.md .agents/researcher.md .pi/agent/extensions/notify.ts]
-    items = {"old-resources" => {"files" => claimed.to_h { |path| [path, {"type" => "file", "sha256" => baselines.fetch(path).last}] }}}
+    claimed = %w[.pi/agent/agents/reviewer.md .agents/researcher.md .pi/agent/extensions/notify.ts .pi/agent/extensions/cache_hit_warning.ts]
+    items = {"old-resources" => {"files" => claimed.to_h { |path| [path, {"type" => "file", "sha256" => Digest::SHA256.file(File.join(@home, path)).hexdigest}] }}}
     FileUtils.mkdir_p(File.dirname(ledger_path))
     File.write(ledger_path, JSON.generate("version" => 1, "items" => items))
   end
