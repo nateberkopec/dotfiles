@@ -41,12 +41,6 @@ jobs:
       with:
         name: upgrade-${{ matrix.user }}-logs
         path: ${{ runner.temp }}/e2e-logs
-    - name: Inspect failed pruning
-      if: failure()
-      run: |
-        ls -ldeO "$HOME/.local/share/mise/installs/github-barut-srb-omni-wm"
-        ls -leRO "$HOME/.local/share/mise/installs/github-barut-srb-omni-wm/0.7.2"
-        "$HOME/.local/bin/mise" prune --dry-run
 
   duration:
     needs: upgrade
