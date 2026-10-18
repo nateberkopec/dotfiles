@@ -42,10 +42,7 @@ Honor these carried-forward snoozes until the candidate reaches the wake version
 
 | Package | Declined candidate | Wake at |
 | --- | --- | --- |
-| `pi:pi-mcp-adapter` | 2.33.0 | 2.34.0 |
 | `pi:@narumitw/pi-btw` | 0.58.1 | 0.59.0 |
-| `pi:pi-subagents` | 0.67.0 | 0.68.0 |
-| `standard` | 1.56.0 | 1.57.0 |
 
 A snooze is an intentional deferral of a mechanically upgradeable release: record an explicit wake version here and explain it in the PR. Compatibility constraints are separate skip reasons. A failed upgrade is a bailout, not a snooze: preserve the useful branch state and report the failure rather than dropping an attempted update to manufacture green checks.
 
