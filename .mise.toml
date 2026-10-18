@@ -7,10 +7,10 @@ BUNDLE_PATH = "vendor/bundle"
 dfr = "./bin/dotf run"
 
 [tools]
-node = "26.11.1"
+node = "26.12.0"
 "github:aubepkg/aube" = "2.7.0"
 "npm:typescript" = "7.0.2"
-"npm:@earendil-works/pi-coding-agent" = "1.1.0"
+"npm:@earendil-works/pi-coding-agent" = "1.2.0"
 
 [deps.bundler]
 auto = true
