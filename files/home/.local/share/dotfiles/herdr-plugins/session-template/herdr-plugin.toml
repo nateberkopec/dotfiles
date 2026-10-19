@@ -6,10 +6,10 @@ description = "Create the workspaces a named session's template declares and kee
 platforms = ["macos", "linux"]
 
 [[startup]]
-command = ["node", "index.mjs"]
+command = ["mise", "exec", "--", "node", "index.mjs"]
 
 [[actions]]
 id = "sync"
 title = "Sync session template"
 contexts = ["workspace"]
-command = ["node", "index.mjs"]
+command = ["mise", "exec", "--", "node", "index.mjs"]

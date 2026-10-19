@@ -6,14 +6,14 @@ description = "Prefix live agent titles with their current space's first three n
 platforms = ["macos", "linux"]
 
 [[startup]]
-command = ["node", "index.mjs"]
+command = ["mise", "exec", "--", "node", "index.mjs"]
 
 [[actions]]
 id = "refresh"
 title = "Refresh workspace agent prefixes"
 contexts = ["workspace"]
-command = ["node", "index.mjs"]
+command = ["mise", "exec", "--", "node", "index.mjs"]
 
 [[events]]
 on = "pane.agent_detected"
-command = ["node", "index.mjs"]
+command = ["mise", "exec", "--", "node", "index.mjs"]
