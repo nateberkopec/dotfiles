@@ -76,6 +76,7 @@ http_timeout = "30s"
 fetch_remote_versions_timeout = "5s"
 
 [env]
+AUBE_SHIM_DIR = "{{env.HOME}}/.local/share/aube/shims"
 AUBE_SECURITY_SCANNER = "{{env.HOME}}/.config/aube/socket-security-scanner.mjs"
 BASH_ENV = "{{env.HOME}}/.config/bash/safety.bash"
 CARGO_HTTP_TIMEOUT = "30"
