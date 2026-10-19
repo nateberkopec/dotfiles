@@ -1,4 +1,5 @@
 require_relative "e2e_helper"
+require_relative "../../lib/dotfiles/timed_process"
 
 class EnvironmentTest < Minitest::Test
   def test_fish_is_the_admin_login_shell
@@ -27,6 +28,18 @@ class EnvironmentTest < Minitest::Test
         .map { |tool| "#{name} #{tool["requested_version"]} (installed: #{tool["installed"]}, version: #{tool["version"]})" }
     end
     assert_empty wrong
+  end
+
+  def test_mise_restores_the_aube_shim_directory_without_shell_activation
+    output, status = Dotfiles::TimedProcess.new([
+      {"AUBE_SHIM_DIR" => nil},
+      File.join(E2E.home, ".local", "bin", "mise"), "-C", E2E.home, "exec", "node", "--", "/bin/sh", "-c", <<~SH
+        test "$AUBE_SHIM_DIR" = "$HOME/.local/share/aube/shims" || exit 42
+        PATH="$AUBE_SHIM_DIR:$PATH" exec "$AUBE_SHIM_DIR/node" -e 'console.log("node-ok")'
+      SH
+    ], timeout: 10, stream: false).run
+    assert_equal 0, status, "Node shim failed (#{status}): #{output}"
+    assert_equal "node-ok\n", output
   end
 
   def test_gui_apps_inherit_the_aube_shim_directory
