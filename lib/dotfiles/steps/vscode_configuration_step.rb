@@ -1,4 +1,8 @@
+require_relative "../step/vscode_extension_policy"
+
 class Dotfiles::Step::VSCodeConfigurationStep < Dotfiles::Step
+  include Dotfiles::Step::VSCodeExtensionPolicy
+
   DESCRIPTION = "Installs configured VS Code extensions when the code CLI is available.".freeze
 
   def self.display_name
@@ -42,7 +46,8 @@ class Dotfiles::Step::VSCodeConfigurationStep < Dotfiles::Step
   end
 
   def expected_extensions
-    @system.readlines(extensions_file).map(&:strip).reject(&:empty?)
+    extensions = @system.readlines(extensions_file).map(&:strip).reject(&:empty?)
+    policy_allowed_extensions(extensions)
   end
 
   def install_vscode_extensions
