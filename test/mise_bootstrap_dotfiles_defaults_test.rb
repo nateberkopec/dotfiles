@@ -50,7 +50,7 @@ class MiseBootstrapDotfilesDefaultsTest < Minitest::Test
     assert_equal "Tinycast-{{version}}.zip", tool.fetch("asset_pattern")
     assert_equal "Tinycast.app/Contents/MacOS", tool.fetch("bin_path")
     assert_equal ["macos"], tool.fetch("os")
-    assert_equal ["arm64"], tool.fetch("arch")
+    refute tool.key?("arch")
   end
 
   def test_installs_native_codexbar_release
