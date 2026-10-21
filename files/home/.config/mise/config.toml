@@ -80,6 +80,8 @@ AUBE_SHIM_DIR = "{{env.HOME}}/.local/share/aube/shims"
 AUBE_SECURITY_SCANNER = "{{env.HOME}}/.config/aube/socket-security-scanner.mjs"
 BASH_ENV = "{{env.HOME}}/.config/bash/safety.bash"
 CARGO_HTTP_TIMEOUT = "30"
+NODE_OPTIONS = "--use-openssl-ca"
+SSL_CERT_FILE = "{% if os() == 'macos' %}/etc/ssl/cert.pem{% else %}/etc/ssl/certs/ca-certificates.crt{% endif %}"
 
 [tasks."spotlight:status"]
 description = "Show the managed Spotlight policy and volume indexing status"
@@ -256,6 +258,7 @@ stdout_path = "~/Library/Logs/meridian.out.log"
 stderr_path = "~/Library/Logs/meridian.err.log"
 
 [bootstrap.hooks]
+pre-tools = 'bash "$HOME/.dotfiles/bin/lib/check-node-ca-workaround-expiry.sh"'
 pre-dotfiles = 'bash "$HOME/.dotfiles/bin/lib/unprotect-managed-files.sh"'
 post-dotfiles = 'bash "$HOME/.dotfiles/bin/lib/post-dotfiles-hook.sh"'
 pre-defaults = 'bash "$HOME/.dotfiles/bin/lib/pre-defaults-hook.sh"'
