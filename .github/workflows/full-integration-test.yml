@@ -9,6 +9,9 @@ on:
     - cron: "23 6 * * *"
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
@@ -16,6 +19,7 @@ concurrency:
 jobs:
   detect-changes:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     outputs:
       integration_optional: ${{ steps.integration_optional.outputs.integration_optional }}
 
@@ -23,6 +27,7 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
+        persist-credentials: false
         fetch-depth: 0
 
     - name: Detect changes that do not need integration
@@ -37,6 +42,7 @@ jobs:
     needs: detect-changes
     if: ${{ !cancelled() && needs.detect-changes.result == 'success' && needs.detect-changes.outputs.integration_optional == 'false' }}
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
@@ -49,6 +55,8 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
 
     - name: Set up Ruby
       uses: ruby/setup-ruby@651ff0d62c5c79bed6d53ec518387aae20e72c1a # v1.329.0
@@ -263,10 +271,13 @@ jobs:
     needs: [detect-changes, integration-test, non-admin-integration-test]
     if: ${{ always() && !cancelled() }}
     runs-on: ubuntu-latest
+    timeout-minutes: 5
 
     steps:
     - name: Checkout result checker
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
 
     - name: Require successful integration result
       env:
