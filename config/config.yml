@@ -26,7 +26,6 @@ brew_casks:
   - 1password
   - discord
   - ghostty
-  - github
   - slack
   - steam
   - tailscale-app
