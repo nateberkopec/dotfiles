@@ -1,6 +1,6 @@
 # Selected by dotf only for macOS users in the admin group.
 [tools]
-"github:BarutSRB/OmniWM" = { version = "0.7.6", asset_pattern = "OmniWM-v{{version}}.zip", bin_path = "OmniWM.app/Contents/MacOS", os = ["macos"], arch = ["arm64"] }
+"github:BarutSRB/OmniWM" = { version = "0.7.6", asset_pattern = "OmniWM-v{{version}}.zip", bin_path = "OmniWM.app/Contents/MacOS", os = ["macos"] }
 
 [bootstrap.macos.launchd.agents.omniwm]
 program = "~/.local/share/dotfiles/launch-omniwm"
