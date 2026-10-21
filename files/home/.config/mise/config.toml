@@ -4,10 +4,10 @@ spinel-source = "https://github.com/nateberkopec/mise-backend-spinel#907d04d88bc
 
 [tools]
 ruby = "4.0.7"
-python = "3.15.0"
+python = { version = "3.15.0", postinstall = "python -m pip install --upgrade pip==26.2.2" }
 node = "26.12.0"
 "github:aubepkg/aube" = "2.7.0"
-go = "1.27.2"
+go = "1.27.3"
 rust = "1.99.0"
 hk = "2.6.0"
 broot = "1.61.0"
@@ -17,7 +17,7 @@ starship = "1.26.0"
 "npm:@rynfar/meridian" = { version = "1.83.0", depends = ["github:aubepkg/aube"], minimum_release_age = "0d" }
 "npm:sfw" = { version = "2.0.6", depends = ["github:aubepkg/aube"] }
 pipx = "1.18.1"
-uv = "0.13.1"
+uv = "0.13.4"
 "pipx:playwright" = { version = "1.64.0", depends = ["pipx", "uv"] }
 "npm:@earendil-works/pi-coding-agent" = { version = "1.3.0", depends = ["github:aubepkg/aube"], minimum_release_age = "0d", aube_args = "--deny-build=@google/genai --deny-build=protobufjs" }
 "go:github.com/mikefarah/yq/v4" = "4.54.1"
