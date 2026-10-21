@@ -52,6 +52,7 @@ jobs:
     needs: upgrade
     if: always() && github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     permissions:
       actions: read
     steps:
@@ -59,6 +60,7 @@ jobs:
       env:
         GH_TOKEN: ${{ github.token }}
       run: |
+        set -o pipefail
         gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/attempts/$GITHUB_RUN_ATTEMPT/jobs" | jq -r '
           [.jobs[] | select(.name == "upgrade (admin)" or .name == "upgrade (nonadmin)")]
           | if length != 2 then error("Expected both upgrade jobs") else . end
@@ -101,6 +103,7 @@ jobs:
     needs: fresh
     if: always() && github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     permissions:
       actions: read
     steps:
@@ -118,6 +121,7 @@ jobs:
   golden-lag:
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     outputs:
       users: ${{ steps.lag.outputs.users }}
     steps:
