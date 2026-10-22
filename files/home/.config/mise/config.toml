@@ -48,7 +48,7 @@ tmux = "3.7c"
 zoxide = "0.10.0"
 pkl = "0.32.1"
 pitchfork = "2.31.0"
-claude = "2.1.301"
+claude = "2.1.308"
 gitleaks = "8.30.1"
 "1password-cli" = "2.41.0"
 heroku = { version = "11.12.0", depends = ["github:aubepkg/aube"], aube_args = "--deny-build=cpu-features --deny-build=protobufjs --deny-build=ssh2 --deny-build=yarn" }

@@ -1,5 +1,9 @@
 {
   "cleanupPeriodDays": 1,
+  "env": {
+    "CLAUDE_CODE_CERT_STORE": "system",
+    "NODE_EXTRA_CA_CERTS": "/etc/ssl/cert.pem"
+  },
   "syncClaudeAiSkills": false,
   "model": "opus[1m]",
   "effortLevel": "high",
