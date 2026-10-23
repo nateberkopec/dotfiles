@@ -3,9 +3,11 @@ function herdr --wraps herdr --description 'Herdr with a saved-machine catalog p
     set -l state_root $HOME/.local/state
     set -q XDG_STATE_HOME; and set state_root $XDG_STATE_HOME
     if __herdr_attaching $argv
-        __herdr_ensure_server $session
+        __herdr_ensure_server $session; or return $status
+        XDG_STATE_HOME=$state_root/herdr-sessions/$session command node $HOME/.local/share/dotfiles/herdr-plugins/session-template/client.mjs $session $argv
+    else
+        XDG_STATE_HOME=$state_root/herdr-sessions/$session command herdr $argv
     end
-    XDG_STATE_HOME=$state_root/herdr-sessions/$session command herdr $argv
 end
 
 function __herdr_session_name

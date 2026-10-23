@@ -1,0 +1,27 @@
+#!/usr/bin/env ruby
+require "json"
+
+root = ENV.fetch("FAKE_HERDR_ROOT")
+args = (ARGV.first == "--session") ? ARGV.drop(2) : ARGV
+session = (ARGV.first == "--session") ? ARGV[1] : File.basename(File.dirname(ENV.fetch("HERDR_SOCKET_PATH")))
+record = ->(event) do
+  File.open(File.join(root, "calls"), "a") do |file|
+    file.puts JSON.generate(event: event, args: ARGV, session: session, pid: Process.pid, socket: ENV["HERDR_SOCKET_PATH"])
+  end
+end
+record.call("start")
+case args
+when []
+  File.write(File.join(root, "client-#{Process.pid}"), "")
+  exit $stdin.gets.to_i
+when ["status", "server", "--json"]
+  puts JSON.generate(socket: File.join(root, "sessions", session, "herdr.sock"))
+when ["plugin", "config-dir", "dotfiles.session-template"]
+  puts File.join(root, "config")
+when ["workspace", "list"]
+  sleep 0.15
+  puts JSON.generate(result: {workspaces: []})
+else
+  abort "unexpected Herdr command: #{ARGV}"
+end
+record.call("finish")
