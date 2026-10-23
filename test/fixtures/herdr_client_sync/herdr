@@ -1,0 +1,29 @@
+#!/usr/bin/env ruby
+require "json"
+
+root = ENV.fetch("FAKE_HERDR_ROOT")
+args = (ARGV.first == "--session") ? ARGV.drop(2) : ARGV
+session = (ARGV.first == "--session") ? ARGV[1] : File.basename(File.dirname(ENV.fetch("HERDR_SOCKET_PATH")))
+record = ->(event) do
+  File.open(File.join(root, "calls"), "a") do |file|
+    file.puts JSON.generate(event: event, args: ARGV, session: session, pid: Process.pid, socket: ENV["HERDR_SOCKET_PATH"])
+  end
+end
+record.call("start")
+case args
+when []
+  File.write(File.join(root, "client-#{Process.pid}"), "")
+  exit $stdin.gets.to_i
+when ["plugin", "action", "invoke", "sync", "--plugin", "dotfiles.session-template"]
+  env = {"HERDR_SOCKET_PATH" => File.join(root, "sessions", session, "herdr.sock"), "HERDR_PLUGIN_CONFIG_DIR" => File.join(root, "config"), "HERDR_BIN_PATH" => File.join(root, "bin/herdr")}
+  pid = Process.spawn(env, "node", File.join(ENV.fetch("FAKE_HERDR_PLUGIN"), "index.mjs"), pgroup: true, in: File::NULL, out: [File.join(root, "plugin.log"), "a"], err: [:child, :out])
+  Process.detach(pid)
+  puts JSON.generate(result: {status: "running"})
+when ["workspace", "list"]
+  sleep 0.01 while ARGV == ["workspace", "list"] && File.exist?(File.join(root, "hold")) && !File.exist?(File.join(root, "release"))
+  sleep 0.15
+  puts JSON.generate(result: {workspaces: []})
+else
+  abort "unexpected Herdr command: #{ARGV}"
+end
+record.call("finish")

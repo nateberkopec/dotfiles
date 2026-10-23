@@ -26,6 +26,9 @@ class HerdrSessionsTest < Minitest::Test
     FileUtils.mkdir_p(File.join(@home, "bin"))
     File.write(File.join(@home, "bin/herdr"), FAKE)
     FileUtils.chmod(0o755, File.join(@home, "bin/herdr"))
+    plugin = File.join(@home, ".local/share/dotfiles/herdr-plugins/session-template")
+    FileUtils.mkdir_p(plugin)
+    FileUtils.cp(File.expand_path("../../files/home/.local/share/dotfiles/herdr-plugins/session-template/while-attached.fish", __dir__), plugin)
   end
 
   def teardown

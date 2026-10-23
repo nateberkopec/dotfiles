@@ -2,10 +2,21 @@ function herdr --wraps herdr --description 'Herdr with a saved-machine catalog p
     set -l session (__herdr_session_name $argv)
     set -l state_root $HOME/.local/state
     set -q XDG_STATE_HOME; and set state_root $XDG_STATE_HOME
+    set -l timer
     if __herdr_attaching $argv
-        __herdr_ensure_server $session
+        __herdr_ensure_server $session; or return $status
+        mkdir -p $state_root/herdr-sessions/$session; or return $status
+        set -l fish (status fish-path)
+        command $fish --no-config $HOME/.local/share/dotfiles/herdr-plugins/session-template/while-attached.fish $session $fish_pid >/dev/null 2>>$state_root/herdr-sessions/$session/template-sync.log &
+        set timer $last_pid
     end
     XDG_STATE_HOME=$state_root/herdr-sessions/$session command herdr $argv
+    set -l result $status
+    if set -q timer[1]
+        kill $timer
+        wait $timer
+    end
+    return $result
 end
 
 function __herdr_session_name
