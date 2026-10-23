@@ -6,6 +6,7 @@ require "tmpdir"
 
 class HerdrClientSyncSystemTest < Minitest::Test
   PLUGIN = File.expand_path("../files/home/.local/share/dotfiles/herdr-plugins/session-template", __dir__)
+  FUNCTION = File.expand_path("../files/home/.config/fish/functions/herdr.fish", __dir__)
 
   def setup
     @root = Dir.mktmpdir("herdr-client-sync-", "/tmp")
@@ -14,7 +15,11 @@ class HerdrClientSyncSystemTest < Minitest::Test
     FileUtils.cp(File.expand_path("fixtures/herdr_client_sync/herdr", __dir__), File.join(@root, "bin/herdr"))
     FileUtils.chmod(0o755, File.join(@root, "bin/herdr"))
     File.write(File.join(@root, "config/personal.json"), JSON.generate(workspaces: []))
-    File.write(File.join(@root, "timer.mjs"), "const interval = globalThis.setInterval; globalThis.setInterval = (fn, ms) => interval(fn, ms === 300000 ? 500 : ms);\n")
+    plugin = File.join(@root, ".local/share/dotfiles/herdr-plugins/session-template")
+    FileUtils.mkdir_p(plugin)
+    FileUtils.cp(File.join(PLUGIN, "while-attached.fish"), plugin)
+    File.write(File.join(@root, "bin/sleep"), "#!/usr/bin/env ruby\nKernel.sleep 0.1\n")
+    FileUtils.chmod(0o755, File.join(@root, "bin/sleep"))
   end
 
   def teardown
@@ -51,7 +56,7 @@ class HerdrClientSyncSystemTest < Minitest::Test
     assert calls.any? { |call| call["pid"] == pid && call["event"] == "finish" }
   end
 
-  def test_termination_stops_the_client_and_invalid_templates_are_logged_without_closing_it
+  def test_client_termination_stops_the_timer_and_invalid_templates_are_logged_without_closing_it
     client = start_client
     wait_until { syncs.any? }
     File.write(File.join(@root, "config/personal.json"), "invalid json")
@@ -59,7 +64,7 @@ class HerdrClientSyncSystemTest < Minitest::Test
     wait_until { File.read(log).include?("SyntaxError") }
     assert client[3].alive?
     pid = calls.find { |call| call["args"] == ["--session", "personal"] }.fetch("pid")
-    Process.kill("TERM", client[3].pid)
+    Process.kill("TERM", pid)
     assert_equal 143, client[3].value.exitstatus
     assert_raises(Errno::ESRCH) { Process.kill(0, pid) }
   end
@@ -67,8 +72,8 @@ class HerdrClientSyncSystemTest < Minitest::Test
   private
 
   def start_client
-    env = {"PATH" => "#{@root}/bin:#{ENV.fetch("PATH")}", "FAKE_HERDR_ROOT" => @root, "FAKE_HERDR_PLUGIN" => PLUGIN, "XDG_STATE_HOME" => File.join(@root, "state"), "HERDR_SOCKET_PATH" => "/wrong/session.sock"}
-    client = Open3.popen3(env, "node", "--import", File.join(@root, "timer.mjs"), File.join(PLUGIN, "client.mjs"), "personal", "--session", "personal")
+    env = {"HOME" => @root, "PATH" => "#{@root}/bin:#{ENV.fetch("PATH")}", "FAKE_HERDR_ROOT" => @root, "FAKE_HERDR_PLUGIN" => PLUGIN, "XDG_STATE_HOME" => File.join(@root, "state"), "HERDR_SOCKET_PATH" => "/wrong/session.sock"}
+    client = Open3.popen3(env, "fish", "--no-config", "-c", "source $argv[1]; herdr --session personal", "--", FUNCTION)
     @clients << client
     client
   end
