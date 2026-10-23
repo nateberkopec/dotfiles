@@ -20,6 +20,7 @@ when ["plugin", "action", "invoke", "sync", "--plugin", "dotfiles.session-templa
   Process.detach(pid)
   puts JSON.generate(result: {status: "running"})
 when ["workspace", "list"]
+  sleep 0.01 while File.exist?(File.join(root, "hold")) && !File.exist?(File.join(root, "release"))
   sleep 0.15
   puts JSON.generate(result: {workspaces: []})
 else

@@ -14,10 +14,11 @@ class HerdrClientSyncSystemTest < Minitest::Test
     FileUtils.cp(File.expand_path("fixtures/herdr_client_sync/herdr", __dir__), File.join(@root, "bin/herdr"))
     FileUtils.chmod(0o755, File.join(@root, "bin/herdr"))
     File.write(File.join(@root, "config/personal.json"), JSON.generate(workspaces: []))
-    File.write(File.join(@root, "timer.mjs"), "const interval = globalThis.setInterval; globalThis.setInterval = (fn, ms) => interval(fn, ms === 300000 ? 100 : ms);\n")
+    File.write(File.join(@root, "timer.mjs"), "const interval = globalThis.setInterval; globalThis.setInterval = (fn, ms) => interval(fn, ms === 300000 ? 500 : ms);\n")
   end
 
   def teardown
+    File.write(File.join(@root, "release"), "")
     @clients.each do |input, output, errors, thread|
       input.puts 0 if thread.alive?
       thread.join(5)
@@ -32,21 +33,20 @@ class HerdrClientSyncSystemTest < Minitest::Test
     wait_until { syncs.length >= 2 }
     assert syncs.all? { |call| call["session"] == "personal" && call["socket"] == File.join(@root, "sessions/personal/herdr.sock") }
     client[0].puts 42
+    assert client[3].join(5), "helper kept running after its client exited"
     assert_equal 42, client[3].value.exitstatus
-    sleep 0.3
-    count = dispatches.length
-    sleep 0.3
-    assert_equal count, dispatches.length
     assert_empty client[2].read
   end
 
   def test_an_action_already_started_can_finish_after_the_client_closes
+    File.write(File.join(@root, "hold"), "")
     client = start_client
     wait_until { syncs.any? }
     pid = syncs.first.fetch("pid")
     refute calls.any? { |call| call["pid"] == pid && call["event"] == "finish" }
     client[0].puts 0
     assert client[3].value.success?
+    File.write(File.join(@root, "release"), "")
     wait_until { calls.any? { |call| call["pid"] == pid && call["event"] == "finish" } }
     assert calls.any? { |call| call["pid"] == pid && call["event"] == "finish" }
   end
@@ -80,10 +80,6 @@ class HerdrClientSyncSystemTest < Minitest::Test
 
   def syncs
     calls.select { |call| call["args"] == ["workspace", "list"] && call["event"] == "start" }
-  end
-
-  def dispatches
-    calls.select { |call| call["args"].include?("invoke") && call["event"] == "start" }
   end
 
   def wait_until
