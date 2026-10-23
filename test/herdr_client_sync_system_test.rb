@@ -14,7 +14,7 @@ class HerdrClientSyncSystemTest < Minitest::Test
     FileUtils.cp(File.expand_path("fixtures/herdr_client_sync/herdr", __dir__), File.join(@root, "bin/herdr"))
     FileUtils.chmod(0o755, File.join(@root, "bin/herdr"))
     File.write(File.join(@root, "config/personal.json"), JSON.generate(workspaces: []))
-    File.write(File.join(@root, "timer.mjs"), "const interval = globalThis.setInterval; globalThis.setInterval = (fn, ms) => interval(fn, ms === 300000 ? 40 : ms);\n")
+    File.write(File.join(@root, "timer.mjs"), "const interval = globalThis.setInterval; globalThis.setInterval = (fn, ms) => interval(fn, ms === 300000 ? 100 : ms);\n")
   end
 
   def teardown
@@ -23,6 +23,7 @@ class HerdrClientSyncSystemTest < Minitest::Test
       thread.join(5)
       [input, output, errors].each(&:close)
     end
+    sleep 0.4
     FileUtils.remove_entry(@root)
   end
 
@@ -32,32 +33,29 @@ class HerdrClientSyncSystemTest < Minitest::Test
     assert syncs.all? { |call| call["session"] == "personal" && call["socket"] == File.join(@root, "sessions/personal/herdr.sock") }
     client[0].puts 42
     assert_equal 42, client[3].value.exitstatus
-    count = syncs.length
-    sleep 0.25
-    assert_equal count, syncs.length
+    sleep 0.3
+    count = dispatches.length
+    sleep 0.3
+    assert_equal count, dispatches.length
     assert_empty client[2].read
   end
 
-  def test_multiple_clients_share_a_session_lock_and_one_can_close_without_stopping_the_other
-    first, second = start_client, start_client("other-state")
-    wait_until { syncs.length >= 3 }
-    active = 0
-    calls.select { |call| call["args"] == ["workspace", "list"] }.each do |call|
-      active += (call["event"] == "start") ? 1 : -1
-      assert_operator active, :<=, 1
-    end
-    first[0].puts 0
-    assert first[3].value.success?
-    count = syncs.length
-    wait_until { syncs.length > count }
-    assert second[3].alive?
+  def test_an_action_already_started_can_finish_after_the_client_closes
+    client = start_client
+    wait_until { syncs.any? }
+    pid = syncs.first.fetch("pid")
+    refute calls.any? { |call| call["pid"] == pid && call["event"] == "finish" }
+    client[0].puts 0
+    assert client[3].value.success?
+    wait_until { calls.any? { |call| call["pid"] == pid && call["event"] == "finish" } }
+    assert calls.any? { |call| call["pid"] == pid && call["event"] == "finish" }
   end
 
   def test_termination_stops_the_client_and_invalid_templates_are_logged_without_closing_it
     client = start_client
     wait_until { syncs.any? }
     File.write(File.join(@root, "config/personal.json"), "invalid json")
-    log = File.join(@root, "state/template-sync.log")
+    log = File.join(@root, "plugin.log")
     wait_until { File.read(log).include?("SyntaxError") }
     assert client[3].alive?
     pid = calls.find { |call| call["args"] == ["--session", "personal"] }.fetch("pid")
@@ -68,8 +66,8 @@ class HerdrClientSyncSystemTest < Minitest::Test
 
   private
 
-  def start_client(state = "state")
-    env = {"PATH" => "#{@root}/bin:#{ENV.fetch("PATH")}", "FAKE_HERDR_ROOT" => @root, "XDG_STATE_HOME" => File.join(@root, state), "HERDR_SOCKET_PATH" => "/wrong/session.sock"}
+  def start_client
+    env = {"PATH" => "#{@root}/bin:#{ENV.fetch("PATH")}", "FAKE_HERDR_ROOT" => @root, "FAKE_HERDR_PLUGIN" => PLUGIN, "XDG_STATE_HOME" => File.join(@root, "state"), "HERDR_SOCKET_PATH" => "/wrong/session.sock"}
     client = Open3.popen3(env, "node", "--import", File.join(@root, "timer.mjs"), File.join(PLUGIN, "client.mjs"), "personal", "--session", "personal")
     @clients << client
     client
@@ -82,6 +80,10 @@ class HerdrClientSyncSystemTest < Minitest::Test
 
   def syncs
     calls.select { |call| call["args"] == ["workspace", "list"] && call["event"] == "start" }
+  end
+
+  def dispatches
+    calls.select { |call| call["args"].include?("invoke") && call["event"] == "start" }
   end
 
   def wait_until
