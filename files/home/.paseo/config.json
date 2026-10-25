@@ -1,0 +1,163 @@
+{
+  "$schema": "https://paseo.sh/schemas/paseo.config.v1.json",
+  "version": 1,
+  "daemon": {
+    "listen": "127.0.0.1:6767",
+    "hostnames": [
+      "localhost",
+      ".localhost",
+      "127.0.0.1"
+    ],
+    "relay": {
+      "enabled": false
+    },
+    "mcp": {
+      "enabled": false,
+      "injectIntoAgents": false
+    },
+    "browserTools": {
+      "enabled": false
+    },
+    "cors": {
+      "allowedOrigins": []
+    }
+  },
+  "app": {
+    "baseUrl": "http://127.0.0.1:6767"
+  },
+  "features": {
+    "dictation": {
+      "enabled": false
+    },
+    "voiceMode": {
+      "enabled": false
+    },
+    "webUi": {
+      "enabled": true
+    }
+  },
+  "pluginsEnabled": false,
+  "agents": {
+    "providers": {
+      "claude": {
+        "enabled": false
+      },
+      "codex": {
+        "enabled": false
+      },
+      "copilot": {
+        "enabled": false
+      },
+      "opencode": {
+        "enabled": false
+      },
+      "omp": {
+        "enabled": false
+      },
+      "pi": {
+        "command": [
+          "/Users/nateberkopec/.local/share/mise/shims/pi"
+        ],
+        "env": {
+          "PI_DATASAFE_MODE": "usa-no-train",
+          "NONINTERACTIVE": "1",
+          "PI_SKIP_VERSION_CHECK": "1"
+        },
+        "paseoTools": {
+          "enabled": false
+        }
+      },
+      "pi-claude": {
+        "extends": "pi",
+        "label": "Pi (Claude only)",
+        "command": [
+          "/Users/nateberkopec/.local/share/mise/shims/pi"
+        ],
+        "env": {
+          "PI_DATASAFE_MODE": "claude-only",
+          "NONINTERACTIVE": "1",
+          "PI_SKIP_VERSION_CHECK": "1"
+        },
+        "paseoTools": {
+          "enabled": false
+        },
+        "models": [
+          {
+            "id": "meridian/claude-sonnet-5-5",
+            "label": "Claude Sonnet 5.5",
+            "isDefault": false
+          },
+          {
+            "id": "meridian/claude-sonnet-5",
+            "label": "Claude Sonnet 5",
+            "isDefault": false
+          },
+          {
+            "id": "meridian/claude-sonnet-4-6",
+            "label": "Claude Sonnet 4.6",
+            "isDefault": false
+          },
+          {
+            "id": "meridian/claude-opus-5-5",
+            "label": "Claude Opus 5.5",
+            "isDefault": false
+          },
+          {
+            "id": "meridian/claude-opus-5",
+            "label": "Claude Opus 5",
+            "isDefault": false
+          },
+          {
+            "id": "meridian/claude-opus-4-6",
+            "label": "Claude Opus 4.6",
+            "isDefault": false
+          },
+          {
+            "id": "meridian/claude-opus-4-7",
+            "label": "Claude Opus 4.7",
+            "isDefault": false
+          },
+          {
+            "id": "meridian/claude-opus-4-8",
+            "label": "Claude Opus 4.8",
+            "isDefault": false
+          },
+          {
+            "id": "meridian/claude-fable-5-1",
+            "label": "Claude Fable 5.1",
+            "isDefault": false
+          },
+          {
+            "id": "meridian/claude-fable-5",
+            "label": "Claude Fable 5",
+            "isDefault": false
+          },
+          {
+            "id": "meridian/claude-haiku-5-5",
+            "label": "Claude Haiku 5.5",
+            "isDefault": false
+          },
+          {
+            "id": "meridian/claude-haiku-4-5",
+            "label": "Claude Haiku 4.5",
+            "isDefault": true
+          }
+        ]
+      },
+      "antigravity": {
+        "enabled": false
+      },
+      "muse": {
+        "enabled": false
+      }
+    },
+    "metadataGeneration": {
+      "providers": [
+        {
+          "provider": "pi-claude",
+          "model": "meridian/claude-haiku-4-5"
+        }
+      ]
+    }
+  }
+}

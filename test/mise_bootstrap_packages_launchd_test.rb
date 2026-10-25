@@ -68,6 +68,21 @@ class MiseBootstrapPackagesLaunchdTest < Minitest::Test
     assert_equal "~/Library/Logs/meridian.err.log", agent.fetch("stderr_path")
   end
 
+  def test_declares_pinned_paseo_launch_agent
+    assert_equal({"version" => "0.13.0", "depends" => ["github:aubepkg/aube"]}, config.dig("tools", "npm:@getpaseo/cli"))
+    agent = config.dig("bootstrap", "macos", "launchd", "agents", "paseo")
+
+    assert_equal "~/.local/bin/mise", agent.fetch("program")
+    assert_equal ["exec", "--", "paseo", "daemon", "run"], agent.fetch("args")
+    assert_equal "~", agent.fetch("working_directory")
+    assert_equal({"PASEO_HUB_URL" => "https://hub.invalid"}, agent.fetch("environment"))
+    assert_equal true, agent.fetch("run_at_load")
+    assert_equal true, agent.fetch("keep_alive")
+    assert_equal true, agent.fetch("kickstart")
+    assert_equal "~/Library/Logs/paseo.out.log", agent.fetch("stdout_path")
+    assert_equal "~/Library/Logs/paseo.err.log", agent.fetch("stderr_path")
+  end
+
   def test_pins_bootstrap_tools
     tools = config.fetch("tools")
 
