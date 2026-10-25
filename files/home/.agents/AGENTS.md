@@ -14,11 +14,23 @@ Rather than dirty up the present working directory, put "temporary" work files i
 
 When I ask questions about how dependencies work, read the source code. Clone/download the dependency to /tmp, or use `bundle open` or equivalent.
 
+For web research, use the Exa MCP.
+
+## Autonomy
+
+Within the task I gave you, keep going: fix, retry, and take the next in-scope step yourself. Commit locally as you finish each logical unit, staging only files you changed. Ask before outward-facing actions I haven't requested, such as push, publish, deploy, messaging other people, or irreversible deletes.
+
+End any turn that reports on long-running or delegated work with a short status: **Goal**, **Done**, **Next**, **Needs you** (or "nothing").
+
 ## Shell
 
 I use fish. When writing shell scripts intended for the user, use fish. For temporary stuff or stuff for your own use, you can use any shell you like, such as bash or zsh. If a project we're working already uses bash extensively, don't introduce fish.
 
-`find` has a 2 second time limit, enforced via an agent harness hook. When using find, set your timeout to 2 seconds or less.
+`find` is capped at a 2 second timeout by an agent harness hook.
+
+The bash tool runs bash. Use fish syntax only inside `fish -c '…'`.
+
+Run commands expected to take more than 2 minutes (builds, test suites, watchers, deploys) in the background with output to a log file, then check back, so I can steer you meanwhile. For GitHub CI, use `executor_watch`.
 
 ## CI
 
