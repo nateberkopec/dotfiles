@@ -14,7 +14,7 @@ Rather than dirty up the present working directory, put "temporary" work files i
 
 When I ask questions about how dependencies work, read the source code. Clone/download the dependency to /tmp, or use `bundle open` or equivalent.
 
-For web research, use the Exa MCP.
+For web research, use the `exa` Executor app on server-1 (`web_search_exa`, `web_fetch_exa`).
 
 ## Autonomy
 
