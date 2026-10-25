@@ -13,6 +13,7 @@ hk = "2.6.0"
 broot = "1.61.0"
 difftastic = "0.71.0"
 starship = "1.26.0"
+"npm:@getpaseo/cli" = { version = "0.13.0", depends = ["github:aubepkg/aube"] }
 "npm:@openai/codex" = { version = "0.162.1", depends = ["github:aubepkg/aube"] }
 "npm:@rynfar/meridian" = { version = "1.83.0", depends = ["github:aubepkg/aube"], minimum_release_age = "0d" }
 "npm:sfw" = { version = "2.0.6", depends = ["github:aubepkg/aube"] }
@@ -256,6 +257,17 @@ keep_alive = true
 kickstart = true
 stdout_path = "~/Library/Logs/meridian.out.log"
 stderr_path = "~/Library/Logs/meridian.err.log"
+
+[bootstrap.macos.launchd.agents.paseo]
+program = "~/.local/bin/mise"
+args = ["exec", "--", "paseo", "daemon", "run"]
+working_directory = "~"
+environment = { PASEO_HUB_URL = "https://hub.invalid" }
+run_at_load = true
+keep_alive = true
+kickstart = true
+stdout_path = "~/Library/Logs/paseo.out.log"
+stderr_path = "~/Library/Logs/paseo.err.log"
 
 [bootstrap.hooks]
 pre-tools = 'bash "$HOME/.dotfiles/bin/lib/check-node-ca-workaround-expiry.sh"'

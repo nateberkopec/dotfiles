@@ -438,6 +438,10 @@ backend = "npm:@earendil-works/pi-coding-agent"
 [tools."npm:@earendil-works/pi-coding-agent".options]
 aube_args = "--deny-build=@google/genai --deny-build=protobufjs"
 
+[[tools."npm:@getpaseo/cli"]]
+version = "0.13.0"
+backend = "npm:@getpaseo/cli"
+
 [[tools."npm:@openai/codex"]]
 version = "0.162.1"
 backend = "npm:@openai/codex"
