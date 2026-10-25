@@ -56,7 +56,7 @@
       },
       "pi": {
         "command": [
-          "/Users/nateberkopec/.local/share/mise/shims/pi"
+          "pi"
         ],
         "env": {
           "PI_DATASAFE_MODE": "usa-no-train",
@@ -71,7 +71,7 @@
         "extends": "pi",
         "label": "Pi (Claude only)",
         "command": [
-          "/Users/nateberkopec/.local/share/mise/shims/pi"
+          "pi"
         ],
         "env": {
           "PI_DATASAFE_MODE": "claude-only",

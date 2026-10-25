@@ -19,10 +19,14 @@ test("Paseo stays loopback-only without relay, injected tools, or voice", () => 
 	assert.equal(config.app.baseUrl, "http://127.0.0.1:6767");
 });
 
-test("Paseo launches only Pi with explicit datasafe profiles and stable commands", () => {
+test("Paseo config contains no account-specific macOS home paths", () => {
+	assert.doesNotMatch(JSON.stringify(config), /\/Users\/[^/]+\//);
+});
+
+test("Paseo launches only Pi with explicit datasafe profiles and PATH-resolved commands", () => {
 	const providers = config.agents.providers;
 	for (const [id, mode] of [["pi", "usa-no-train"], ["pi-claude", "claude-only"]]) {
-		assert.deepEqual(providers[id].command, ["/Users/nateberkopec/.local/share/mise/shims/pi"]);
+		assert.deepEqual(providers[id].command, ["pi"]);
 		assert.deepEqual(providers[id].env, {
 			PI_DATASAFE_MODE: mode, NONINTERACTIVE: "1", PI_SKIP_VERSION_CHECK: "1",
 		});
