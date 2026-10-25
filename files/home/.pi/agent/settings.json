@@ -1,8 +1,9 @@
 {
   "lastChangelogVersion": "9999.0.0",
-  "defaultProvider": "openai",
-  "defaultModel": "gpt-6.1-sol",
+  "defaultProvider": "meridian",
+  "defaultModel": "claude-opus-5-5",
   "defaultThinkingLevel": "medium",
+  "httpIdleTimeoutMs": 120000,
   "hideThinkingBlock": false,
   "packages": [
     {
