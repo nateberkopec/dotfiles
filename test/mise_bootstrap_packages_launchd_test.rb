@@ -75,7 +75,7 @@ class MiseBootstrapPackagesLaunchdTest < Minitest::Test
     assert_equal "~/.local/bin/mise", agent.fetch("program")
     assert_equal ["exec", "--", "paseo", "daemon", "run"], agent.fetch("args")
     assert_equal "~", agent.fetch("working_directory")
-    assert_equal({"PASEO_HUB_URL" => "https://hub.invalid"}, agent.fetch("environment"))
+    assert_equal({"PASEO_HUB_URL" => "https://hub.invalid", "LANG" => "en_US.UTF-8"}, agent.fetch("environment"))
     assert_equal true, agent.fetch("run_at_load")
     assert_equal true, agent.fetch("keep_alive")
     assert_equal true, agent.fetch("kickstart")

@@ -262,7 +262,7 @@ stderr_path = "~/Library/Logs/meridian.err.log"
 program = "~/.local/bin/mise"
 args = ["exec", "--", "paseo", "daemon", "run"]
 working_directory = "~"
-environment = { PASEO_HUB_URL = "https://hub.invalid" }
+environment = { PASEO_HUB_URL = "https://hub.invalid", LANG = "en_US.UTF-8" }
 run_at_load = true
 keep_alive = true
 kickstart = true
