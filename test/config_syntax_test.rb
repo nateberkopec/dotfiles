@@ -29,6 +29,14 @@ class ConfigSyntaxTest < Minitest::Test
     assert_equal "cloc", cloc.fetch("bin")
   end
 
+  def test_global_mise_path_includes_portable_mise_binary_directory
+    config = TomlRB.load_file(File.join(FILES_DIR, "home/.config/mise/config.toml"))
+    paths = config.fetch("env").fetch("_").fetch("path")
+
+    assert_includes paths, "{{env.HOME}}/.local/bin"
+    paths.each { |path| refute_match %r{/Users/[^/]+/}, path }
+  end
+
   private
 
   def validate_toml(path)
