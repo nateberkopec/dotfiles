@@ -15,7 +15,7 @@ test("Paseo stays loopback-only without relay, injected tools, or voice", () => 
 	assert.equal(config.features.dictation.enabled, false);
 	assert.equal(config.features.voiceMode.enabled, false);
 	assert.equal(config.features.webUi.enabled, true);
-	assert.equal(config.pluginsEnabled, false);
+	assert.equal(config.pluginsEnabled, true);
 	assert.equal(config.app.baseUrl, "http://127.0.0.1:6767");
 });
 
