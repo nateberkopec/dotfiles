@@ -16,6 +16,7 @@ class PostDefaultsHookTest < Minitest::Test
       write_command(bin, "uname", "echo Darwin")
       write_command(bin, "defaults", 'printf "%s\n" "$HOME/Documents/Inbox"')
       write_command(bin, "killall", 'echo "$*" >> "$TRACE"')
+      write_command(bin, "osascript", 'test "$*" = "-l JavaScript $HOME/.local/share/dotfiles/configure-executor-launchers.js"')
 
       _stdout, stderr, status = Open3.capture3(
         {

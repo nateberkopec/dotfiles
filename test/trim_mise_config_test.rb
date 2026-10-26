@@ -38,6 +38,9 @@ class TrimMiseConfigTest < Minitest::Test
         [bootstrap.macos.launchd.agents.paseo]
         program = "paseo"
 
+        [bootstrap.macos.launchd.agents.pitchfork]
+        program = "pitchfork"
+
         [bootstrap.macos.launchd.agents.cua-driver]
         program = "cua-driver"
 

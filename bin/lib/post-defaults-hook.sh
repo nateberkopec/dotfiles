@@ -9,6 +9,8 @@ set -e
 
 [ "$(uname -s)" = "Darwin" ] || exit 0
 
+osascript -l JavaScript "$HOME/.local/share/dotfiles/configure-executor-launchers.js"
+
 drift_marker="${TMPDIR:-/tmp}/dotf-defaults-changed-$(id -u)"
 restart_ui=false
 
