@@ -13,14 +13,10 @@ class PiNpmTest < Minitest::Test
       assert_equal "__aube-shim\nnpm\ninstall\npi-mcp-adapter@4.0.0\n--prefix\n/isolated/npm\n--config.auto-install-peers=false\n--config.strict-peer-dependencies=false\n", output
       assert_equal "/scanner-must-remain\n", error
 
-      output, error, status = Open3.capture3(env, "bash", command, "install", "@nateberkopec/pi-meridian@0.1.0-beta.2", "other-package")
+      output, error, status = Open3.capture3(env, "bash", command, "install", "@nateberkopec/pi-meridian@0.1.0-beta.2", "pi-context-view@0.7.1", "other-package")
       assert status.success?
-      assert_equal "__aube-shim\nnpm\ninstall\n@nateberkopec/pi-meridian@0.1.0-beta.2\n--config.allowedUnpopularPackages=[\"@nateberkopec/pi-meridian\"]\n--config.minimumReleaseAgeExclude=[\"@nateberkopec/pi-meridian@0.1.0-beta.2\"]\nother-package\n", output
+      assert_equal "__aube-shim\nnpm\ninstall\n@nateberkopec/pi-meridian@0.1.0-beta.2\npi-context-view@0.7.1\nother-package\n", output
       assert_equal "/scanner-must-remain\n", error
-
-      output, _, status = Open3.capture3(env, "bash", command, "install", "@nateberkopec/pi-meridian@0.1.0-beta.1")
-      assert status.success?
-      assert_equal "__aube-shim\nnpm\ninstall\n@nateberkopec/pi-meridian@0.1.0-beta.1\n", output
     end
   end
 

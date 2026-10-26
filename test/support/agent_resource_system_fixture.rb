@@ -13,7 +13,8 @@ module AgentResourceSystemFixture
     @root = File.join(@directory, "dotfiles")
     @package = File.join(@home, ".pi/agent/git/github.com/nateberkopec/agent-stuff")
     @config = YAML.safe_load_file(File.join(ROOT, "config/config.yml"))
-    FileUtils.mkdir_p([File.join(@root, "config"), File.join(@root, "files/home"), File.join(@home, ".pi/agent")])
+    FileUtils.mkdir_p([File.join(@root, "config"), File.join(@root, "files/home"), File.join(@home, ".pi/agent"), File.join(@home, ".config/aube")])
+    FileUtils.cp(File.join(ROOT, "files/home/.config/aube/config.toml"), File.join(@home, ".config/aube/config.toml"))
     %w[config.yml agent_resource_baselines.json].each do |name|
       FileUtils.cp(File.join(ROOT, "config", name), File.join(@root, "config", name))
     end
@@ -41,7 +42,7 @@ module AgentResourceSystemFixture
   def environment
     {"HOME" => @home, "PI_CODING_AGENT_DIR" => File.join(@home, ".pi/agent"),
      "PI_OFFLINE" => "1", "MISE_DATA_DIR" => ENV.fetch("MISE_DATA_DIR", File.join(ENV.fetch("HOME"), ".local/share/mise")),
-     "XDG_STATE_HOME" => File.join(@home, ".local/state")}
+     "XDG_CONFIG_HOME" => File.join(@home, ".config"), "XDG_STATE_HOME" => File.join(@home, ".local/state")}
   end
 
   def link_resources
