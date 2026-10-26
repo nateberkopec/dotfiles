@@ -1,0 +1,28 @@
+#!/bin/bash
+set -euo pipefail
+
+case "${1:-}" in
+    personal)
+        daemon=executor-personal-tunnel
+        health=http://127.0.0.1:4401/health
+        ;;
+    speedshop)
+        daemon=executor-speedshop-tunnel
+        health=http://127.0.0.1:4789/api/health
+        ;;
+    *)
+        echo "Usage: open-executor {personal|speedshop}" >&2
+        exit 1
+        ;;
+esac
+
+cd "$HOME"
+"$HOME/.local/bin/mise" exec -- pitchfork start "global/$daemon"
+/usr/bin/curl --fail --silent --show-error --max-time 5 "$health" >/dev/null
+
+if [ "$1" = personal ]; then
+    exec /usr/bin/open https://server-1.tail6cc978.ts.net
+fi
+
+repo="$HOME/Documents/Code.nosync/business/client_notes"
+exec "$HOME/.local/bin/mise" -C "$repo" exec -- "$repo/client_notes/bin/client-executor" web

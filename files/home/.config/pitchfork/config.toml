@@ -1,0 +1,11 @@
+[daemons.executor-personal-tunnel]
+run = "exec /usr/bin/ssh -nNT -S none -o BatchMode=yes -o ConnectTimeout=10 -o ExitOnForwardFailure=yes -o ServerAliveInterval=30 -o ServerAliveCountMax=3 -L 127.0.0.1:4401:127.0.0.1:4400 server-1"
+boot_start = true
+retry = true
+ready_http = "http://127.0.0.1:4401/health"
+
+[daemons.executor-speedshop-tunnel]
+run = "exec /usr/bin/ssh -nNT -S none -o BatchMode=yes -o ConnectTimeout=10 -o ExitOnForwardFailure=yes -o ServerAliveInterval=30 -o ServerAliveCountMax=3 -L 127.0.0.1:4789:127.0.0.1:4788 server-2"
+boot_start = true
+retry = true
+ready_http = "http://127.0.0.1:4789/api/health"

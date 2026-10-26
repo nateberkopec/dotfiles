@@ -216,6 +216,15 @@ args = ["-p", "-c", 'exec /bin/launchctl setenv AUBE_SHIM_DIR "$HOME/.local/shar
 run_at_load = true
 kickstart = true
 
+[bootstrap.macos.launchd.agents.pitchfork]
+program = "~/.local/bin/mise"
+args = ["exec", "--", "pitchfork", "supervisor", "run", "--boot"]
+working_directory = "~"
+run_at_load = true
+keep_alive = true
+stdout_path = "~/Library/Logs/pitchfork.out.log"
+stderr_path = "~/Library/Logs/pitchfork.err.log"
+
 [bootstrap.macos.launchd.agents.time-machine-backup]
 program = "~/.local/bin/mise"
 args = ["exec", "--", "fish", "run-time-machine-backup.fish"]
