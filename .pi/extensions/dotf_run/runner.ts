@@ -1,4 +1,4 @@
-import { spawn, spawnSync, type ChildProcess } from "node:child_process";
+import { spawn, spawnSync, type ChildProcess, type StdioOptions } from "node:child_process";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import type { ExtensionContext } from "@earendil-works/pi-coding-agent";
@@ -8,9 +8,12 @@ export type RunResult = {
 	signal: NodeJS.Signals | null;
 	error?: string;
 	cleanupError?: string;
+	output?: string;
 };
 
 const TERMINAL_SIGNALS = ["SIGINT", "SIGQUIT", "SIGTERM"] as const;
+
+const OUTPUT_TAIL_LINES = 40;
 
 function invalidateSudoTimestamp(): string | undefined {
 	const result = spawnSync("/usr/bin/sudo", ["-k"], { stdio: "ignore" });
@@ -29,6 +32,7 @@ function runDotf(
 	repository: string,
 	interactive: boolean,
 	setChild: (child?: ChildProcess) => void,
+	capture = false,
 ): Promise<RunResult> {
 	const env = { ...process.env };
 
@@ -36,8 +40,16 @@ function runDotf(
 	else env.NONINTERACTIVE = "1";
 
 	return new Promise((resolve) => {
-		const child = spawn(executable, ["run"], { cwd: repository, stdio: "inherit", env });
+		const stdio: StdioOptions = capture ? ["ignore", "pipe", "pipe"] : "inherit";
+		const child = spawn(executable, ["run"], { cwd: repository, stdio, env });
 		setChild(child);
+
+		let output = "";
+		const append = (chunk: Buffer) => {
+			output += chunk.toString();
+		};
+		child.stdout?.on("data", append);
+		child.stderr?.on("data", append);
 
 		let finished = false;
 
@@ -45,7 +57,7 @@ function runDotf(
 			if (finished) return;
 			finished = true;
 			setChild();
-			resolve(result);
+			resolve(capture ? { ...result, output: output.trimEnd().split("\n").slice(-OUTPUT_TAIL_LINES).join("\n") } : result);
 		};
 
 		child.once("error", (error) => finish({ exitCode: null, signal: null, error: error.message }));
@@ -65,11 +77,23 @@ function failure(result: RunResult): string | undefined {
 	return failures.length ? failures.join("; ") : undefined;
 }
 
-export async function executeDotf(ctx: ExtensionContext, interactive = true): Promise<RunResult> {
-	if (ctx.mode !== "tui") throw new Error("dotf_run requires Pi's interactive TUI");
+function checked(result: RunResult): RunResult {
+	const error = failure(result);
 
+	if (error) throw new Error(result.output ? `${error}\n\n${result.output}` : error);
+
+	return result;
+}
+
+export async function executeDotf(ctx: ExtensionContext, interactive = true): Promise<RunResult> {
 	const repository = join(homedir(), ".dotfiles");
 	const executable = join(repository, "bin", "dotf");
+
+	if (ctx.mode !== "tui") {
+		if (interactive) throw new Error("Interactive dotf_run requires Pi's interactive TUI; use interactive=false");
+
+		return checked(await runDotf(executable, repository, false, () => {}, true));
+	}
 
 	const result = await ctx.ui.custom<RunResult>((tui, _theme, _keybindings, done) => {
 		let child: ChildProcess | undefined;
@@ -116,9 +140,6 @@ export async function executeDotf(ctx: ExtensionContext, interactive = true): Pr
 	});
 
 	if (!result) throw new Error("dotf_run was cancelled before execution completed");
-	const error = failure(result);
 
-	if (error) throw new Error(error);
-
-	return result;
+	return checked(result);
 }

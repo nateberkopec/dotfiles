@@ -7,7 +7,7 @@ export default function dotfRunExtension(pi: ExtensionAPI) {
 		name: "dotf_run",
 		label: "Run dotf",
 		description:
-			"Run the fixed ~/.dotfiles/bin/dotf run workflow in Pi's real terminal. Interactive by default for sudo authentication; interactive=false sets NONINTERACTIVE=1 for user-level setup, deferring privileged work and migrations. No command, path, or arbitrary environment can be supplied.",
+			"Run the fixed ~/.dotfiles/bin/dotf run workflow. Interactive by default for sudo authentication, which requires Pi's real terminal; interactive=false sets NONINTERACTIVE=1 for user-level setup, deferring privileged work and migrations, and also works without Pi's TUI by returning the output tail. No command, path, or arbitrary environment can be supplied.",
 		promptSnippet: "Run dotfiles convergence, interactively by default or user-level setup with interactive=false",
 		promptGuidelines: [
 			"Use dotf_run only when the user has explicitly authorized converging their machine with the current dotfiles checkout.",
@@ -29,9 +29,14 @@ export default function dotfRunExtension(pi: ExtensionAPI) {
 				content: [
 					{
 						type: "text",
-						text: interactive
-							? "dotf run completed successfully"
-							: "User-level setup completed; privileged work and migrations remain pending",
+						text: [
+							interactive
+								? "dotf run completed successfully"
+								: "User-level setup completed; privileged work and migrations remain pending",
+							result.output,
+						]
+							.filter(Boolean)
+							.join("\n\n"),
 					},
 				],
 				details: result,
