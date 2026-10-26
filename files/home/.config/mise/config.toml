@@ -157,7 +157,8 @@ sudo /usr/local/libexec/dotfiles-spotlight-controller audit
 # through mise's template engine; explicit entries create command/config links.
 # Git hooks are synced separately so an externally managed directory can be skipped.
 [dotfiles]
-"~" = { source = "~/.dotfiles/files/home", mode = "copy", exclude = [".git-hooks", ".claude/CLAUDE.md", ".codex/AGENTS.md"] }
+"~" = { source = "~/.dotfiles/files/home", mode = "copy", exclude = [".git-hooks", ".claude/CLAUDE.md", ".codex/AGENTS.md", ".paseo/config.json"] }
+"~/.paseo/config.json/shared" = { source = "~/.dotfiles/files/home/.paseo/config.json", merge = true }
 "~/.config/fish/conf.d/platform.fish" = { source = "~/.dotfiles/files/templates/platform.fish", mode = "template" }
 "~/.config/ghostty/config.platform" = { source = "~/.dotfiles/files/templates/ghostty-config.platform", mode = "template" }
 "~/.agents/mcp/mcp.json" = { source = "~/.dotfiles/files/templates/mcp.json.tera", mode = "template" }

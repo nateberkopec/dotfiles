@@ -73,3 +73,10 @@ vscode_extension_sources:
     github: nateberkopec/vscode-wordcount
     tag: v0.1.0-nate.1
     asset: wordcount.vsix
+paseo_plugins:
+  agent-monitor:
+    source: git:https://github.com/omercnet/paseo-plugins.git:agent-monitor
+    ref: 8f13ad07d08b2b6d632d9d0d937cf96841178bec
+  empty-workspaces:
+    source: git:https://github.com/nateberkopec/paseo-empty-workspaces.git
+    ref: a8d13b6bb9f1b67eebae10c99cfb32cca064fb1f
