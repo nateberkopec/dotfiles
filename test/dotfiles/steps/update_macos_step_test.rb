@@ -60,11 +60,11 @@ class UpdateMacOSStepTest < Minitest::Test
     assert @step.complete?
   end
 
-  def test_complete_returns_false_with_updates
+  def test_complete_returns_true_with_updates
     @fake_system.stub_command("groups", "admin staff")
     stub_updates_with_last_check
-    refute @step.complete?
-    assert_equal ["macOS update available: MSU_UPDATE_123_minor"], @step.collect_errors
+    assert @step.complete?
+    assert_empty @step.collect_errors
   end
 
   def test_run_adds_notice_with_available_updates

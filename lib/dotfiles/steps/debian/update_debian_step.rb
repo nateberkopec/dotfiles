@@ -26,8 +26,7 @@ class Dotfiles::Step::UpdateDebianStep < Dotfiles::Step
 
   def complete?
     super
-    release_updates_available.each { |release| add_error("Release upgrade available: #{release}") }
-    release_updates_available.empty?
+    true
   end
 
   private

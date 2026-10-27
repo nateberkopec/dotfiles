@@ -28,7 +28,7 @@ class Dotfiles
         messages.each { |msg| @log_call.call("#{label}: #{msg[:title]}: #{msg[:message]}") }
       end
       failed = @results[:failed_steps]
-      @log_call.call(failed.any? ? "Incomplete steps: #{failed.join(", ")}" : "All steps complete")
+      @log_call.call(failed.any? ? "Failed steps: #{failed.join(", ")}" : "All steps complete")
     end
 
     def display_results_table
@@ -72,7 +72,9 @@ class Dotfiles
     end
 
     def display_success
-      gum_style("#50fa7b", ["🎉 All Steps Complete!", "Setup successful"], width: 50)
+      attention = @results[:warnings].size + @results[:notices].size
+      status = attention.zero? ? "Setup successful" : "#{attention} item(s) above need attention"
+      gum_style("#50fa7b", ["🎉 All Steps Complete!", status], width: 50)
     end
 
     def gum_style(color, lines, border: "rounded", width: 60)

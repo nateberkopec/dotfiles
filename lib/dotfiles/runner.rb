@@ -188,11 +188,17 @@ class Dotfiles
 
     def merge_step_result(data, results)
       step = data[:step]
-      results[:table_data] << [data[:index], data[:name], data[:complete] ? "✓" : "✗", step.ran? ? "Yes" : "No"]
+      results[:table_data] << [data[:index], data[:name], step_status(data), step.ran? ? "Yes" : "No"]
       results[:failed_steps] << data[:name] unless data[:complete]
       results[:warnings].concat(step.warnings)
       results[:notices].concat(step.notices)
       append_step_errors(data, results)
+    end
+
+    def step_status(data)
+      return "✗" unless data[:complete]
+
+      (data[:step].warnings.any? || data[:step].notices.any?) ? "⚠" : "✓"
     end
 
     def append_step_errors(data, results)

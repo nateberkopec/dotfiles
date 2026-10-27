@@ -25,14 +25,8 @@ class Dotfiles::Step::UpdateMacOSStep < Dotfiles::Step
 
   def complete?
     super
-    return true unless ENV["CI"] || user_has_admin_rights?
-
-    check_background_update_freshness
-    updates = software_updates_available
-    return true if ENV["CI"] && updates.any?
-
-    updates.each { |update| add_error("macOS update available: #{update}") }
-    updates.empty?
+    check_background_update_freshness if ENV["CI"] || user_has_admin_rights?
+    true
   end
 
   private
