@@ -17,6 +17,8 @@ DOTFILES_DIR="$(dirname "$SCRIPT_DIR")"
 export DOTFILES_DIR
 # shellcheck source=lib/dotf-common.sh
 source "$SCRIPT_DIR/lib/dotf-common.sh"
+# shellcheck source=lib/dotf-phase.sh
+source "$SCRIPT_DIR/lib/dotf-phase.sh"
 LOGS_DIR="$DOTFILES_DIR/logs"
 LOG_RETENTION=30
 
@@ -190,6 +192,7 @@ acquire_dotf_lock() {
 finish_dotf() {
     local status=$?
     if [ "$status" -ne 0 ] && [ -n "${LOG_FILE:-}" ]; then
+        report_failed_phase
         debug "dotf failed with exit status $status"
     fi
     rm -rf "$DOTF_LOCK_DIR" 2>/dev/null || true
@@ -221,6 +224,25 @@ ensure_file_descriptor_limit() {
     fi
 }
 
+run_bootstrap() {
+    "$SCRIPT_DIR/bootstrap"
+    ensure_homebrew_env
+    prepare_mise_env
+}
+
+run_existing_machine_migrations() {
+    local migration_command=(ruby -r ./lib/dotfiles.rb -e "Dotfiles::MigrationRunner.new('$LOG_FILE').run_if_existing_machine")
+    if [ "${DEBUG:-false}" = "true" ]; then
+        "${migration_command[@]}"
+    else
+        "${migration_command[@]}" >> "$LOG_FILE"
+    fi
+}
+
+run_managed_file_pruning() {
+    ruby "$SCRIPT_DIR/lib/prune-managed-files.rb" > >(tee -a "$LOG_FILE") 2> >(tee -a "$LOG_FILE" >&2)
+}
+
 cmd_run() {
     [ $# -eq 0 ] || { echo "Usage: dotf run (set NONINTERACTIVE=1 to never prompt)" >&2; return 1; }
     if dotf_defers_privileged_work; then
@@ -230,25 +252,20 @@ cmd_run() {
     acquire_dotf_lock
     init_logging
     debug "Starting dotf run command"
-    "$SCRIPT_DIR/bootstrap"
-    ensure_homebrew_env
-    prepare_mise_env
-    run_mise_bootstrap
-    run_project_dependencies
+    run_phase "Bootstrap" run_bootstrap
+    run_phase "Tools" run_mise_bootstrap
+    run_phase "Project dependencies" run_project_dependencies
     ensure_mise_env
 
     cd "$DOTFILES_DIR"
-    local migration_command=(ruby -r ./lib/dotfiles.rb -e "Dotfiles::MigrationRunner.new('$LOG_FILE').run_if_existing_machine")
     if dotf_defers_privileged_work; then
         debug "Deferring migrations until an interactive run"
-    elif [ "${DEBUG:-false}" = "true" ]; then
-        "${migration_command[@]}"
     else
-        "${migration_command[@]}" >> "$LOG_FILE"
+        run_phase "Migrations" run_existing_machine_migrations
     fi
-    ruby -r ./lib/dotfiles.rb -e "Dotfiles::Runner.new('$LOG_FILE').run"
-    ruby "$SCRIPT_DIR/lib/prune-managed-files.rb" > >(tee -a "$LOG_FILE") 2> >(tee -a "$LOG_FILE" >&2)
-    run_mise_prune
+    run_phase "Steps" ruby -r ./lib/dotfiles.rb -e "Dotfiles::Runner.new('$LOG_FILE').run"
+    run_phase "Managed file pruning" run_managed_file_pruning
+    run_phase "mise pruning" run_mise_prune
     if dotf_defers_privileged_work; then
         echo "User-level setup complete; run dotf run interactively to finish privileged work."
     else
