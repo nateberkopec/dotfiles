@@ -28,7 +28,7 @@ class Dotfiles
         messages.each { |msg| @log_call.call("#{label}: #{msg[:title]}: #{msg[:message]}") }
       end
       failed = @results[:failed_steps]
-      @log_call.call(failed.any? ? "Incomplete steps: #{failed.join(", ")}" : "All steps complete")
+      @log_call.call(failed.any? ? "Failed steps: #{failed.join(", ")}" : "All steps complete")
     end
 
     def display_results_table
