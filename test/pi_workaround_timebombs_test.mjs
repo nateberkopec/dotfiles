@@ -48,7 +48,7 @@ test("timebomb: the pinned Aube still requires Pi's argument translation", () =>
 				"--prefix",
 				join(dir, "install"),
 				"--legacy-peer-deps",
-				"--offline",
+				"--config.offline=true",
 				"--ignore-scripts",
 			],
 			{ cwd: dir, encoding: "utf8", timeout: 30_000 },
@@ -56,7 +56,7 @@ test("timebomb: the pinned Aube still requires Pi's argument translation", () =>
 
 		const gitResult = spawnSync(
 			"aube",
-			["__aube-shim", "npm", "install", "--omit=dev", "--legacy-peer-deps", "--offline", "--ignore-scripts"],
+			["__aube-shim", "npm", "install", "--omit=dev", "--legacy-peer-deps", "--config.offline=true", "--ignore-scripts"],
 			{ cwd: fixture, encoding: "utf8", timeout: 30_000 },
 		);
 

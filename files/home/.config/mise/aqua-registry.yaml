@@ -1,8 +1,15 @@
 packages:
   - name: dotfiles/orbstack
     type: http
-    url: https://cdn-updates.orbstack.dev/arm64/OrbStack_v2.2.4_21120_arm64.dmg
+    url: https://cdn-updates.orbstack.dev/arm64/OrbStack_v2.2.5_21124_arm64.dmg
     format: dmg
+    checksum:
+      type: http
+      url: https://raw.githubusercontent.com/Homebrew/homebrew-cask/71bf92f4e26df7b6ed56a9bed24ab8208ca9e248/Casks/o/orbstack.rb
+      algorithm: sha256
+      file_format: regexp
+      pattern:
+        checksum: 'sha256 arm:\s+"([0-9a-f]{64})"'
     supported_envs:
       - darwin/arm64
     files:
