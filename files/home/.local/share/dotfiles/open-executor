@@ -21,7 +21,7 @@ cd "$HOME"
 /usr/bin/curl --fail --silent --show-error --max-time 5 "$health" >/dev/null
 
 if [ "$1" = personal ]; then
-    exec /usr/bin/open https://server-1.tail6cc978.ts.net
+    exec /usr/bin/open http://127.0.0.1:4401
 fi
 
 repo="$HOME/Documents/Code.nosync/business/client_notes"
