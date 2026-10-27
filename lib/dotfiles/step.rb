@@ -83,10 +83,10 @@ class Dotfiles
     end
 
     def reset_state
-      @ran, @warnings, @notices, @errors = false, [], [], []
+      @ran, @warnings, @notices, @errors, @fixes = false, [], [], [], []
     end
 
-    attr_reader :warnings, :notices, :config, :errors
+    attr_reader :warnings, :notices, :config, :errors, :fixes
 
     def ran?
       @ran
@@ -100,8 +100,9 @@ class Dotfiles
       @notices << {title: title, message: message}
     end
 
-    def add_error(message)
+    def add_error(message, fix: nil)
       @errors << message
+      @fixes << fix if fix && !@fixes.include?(fix)
     end
 
     def should_run?
@@ -114,6 +115,7 @@ class Dotfiles
 
     def complete?
       @errors.clear
+      @fixes.clear
       false
     end
 
@@ -125,6 +127,7 @@ class Dotfiles
     # so the display path does not depend on the predicate's side effect.
     def collect_errors
       @errors.clear
+      @fixes.clear
       complete?
       errors.dup
     end

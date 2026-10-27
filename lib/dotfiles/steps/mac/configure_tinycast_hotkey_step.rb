@@ -17,7 +17,7 @@ class Dotfiles::Step::ConfigureTinycastHotkeyStep < Dotfiles::Step
   def complete?
     super
     disabled = spotlight_hotkey_disabled?
-    add_error("Spotlight Command-Space hotkey is still enabled") unless disabled
+    add_error("Spotlight Command-Space hotkey is still enabled", fix: "System Settings → Keyboard → Keyboard Shortcuts → Spotlight: turn off “Show Spotlight search”") unless disabled
     disabled
   end
 

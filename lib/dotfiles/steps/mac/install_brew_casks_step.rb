@@ -40,7 +40,7 @@ class Dotfiles::Step::InstallBrewCasksStep < Dotfiles::Step
     packages.each do |type, name|
       next if installed?(type, name)
 
-      add_error(@install_failures.fetch([type, name], "Homebrew #{type} not installed: #{name}"))
+      add_error(@install_failures.fetch([type, name], "Homebrew #{type} not installed: #{name}"), fix: "brew install --#{type} #{name}")
     end
     errors.empty?
   end
