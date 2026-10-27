@@ -3,8 +3,8 @@
   "private": true,
   "type": "module",
   "devDependencies": {
-    "oxfmt": "0.73.0",
-    "oxlint": "1.88.0",
-    "typebox": "1.3.37"
+    "oxfmt": "0.74.0",
+    "oxlint": "1.89.0",
+    "typebox": "1.4.3"
   }
 }

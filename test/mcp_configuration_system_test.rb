@@ -36,8 +36,6 @@ class McpConfigurationSystemTest < Minitest::Test
       end
       defaults = JSON.parse(@system.read_file(File.join(@home, ".agents/mcp/mcp.json")))
       assert_equal false, defaults.dig("settings", "namespaceProxyTools")
-      assert_equal true, defaults.dig("settings", "scriptMode")
-      assert_equal "model", defaults.dig("settings", "scriptSkill")
       if @system.macos?
         assert_equal ["mcp"], defaults.dig("mcpServers", "cua-driver", "args")
       else

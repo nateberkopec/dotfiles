@@ -5,16 +5,19 @@
   "defaultThinkingLevel": "medium",
   "httpIdleTimeoutMs": 120000,
   "hideThinkingBlock": false,
+  "defaultTools": [
+    "+codemode"
+  ],
   "packages": [
     {
       "source": "git:github.com/nateberkopec/agent-stuff@main",
       "skills": []
     },
     "npm:@nateberkopec/pi-meridian@0.1.0-beta.2",
-    "npm:pi-mcp-adapter@5.3.1",
-    "npm:pi-subagents@0.78.0",
-    "npm:pi-intercom@0.17.1",
-    "npm:pi-context-view@0.7.1"
+    "npm:pi-mcp-adapter@7.0.0",
+    "npm:pi-subagents@0.81.0",
+    "npm:pi-intercom@0.18.1",
+    "npm:pi-context-view@0.7.2"
   ],
   "extensions": [
     "-builtin:mcp"
