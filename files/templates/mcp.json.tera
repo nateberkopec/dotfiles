@@ -9,8 +9,6 @@
 {% endif %}
   },
   "settings": {
-    "namespaceProxyTools": false,
-    "scriptMode": true,
-    "scriptSkill": "model"
+    "namespaceProxyTools": false
   }
 }
