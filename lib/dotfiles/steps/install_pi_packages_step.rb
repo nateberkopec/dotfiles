@@ -22,7 +22,7 @@ class Dotfiles::Step::InstallPiPackagesStep < Dotfiles::Step
     end
 
     install_errors.each { |message| add_error(message) }
-    missing_packages.each { |package| add_error("Pi package not installed: #{package}") }
+    missing_packages.each { |package| add_error("Pi package not installed: #{package}", fix: "pi install #{package}") }
     @errors.empty?
   end
 

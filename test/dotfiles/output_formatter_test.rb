@@ -76,14 +76,16 @@ class OutputFormatterTest < Minitest::Test
     errors: [],
     warnings: [],
     notices: [],
-    failed_steps: []
+    failed_steps: [],
+    fixes: {}
   )
     {
       table_data: table_data,
       errors: errors,
       warnings: warnings,
       notices: notices,
-      failed_steps: failed_steps
+      failed_steps: failed_steps,
+      fixes: fixes
     }
   end
 end

@@ -28,7 +28,7 @@ class Dotfiles::Step::InstallMiseAppsStep < Dotfiles::Step
     APPS.each_key do |name|
       destination = app_destination(name)
       if current_app?(name, destination)
-        add_error("#{name}.app is quarantined") if quarantined?(destination)
+        add_error("#{name}.app is quarantined", fix: "xattr -dr com.apple.quarantine #{destination}") if quarantined?(destination)
       else
         add_error("#{name}.app is not installed in Applications")
       end

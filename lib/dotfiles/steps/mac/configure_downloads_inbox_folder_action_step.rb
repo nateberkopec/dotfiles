@@ -33,7 +33,7 @@ class Dotfiles::Step::ConfigureDownloadsInboxFolderActionStep < Dotfiles::Step
     add_error("Folder action source missing at #{collapse_path_to_home(source_path)}") unless @system.file_exist?(source_path)
     add_error("Compiled folder action missing or stale at #{collapse_path_to_home(compiled_script_path)}") unless compiled_script_current?
     add_error("Folder Actions are disabled") unless folder_actions_enabled?
-    add_error("Folder action not attached to Downloads: #{collapse_path_to_home(compiled_script_path)}") unless attachment_current?
+    add_error("Folder action not attached to Downloads: #{collapse_path_to_home(compiled_script_path)}", fix: "Open Folder Actions Setup and attach #{collapse_path_to_home(compiled_script_path)} to Downloads") unless attachment_current?
     @errors.empty?
   end
 

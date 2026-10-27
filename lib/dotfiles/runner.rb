@@ -144,7 +144,7 @@ class Dotfiles
     end
 
     def empty_results
-      {failed_steps: [], table_data: [], warnings: [], notices: [], errors: []}
+      {failed_steps: [], table_data: [], warnings: [], notices: [], errors: [], fixes: {}}
     end
 
     def spawn_result_threads(mutex, results)
@@ -188,6 +188,7 @@ class Dotfiles
 
     def append_step_errors(data, results)
       results[:errors].concat(data[:errors].map { |error| {step: data[:name], message: error} })
+      results[:fixes][data[:name]] = data[:step].fixes if data[:step].fixes.any?
     end
   end
 end

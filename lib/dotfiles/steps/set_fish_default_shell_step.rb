@@ -15,8 +15,8 @@ class Dotfiles::Step::SetFishDefaultShellStep < Dotfiles::Step
     super
     add_error("Stale Fish symlink remains at #{local_fish_path}") if local_fish_symlink?
     add_error("Fish not found on PATH") if fish_path.empty?
-    add_error("Fish is not listed in /etc/shells") unless fish_in_shells?
-    add_error("Fish is not set as the default shell (current: #{current_shell.strip})") unless fish_is_default?
+    add_error("Fish is not listed in /etc/shells", fix: "echo #{fish_path} | sudo tee -a /etc/shells") unless fish_in_shells?
+    add_error("Fish is not set as the default shell (current: #{current_shell.strip})", fix: "chsh -s #{fish_path}") unless fish_is_default?
     @errors.empty?
   end
 

@@ -244,6 +244,7 @@ finish_dotf() {
         report_mise_warnings
         if [ "$status" -ne 0 ]; then
             report_failed_phase
+            echo "Log: $LOG_FILE" >&2
             debug "dotf failed with exit status $status"
         fi
     fi

@@ -23,12 +23,17 @@ class Dotfiles
     private
 
     def log_results
-      @results[:errors].each { |err| @log_call.call("Error in #{err[:step]}: #{err[:message]}") }
+      log_errors
       {"Warning" => @results[:warnings], "Notice" => @results[:notices]}.each do |label, messages|
         messages.each { |msg| @log_call.call("#{label}: #{msg[:title]}: #{msg[:message]}") }
       end
       failed = @results[:failed_steps]
       @log_call.call(failed.any? ? "Failed steps: #{failed.join(", ")}" : "All steps complete")
+    end
+
+    def log_errors
+      @results[:errors].each { |err| @log_call.call("Error in #{err[:step]}: #{err[:message]}") }
+      @results[:fixes].each { |step, fixes| fixes.each { |fix| @log_call.call("Fix for #{step}: #{fix}") } }
     end
 
     def display_results_table
@@ -47,6 +52,11 @@ class Dotfiles
     def display_step_errors(step_name, step_errors)
       @output.puts "\n❌ #{step_name}"
       step_errors.each { |err| @output.puts err[:message], "" }
+      step_fixes(step_name).each { |fix| @output.puts "Fix: #{fix}", "" }
+    end
+
+    def step_fixes(step_name)
+      @results[:fixes].fetch(step_name, [])
     end
 
     def display_warnings
