@@ -5,6 +5,7 @@ require "json"
 home = ENV.fetch("HOME")
 config_path = File.join(ENV.fetch("PASEO_HOME", File.join(home, ".paseo")), "config.json")
 exit unless File.file?(config_path)
+exit unless system("mise", "which", "paseo", out: File::NULL, err: File::NULL)
 
 settings = JSON.parse(File.read(File.join(home, ".pi/agent/settings.json")))
 enabled = settings.fetch("enabledModels").map { |entry| entry.match(/\A(?<model>.+?)(?::(?<thinking>[a-z]+))?\z/) }
