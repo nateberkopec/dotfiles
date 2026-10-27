@@ -31,7 +31,7 @@ jobs:
         fetch-depth: 0
 
     - name: Set up Ruby
-      uses: ruby/setup-ruby@651ff0d62c5c79bed6d53ec518387aae20e72c1a # v1.329.0
+      uses: ruby/setup-ruby@26e5b7d197ebf60545ee9667bcbace0be11ccaec # v1.334.0
       with:
         ruby-version: 'ruby'
         bundler-cache: true
@@ -41,7 +41,7 @@ jobs:
       run: bundle exec ruby tools/ci/check_dependency_update.rb "${{ github.event.pull_request.base.sha }}"
 
     - name: Install mise
-      uses: jdx/mise-action@08ae2a091c038e1e05ec6f5115dc5c69d5a2a6b8 # v5.1.2
+      uses: jdx/mise-action@8418fedb1110381a0d3ba51a7a415d7c1b884550 # v5.2.2
       with:
         install: false
         cache: true
