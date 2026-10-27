@@ -17,7 +17,7 @@ is_linux() {
 
 debug() {
     if [ "${DEBUG:-false}" = "true" ]; then
-        timestamp=$(dotf_date '%H:%M:%S.%3N' '%H:%M:%S')
+        timestamp=$(dotf_timestamp)
         echo "[$timestamp] $1"
     fi
 }

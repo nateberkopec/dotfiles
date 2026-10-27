@@ -7,6 +7,7 @@ Dotfiles::Loader.load!
 class Dotfiles
   @log_file = nil
   @log_io = nil
+  LOG_MUTEX = Mutex.new
 
   def self.log_file=(path)
     return if @log_file == path
@@ -21,9 +22,11 @@ class Dotfiles
   end
 
   def self.debug(message)
-    formatted = format_debug_message(message)
-    write_log(formatted)
-    puts formatted if ENV["DEBUG"] == "true"
+    LOG_MUTEX.synchronize do
+      formatted = format_debug_message(message)
+      write_log(formatted)
+      puts formatted if ENV["DEBUG"] == "true"
+    end
   end
 
   def self.write_log(formatted)

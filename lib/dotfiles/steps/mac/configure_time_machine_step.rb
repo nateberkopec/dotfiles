@@ -79,8 +79,9 @@ class Dotfiles::Step::ConfigureTimeMachineStep < Dotfiles::Step
   end
 
   def check_exclusions
+    excluded = skip_paths
     desired_exclusions.each do |path|
-      add_error("Time Machine fixed-path exclusion missing: #{collapse_path_to_home(path)}") unless fixed_path_excluded?(path)
+      add_error("Time Machine fixed-path exclusion missing: #{collapse_path_to_home(path)}") unless excluded.include?(path)
     end
   end
 
@@ -88,10 +89,6 @@ class Dotfiles::Step::ConfigureTimeMachineStep < Dotfiles::Step
     output, status = execute(command("defaults", "read", TIME_MACHINE_DOMAIN, key), quiet: true)
     return nil unless status == 0
     output.strip
-  end
-
-  def fixed_path_excluded?(path)
-    skip_paths.include?(path)
   end
 
   def skip_paths
