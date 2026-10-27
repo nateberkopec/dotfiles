@@ -29,12 +29,6 @@ items:
   pi-npm:
     source: files/home/.pi/agent/pi-npm.sh
     target: .pi/agent/pi-npm.sh
-  herdr-plugins:
-    source: files/home/.local/share/dotfiles/herdr-plugins
-    target: .local/share/dotfiles/herdr-plugins
-  herdr-session-templates:
-    source: files/home/.config/herdr/plugins/config/dotfiles.session-template
-    target: .config/herdr/plugins/config/dotfiles.session-template
   wallpaper:
     source: files/home/.local/share/dotfiles/launch-woodblock-wallpaper
     target: .local/share/dotfiles/launch-woodblock-wallpaper

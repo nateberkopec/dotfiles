@@ -105,14 +105,6 @@
   ".pi/agent/extensions/goal.ts": [
     "aca9a2f2e7a2f1392444a14cd60f062743ffd67169393fd05ba1d1d1b405e0be"
   ],
-  ".pi/agent/extensions/herdr-status/index.ts": [
-    "1cc67531e77ef1b166cf34c09c5b6c6c827d14e56ca9ab20b69000ddb2a0f90c",
-    "5f83e99196787ef3eb647b34bc11996c6109a0614c5597fae70fd1660bed6780"
-  ],
-  ".pi/agent/extensions/herdr-status/reporter.ts": [
-    "95148fc5c41d5a59efb85ef380cdad96adaf7c987c780dd66bef985f5ea1d776",
-    "a8df511dd93f9f7c737bfcd841e0432beede53e599dfecc66388d5eae01f999e"
-  ],
   ".pi/agent/extensions/meridian/cache.ts": [
     "2cdf1065c8b09b1414237dd996f85f1e816c82060bf3b7b3a2a6305944264794",
     "6a45f44f7a1ea739877ce33605ecd252e3c76c2a8cd4564e915d9b7de5d69158"

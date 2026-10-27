@@ -36,8 +36,8 @@ class OutputFormatterTest < Minitest::Test
   end
 
   def test_errors_preserve_long_commands_and_multiline_output_without_gum_wrapping
-    message = "Failed to link plugin\nunknown option: /#{"long-path/" * 20}\nCommand: herdr plugin link"
-    calls, _, output = formatter_calls_for(results(errors: [{step: "Link Herdr Plugins", message: message}]))
+    message = "Failed to link plugin\nunknown option: /#{"long-path/" * 20}\nCommand: example plugin link"
+    calls, _, output = formatter_calls_for(results(errors: [{step: "Link Plugins", message: message}]))
 
     assert_includes output, message
     refute calls.any? { |kind, args| kind == :system && args.include?(message) }
