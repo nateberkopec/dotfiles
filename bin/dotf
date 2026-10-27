@@ -140,11 +140,20 @@ hide_unchanged_mise_output() {
             "bootstrap: follow-up") header="$line"; continue ;;
             *"package(s) skipped (excluded by the system_packages.managers setting)") continue ;;
             "mise All dependencies are up to date") continue ;;
+            *"mise WARN"*) continue ;;
             "  - "*) [ -z "$header" ] || printf '%s\n' "$header" ;;
         esac
         header=""
         printf '%s\n' "$line"
     done
+}
+
+report_mise_warnings() {
+    local warnings
+    warnings="$(grep -o 'mise WARN.*' "$LOG_FILE" 2>/dev/null | sort -u)" || true
+    [ -n "$warnings" ] || return 0
+    printf '\n⚠ mise warnings:\n'
+    printf '%s\n' "$warnings" | sed 's/^/  /'
 }
 
 run_mise_quietly() {
@@ -228,9 +237,12 @@ acquire_dotf_lock() {
 
 finish_dotf() {
     local status=$?
-    if [ "$status" -ne 0 ] && [ -n "${LOG_FILE:-}" ]; then
-        report_failed_phase
-        debug "dotf failed with exit status $status"
+    if [ -n "${LOG_FILE:-}" ]; then
+        report_mise_warnings
+        if [ "$status" -ne 0 ]; then
+            report_failed_phase
+            debug "dotf failed with exit status $status"
+        fi
     fi
     rm -rf "$DOTF_LOCK_DIR" 2>/dev/null || true
 }

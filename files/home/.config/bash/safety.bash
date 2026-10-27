@@ -4,7 +4,7 @@ export MISE_SHELL=bash
 
 # Bash-backed startup tools must not recursively reload this file.
 if command -v mise >/dev/null 2>&1; then
-  eval "$(BASH_ENV='' mise hook-env -s bash)"
+  eval "$(BASH_ENV='' MISE_STATUS_MESSAGE_MISSING_TOOLS=never mise hook-env -s bash)"
 fi
 
 _path_force_prepend() {
