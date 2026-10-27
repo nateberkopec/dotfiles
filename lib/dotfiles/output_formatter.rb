@@ -2,8 +2,9 @@ require "csv"
 
 class Dotfiles
   class OutputFormatter
-    def initialize(results, popen_call: IO.method(:popen), system_call: Kernel.method(:system), exit_call: Kernel.method(:exit), output: $stdout)
+    def initialize(results, popen_call: IO.method(:popen), system_call: Kernel.method(:system), exit_call: Kernel.method(:exit), output: $stdout, log_call: Dotfiles.method(:debug))
       @results = results
+      @log_call = log_call
       @popen_call = popen_call
       @system_call = system_call
       @exit_call = exit_call
@@ -11,6 +12,7 @@ class Dotfiles
     end
 
     def display
+      log_results
       display_results_table
       display_errors
       display_warnings
@@ -19,6 +21,15 @@ class Dotfiles
     end
 
     private
+
+    def log_results
+      @results[:errors].each { |err| @log_call.call("Error in #{err[:step]}: #{err[:message]}") }
+      {"Warning" => @results[:warnings], "Notice" => @results[:notices]}.each do |label, messages|
+        messages.each { |msg| @log_call.call("#{label}: #{msg[:title]}: #{msg[:message]}") }
+      end
+      failed = @results[:failed_steps]
+      @log_call.call(failed.any? ? "Incomplete steps: #{failed.join(", ")}" : "All steps complete")
+    end
 
     def display_results_table
       csv_data = CSV.generate do |csv|
