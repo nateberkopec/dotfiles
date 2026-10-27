@@ -197,7 +197,10 @@ run_project_dependencies() {
     before="$(agent_stuff_revision)"
     run_mise_quietly -C "$DOTFILES_DIR" run agent:refresh
     after="$(agent_stuff_revision)"
-    [ "$before" = "$after" ] || echo "agent-stuff: ${before:-not installed} → $after"
+    if [ "$before" != "$after" ]; then
+        echo "agent-stuff: ${before:-not installed} → $after"
+        debug "Updated agent-stuff ${before:-not installed} → $after"
+    fi
 }
 
 run_mise_prune() {
@@ -282,7 +285,7 @@ run_bootstrap() {
 run_existing_machine_migrations() {
     local migration_command=(ruby -r ./lib/dotfiles.rb -e "Dotfiles::MigrationRunner.new('$LOG_FILE').run_if_existing_machine")
     if [ "${DEBUG:-false}" = "true" ]; then
-        "${migration_command[@]}"
+        "${migration_command[@]}" > >(tee -a "$LOG_FILE")
     else
         "${migration_command[@]}" >> "$LOG_FILE"
     fi
@@ -290,6 +293,23 @@ run_existing_machine_migrations() {
 
 run_managed_file_pruning() {
     ruby "$SCRIPT_DIR/lib/prune-managed-files.rb" > >(tee -a "$LOG_FILE") 2> >(tee -a "$LOG_FILE" >&2)
+}
+
+report_changes() {
+    local changes
+    changes="$(sed -n \
+        -e 's/^\[[^]]*\] Running step: /Ran step: /p' \
+        -e 's/^Running migration /Ran migration /p' \
+        -e '/^Pruned /p' \
+        -e '/^Unloaded /p' \
+        -e 's/^\[[^]]*\] Updated agent-stuff /Updated agent-stuff /p' \
+        "$LOG_FILE")"
+    if [ -z "$changes" ]; then
+        printf '\nNothing changed.\n'
+        return
+    fi
+    printf '\nChanges:\n'
+    printf '%s\n' "$changes" | sed 's/^/  • /'
 }
 
 cmd_run() {
@@ -315,6 +335,7 @@ cmd_run() {
     run_phase "Steps" ruby -r ./lib/dotfiles.rb -e "Dotfiles::Runner.new('$LOG_FILE').run"
     run_phase "Managed file pruning" run_managed_file_pruning
     run_phase "mise pruning" run_mise_prune
+    report_changes
     if dotf_defers_privileged_work; then
         echo "User-level setup complete; run dotf run interactively to finish privileged work."
     else
