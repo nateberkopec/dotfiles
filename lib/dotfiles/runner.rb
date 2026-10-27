@@ -16,6 +16,7 @@ class Dotfiles
       execute_all_steps
       log_total_time(start_time)
     rescue => e
+      Dotfiles.debug "Error: #{e.message}"
       abort "Error: #{e.message}"
     end
 

@@ -165,7 +165,7 @@ DOTF_LOCK_DIR="${DOTF_LOCK_DIR:-$HOME/.dotfiles.lock}"
 acquire_dotf_lock() {
     if mkdir "$DOTF_LOCK_DIR" 2>/dev/null; then
         echo "$$" > "$DOTF_LOCK_DIR/pid"
-        trap release_dotf_lock EXIT
+        trap finish_dotf EXIT
         return 0
     fi
 
@@ -179,7 +179,7 @@ acquire_dotf_lock() {
     rm -rf "$DOTF_LOCK_DIR" 2>/dev/null || true
     if mkdir "$DOTF_LOCK_DIR" 2>/dev/null; then
         echo "$$" > "$DOTF_LOCK_DIR/pid"
-        trap release_dotf_lock EXIT
+        trap finish_dotf EXIT
         return 0
     fi
 
@@ -187,7 +187,11 @@ acquire_dotf_lock() {
     exit 1
 }
 
-release_dotf_lock() {
+finish_dotf() {
+    local status=$?
+    if [ "$status" -ne 0 ] && [ -n "${LOG_FILE:-}" ]; then
+        debug "dotf failed with exit status $status"
+    fi
     rm -rf "$DOTF_LOCK_DIR" 2>/dev/null || true
 }
 
