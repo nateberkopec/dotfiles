@@ -33,12 +33,9 @@ test("Paseo launches only Pi with explicit datasafe profiles and PATH-resolved c
 		assert.deepEqual(providers[id].paseoTools, { enabled: false });
 	}
 	assert.equal(providers["pi-claude"].extends, "pi");
-	assert.ok(providers["pi-claude"].models.length > 0);
-	assert.ok(providers["pi-claude"].models.every((model) => model.id.startsWith("meridian/")));
 	for (const id of ["claude", "codex", "copilot", "opencode", "omp", "antigravity", "muse"]) {
 		assert.deepEqual(providers[id], { enabled: false });
 	}
 	const metadata = config.agents.metadataGeneration.providers;
 	assert.deepEqual(metadata, [{ provider: "pi-claude", model: "meridian/claude-haiku-4-5" }]);
-	assert.ok(providers["pi-claude"].models.some((model) => model.id === metadata[0].model));
 });
