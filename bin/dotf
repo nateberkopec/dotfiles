@@ -128,8 +128,35 @@ run_mise_logged() {
         status="${PIPESTATUS[0]}"
     else
         status=0
-        mise "$@" >> "$LOG_FILE" 2> >(tee -a "$LOG_FILE" >&2) || status="$?"
+        mise "$@" >> "$LOG_FILE" 2> >(tee -a "$LOG_FILE" | hide_unchanged_mise_output >&2) || status="$?"
     fi
+    return "$status"
+}
+
+hide_unchanged_mise_output() {
+    local line header=""
+    while IFS= read -r line || [ -n "$line" ]; do
+        case "$line" in
+            "bootstrap: follow-up") header="$line"; continue ;;
+            *"package(s) skipped (excluded by the system_packages.managers setting)") continue ;;
+            "mise All dependencies are up to date") continue ;;
+            "  - "*) [ -z "$header" ] || printf '%s\n' "$header" ;;
+        esac
+        header=""
+        printf '%s\n' "$line"
+    done
+}
+
+run_mise_quietly() {
+    if [ "${DEBUG:-false}" = "true" ]; then
+        run_mise_logged "$@"
+        return
+    fi
+
+    local output status=0
+    output="$(mise "$@" 2>&1)" || status="$?"
+    printf '%s\n' "$output" >> "$LOG_FILE"
+    [ "$status" -eq 0 ] || printf '%s\n' "$output" >&2
     return "$status"
 }
 
@@ -149,9 +176,19 @@ run_mise_bootstrap() {
     run_mise_logged "${args[@]}"
 }
 
+AGENT_STUFF_DIR="$HOME/.pi/agent/git/github.com/nateberkopec/agent-stuff"
+
+agent_stuff_revision() {
+    git -C "$AGENT_STUFF_DIR" rev-parse --short HEAD 2>/dev/null || true
+}
+
 run_project_dependencies() {
+    local before after
     run_mise_logged -C "$DOTFILES_DIR" deps bundler
-    run_mise_logged -C "$DOTFILES_DIR" run agent:refresh
+    before="$(agent_stuff_revision)"
+    run_mise_quietly -C "$DOTFILES_DIR" run agent:refresh
+    after="$(agent_stuff_revision)"
+    [ "$before" = "$after" ] || echo "agent-stuff: ${before:-not installed} → $after"
 }
 
 run_mise_prune() {
