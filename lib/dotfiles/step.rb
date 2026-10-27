@@ -135,7 +135,7 @@ class Dotfiles
     private
 
     def debug(message)
-      Dotfiles.debug(message)
+      Dotfiles.debug("[#{self.class.display_name}] #{message}")
     end
 
     def execute(command, quiet: true, timeout: nil)
