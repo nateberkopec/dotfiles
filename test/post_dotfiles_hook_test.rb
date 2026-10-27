@@ -56,7 +56,7 @@ class PostDotfilesHookTest < Minitest::Test
       assert_equal expected_launchctl, File.read(launchctl_trace)
       assert_equal admin, File.exist?(omniwm_plist)
       refute File.exist?(mise_trace)
-      assert_equal "#{home}/.dotfiles/bin/lib/install-meridian-pi-scrub.rb\n", File.read(ruby_trace)
+      assert_equal "#{home}/.dotfiles/bin/lib/install-meridian-pi-scrub.rb\n#{home}/.dotfiles/bin/lib/sync-paseo-models.rb\n", File.read(ruby_trace)
       assert_equal "managed hook", File.read(File.join(home, ".git-hooks/pre-push"))
     end
   end

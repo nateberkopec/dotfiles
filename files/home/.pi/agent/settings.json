@@ -32,7 +32,8 @@
     "openai/gpt-6.1-sol:medium",
     "openai/gpt-6-astra:low",
     "openai/gpt-6-luna:xhigh",
-    "fireworks/accounts/fireworks/routers/kimi-k3-us",
+    "openai/gpt-6.1-terra:medium",
+    "vercel-ai-gateway/deepseek/deepseek-v4.1-flash-1017",
     "meridian/claude-opus-5-5",
     "meridian/claude-fable-5-1"
   ],

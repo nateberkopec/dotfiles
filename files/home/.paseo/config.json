@@ -80,69 +80,7 @@
         },
         "paseoTools": {
           "enabled": false
-        },
-        "models": [
-          {
-            "id": "meridian/claude-sonnet-5-5",
-            "label": "Claude Sonnet 5.5",
-            "isDefault": false
-          },
-          {
-            "id": "meridian/claude-sonnet-5",
-            "label": "Claude Sonnet 5",
-            "isDefault": false
-          },
-          {
-            "id": "meridian/claude-sonnet-4-6",
-            "label": "Claude Sonnet 4.6",
-            "isDefault": false
-          },
-          {
-            "id": "meridian/claude-opus-5-5",
-            "label": "Claude Opus 5.5",
-            "isDefault": false
-          },
-          {
-            "id": "meridian/claude-opus-5",
-            "label": "Claude Opus 5",
-            "isDefault": false
-          },
-          {
-            "id": "meridian/claude-opus-4-6",
-            "label": "Claude Opus 4.6",
-            "isDefault": false
-          },
-          {
-            "id": "meridian/claude-opus-4-7",
-            "label": "Claude Opus 4.7",
-            "isDefault": false
-          },
-          {
-            "id": "meridian/claude-opus-4-8",
-            "label": "Claude Opus 4.8",
-            "isDefault": false
-          },
-          {
-            "id": "meridian/claude-fable-5-1",
-            "label": "Claude Fable 5.1",
-            "isDefault": false
-          },
-          {
-            "id": "meridian/claude-fable-5",
-            "label": "Claude Fable 5",
-            "isDefault": false
-          },
-          {
-            "id": "meridian/claude-haiku-5-5",
-            "label": "Claude Haiku 5.5",
-            "isDefault": false
-          },
-          {
-            "id": "meridian/claude-haiku-4-5",
-            "label": "Claude Haiku 4.5",
-            "isDefault": true
-          }
-        ]
+        }
       },
       "antigravity": {
         "enabled": false
