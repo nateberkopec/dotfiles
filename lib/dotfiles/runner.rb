@@ -1,7 +1,5 @@
 class Dotfiles
   class Runner
-    PROGRESS_MUTEX = Mutex.new
-
     def initialize(log_file = nil)
       Dotfiles.log_file = log_file
       @debug = ENV["DEBUG"] == "true"
@@ -49,7 +47,6 @@ class Dotfiles
     def run_steps_in_parallel
       context = parallel_step_context
       spawn_step_threads(context).each(&:join)
-      puts ""
       raise context[:error] if context[:error]
     end
 
@@ -90,23 +87,14 @@ class Dotfiles
     end
 
     def run_step(step, step_class)
-      Dotfiles.debug "Running step: #{step_class.display_name}"
-      print_progress "X"
+      name = step_class.display_name
+      Dotfiles.debug "Running step: #{name}"
       step.instance_variable_set(:@ran, true)
-      Dotfiles.debug_benchmark("Step: #{step_class.display_name}") { step.run }
+      StepProgress.track(name) { Dotfiles.debug_benchmark("Step: #{name}") { step.run } }
     end
 
     def skip_step(step_class)
-      print_progress "."
       Dotfiles.debug_benchmark("Step (skipped): #{step_class.display_name}") {}
-    end
-
-    def print_progress(character)
-      progress_mutex.synchronize { printf character }
-    end
-
-    def progress_mutex
-      PROGRESS_MUTEX
     end
 
     def wait_for_dependencies(step_class, context)
@@ -149,8 +137,8 @@ class Dotfiles
 
     def collect_step_results
       mutex, results = Mutex.new, empty_results
+      StepProgress.say "Verifying #{@step_classes.size} steps…"
       spawn_result_threads(mutex, results).each(&:join)
-      puts ""
       results[:table_data] = results[:table_data].sort_by(&:first).map { |row| row.drop(1) }
       results
     end
@@ -167,10 +155,7 @@ class Dotfiles
 
     def collect_single_step_result(step_class, index, mutex, results)
       step_data = build_step_data(step_class, index)
-      mutex.synchronize do
-        printf "."
-        merge_step_result(step_data, results)
-      end
+      mutex.synchronize { merge_step_result(step_data, results) }
     end
 
     def build_step_data(step_class, index)

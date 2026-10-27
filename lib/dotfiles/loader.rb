@@ -45,6 +45,7 @@ class Dotfiles
 
     def self.require_runtime
       require "output_formatter"
+      require "step_progress"
       require "runner"
       require "migration_runner"
     end
