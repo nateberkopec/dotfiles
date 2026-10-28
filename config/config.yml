@@ -13,6 +13,9 @@ standard_folders:
 - Documents/Code.nosync/personal
 - Documents/Code.nosync/upstream
 - src/tries
+ssh_agentless_hosts:
+  - hosts: [sfactory, server-1, server-2]
+    identity_file: ~/.ssh/sfactory_ed25519
 debian_desktop_apps:
   - name: 1password
     package: 1password
