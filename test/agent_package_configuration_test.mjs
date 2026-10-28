@@ -10,7 +10,7 @@ test("managed settings follow agent-stuff main and pin Meridian with shared skil
 	assert.equal(packages[0].source, "git:github.com/nateberkopec/agent-stuff@main");
 	assert.deepEqual(packages[0].skills, []);
 	const meridian = settings.packages.filter((p) => /pi-meridian/.test(p.source ?? p));
-	assert.deepEqual(meridian, ["npm:@nateberkopec/pi-meridian@0.1.0-beta.2"]);
+	assert.deepEqual(meridian, ["npm:@nateberkopec/pi-meridian@0.2.0-beta.1"]);
 	assert.equal(
 		settings.extensions.some((extension) => /meridian/.test(extension)),
 		false,
