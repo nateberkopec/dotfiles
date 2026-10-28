@@ -279,21 +279,23 @@ url_api = "https://api.github.com/repos/rawnly/splash-cli/releases/assets/567336
 provenance = "github-attestations"
 
 [[tools."github:steipete/CodexBar"]]
-version = "0.80.0"
+version = "0.81.0"
 backend = "github:steipete/CodexBar"
 
 [tools."github:steipete/CodexBar".options]
 asset_pattern = "CodexBar-macos-universal-{version}.zip"
 
 [tools."github:steipete/CodexBar"."platforms.linux-x64"]
-checksum = "sha256:7cdc7768947163b9c5af3ac52b3546c01c99b82c7cfcc7e0bf18e7086f38d208"
-url = "https://github.com/steipete/CodexBar/releases/download/v0.80.0/CodexBar-macos-universal-0.80.0.zip"
-url_api = "https://api.github.com/repos/steipete/CodexBar/releases/assets/667744846"
+checksum = "sha256:71101cc8321224233a9b8a756f37b8748661ba2633fbc278584d216076be0f02"
+checksum_source = "mise-versions"
+url = "https://github.com/steipete/CodexBar/releases/download/v0.81.0/CodexBar-macos-universal-0.81.0.zip"
+url_api = "https://api.github.com/repos/steipete/CodexBar/releases/assets/671959063"
 
 [tools."github:steipete/CodexBar"."platforms.macos-arm64"]
-checksum = "sha256:7cdc7768947163b9c5af3ac52b3546c01c99b82c7cfcc7e0bf18e7086f38d208"
-url = "https://github.com/steipete/CodexBar/releases/download/v0.80.0/CodexBar-macos-universal-0.80.0.zip"
-url_api = "https://api.github.com/repos/steipete/CodexBar/releases/assets/667744846"
+checksum = "sha256:71101cc8321224233a9b8a756f37b8748661ba2633fbc278584d216076be0f02"
+checksum_source = "mise-versions"
+url = "https://github.com/steipete/CodexBar/releases/download/v0.81.0/CodexBar-macos-universal-0.81.0.zip"
+url_api = "https://api.github.com/repos/steipete/CodexBar/releases/assets/671959063"
 
 [[tools."github:trycua/cua"]]
 version = "0.34.0"
