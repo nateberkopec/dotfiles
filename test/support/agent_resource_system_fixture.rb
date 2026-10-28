@@ -41,7 +41,7 @@ module AgentResourceSystemFixture
 
   def environment
     {"HOME" => @home, "PI_CODING_AGENT_DIR" => File.join(@home, ".pi/agent"),
-     "PI_OFFLINE" => "1", "MISE_DATA_DIR" => ENV.fetch("MISE_DATA_DIR", File.join(ENV.fetch("HOME"), ".local/share/mise")),
+     "PI_OFFLINE" => "1", "BASH_ENV" => nil, "MISE_DATA_DIR" => ENV.fetch("MISE_DATA_DIR", File.join(ENV.fetch("HOME"), ".local/share/mise")),
      "XDG_CONFIG_HOME" => File.join(@home, ".config"), "XDG_STATE_HOME" => File.join(@home, ".local/state")}
   end
 
