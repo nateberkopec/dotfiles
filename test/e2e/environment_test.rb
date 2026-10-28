@@ -59,6 +59,13 @@ class EnvironmentTest < Minitest::Test
     assert_equal expected, domain[/^\s*AUBE_SHIM_DIR => (.+)$/, 1]
   end
 
+  def test_credential_files_are_owner_only
+    modes = [".gem/credentials", ".aws/credentials"].to_h do |file|
+      [file, format("%o", File.stat(File.join(E2E.home, file)).mode & 0o7777)]
+    end
+    assert_equal({".gem/credentials" => "600", ".aws/credentials" => "600"}, modes)
+  end
+
   def test_pi_packages_are_installed
     settings = JSON.parse(File.read(File.join(E2E.home, ".pi", "agent", "settings.json")))
     expected = settings.fetch("packages").map { |package| package.is_a?(Hash) ? package.fetch("source") : package }

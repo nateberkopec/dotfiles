@@ -6,9 +6,15 @@ class MiseBootstrapDotfilesDefaultsTest < Minitest::Test
     dotfiles = config.fetch("dotfiles")
 
     assert_equal(
-      {"source" => "~/.dotfiles/files/home", "mode" => "copy", "exclude" => [".git-hooks", ".claude/CLAUDE.md", ".codex/AGENTS.md", ".paseo/config.json"]},
+      {"source" => "~/.dotfiles/files/home", "mode" => "copy", "exclude" => [".git-hooks", ".claude/CLAUDE.md", ".codex/AGENTS.md", ".paseo/config.json", ".gem/credentials", ".aws/credentials"]},
       dotfiles.fetch("~")
     )
+    [".gem/credentials", ".aws/credentials"].each do |file|
+      assert_equal(
+        {"source" => "~/.dotfiles/files/home/#{file}", "mode" => "copy", "permissions" => "0600"},
+        dotfiles.fetch("~/#{file}")
+      )
+    end
     assert_equal(
       {"source" => "~/.dotfiles/files/home/.paseo/config.json", "merge" => true},
       dotfiles.fetch("~/.paseo/config.json/shared")
