@@ -1,0 +1,38 @@
+#!/bin/sh
+
+[ "$1" = prepared ] && [ -n "$PASEO_AGENT_ID" ] || exit 0
+
+common=$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null) || exit 0
+case "$common" in
+  "$(cd "$HOME" && pwd -P)/Documents/Code.nosync/retainer/"*) ;;
+  *) exit 0 ;;
+esac
+[ "$(git rev-parse --path-format=absolute --git-dir)" = "$common" ] || exit 0
+git rev-parse -q --verify HEAD >/dev/null || exit 0
+case " $(ps -o args= -p "$PPID" 2>/dev/null) " in
+  *" worktree add "*) exit 0 ;;
+esac
+for state in rebase-merge rebase-apply BISECT_START; do
+  [ -e "$common/$state" ] && exit 0
+done
+
+current=$(git symbolic-ref -q HEAD)
+moved=
+detached=
+branch_updated=
+while read -r _old new ref; do
+  case "$ref" in
+    HEAD)
+      case "$new" in
+        ref:*) [ "${new#ref:}" = "$current" ] || moved=1 ;;
+        *) [ -n "$current" ] && detached=1 ;;
+      esac
+      ;;
+    "$current") branch_updated=1 ;;
+  esac
+done
+[ -n "$detached" ] && [ -z "$branch_updated" ] && moved=1
+
+[ -z "$moved" ] && exit 0
+echo "Refusing to move HEAD in the shared checkout of a client repository. Make your own worktree: git worktree add <path> -b <branch>" >&2
+exit 1
