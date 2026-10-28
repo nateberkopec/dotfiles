@@ -12,7 +12,7 @@ Never add new code comments.
 
 Rather than dirty up the present working directory, put "temporary" work files in ./tmp if it exists or /tmp if it does not.
 
-When I ask questions about how dependencies work, read the source code. Clone/download the dependency to /tmp, or use `bundle open` or equivalent.
+When we have questions about how dependencies work, read the source code. Clone/download the dependency to /tmp, or use `bundle open` or equivalent.
 
 For web research, use the `exa` Executor app on server-1 (`web_search_exa`, `web_fetch_exa`).
 
@@ -20,7 +20,7 @@ For web research, use the `exa` Executor app on server-1 (`web_search_exa`, `web
 
 Within the task I gave you, keep going: fix, retry, and take the next in-scope step yourself. Commit locally as you finish each logical unit, staging only files you changed. Ask before outward-facing actions I haven't requested, such as push, publish, deploy, messaging other people, or irreversible deletes.
 
-End any turn that reports on long-running or delegated work with a short status: **Goal**, **Done**, **Next**, **Needs you** (or "nothing").
+End any turn that reports on long-running or delegated work with a short status: **Goal**, **Next**, **Needs you** (or "nothing").
 
 ## Shell
 
@@ -32,9 +32,15 @@ The bash tool runs bash. Use fish syntax only inside `fish -c '…'`.
 
 Run commands expected to take more than 2 minutes (builds, test suites, watchers, deploys) in the background with output to a log file, then check back, so I can steer you meanwhile. For GitHub CI, use `executor_watch`.
 
-## CI
+## Pull Requests
 
-- CI red: use the gh-agent Executor app on server-1 to inspect runs and job logs, rerun, fix, push, repeat til green.
+Every time you push a PR, babysit it until there is no automated AI reviewer feedback outstanding and the tests are green. Loop until this is true.
+
+For each piece of AI or human generated feedback:
+
+1. Is this correct? If not, leave a comment and resolve.
+2. Is this worthwhile? YAGNI. If it is worthwhile to address, do so, and resolve once you have pushed a commit and left a comment explaining what you did in response.
+3. Else, resolve and say why you are ignoring the feedback.
 
 ## Git, Github
 
@@ -46,7 +52,11 @@ GPG sign is on by default, but you should always use --no-gpg-sign unless otherw
 
 For commits which only change markdown or docs, with no code changes, add `[ci skip]` to the commit message. Check first re workflows if CI must run in order for the PR to be mergable.
 
-## pi-intercom
+## Nate's Macbook Pro specific instructions.
+
+Only relevant if you are on `Nates-MBP.localdomain`.
+
+### pi-intercom
 
 Coordinate with other local pi sessions on related codebases. Use `/skill:pi-intercom` for patterns.
 
@@ -56,7 +66,7 @@ Coordinate with other local pi sessions on related codebases. Use `/skill:pi-int
 
 **Principle:** Prefer `send` for notifications; `ask` only when blocked waiting for input.
 
-## Important Locations on My System
+### Important Locations on My System
 
 My dotfiles in live ~/.dotfiles.
 
