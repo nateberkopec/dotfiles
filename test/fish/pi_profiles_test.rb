@@ -14,15 +14,14 @@ class PiProfilesTest < Minitest::Test
   def test_launchers_choose_mode_without_changing_agent_directory
     with_functions do |dir, source|
       assert_equal "usa-no-train|shared|--print hello\n", run_fish(dir, source, "pi --print hello")
-      assert_equal "claude-only|shared|--print hello\n", run_fish(dir, source, "pi-claude --print hello")
       assert_equal "unrestricted|shared|--print hello\n", run_fish(dir, source, "pi-unsafe --print hello")
     end
   end
 
   def test_only_child_processes_inherit_the_launch_mode
     with_functions do |dir, source|
-      assert_equal "claude-only|shared|--list-models\n",
-        run_fish(dir, source, "pi --list-models", "PI_SUBAGENT_DEPTH" => "1", "PI_DATASAFE_MODE" => "claude-only")
+      assert_equal "unrestricted|shared|--list-models\n",
+        run_fish(dir, source, "pi --list-models", "PI_SUBAGENT_DEPTH" => "1", "PI_DATASAFE_MODE" => "unrestricted")
       assert_equal "usa-no-train|shared|--list-models\n",
         run_fish(dir, source, "pi --list-models", "PI_SUBAGENT_DEPTH" => "0", "PI_DATASAFE_MODE" => "unrestricted")
       assert_equal "invalid|shared|--list-models\n",
@@ -33,7 +32,7 @@ class PiProfilesTest < Minitest::Test
   def test_sessions_are_noninteractive_without_changing_the_parent_shell
     with_functions do |dir, source|
       File.write(File.join(dir, "bin", "pi"), "#!/bin/sh\nprintf '%s\\n' \"$NONINTERACTIVE\"\n")
-      %w[pi pi-claude pi-unsafe].each do |launcher|
+      %w[pi pi-unsafe].each do |launcher|
         assert_equal "1\nparent:unset\n", run_fish(dir, source, "#{launcher} --print hello; echo parent:(set -q NONINTERACTIVE; and echo set; or echo unset)", "NONINTERACTIVE" => nil)
       end
     end

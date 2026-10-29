@@ -13,20 +13,16 @@ enabled = settings.fetch("enabledModels").map { |entry| entry.match(/\A(?<model>
 config = JSON.parse(File.read(config_path))
 providers = config.fetch("agents").fetch("providers")
 providers.fetch("pi").delete("models")
-providers.fetch("pi-claude").delete("models")
 
-profile = lambda do |provider, entry, suffix|
+config.fetch("daemon")["agentProfiles"] = enabled.map do |entry|
   {
-    "id" => "#{provider}:#{entry[:model]}",
-    "name" => "#{entry[:model].split("/").last}#{suffix}",
-    "provider" => provider,
+    "id" => "pi:#{entry[:model]}",
+    "name" => entry[:model].split("/").last,
+    "provider" => "pi",
     "model" => entry[:model],
     "thinkingOptionId" => entry[:thinking]
   }.compact
 end
-config.fetch("daemon")["agentProfiles"] =
-  enabled.map { |entry| profile.call("pi", entry, "") } +
-  enabled.select { |entry| entry[:model].start_with?("meridian/") }.map { |entry| profile.call("pi-claude", entry, " (Claude only)") }
 
 contents = JSON.pretty_generate(config) + "\n"
 previous = File.read(config_path)
