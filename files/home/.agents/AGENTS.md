@@ -18,7 +18,7 @@ For web research, use the `exa` Executor app on server-1 (`web_search_exa`, `web
 
 ## Autonomy
 
-Within the task I gave you, keep going: fix, retry, and take the next in-scope step yourself. Commit locally as you finish each logical unit, staging only files you changed. Ask before outward-facing actions I haven't requested, such as push, publish, deploy, messaging other people, or irreversible deletes.
+Within the task I gave you, keep going: fix, retry, and take the next in-scope step yourself. Work exists only once it is on the remote: commit as you finish each logical unit, staging only files you changed, and push the branch right away. Push to your own branch, not the default branch. Open a PR only when I ask. Start and rerun CI yourself whenever it helps. Ask before other outward-facing actions I haven't requested, such as opening PRs, merging, publishing, deploying, messaging other people, or irreversible deletes.
 
 End any turn that reports on long-running or delegated work with a short status: **Goal**, **Next**, **Needs you** (or "nothing").
 
