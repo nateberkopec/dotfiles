@@ -1,0 +1,28 @@
+{
+  "providers": {
+    "fm": {
+      "name": "Apple Foundation Models",
+      "baseUrl": "http://127.0.0.1:1976/v1",
+      "api": "openai-completions",
+      "apiKey": "fm-local",
+      "compat": {
+        "supportsStore": false,
+        "supportsDeveloperRole": false,
+        "supportsReasoningEffort": false,
+        "supportsStrictMode": false,
+        "maxTokensField": "max_tokens"
+      },
+      "models": [
+        {
+          "id": "system",
+          "name": "Apple Foundation Model (on-device)",
+          "reasoning": false,
+          "input": ["text"],
+          "contextWindow": 8192,
+          "maxTokens": 1024,
+          "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 }
+        }
+      ]
+    }
+  }
+}

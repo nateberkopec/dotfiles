@@ -1,0 +1,9 @@
+{
+  "defaultProvider": "fm",
+  "defaultModel": "system",
+  "quietStartup": true,
+  "compaction": {
+    "reserveTokens": 2048,
+    "keepRecentTokens": 2048
+  }
+}
