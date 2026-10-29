@@ -1,4 +1,5 @@
 {
+  "lastChangelogVersion": "9999.0.0",
   "defaultProvider": "fm",
   "defaultModel": "system",
   "quietStartup": true,
