@@ -67,21 +67,6 @@
           "enabled": false
         }
       },
-      "pi-claude": {
-        "extends": "pi",
-        "label": "Pi (Claude only)",
-        "command": [
-          "pi"
-        ],
-        "env": {
-          "PI_DATASAFE_MODE": "claude-only",
-          "NONINTERACTIVE": "1",
-          "PI_SKIP_VERSION_CHECK": "1"
-        },
-        "paseoTools": {
-          "enabled": false
-        }
-      },
       "antigravity": {
         "enabled": false
       },
@@ -92,7 +77,7 @@
     "metadataGeneration": {
       "providers": [
         {
-          "provider": "pi-claude",
+          "provider": "pi",
           "model": "meridian/claude-haiku-4-5"
         }
       ]

@@ -23,19 +23,18 @@ test("Paseo config contains no account-specific macOS home paths", () => {
 	assert.doesNotMatch(JSON.stringify(config), /\/Users\/[^/]+\//);
 });
 
-test("Paseo launches only Pi with explicit datasafe profiles and PATH-resolved commands", () => {
+test("Paseo launches only Pi with the default datasafe policy and a PATH-resolved command", () => {
 	const providers = config.agents.providers;
-	for (const [id, mode] of [["pi", "usa-no-train"], ["pi-claude", "claude-only"]]) {
-		assert.deepEqual(providers[id].command, ["pi"]);
-		assert.deepEqual(providers[id].env, {
-			PI_DATASAFE_MODE: mode, NONINTERACTIVE: "1", PI_SKIP_VERSION_CHECK: "1",
-		});
-		assert.deepEqual(providers[id].paseoTools, { enabled: false });
-	}
-	assert.equal(providers["pi-claude"].extends, "pi");
+	assert.deepEqual(providers.pi.command, ["pi"]);
+	assert.deepEqual(providers.pi.env, {
+		PI_DATASAFE_MODE: "usa-no-train",
+		NONINTERACTIVE: "1",
+		PI_SKIP_VERSION_CHECK: "1",
+	});
+	assert.deepEqual(providers.pi.paseoTools, { enabled: false });
 	for (const id of ["claude", "codex", "copilot", "opencode", "omp", "antigravity", "muse"]) {
 		assert.deepEqual(providers[id], { enabled: false });
 	}
 	const metadata = config.agents.metadataGeneration.providers;
-	assert.deepEqual(metadata, [{ provider: "pi-claude", model: "meridian/claude-haiku-4-5" }]);
+	assert.deepEqual(metadata, [{ provider: "pi", model: "meridian/claude-haiku-4-5" }]);
 });

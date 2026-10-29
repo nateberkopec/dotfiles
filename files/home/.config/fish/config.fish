@@ -65,12 +65,6 @@ function pi
   NONINTERACTIVE=1 PI_DATASAFE_MODE=$mode PI_SKIP_VERSION_CHECK=1 command pi $argv
 end
 
-function pi-claude --description 'Start Pi with only Anthropic and Meridian models'
-  set -l node_root (mise -C "$HOME" where node); or return
-  set -lx PATH "$node_root/bin" $PATH
-  NONINTERACTIVE=1 PI_DATASAFE_MODE=claude-only PI_SKIP_VERSION_CHECK=1 command pi $argv
-end
-
 function pi-unsafe --description 'Start Pi without data-safety restrictions'
   set -l node_root (mise -C "$HOME" where node); or return
   set -lx PATH "$node_root/bin" $PATH
