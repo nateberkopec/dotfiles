@@ -69,7 +69,7 @@ class MiseBootstrapPackagesLaunchdTest < Minitest::Test
   end
 
   def test_declares_pinned_paseo_launch_agent
-    assert_equal({"version" => "0.13.0", "depends" => ["github:aubepkg/aube"]}, config.dig("tools", "npm:@getpaseo/cli"))
+    assert_equal({"version" => "0.13.2", "depends" => ["github:aubepkg/aube"]}, config.dig("tools", "npm:@getpaseo/cli"))
     agent = config.dig("bootstrap", "macos", "launchd", "agents", "paseo")
 
     assert_equal "~/.local/bin/mise", agent.fetch("program")
