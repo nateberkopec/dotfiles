@@ -73,10 +73,34 @@ jobs:
             else "Paired upgrades: \(.seconds) active seconds (limit 300)" end
         '
 
+  mise-changes:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      changed: ${{ steps.diff.outputs.changed }}
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        fetch-depth: 0
+        persist-credentials: false
+    - id: diff
+      env:
+        BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      run: |
+        changed=false
+        git diff --quiet "$(git merge-base "$BASE_SHA" "$HEAD_SHA")" "$HEAD_SHA" -- config/mise.version files/home/.config/mise/ || changed=true
+        echo "Cold-install mise inputs changed: $changed"
+        echo "changed=$changed" >> "$GITHUB_OUTPUT"
+
   fresh:
+    needs: mise-changes
     if: >-
+      !cancelled() && (
       github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'e2e:fresh'))
+      (github.event_name == 'pull_request' &&
+        (contains(github.event.pull_request.labels.*.name, 'e2e:fresh') || needs.mise-changes.outputs.changed == 'true')))
     strategy:
       fail-fast: false
       matrix:
