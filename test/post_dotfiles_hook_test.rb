@@ -22,7 +22,6 @@ class PostDotfilesHookTest < Minitest::Test
       launchctl_trace = File.join(dir, "launchctl.log")
       mise_trace = File.join(dir, "mise.log")
       ruby_trace = File.join(dir, "ruby.log")
-      meridian_trace = File.join(dir, "meridian.log")
       bin = File.join(dir, "bin")
       hook_source = File.join(home, ".dotfiles/files/home/.git-hooks/pre-push")
       sync_script = File.join(home, ".dotfiles/bin/lib/sync-git-hooks.sh")
@@ -35,10 +34,9 @@ class PostDotfilesHookTest < Minitest::Test
       FileUtils.cp(File.expand_path("../bin/lib/sync-git-hooks.sh", __dir__), sync_script)
       write_command(bin, "uname", "echo Darwin")
       write_command(bin, "id", 'if [ "$1" = "-Gn" ]; then echo ' + (admin ? '"staff admin"' : '"staff"') + '; else /usr/bin/id "$@"; fi')
-      write_command(bin, "mise", '[ "$*" = "hook-env -s bash" ] && exit 0; echo "$*" >> "$MISE_TRACE"; test "$1 $2 $3 $4" = "exec --locked npm:@rynfar/meridian --" || exit 2; shift 4; exec "$@"')
+      write_command(bin, "mise", '[ "$*" = "hook-env -s bash" ] || echo "$*" >> "$MISE_TRACE"')
       write_command(bin, "launchctl", 'echo "$*" >> "$LAUNCHCTL_TRACE"')
       write_command(bin, "ruby", 'echo "$*" >> "$RUBY_TRACE"')
-      write_command(bin, "meridian", 'echo "$*" >> "$MERIDIAN_TRACE"')
 
       _stdout, stderr, status = Open3.capture3(
         {
@@ -46,8 +44,7 @@ class PostDotfilesHookTest < Minitest::Test
           "PATH" => "#{bin}:#{ENV.fetch("PATH")}",
           "LAUNCHCTL_TRACE" => launchctl_trace,
           "MISE_TRACE" => mise_trace,
-          "RUBY_TRACE" => ruby_trace,
-          "MERIDIAN_TRACE" => meridian_trace
+          "RUBY_TRACE" => ruby_trace
         },
         "bash", script
       )
@@ -58,9 +55,8 @@ class PostDotfilesHookTest < Minitest::Test
       expected_launchctl += "bootout gui/#{Process.uid}/dev.mise.omniwm\n" unless admin
       assert_equal expected_launchctl, File.read(launchctl_trace)
       assert_equal admin, File.exist?(omniwm_plist)
-      assert_equal "exec --locked npm:@rynfar/meridian -- meridian setup --client pi\n", File.read(mise_trace)
+      refute File.exist?(mise_trace)
       assert_equal "#{home}/.dotfiles/bin/lib/install-meridian-pi-scrub.rb\n#{home}/.dotfiles/bin/lib/sync-paseo-models.rb\n", File.read(ruby_trace)
-      assert_equal "setup --client pi\n", File.read(meridian_trace)
       assert_equal "managed hook", File.read(File.join(home, ".git-hooks/pre-push"))
     end
   end
