@@ -1,4 +1,4 @@
 # Managed by dotfiles. Harden npm installs that flow through aube.
 paranoid = true
-allowedUnpopularPackages = ["@nateberkopec/pi-meridian", "pi-context-view"]
+allowedUnpopularPackages = ["pi-context-view"]
 minimumReleaseAgeExclude = ["@rynfar/meridian@1.83.0"]

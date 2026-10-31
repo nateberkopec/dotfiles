@@ -21,16 +21,12 @@ module AgentResourceSystemFixture
     File.write(File.join(@root, "config/pruning.yml"), YAML.dump("version" => 1, "items" => {}))
     settings = JSON.parse(File.read(File.join(ROOT, "files/home/.pi/agent/settings.json")))
     source = settings.fetch("packages").find { |entry| entry.is_a?(Hash) && entry.fetch("source").include?("agent-stuff@") }.fetch("source")
-    meridian = settings.fetch("packages").find { |entry| entry.is_a?(String) && entry.start_with?("npm:@nateberkopec/pi-meridian@") }
-    assert meridian, "Pinned Meridian package missing"
     File.write(File.join(@home, ".pi/agent/settings.json"), JSON.generate(
       "npmCommand" => ["bash", "-c", 'exec bash "$1" "${@:2}"', "npm", File.join(ROOT, "files/home/.pi/agent/pi-npm.sh")],
-      "packages" => [{"source" => source, "skills" => []}, meridian]
+      "packages" => [{"source" => source, "skills" => []}]
     ))
-    [source, meridian].each do |package|
-      output, status = Open3.capture2e(environment.merge("HOME" => ENV.fetch("HOME")), "pi", "install", package, chdir: ROOT)
-      assert status.success?, output
-    end
+    output, status = Open3.capture2e(environment.merge("HOME" => ENV.fetch("HOME")), "pi", "install", source, chdir: ROOT)
+    assert status.success?, output
   end
 
   def teardown
