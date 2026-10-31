@@ -25,7 +25,7 @@ test("Paseo config contains no account-specific macOS home paths", () => {
 
 test("Paseo launches only Pi with the default datasafe policy and a PATH-resolved command", () => {
 	const providers = config.agents.providers;
-	assert.deepEqual(providers.pi.command, ["pi"]);
+	assert.deepEqual(providers.pi.command, ["pi", "--approve"]);
 	assert.deepEqual(providers.pi.env, {
 		PI_DATASAFE_MODE: "usa-no-train",
 		NONINTERACTIVE: "1",

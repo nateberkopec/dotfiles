@@ -212,13 +212,12 @@ bootstrap_mise() {
         done
     fi
 
-    # Trust mise config in current directory (needed for non-interactive environments)
-    if [ -f ".mise.toml" ]; then
-        debug "Trusting mise config..."
+    if [ -f "$DOTFILES_ROOT/.mise.toml" ]; then
+        debug "Trusting dotfiles mise config..."
         if [ "${DEBUG:-false}" = "true" ]; then
-            mise trust --yes || true
+            "$mise_bin" trust --yes "$DOTFILES_ROOT/.mise.toml" || true
         else
-            mise trust --yes 2>/dev/null || true
+            "$mise_bin" trust --yes "$DOTFILES_ROOT/.mise.toml" 2>/dev/null || true
         fi
     fi
 }

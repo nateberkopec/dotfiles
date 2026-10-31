@@ -4,7 +4,7 @@
   "defaultModel": "claude-opus-5-5",
   "defaultThinkingLevel": "medium",
   "httpIdleTimeoutMs": 120000,
-  "defaultProjectTrust": "always",
+  "defaultProjectTrust": "ask",
   "hideThinkingBlock": false,
   "defaultTools": [
     "+codemode"
