@@ -17,7 +17,7 @@
   "window.confirmSaveUntitledWorkspace": false,
 
   "git.confirmSync": false,
-  "git.openRepositoryInParentFolders": "always",
+  "git.openRepositoryInParentFolders": "never",
 
   "chat.agent.enabled": false,
   "chat.commandCenter.enabled": false,
