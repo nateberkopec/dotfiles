@@ -111,7 +111,6 @@ sudo /usr/local/libexec/dotfiles-spotlight-controller audit
 # docker.io stays conditional to preserve other installations.
 [bootstrap.packages]
 "brew:automake" = "latest"
-"brew:bash" = "latest"
 "brew:bison" = "latest"
 "brew:coreutils" = "latest"
 "brew:curl" = "latest"
