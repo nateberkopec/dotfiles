@@ -11,7 +11,7 @@ bash "$HOME/.dotfiles/bin/lib/sync-git-hooks.sh"
 
 ruby "$HOME/.dotfiles/bin/lib/install-meridian-pi-scrub.rb"
 
-meridian setup --client pi
+mise exec --locked npm:@rynfar/meridian -- meridian setup --client pi
 
 ruby "$HOME/.dotfiles/bin/lib/sync-paseo-models.rb"
 
