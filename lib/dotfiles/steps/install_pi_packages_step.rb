@@ -47,8 +47,10 @@ class Dotfiles::Step::InstallPiPackagesStep < Dotfiles::Step
   end
 
   def installed_npm_version(package)
-    path = File.join(@home, ".pi", "agent", "npm", "node_modules", package, "package.json")
+    root = File.join(@home, ".pi", "agent", "npm", "node_modules")
+    path = File.join(root, package, "package.json")
     return unless @system.file_exist?(path)
+    return unless @system.realpath(path).start_with?("#{@system.realpath(root)}/")
 
     JSON.parse(@system.read_file(path))["version"]
   rescue JSON::ParserError

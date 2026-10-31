@@ -109,3 +109,4 @@ check_ci_packages "Post-run" assert_installed
 run_dotfiles output-second.log
 assert_only_agent_refresh_ran "Second dotf run" output-second.log
 check_fish
+mise --cd "$HOME" exec -- python "$repo_dir/test/pi_npm_isolation_system_test.py"
