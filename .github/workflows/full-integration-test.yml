@@ -48,9 +48,9 @@ jobs:
       matrix:
         include:
           - os: macos-latest
-            mise_ci_tools: "gum,github:aubepkg/aube,npm:@earendil-works/pi-coding-agent,fzf,aqua:fish-shell/fish-shell,python,pipx,pipx:playwright,github:abue-ammar/tinycast,github:steipete/CodexBar,aqua:dotfiles/orbstack,github:trycua/cua"
+            mise_ci_tools: "gum,github:aubepkg/aube,npm:@earendil-works/pi-coding-agent,npm:@rynfar/meridian,fzf,aqua:fish-shell/fish-shell,python,pipx,pipx:playwright,github:abue-ammar/tinycast,github:steipete/CodexBar,aqua:dotfiles/orbstack,github:trycua/cua"
           - os: ubuntu-22.04
-            mise_ci_tools: "gum,github:aubepkg/aube,npm:@earendil-works/pi-coding-agent,fzf,aqua:fish-shell/fish-shell,python,pipx,pipx:playwright"
+            mise_ci_tools: "gum,github:aubepkg/aube,npm:@earendil-works/pi-coding-agent,npm:@rynfar/meridian,fzf,aqua:fish-shell/fish-shell,python,pipx,pipx:playwright"
 
     steps:
     - name: Checkout repository
@@ -224,7 +224,7 @@ jobs:
         CI: true
         AUBE_DISABLE_TARBALL_STREAM: "1"
         GITHUB_TOKEN: ${{ github.token }}
-        MISE_CI_TOOLS: "gum,github:aubepkg/aube,npm:@earendil-works/pi-coding-agent,fzf,aqua:fish-shell/fish-shell,python,pipx,pipx:playwright,github:abue-ammar/tinycast,github:steipete/CodexBar,aqua:dotfiles/orbstack,github:trycua/cua"
+        MISE_CI_TOOLS: "gum,github:aubepkg/aube,npm:@earendil-works/pi-coding-agent,npm:@rynfar/meridian,fzf,aqua:fish-shell/fish-shell,python,pipx,pipx:playwright,github:abue-ammar/tinycast,github:steipete/CodexBar,aqua:dotfiles/orbstack,github:trycua/cua"
         BREW_CI_PACKAGES: "duti"
         BREW_CI_CASKS: ""
       run: |

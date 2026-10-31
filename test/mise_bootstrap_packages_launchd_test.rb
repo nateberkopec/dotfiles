@@ -94,8 +94,11 @@ class MiseBootstrapPackagesLaunchdTest < Minitest::Test
     assert_equal ["pipx", "uv"], tools.dig("pipx:playwright", "depends")
   end
 
-  def test_preinstalls_playwright_headless_shell
-    assert_equal "mise exec -- playwright install chromium-headless-shell", config.dig("bootstrap", "hooks", "post-tools")
+  def test_sets_up_meridian_and_playwright_after_installing_tools
+    assert_equal [
+      "mise exec --locked npm:@rynfar/meridian -- meridian setup --client pi",
+      "mise exec -- playwright install chromium-headless-shell"
+    ], config.dig("bootstrap", "hooks", "post-tools")
   end
 
   private

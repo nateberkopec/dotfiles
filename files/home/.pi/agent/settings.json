@@ -14,7 +14,6 @@
       "source": "git:github.com/nateberkopec/agent-stuff@main",
       "skills": []
     },
-    "npm:@nateberkopec/pi-meridian@0.2.0-beta.1",
     "npm:pi-mcp-adapter@7.0.0",
     "npm:pi-subagents@0.83.0",
     "npm:pi-intercom@0.18.1",

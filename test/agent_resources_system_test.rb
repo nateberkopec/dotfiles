@@ -16,8 +16,6 @@ class AgentResourcesSystemTest < Minitest::Test
     refute File.exist?(File.join(@home, ".pi/agent/extensions/notify.ts"))
     refute File.exist?(File.join(@home, ".pi/agent/extensions/cache_hit_warning.ts"))
     refute File.exist?(File.join(@package, "extensions/meridian.ts"))
-    metadata = JSON.parse(File.read(File.join(@home, ".pi/agent/npm/node_modules/@nateberkopec/pi-meridian/package.json")))
-    assert_equal "0.2.0-beta.1", metadata.fetch("version")
     assert_equal "custom extension", File.read(File.join(@home, ".pi/agent/extensions/custom.ts"))
     claimed = JSON.parse(File.read(ledger_path)).fetch("items").values.flat_map { |item| item.fetch("files").keys }
     refute_includes claimed, ".pi/agent/agents/reviewer.md"
