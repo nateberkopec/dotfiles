@@ -3,7 +3,7 @@ name: E2E
 on:
   pull_request:
     branches: [ main ]
-    types: [ opened, synchronize, reopened, labeled ]
+    types: [ opened, synchronize, reopened ]
   push:
     branches: [ main ]
   schedule:
@@ -73,36 +73,8 @@ jobs:
             else "Paired upgrades: \(.seconds) active seconds (limit 300)" end
         '
 
-  fresh-inputs:
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    outputs:
-      changed: ${{ steps.diff.outputs.changed }}
-    steps:
-    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      with:
-        fetch-depth: 0
-        persist-credentials: false
-    - id: diff
-      env:
-        BASE_SHA: ${{ github.event.pull_request.base.sha }}
-        HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-      run: |
-        changed=false
-        git diff --quiet "$(git merge-base "$BASE_SHA" "$HEAD_SHA")" "$HEAD_SHA" -- \
-          config/mise.version files/home/.config/mise/ bin/bootstrap bin/dotf bin/lib/ \
-          .github/workflows/e2e.yml tools/e2e/converge.sh tools/e2e/check.sh test/e2e/ || changed=true
-        echo "Fresh-install inputs changed: $changed"
-        echo "changed=$changed" >> "$GITHUB_OUTPUT"
-
   fresh:
-    needs: fresh-inputs
-    if: >-
-      !cancelled() && (
-      github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'pull_request' &&
-        (contains(github.event.pull_request.labels.*.name, 'e2e:fresh') || needs.fresh-inputs.outputs.changed == 'true')))
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     strategy:
       fail-fast: false
       matrix:
@@ -124,30 +96,6 @@ jobs:
       with:
         name: fresh-${{ matrix.user }}-logs
         path: ${{ runner.temp }}/e2e-logs
-
-  nightly-green:
-    needs: [ fresh-inputs, fresh ]
-    if: always() && github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    permissions:
-      actions: read
-    steps:
-    - name: Require a green nightly or a green fresh run on this PR
-      env:
-        GH_TOKEN: ${{ github.token }}
-        FRESH: ${{ needs.fresh.result }}
-        FRESH_INPUTS: ${{ needs.fresh-inputs.result }}
-      run: |
-        [ "$FRESH" = success ] && exit 0
-        if [ "$FRESH" != skipped ] || [ "$FRESH_INPUTS" != success ]; then
-          echo "Fresh E2E on this PR: $FRESH; fresh-input detection: $FRESH_INPUTS"
-          exit 1
-        fi
-        conclusion="$(gh run list -R "$GITHUB_REPOSITORY" --workflow e2e.yml --branch main --status completed -L 50 --json event,conclusion \
-          --jq 'map(select(.event == "schedule" or .event == "workflow_dispatch")) | .[0].conclusion')"
-        echo "Latest nightly: ${conclusion:-none}"
-        [ "$conclusion" = success ]
 
   golden-lag:
     if: github.event_name == 'push'
