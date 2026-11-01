@@ -566,6 +566,13 @@ url_api = "https://api.github.com/repos/koalaman/shellcheck/releases/assets/2790
 version = "1.10.1"
 backend = "spinel-source:tobi/try"
 
+[[tools."spm:nateberkopec/activity-recall"]]
+version = "rev:a35cdfa4931a7ab1901debdcb08d0c9c7940f0cc"
+backend = "spm:nateberkopec/activity-recall"
+
+[tools."spm:nateberkopec/activity-recall".options]
+artifactbundle = "false"
+
 [[tools.starship]]
 version = "1.27.0"
 backend = "aqua:starship/starship"
