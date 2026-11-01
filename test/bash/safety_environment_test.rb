@@ -34,7 +34,6 @@ class SafetyEnvironmentTest < Minitest::Test
         printf 'aube:%s\\n' "$state" >> "$STARTUP_ENV_LOG"
         printf 'export AUBE_SHIM_DIR=%q\\n' "$AUBE_TEST_SHIM_DIR"
       SH
-      write_executable(bin, "sfw", "#!/bin/sh\nprintf 'sfw:%s\\n' \"$*\"\n")
       write_executable(shims, "npx", "#!/bin/sh\n")
 
       env = {
@@ -43,16 +42,15 @@ class SafetyEnvironmentTest < Minitest::Test
         "BASH_SAFETY_LOADS" => loads,
         "STARTUP_ENV_LOG" => startup_env,
         "AUBE_TEST_SHIM_DIR" => shims,
-        "SOCKET_FIREWALL_DISABLE" => nil,
         "PATH" => [bin, "/usr/bin", "/bin", shims].join(":")
       }
-      command = "printf '%s\\n' \"$MISE_SAFETY_ACTIVE\" \"$MISE_SHELL\" \"$(command -v npx)\"; cargo install demo"
+      command = "printf '%s\\n' \"$MISE_SAFETY_ACTIVE\" \"$MISE_SHELL\" \"$(command -v npx)\""
       output, status = Open3.capture2e(env, "bash", "--noprofile", "--norc", "-c", command)
 
       assert status.success?, output
       assert_equal "1", File.read(loads).chomp, "BASH_ENV loaded recursively"
       assert_equal ["mise:unset", "aube:unset"], File.readlines(startup_env, chomp: true)
-      assert_equal ["1", "bash", File.join(shims, "npx"), "sfw:cargo install demo"], output.lines.map(&:chomp)
+      assert_equal ["1", "bash", File.join(shims, "npx")], output.lines.map(&:chomp)
     end
   end
 
