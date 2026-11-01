@@ -56,8 +56,7 @@
       },
       "pi": {
         "command": [
-          "pi",
-          "--approve"
+          "pi"
         ],
         "env": {
           "PI_DATASAFE_MODE": "usa-no-train",
