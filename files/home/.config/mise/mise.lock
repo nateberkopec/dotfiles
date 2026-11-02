@@ -236,19 +236,6 @@ url = "https://github.com/aubepkg/aube/releases/download/v2.8.3/aube-v2.8.3-aarc
 url_api = "https://api.github.com/repos/aubepkg/aube/releases/assets/675310045"
 provenance = "github-attestations"
 
-[[tools."github:nateberkopec/activity-recall"]]
-version = "0.1.0"
-backend = "github:nateberkopec/activity-recall"
-
-[tools."github:nateberkopec/activity-recall".options]
-asset_pattern = "activity-recall-{version}-macos-arm64.tar.gz"
-
-[tools."github:nateberkopec/activity-recall"."platforms.macos-arm64"]
-checksum = "sha256:cd9152c83bfe9ad0499854cbc42ab81edcdd17520938b4b3e1329356861ab973"
-checksum_source = "mise-versions"
-url = "https://github.com/nateberkopec/activity-recall/releases/download/v0.1.0/activity-recall-0.1.0-macos-arm64.tar.gz"
-url_api = "https://api.github.com/repos/nateberkopec/activity-recall/releases/assets/700489617"
-
 [[tools."github:nateberkopec/print-label"]]
 version = "0.4.0"
 backend = "github:nateberkopec/print-label"
@@ -462,6 +449,15 @@ backend = "npm:@openai/codex"
 [[tools."npm:@rynfar/meridian"]]
 version = "1.86.0"
 backend = "npm:@rynfar/meridian"
+
+[[tools."packslip:github.com/nateberkopec/activity-recall"]]
+version = "0.1.1"
+backend = "packslip:github.com/nateberkopec/activity-recall"
+
+[tools."packslip:github.com/nateberkopec/activity-recall"."platforms.macos-arm64"]
+checksum = "sha256:49f7480471a59381c7d2a0667037da4f6dd18b8bea0d1de32772a9509c887495"
+url = "https://github.com/nateberkopec/activity-recall/releases/download/v0.1.1/activity-recall-0.1.1-macos-arm64.tar.gz"
+signer = "sigstore-oidc:https://github.com/nateberkopec/activity-recall/.github/workflows/release.yml"
 
 [[tools.pipx]]
 version = "1.18.4"
