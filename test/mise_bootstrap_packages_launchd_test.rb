@@ -97,7 +97,8 @@ class MiseBootstrapPackagesLaunchdTest < Minitest::Test
   def test_sets_up_meridian_and_playwright_after_installing_tools
     assert_equal [
       "mise exec --locked npm:@rynfar/meridian -- meridian setup --client pi",
-      "mise exec -- playwright install chromium-headless-shell"
+      "mise exec -- playwright install chromium-headless-shell",
+      'bash "$HOME/.dotfiles/bin/lib/post-tools-hook.sh"'
     ], config.dig("bootstrap", "hooks", "post-tools")
   end
 

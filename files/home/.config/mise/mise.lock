@@ -450,6 +450,15 @@ backend = "npm:@openai/codex"
 version = "1.86.0"
 backend = "npm:@rynfar/meridian"
 
+[[tools."packslip:github.com/nateberkopec/activity-recall"]]
+version = "0.1.1"
+backend = "packslip:github.com/nateberkopec/activity-recall"
+
+[tools."packslip:github.com/nateberkopec/activity-recall"."platforms.macos-arm64"]
+checksum = "sha256:49f7480471a59381c7d2a0667037da4f6dd18b8bea0d1de32772a9509c887495"
+url = "https://github.com/nateberkopec/activity-recall/releases/download/v0.1.1/activity-recall-0.1.1-macos-arm64.tar.gz"
+signer = "sigstore-oidc:https://github.com/nateberkopec/activity-recall/.github/workflows/release.yml"
+
 [[tools.pipx]]
 version = "1.18.4"
 backend = "aqua:pypa/pipx"
@@ -565,13 +574,6 @@ url_api = "https://api.github.com/repos/koalaman/shellcheck/releases/assets/2790
 [[tools."spinel-source:tobi/try"]]
 version = "1.10.1"
 backend = "spinel-source:tobi/try"
-
-[[tools."spm:nateberkopec/activity-recall"]]
-version = "rev:76c8a7b03b0d20c6188a5facf40bd88e790b52db"
-backend = "spm:nateberkopec/activity-recall"
-
-[tools."spm:nateberkopec/activity-recall".options]
-artifactbundle = "false"
 
 [[tools.starship]]
 version = "1.27.0"
