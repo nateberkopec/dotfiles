@@ -567,7 +567,7 @@ version = "1.10.1"
 backend = "spinel-source:tobi/try"
 
 [[tools."spm:nateberkopec/activity-recall"]]
-version = "rev:f2f0eea0f45042e278079de576cf70281337d457"
+version = "rev:76c8a7b03b0d20c6188a5facf40bd88e790b52db"
 backend = "spm:nateberkopec/activity-recall"
 
 [tools."spm:nateberkopec/activity-recall".options]
