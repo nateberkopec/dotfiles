@@ -5,6 +5,11 @@
       "command": "~/.local/share/dotfiles/cua-driver",
       "args": ["mcp"],
       "directTools": false
+    },
+    "activity-recall": {
+      "command": "~/.local/bin/mise",
+      "args": ["exec", "--", "activity-recall", "mcp"],
+      "directTools": false
     }
 {% endif %}
   },
