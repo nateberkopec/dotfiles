@@ -260,8 +260,8 @@ stdout_path = "~/Library/Logs/cua-driver.out.log"
 stderr_path = "~/Library/Logs/cua-driver.err.log"
 
 [bootstrap.macos.launchd.agents.activity-recall]
-program = "~/.local/bin/mise"
-args = ["exec", "--", "activity-recall", "serve"]
+program = "~/.local/share/mise/installs/spm-nateberkopec-activity-recall/global/bin/activity-recall"
+args = ["serve"]
 run_at_load = true
 keep_alive = true
 kickstart = true
