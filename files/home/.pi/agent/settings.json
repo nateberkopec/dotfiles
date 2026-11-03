@@ -38,6 +38,7 @@
     "meridian/claude-fable-5-1"
   ],
   "subagents": {
+    "additionalTools": ["mcp"],
     "agentOverrides": {
       "delegate": {
         "model": "openai/gpt-6.1-sol",
