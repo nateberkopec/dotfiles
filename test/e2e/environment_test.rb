@@ -66,6 +66,11 @@ class EnvironmentTest < Minitest::Test
     assert_equal({".gem/credentials" => "600", ".aws/credentials" => "600"}, modes)
   end
 
+  def test_pi_uses_the_shared_meridian
+    models = JSON.parse(File.read(File.join(E2E.home, ".pi", "agent", "models.json")))
+    assert_equal "https://server-1.tail6cc978.ts.net:3456", models.fetch("providers").fetch("meridian").fetch("baseUrl")
+  end
+
   def test_pi_packages_are_installed
     settings = JSON.parse(File.read(File.join(E2E.home, ".pi", "agent", "settings.json")))
     expected = settings.fetch("packages").map { |package| package.is_a?(Hash) ? package.fetch("source") : package }
