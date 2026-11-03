@@ -249,9 +249,10 @@ class DotfCliTest < Minitest::Test
     assert_match(/\Aruby -r \.\/lib\/dotfiles\.rb -e Dotfiles::MigrationRunner\.new\('.+'\)\.run_if_existing_machine\z/, commands[5])
     assert_match(/\Aruby -r \.\/lib\/dotfiles\.rb -e Dotfiles::Runner\.new\('.+'\)\.run\z/, commands[6])
     assert_match(%r{\Aruby .+/bin/lib/prune-managed-files\.rb\z}, commands[7])
-    assert_equal "mise prune --yes", commands[8]
-    assert_equal "mise cache prune --yes", commands[9]
-    assert_equal 10, commands.size
+    assert_match(%r{\Aruby .+/bin/lib/forget-idle-mise-configs\.rb\z}, commands[8])
+    assert_equal "mise prune --yes", commands[9]
+    assert_equal "mise cache prune --yes", commands[10]
+    assert_equal 11, commands.size
   end
 
   def assert_mise_pruning_skipped(environment)
