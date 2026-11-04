@@ -38,8 +38,10 @@
     "meridian/claude-fable-5-1"
   ],
   "subagents": {
+    "defaultSubagentOnlyExtensions": ["~/.pi/agent/npm/node_modules/pi-mcp-adapter/index.ts"],
     "agentOverrides": {
       "delegate": {
+        "tools": ["read", "grep", "find", "ls", "bash", "edit", "write", "contact_supervisor", "mcp"],
         "model": "openai/gpt-6.1-sol",
         "thinking": "medium"
       },
@@ -48,6 +50,7 @@
         "thinking": "xhigh"
       },
       "oracle": {
+        "tools": ["read", "grep", "find", "ls", "bash", "mcp"],
         "model": "openai/gpt-6-astra",
         "thinking": "xhigh"
       },
@@ -56,10 +59,12 @@
         "thinking": "xhigh"
       },
       "scout": {
+        "tools": ["read", "grep", "find", "ls", "bash", "write", "contact_supervisor", "mcp"],
         "model": "openai/gpt-6.1-sol",
         "thinking": "low"
       },
       "worker": {
+        "tools": ["read", "grep", "find", "ls", "bash", "edit", "write", "contact_supervisor", "mcp"],
         "model": "openai/gpt-6.1-sol",
         "thinking": "medium"
       },
