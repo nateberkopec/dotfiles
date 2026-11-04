@@ -65,21 +65,7 @@
         },
         "paseoTools": {
           "enabled": false
-        },
-        "additionalModels": [
-          {"id":"meridian/claude-sonnet-5-5","label":"Claude Sonnet 5.5 (Meridian)","thinkingOptions":[{"id":"minimal","label":"Minimal"},{"id":"low","label":"Low"},{"id":"medium","label":"Medium","isDefault":true},{"id":"high","label":"High"},{"id":"xhigh","label":"Xhigh"},{"id":"max","label":"Max"}]},
-          {"id":"meridian/claude-sonnet-5","label":"Claude Sonnet 5 (Meridian)","thinkingOptions":[{"id":"off","label":"Off"},{"id":"minimal","label":"Minimal"},{"id":"low","label":"Low"},{"id":"medium","label":"Medium","isDefault":true},{"id":"high","label":"High"},{"id":"xhigh","label":"Xhigh"},{"id":"max","label":"Max"}]},
-          {"id":"meridian/claude-sonnet-4-6","label":"Claude Sonnet 4.6 (Meridian)","thinkingOptions":[{"id":"off","label":"Off"},{"id":"minimal","label":"Minimal"},{"id":"low","label":"Low"},{"id":"medium","label":"Medium","isDefault":true},{"id":"high","label":"High"},{"id":"xhigh","label":"Xhigh"},{"id":"max","label":"Max"}]},
-          {"id":"meridian/claude-opus-5-5","label":"Claude Opus 5.5 (Meridian)","thinkingOptions":[{"id":"minimal","label":"Minimal"},{"id":"low","label":"Low"},{"id":"medium","label":"Medium","isDefault":true},{"id":"high","label":"High"},{"id":"xhigh","label":"Xhigh"},{"id":"max","label":"Max"}]},
-          {"id":"meridian/claude-opus-5","label":"Claude Opus 5 (Meridian)","thinkingOptions":[{"id":"off","label":"Off"},{"id":"minimal","label":"Minimal"},{"id":"low","label":"Low"},{"id":"medium","label":"Medium","isDefault":true},{"id":"high","label":"High"},{"id":"xhigh","label":"Xhigh"},{"id":"max","label":"Max"}]},
-          {"id":"meridian/claude-opus-4-6","label":"Claude Opus 4.6 (Meridian)","thinkingOptions":[{"id":"off","label":"Off"},{"id":"minimal","label":"Minimal"},{"id":"low","label":"Low"},{"id":"medium","label":"Medium","isDefault":true},{"id":"high","label":"High"},{"id":"xhigh","label":"Xhigh"},{"id":"max","label":"Max"}]},
-          {"id":"meridian/claude-opus-4-7","label":"Claude Opus 4.7 (Meridian)","thinkingOptions":[{"id":"off","label":"Off"},{"id":"minimal","label":"Minimal"},{"id":"low","label":"Low"},{"id":"medium","label":"Medium","isDefault":true},{"id":"high","label":"High"},{"id":"xhigh","label":"Xhigh"},{"id":"max","label":"Max"}]},
-          {"id":"meridian/claude-opus-4-8","label":"Claude Opus 4.8 (Meridian)","thinkingOptions":[{"id":"off","label":"Off"},{"id":"minimal","label":"Minimal"},{"id":"low","label":"Low"},{"id":"medium","label":"Medium","isDefault":true},{"id":"high","label":"High"},{"id":"xhigh","label":"Xhigh"},{"id":"max","label":"Max"}]},
-          {"id":"meridian/claude-fable-5-1","label":"Claude Fable 5.1 (Meridian)","thinkingOptions":[{"id":"minimal","label":"Minimal"},{"id":"low","label":"Low"},{"id":"medium","label":"Medium","isDefault":true},{"id":"high","label":"High"},{"id":"xhigh","label":"Xhigh"},{"id":"max","label":"Max"}]},
-          {"id":"meridian/claude-fable-5","label":"Claude Fable 5 (Meridian)","thinkingOptions":[{"id":"minimal","label":"Minimal"},{"id":"low","label":"Low"},{"id":"medium","label":"Medium","isDefault":true},{"id":"high","label":"High"},{"id":"xhigh","label":"Xhigh"},{"id":"max","label":"Max"}]},
-          {"id":"meridian/claude-haiku-5-5","label":"Claude Haiku 5.5 (Meridian)","thinkingOptions":[{"id":"minimal","label":"Minimal"},{"id":"low","label":"Low"},{"id":"medium","label":"Medium","isDefault":true},{"id":"high","label":"High"},{"id":"xhigh","label":"Xhigh"},{"id":"max","label":"Max"}]},
-          {"id":"meridian/claude-haiku-4-5","label":"Claude Haiku 4.5 (Meridian)","thinkingOptions":[{"id":"off","label":"Off"},{"id":"minimal","label":"Minimal"},{"id":"low","label":"Low"},{"id":"medium","label":"Medium","isDefault":true},{"id":"high","label":"High"},{"id":"xhigh","label":"Xhigh"},{"id":"max","label":"Max"}]}
-        ]
+        }
       },
       "antigravity": {
         "enabled": false
