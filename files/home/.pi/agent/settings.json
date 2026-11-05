@@ -1,6 +1,6 @@
 {
   "lastChangelogVersion": "9999.0.0",
-  "defaultProvider": "meridian",
+  "defaultProvider": "claude-code",
   "defaultModel": "claude-opus-5-5",
   "defaultThinkingLevel": "medium",
   "httpIdleTimeoutMs": 120000,
@@ -11,9 +11,10 @@
   ],
   "packages": [
     {
-      "source": "git:github.com/nateberkopec/agent-stuff@main",
+      "source": "git:github.com/nateberkopec/agent-stuff@2a356dd950e77185947374f4c4f9fbe218b13a4e",
       "skills": []
     },
+    "git:github.com/nateberkopec/pi-claude-code@477e17d1b3050dee18f17ce7d99f415bdd25919e",
     "npm:pi-mcp-adapter@7.0.0",
     "npm:pi-subagents@0.83.0",
     "npm:pi-intercom@0.18.1",
@@ -34,8 +35,8 @@
     "openai/gpt-6-luna:xhigh",
     "openai/gpt-6.1-terra:medium",
     "vercel-ai-gateway/deepseek/deepseek-v4.1-flash-1017",
-    "meridian/claude-opus-5-5",
-    "meridian/claude-fable-5-1"
+    "claude-code/claude-opus-5-5",
+    "claude-code/claude-fable-5-1"
   ],
   "subagents": {
     "defaultSubagentOnlyExtensions": ["~/.pi/agent/npm/node_modules/pi-mcp-adapter/index.ts"],

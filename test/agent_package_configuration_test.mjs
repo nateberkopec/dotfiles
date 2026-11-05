@@ -4,10 +4,11 @@ import { test } from "node:test";
 
 const settings = JSON.parse(readFileSync(new URL("../files/home/.pi/agent/settings.json", import.meta.url)));
 
-test("managed settings follow agent-stuff main without a second Meridian package", () => {
+test("managed settings pin the Claude Code packages without Meridian", () => {
 	const packages = settings.packages.filter((p) => /agent-stuff/.test(p.source ?? p));
 	assert.equal(packages.length, 1);
-	assert.equal(packages[0].source, "git:github.com/nateberkopec/agent-stuff@main");
+	assert.equal(packages[0].source, "git:github.com/nateberkopec/agent-stuff@2a356dd950e77185947374f4c4f9fbe218b13a4e");
+	assert.ok(settings.packages.includes("git:github.com/nateberkopec/pi-claude-code@477e17d1b3050dee18f17ce7d99f415bdd25919e"));
 	assert.deepEqual(packages[0].skills, []);
 	const meridian = settings.packages.filter((p) => /meridian/.test(p.source ?? p));
 	assert.deepEqual(meridian, []);

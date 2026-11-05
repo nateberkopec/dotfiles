@@ -36,5 +36,5 @@ test("Paseo launches only Pi with the default datasafe policy and a PATH-resolve
 		assert.deepEqual(providers[id], { enabled: false });
 	}
 	const metadata = config.agents.metadataGeneration.providers;
-	assert.deepEqual(metadata, [{ provider: "pi", model: "meridian/claude-haiku-4-5" }]);
+	assert.deepEqual(metadata, [{ provider: "pi", model: "claude-code/claude-haiku-4-5-20251001" }]);
 });
