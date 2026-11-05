@@ -8,6 +8,8 @@
 	autoSetupRemote = true
 [github]
   user = nateberkopec
+[credential "https://github.com"]
+	helper = osxkeychain
 [url "https://github.com/"]
 	insteadOf = git@github.com:
 	insteadOf = ssh://git@github.com/
