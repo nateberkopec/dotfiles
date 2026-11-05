@@ -14,7 +14,7 @@
       "source": "git:github.com/nateberkopec/agent-stuff@2a356dd950e77185947374f4c4f9fbe218b13a4e",
       "skills": []
     },
-    "git:github.com/nateberkopec/pi-claude-code@477e17d1b3050dee18f17ce7d99f415bdd25919e",
+    "git:github.com/nateberkopec/pi-claude-code@601eca48ee92f3e1204c75db83a6ae2c0d644eb9",
     "npm:pi-mcp-adapter@7.0.0",
     "npm:pi-subagents@0.83.0",
     "npm:pi-intercom@0.18.1",
