@@ -48,9 +48,9 @@ If the `server-1` MCP is present, you must use `gh-agent` Executor app on server
 
 Every `gh-agent` write requires `model`: provide the actual writing model's runtime ID (`PI_MODEL` in Pi). Missing, blank, and placeholder model names are rejected. This requirement applies only to `gh-agent`, not other integrations.
 
-Everything you post to GitHub starts its body with `_AI-assisted · $PI_MODEL · thinking $PI_REASONING_LEVEL_`. `gh-agent` adds its own line, so you should only need to do this in special cases where you are not using `gh-agent`, such as a client toolkit. Never use `gh` to write to GitHub.
+Everything you post to GitHub starts its body with `_This is AI-assisted. Model: $PI_MODEL_`. `gh-agent` adds this line itself, so you should only need to add it in special cases where you are not using `gh-agent`, such as a client toolkit. Never use `gh` to write to GitHub.
 
-The global `commit-msg` hook adds an `AI-assisted` trailer to every commit you author. Never commit with `--no-verify`.
+A global git `commit-msg` hook adds an `AI-assisted` trailer to every commit you author. Never commit with `--no-verify`.
 
 GPG sign is on by default, but you should always use --no-gpg-sign unless otherwise instructed.
 

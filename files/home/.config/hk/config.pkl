@@ -12,6 +12,13 @@ local checks = new Mapping<String, Step> {
 }
 
 hooks {
+  ["commit-msg"] {
+    steps {
+      ["ai-assisted"] {
+        check = "~/.local/bin/ai-assisted-trailer {{commit_msg_file}}"
+      }
+    }
+  }
   ["pre-commit"] {
     steps = checks
   }
