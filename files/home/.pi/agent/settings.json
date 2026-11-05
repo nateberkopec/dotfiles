@@ -1,6 +1,6 @@
 {
   "lastChangelogVersion": "9999.0.0",
-  "defaultProvider": "meridian",
+  "defaultProvider": "claude-code",
   "defaultModel": "claude-opus-5-5",
   "defaultThinkingLevel": "medium",
   "httpIdleTimeoutMs": 120000,
@@ -34,8 +34,8 @@
     "openai/gpt-6-luna:xhigh",
     "openai/gpt-6.1-terra:medium",
     "vercel-ai-gateway/deepseek/deepseek-v4.1-flash-1017",
-    "meridian/claude-opus-5-5",
-    "meridian/claude-fable-5-1"
+    "claude-code/claude-opus-5-5",
+    "claude-code/claude-fable-5-1"
   ],
   "subagents": {
     "defaultSubagentOnlyExtensions": ["~/.pi/agent/npm/node_modules/pi-mcp-adapter/index.ts"],
