@@ -55,7 +55,7 @@
 [diff]
         external = difft
 [hook "ai-assisted"]
-	command = ~/.local/bin/ai-assisted-trailer
+	command = test ! -x ~/.git-hooks/commit-msg || ~/.git-hooks/commit-msg
 	event = commit-msg
 [hook "hk-commit-msg"]
 	command = test \"${HK:-1}\" = \"0\" || ~/.local/bin/mise x hk -- hk run commit-msg --from-hook

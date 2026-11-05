@@ -15,7 +15,7 @@ hooks {
   ["commit-msg"] {
     steps {
       ["ai-assisted"] {
-        check = "~/.local/bin/ai-assisted-trailer {{commit_msg_file}}"
+        check = "test ! -x ~/.git-hooks/commit-msg || ~/.git-hooks/commit-msg {{commit_msg_file}}"
       }
     }
   }
