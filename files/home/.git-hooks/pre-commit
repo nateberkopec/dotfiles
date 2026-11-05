@@ -42,6 +42,7 @@ function fail
 end
 
 function hk_hooks_installed
+  test -f hk.pkl; or return 1
   command git config --get hook.hk-pre-commit.command >/dev/null 2>/dev/null
 end
 

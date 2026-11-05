@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+[[ -n "${PI_MODEL:-}" ]] || exit 0
+[[ -n "$(git stripspace --strip-comments < "$1")" ]] || exit 0
+
+trailer="AI-assisted: ${PI_MODEL}"
+[[ -n "${PI_REASONING_LEVEL:-}" ]] && trailer="${trailer}; thinking ${PI_REASONING_LEVEL}"
+
+git interpret-trailers --in-place --if-exists doNothing --trailer "$trailer" "$1"
