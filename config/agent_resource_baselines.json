@@ -105,25 +105,6 @@
   ".pi/agent/extensions/goal.ts": [
     "aca9a2f2e7a2f1392444a14cd60f062743ffd67169393fd05ba1d1d1b405e0be"
   ],
-  ".pi/agent/extensions/meridian/cache.ts": [
-    "2cdf1065c8b09b1414237dd996f85f1e816c82060bf3b7b3a2a6305944264794",
-    "6a45f44f7a1ea739877ce33605ecd252e3c76c2a8cd4564e915d9b7de5d69158"
-  ],
-  ".pi/agent/extensions/meridian/catalog.ts": [
-    "51c1ba438a1bbe01fdc014c12e9e667e358a8f3761b81f86868095b36746b20f",
-    "c32311ef7fe287e4cf6a9f89645f49ac1fbf9815e439dde3b0de4ffa5b203feb"
-  ],
-  ".pi/agent/extensions/meridian/requests.ts": [
-    "08c8d5dd5b0e477f74ab533d793cef0290da17b42b01012a1a0ec58f216414f2",
-    "034fc5b7def5b79a0e71d38501790d2ce51f16c7a6530b671ed489cc5ba763a7"
-  ],
-  ".pi/agent/extensions/meridian.ts": [
-    "d945bbc555d22334ff08faae80873936a63a65aa5efb346cdcd46e67de561138",
-    "50a0fb0584d3337ec0846f2c087a6edc43a60d9dd50060ec4f99d6b09f118f39",
-    "9f5ef146ca73835e7825c85535495ae2b8c0d741148df1086341c9f663e05f15",
-    "a02af726952f4cb97376229cb8644d3acedbb94a5ac54f526ec296bfc9cfd64e",
-    "6aea3be4c48db520f45b38b65fc4eaa2a985b87a71ea23845b41d98fd9a88137"
-  ],
   ".pi/agent/extensions/notify/readiness.ts": [
     "77a59b09f765c28eb9284780ec2a985425b88a28f68bbf3cfda1bea4addc745e",
     "656fc490a95c9ebb3649814c050853deae3acdc5d252b0f3c8d26fadb9720adb"

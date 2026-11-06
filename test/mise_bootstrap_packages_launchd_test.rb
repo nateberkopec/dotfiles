@@ -47,27 +47,6 @@ class MiseBootstrapPackagesLaunchdTest < Minitest::Test
     assert_equal "/tmp/yknotify.err", agent.fetch("stderr_path")
   end
 
-  def test_declares_loopback_meridian_launch_agent
-    agent = config.dig("bootstrap", "macos", "launchd", "agents", "meridian")
-
-    assert_equal "~/.local/bin/mise", agent.fetch("program")
-    assert_equal ["exec", "--", "meridian"], agent.fetch("args")
-    assert_equal "~", agent.fetch("working_directory")
-    assert_equal({
-      "MERIDIAN_HOST" => "127.0.0.1",
-      "MERIDIAN_PORT" => "3456",
-      "MERIDIAN_PASSTHROUGH" => "1",
-      "MERIDIAN_NO_FILE_CHANGES" => "1",
-      "MERIDIAN_UPSTREAM_IDLE_MS" => "30000",
-      "CLAUDE_CODE_ENABLE_FINE_GRAINED_TOOL_STREAMING" => "1"
-    }, agent.fetch("environment"))
-    assert_equal true, agent.fetch("run_at_load")
-    assert_equal true, agent.fetch("keep_alive")
-    assert_equal true, agent.fetch("kickstart")
-    assert_equal "~/Library/Logs/meridian.out.log", agent.fetch("stdout_path")
-    assert_equal "~/Library/Logs/meridian.err.log", agent.fetch("stderr_path")
-  end
-
   def test_declares_pinned_paseo_launch_agent
     assert_equal({"version" => "0.13.2", "depends" => ["github:aubepkg/aube"]}, config.dig("tools", "npm:@getpaseo/cli"))
     agent = config.dig("bootstrap", "macos", "launchd", "agents", "paseo")
@@ -94,9 +73,8 @@ class MiseBootstrapPackagesLaunchdTest < Minitest::Test
     assert_equal ["pipx", "uv"], tools.dig("pipx:playwright", "depends")
   end
 
-  def test_sets_up_meridian_and_playwright_after_installing_tools
+  def test_sets_up_playwright_after_installing_tools
     assert_equal [
-      "mise exec --locked npm:@rynfar/meridian -- meridian setup --client pi",
       "mise exec -- playwright install chromium-headless-shell",
       'bash "$HOME/.dotfiles/bin/lib/post-tools-hook.sh"'
     ], config.dig("bootstrap", "hooks", "post-tools")
