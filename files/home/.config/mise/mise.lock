@@ -430,10 +430,6 @@ backend = "npm:@getpaseo/cli"
 version = "0.164.0"
 backend = "npm:@openai/codex"
 
-[[tools."npm:@rynfar/meridian"]]
-version = "1.86.0"
-backend = "npm:@rynfar/meridian"
-
 [[tools."packslip:github.com/nateberkopec/activity-recall"]]
 version = "0.1.1"
 backend = "packslip:github.com/nateberkopec/activity-recall"

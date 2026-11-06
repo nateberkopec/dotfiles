@@ -38,11 +38,11 @@ The big two US labs (OpenAI, Anthropic) are approved by default. This introduces
 
 OpenAI offers [US regional processing through `https://us.api.openai.com/v1`](https://developers.openai.com/api/docs/guides/your-data) for supported API endpoints and models, subject to account eligibility and regional configuration. We do not currently use this endpoint because it is not available for our ChatGPT Pro subscription workloads (Sign in with ChatGPT), which still rely on the OpenAI exception above.
 
-Anthropic offers [US-only inference controls for its first-party API](https://platform.claude.com/docs/en/manage-claude/data-residency): `inference_geo: "us"` on Claude 4.6 and later, with workspace-level restrictions available to enforce US-only routing. These API controls are not currently available to us for Claude Max subscription workloads, including Meridian, so those workloads still rely on the Anthropic exception above.
+Anthropic offers [US-only inference controls for its first-party API](https://platform.claude.com/docs/en/manage-claude/data-residency): `inference_geo: "us"` on Claude 4.6 and later, with workspace-level restrictions available to enforce US-only routing. These API controls are not currently available to us for Claude Max subscription workloads, including Pi's Claude Code provider, so those workloads still rely on the Anthropic exception above.
 
 Sometimes a provider/upstream has multiple inference services, only some of which guarantee no-train (e.g.: Google Vertex vs Antigravity). In that case, we do only use no-train endpoints. 
 
-Code-level enforcement is scoped to Pi, including Pi's web-search providers. Wispr Flow dictation is manually verified against the same policy. I really only use Pi and occasionally Codex or Claude directly, and I don't need code-level enforcement of the latter two (though I have checked the 'don't train on me bro' boxes, documented below). Meridian is governed as the Anthropic account behind it.
+Code-level enforcement is scoped to Pi, including Pi's web-search providers. Wispr Flow dictation is manually verified against the same policy. I really only use Pi and occasionally Codex or Claude directly, and I don't need code-level enforcement of the latter two (though I have checked the 'don't train on me bro' boxes, documented below).
 
 ### Client personal data and credentials
 
@@ -65,7 +65,7 @@ Provider-specific verification dates are noted below. This only reflects provide
 |---|---|---|---|---|
 | openai (API key) | OpenAI, US | first-party | [API data not used for training since March 2023](https://developers.openai.com/api/docs/guides/your-data) | compliant |
 | openai (Sign in with ChatGPT, ChatGPT Pro) | OpenAI, US | first-party | ["Improve the model for everyone"](https://help.openai.com/en/articles/7730893-data-controls-faq) off, confirmed 2026-09-24 | compliant |
-| meridian (Claude Max) | Anthropic, US | first-party | [model improvement setting](https://privacy.claude.com/en/articles/10023580-is-my-data-used-for-model-training) off, confirmed 2026-09-24 | compliant |
+| claude-code (Claude Max) | Anthropic, US | first-party | [model improvement setting](https://privacy.claude.com/en/articles/10023580-is-my-data-used-for-model-training) off, confirmed 2026-09-24 | compliant |
 | google-vertex | Google Cloud, US | US multi-region endpoint | [Cloud Data Processing Addendum, Section 17 training restriction](https://docs.cloud.google.com/gemini-enterprise-agent-platform/resources/zero-data-retention) | compliant |
 | openrouter | OpenRouter, US; upstreams vary | US endpoint, catalog filtered to US availability | [account toggle](https://openrouter.ai/docs/guides/privacy/provider-logging) off for paid models, confirmed 2026-09-24; [`provider.data_collection: deny`](https://openrouter.ai/docs/guides/routing/provider-selection) injected 2026-09-28 | compliant |
 | vercel-ai-gateway | Vercel, US; upstreams vary | `inferenceRegion` US zone injected | [Vercel does not train](https://vercel.com/docs/ai-gateway/faq); [`disallowPromptTraining: true`](https://vercel.com/docs/ai-gateway/security-and-compliance/disallow-prompt-training) injected 2026-09-28 | compliant |
