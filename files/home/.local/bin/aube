@@ -15,5 +15,5 @@ if [ "${1-}" = "__aube-shim" ] && [ "${2-}" = "npm" ]; then
   done
 fi
 
-aube_binary=$(BASH_ENV='' mise which aube)
+aube_binary=$(BASH_ENV='' mise -C "$HOME" which aube)
 exec "$aube_binary" "$@"

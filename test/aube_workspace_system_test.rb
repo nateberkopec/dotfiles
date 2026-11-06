@@ -70,7 +70,14 @@ class AubeWorkspaceSystemTest < Minitest::Test
   def test_install_still_uses_aube_without_native_npm_fallback
     output, status = run_command("npm", "install", "--offline", "--ignore-scripts")
     assert_equal 0, status, output
-    assert_match(/\baube \d+\./, output)
+    assert_match(/\baube \d+\./, output.gsub(/\e\[[0-9;]*m/, ""))
+  end
+
+  def test_launcher_uses_the_host_tool_when_a_project_pins_an_uninstalled_version
+    File.write(File.join(@directory, ".mise.toml"), "[tools]\n\"github:aubepkg/aube\" = \"0.0.0\"\n")
+    @env["MISE_TRUSTED_CONFIG_PATHS"] = @directory
+    output, status = run_command("aube", "--version")
+    assert_equal 0, status, output
   end
 
   def test_mise_exec_preserves_the_guard
