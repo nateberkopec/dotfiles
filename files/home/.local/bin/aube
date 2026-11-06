@@ -1,0 +1,19 @@
+#!/bin/sh
+set -eu
+
+if [ "${1-}" = "__aube-shim" ] && [ "${2-}" = "npm" ]; then
+  for arg in "$@"; do
+    case "$arg" in
+      --) break ;;
+      -w*|--workspace|--workspace=*|--workspaces|--workspaces=*)
+        printf '%s\n' \
+          'Refusing npm workspace options: Aube does not implement their semantics and can recursively run the root script.' \
+          'Use aube --filter <package> run <script>, or aube -r run <script> for all workspace packages.' >&2
+        exit 64
+        ;;
+    esac
+  done
+fi
+
+aube_binary=$(BASH_ENV='' mise -C "$HOME" which aube)
+exec "$aube_binary" "$@"

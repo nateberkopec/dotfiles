@@ -49,7 +49,7 @@ class DotfUpdateNoticeTest < Minitest::Test
       run_check(checkout, File.join(tmpdir, "state"), initial_sha, "PATH" => "#{shim_dir}:#{ENV.fetch("PATH")}")
 
       assert File.exist?(File.join(tmpdir, "state", "dotfiles", "needs-run"))
-      assert_equal ssh_url, run_git(checkout, "remote", "get-url", "origin").strip
+      assert_equal ssh_url, run_git(checkout, "config", "--get", "remote.origin.url").strip
     end
   end
 
