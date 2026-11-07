@@ -26,7 +26,7 @@ uv = "0.13.6"
 "packslip:github.com/nateberkopec/print-label" = "0.5.1"
 "github:abue-ammar/tinycast" = { version = "0.12.1", asset_pattern = "Tinycast-{{version}}.zip", bin_path = "Tinycast.app/Contents/MacOS", os = ["macos"] }
 "github:steipete/CodexBar" = { version = "0.82.0", asset_pattern = "CodexBar-macos-universal-{{version}}.zip", bin_path = "CodexBar.app/Contents/MacOS", os = ["macos"] }
-"aqua:dotfiles/orbstack" = { version = "2.2.5-21124", os = ["macos"], arch = ["arm64"] }
+"aqua:dotfiles/orbstack" = { version = "2.2.5-21124", os = ["macos"], arch = ["arm64"], symlink_bins = true, postinstall = { when = "always", run = 'mkdir -p "$MISE_TOOL_INSTALL_PATH/.mise-bins" && for cli in orb orbctl; do ln -sfn "$HOME/.orbstack/bin/$cli" "$MISE_TOOL_INSTALL_PATH/.mise-bins/$cli" || exit; done' } }
 "github:trycua/cua" = { version = "0.34.0", version_prefix = "cua-driver-rs-v", asset_pattern = "cua-driver-rs-{{version}}-darwin-universal.tar.gz", strip_components = 1, bin_path = "CuaDriver.app/Contents/MacOS", os = ["macos"], checksum = "sha256:2d0ade531c07b4d16e8078844fe1b63a0dfa0ee19677c9dcc079b4d3460ab387" }
 "packslip:github.com/nateberkopec/activity-recall" = { version = "0.1.1", os = ["macos"], minimum_release_age = "0d", postinstall = 'codesign --force --sign - --options runtime "$MISE_TOOL_INSTALL_PATH/activity-recall"' }
 watchexec = "2.8.0"
