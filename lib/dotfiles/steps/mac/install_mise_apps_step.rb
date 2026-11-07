@@ -14,7 +14,7 @@ class Dotfiles::Step::InstallMiseAppsStep < Dotfiles::Step
       unless current_app?(name, destination)
         next unless install_release(name, tool, destination)
 
-        add_notice(title: "OrbStack setup", message: "Open OrbStack once to finish setup; it installs its CLI and keeps itself updated.") if name == "OrbStack"
+        add_notice(title: "OrbStack setup", message: "Open the installed OrbStack app to finish setup and refresh its CLI links.") if name == "OrbStack"
         add_notice(title: "Cua Driver setup", message: "Grant CuaDriver Accessibility and Screen & System Audio Recording in System Settings, then quit and reopen it. Run cua-driver permissions status to check access.") if name == "CuaDriver"
       end
       execute(command("/usr/bin/xattr", "-dr", "com.apple.quarantine", destination))
@@ -30,7 +30,7 @@ class Dotfiles::Step::InstallMiseAppsStep < Dotfiles::Step
       if current_app?(name, destination)
         add_error("#{name}.app is quarantined", fix: "xattr -dr com.apple.quarantine #{destination}") if quarantined?(destination)
       else
-        add_error("#{name}.app is not installed in Applications")
+        add_error("#{name}.app is missing or does not match the mise release")
       end
     end
     errors.empty?
@@ -44,6 +44,8 @@ class Dotfiles::Step::InstallMiseAppsStep < Dotfiles::Step
       add_error("Mise-managed #{name} release not found")
       return false
     end
+    return false if name == "OrbStack" && !orbstack_stopped?
+
     _, status = execute(command("/usr/bin/codesign", "--verify", "--deep", "--strict", source))
     if status != 0
       add_error("Mise-managed #{name} release signature is invalid")
@@ -66,10 +68,19 @@ class Dotfiles::Step::InstallMiseAppsStep < Dotfiles::Step
 
   def current_app?(name, destination)
     return false unless app_bundle?(destination)
-    return true unless name == "CuaDriver"
+    return true unless ["CuaDriver", "OrbStack"].include?(name)
 
     source = app_source(name, APPS.fetch(name))
     !source.empty? && @system.read_file(File.join(source, "Contents", "Info.plist")) == @system.read_file(File.join(destination, "Contents", "Info.plist"))
+  end
+
+  def orbstack_stopped?
+    cmd = command("pgrep", "-x", "OrbStack|OrbStack Helper")
+    output, status = execute(cmd)
+    return true if status == 1
+
+    add_error((status == 0) ? "OrbStack is running; coordinate a shutdown before updating it" : format_command_error(cmd, status, output))
+    false
   end
 
   def app_bundle?(path)

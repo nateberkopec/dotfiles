@@ -21,6 +21,12 @@ class InstallMiseAppsStepTest < StepTestCase
     stub_releases
     stub_installed_apps
     assert_complete
+    @fake_system.stub_file_content(File.join(destination("OrbStack"), "Contents", "Info.plist"), "older")
+    assert_incomplete
+    @fake_system.stub_command(["pgrep", "-x", "OrbStack|OrbStack Helper"], "123", exit_status: 0)
+    step.run
+    refute_executed(["/usr/bin/ditto", source("OrbStack"), destination("OrbStack")])
+    assert_includes step.errors, "OrbStack is running; coordinate a shutdown before updating it"
   end
 
   def test_incomplete_when_an_app_is_quarantined
@@ -50,12 +56,15 @@ class InstallMiseAppsStepTest < StepTestCase
     end
   end
 
-  def test_preserves_existing_self_updated_apps_and_preferences
+  def test_updates_orbstack_while_preserving_self_updated_apps
     stub_releases
     stub_installed_apps
+    @fake_system.stub_file_content(File.join(destination("OrbStack"), "Contents", "Info.plist"), "older")
     step.run
-    each_app { |name, _| refute_executed(["/usr/bin/ditto", source(name), destination(name)]) }
-    assert_empty step.notices
+    assert_executed(["/usr/bin/ditto", source("OrbStack"), destination("OrbStack")])
+    each_app do |name, _|
+      refute_executed(["/usr/bin/ditto", source(name), destination(name)]) unless name == "OrbStack"
+    end
   end
 
   def test_reports_missing_releases
@@ -72,6 +81,7 @@ class InstallMiseAppsStepTest < StepTestCase
 
   def stub_releases(admin: false)
     @fake_system.stub_macos
+    @fake_system.stub_command(["pgrep", "-x", "OrbStack|OrbStack Helper"], "", exit_status: 1)
     @fake_system.stub_command("groups", admin ? "admin staff" : "staff")
     @fake_system.stub_command("command -v mise >/dev/null 2>&1", "", exit_status: 0)
     each_app do |name, tool|
