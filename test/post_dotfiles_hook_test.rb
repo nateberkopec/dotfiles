@@ -41,6 +41,7 @@ class PostDotfilesHookTest < Minitest::Test
       _stdout, stderr, status = Open3.capture3(
         {
           "HOME" => home,
+          "BASH_ENV" => nil,
           "PATH" => "#{bin}:#{ENV.fetch("PATH")}",
           "LAUNCHCTL_TRACE" => launchctl_trace,
           "MISE_TRACE" => mise_trace,
