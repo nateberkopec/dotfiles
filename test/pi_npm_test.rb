@@ -27,7 +27,7 @@ class PiNpmTest < Minitest::Test
 
   def test_git_dependency_installs_omit_development_packages
     with_tools('printf "%s\\n" "$@"') do |env, command|
-      output, _, status = Open3.capture3(env, "bash", command, "install", "--omit=dev", "--legacy-peer-deps")
+      output, _, status = Open3.capture3(env, "bash", command, "install", "--omit=dev", "--legacy-peer-deps", "--no-audit", "--no-fund")
 
       assert status.success?
       assert_equal "__aube-shim\nnpm\ninstall\n--prod\n--config.auto-install-peers=false\n--config.strict-peer-dependencies=false\n", output

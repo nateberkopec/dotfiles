@@ -8,6 +8,11 @@ module AgentResourceSystemFixture
   ROOT = File.expand_path("../..", __dir__)
 
   def setup
+    @tool_path = %w[pi aube].map do |tool|
+      output, status = Open3.capture2e("mise", "which", tool, chdir: ROOT)
+      assert status.success?, output
+      File.dirname(output.strip)
+    end.join(File::PATH_SEPARATOR)
     @directory = Dir.mktmpdir("agent-resource-system")
     @home = File.join(@directory, "home")
     @root = File.join(@directory, "dotfiles")
@@ -36,7 +41,7 @@ module AgentResourceSystemFixture
   private
 
   def environment
-    {"HOME" => @home, "PI_CODING_AGENT_DIR" => File.join(@home, ".pi/agent"),
+    {"HOME" => @home, "PATH" => "#{@tool_path}:#{ENV.fetch("PATH")}", "PI_CODING_AGENT_DIR" => File.join(@home, ".pi/agent"),
      "PI_OFFLINE" => "1", "BASH_ENV" => nil, "MISE_DATA_DIR" => ENV.fetch("MISE_DATA_DIR", File.join(ENV.fetch("HOME"), ".local/share/mise")),
      "XDG_CONFIG_HOME" => File.join(@home, ".config"), "XDG_STATE_HOME" => File.join(@home, ".local/state")}
   end

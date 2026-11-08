@@ -8,6 +8,7 @@ for arg in "$@"; do
       args+=(--config.auto-install-peers=false --config.strict-peer-dependencies=false)
       ;;
     --omit=dev) args+=(--prod) ;;
+    --no-audit|--no-fund) ;;
     *) args+=("$arg") ;;
   esac
 done
