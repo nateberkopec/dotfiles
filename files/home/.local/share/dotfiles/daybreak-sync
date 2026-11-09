@@ -1,0 +1,77 @@
+#!/usr/bin/env ruby
+
+require "json"
+require "net/http"
+require "open3"
+
+GUIDE = URI("https://developers.openai.com/api/docs/guides/daybreak.md")
+APPROVALS = %w[blue_or_red red red_plus_model].freeze
+ENTITLED = %w[blue_or_red].freeze
+PROGRAMS = %w[daybreak_blue daybreak_red].freeze
+STATE = File.join(ENV.fetch("XDG_STATE_HOME", File.join(Dir.home, ".local/state")), "daybreak/models.json")
+
+def openai_models
+  stdout, status = Open3.capture2("pi", "-ne", "--list-models", "openai", err: File::NULL)
+  abort "pi --list-models failed" unless status.success?
+  stdout.lines.filter_map { |line| line.split[1] if line.start_with?("openai ") }
+end
+
+def prompt(page, models)
+  <<~PROMPT
+    Extract the Daybreak model table from the OpenAI documentation page below.
+
+    Return only a JSON array, with no prose and no code fence. Each element is
+    {"model": string, "approval": "blue_or_red" | "red" | "red_plus_model", "program": "daybreak_blue" | "daybreak_red"}.
+
+    - One element per model row in the table that lists models, approval required, and the access_programs.cyber API value.
+    - "model" is the OpenAI model ID. Use the matching ID from this list when there is one: #{models.join(" ")}
+    - Omit a row marked existing access only.
+    - Copy the approval and program exactly as the table states them for that model. Do not infer from prose elsewhere.
+
+    <page>
+    #{page}
+    </page>
+  PROMPT
+end
+
+def extract(text)
+  stdout, stderr, status = Open3.capture3(
+    "pi", "-p", "--no-session", "-nt", "-nc", "-ns", "-np",
+    "--model", "openai/gpt-6-luna", "--thinking", "off", text
+  )
+  abort "Luna extraction failed: #{stderr.strip.lines.last}" unless status.success?
+  rows = JSON.parse(stdout)
+  abort "Luna returned #{stdout.inspect}, not a JSON array" unless rows.is_a?(Array)
+  rows.sort_by { |row| row["model"].to_s }
+rescue JSON::ParserError
+  abort "Luna returned invalid JSON: #{stdout.inspect}"
+end
+
+def check(rows, page, models)
+  abort "Luna found no Daybreak models" if rows.empty?
+  flat = page.downcase.gsub(/\s+/, "-")
+  rows.each do |row|
+    abort "Unexpected row shape: #{row}" unless row.keys.sort == %w[approval model program]
+    abort "Unknown approval: #{row}" unless APPROVALS.include?(row["approval"])
+    abort "Unknown program: #{row}" unless PROGRAMS.include?(row["program"])
+    abort "Model not in Pi's catalog: #{row}" if ENTITLED.include?(row["approval"]) && !models.include?(row["model"])
+    abort "Model not in the guide: #{row}" unless flat.include?(row["model"])
+    abort "Program not in the guide: #{row}" unless page.include?(row["program"])
+  end
+end
+
+page = Net::HTTP.get_response(GUIDE).then do |response|
+  abort "#{GUIDE} returned #{response.code}" unless response.is_a?(Net::HTTPSuccess)
+  response.body.force_encoding("UTF-8")
+end
+models = openai_models
+text = prompt(page, models)
+rows = extract(text)
+abort "Luna gave two different answers:\n#{rows}\n#{extract(text)}" unless rows == extract(text)
+check(rows, page, models)
+
+entitled = rows.filter { |row| ENTITLED.include?(row["approval"]) }.map { |row| row.slice("model", "program") }
+Dir.mkdir(File.dirname(STATE)) unless Dir.exist?(File.dirname(STATE))
+File.write("#{STATE}.tmp", JSON.pretty_generate({"models" => entitled}) + "\n")
+File.rename("#{STATE}.tmp", STATE)
+puts "Daybreak models: #{entitled.map { |row| row["model"] }.join(", ")}"
