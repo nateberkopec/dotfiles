@@ -24,6 +24,17 @@ class MiseBootstrapPackagesLaunchdTest < Minitest::Test
     assert_equal "~/Library/Logs/time-machine-backup.err.log", agent.fetch("stderr_path")
   end
 
+  def test_declares_daily_daybreak_sync_launch_agent
+    agent = config.dig("bootstrap", "macos", "launchd", "agents", "daybreak-sync")
+
+    assert_equal "~/.local/bin/mise", agent.fetch("program")
+    assert_equal ["exec", "--", "ruby", "daybreak-sync"], agent.fetch("args")
+    assert_equal "~/.local/share/dotfiles", agent.fetch("working_directory")
+    assert_equal({"hour" => 5, "minute" => 30}, agent.fetch("start_calendar_interval"))
+    assert_equal "~/Library/Logs/daybreak-sync.out.log", agent.fetch("stdout_path")
+    assert_equal "~/Library/Logs/daybreak-sync.err.log", agent.fetch("stderr_path")
+  end
+
   def test_declares_daily_wallpaper_launch_agent
     agent = config.dig("bootstrap", "macos", "launchd", "agents", "woodblock-wallpaper")
 

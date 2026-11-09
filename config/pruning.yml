@@ -47,6 +47,12 @@ items:
     hook:
       type: launch_agent
       label: dev.mise.time-machine-backup
+  daybreak-sync:
+    source: files/home/.local/share/dotfiles/daybreak-sync
+    target: .local/share/dotfiles/daybreak-sync
+    hook:
+      type: launch_agent
+      label: dev.mise.daybreak-sync
   yknotify:
     source: files/yknotify
     target: .local/share/yknotify

@@ -32,6 +32,9 @@ class TrimMiseConfigTest < Minitest::Test
         [bootstrap.macos.launchd.agents.time-machine-backup]
         program = "time-machine-backup"
 
+        [bootstrap.macos.launchd.agents.daybreak-sync]
+        program = "daybreak-sync"
+
         [bootstrap.macos.launchd.agents.paseo]
         program = "paseo"
 

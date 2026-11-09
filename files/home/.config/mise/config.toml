@@ -234,6 +234,14 @@ start_calendar_interval = { hour = 5, minute = 15 }
 stdout_path = "~/Library/Logs/time-machine-backup.out.log"
 stderr_path = "~/Library/Logs/time-machine-backup.err.log"
 
+[bootstrap.macos.launchd.agents.daybreak-sync]
+program = "~/.local/bin/mise"
+args = ["exec", "--", "ruby", "daybreak-sync"]
+working_directory = "~/.local/share/dotfiles"
+start_calendar_interval = { hour = 5, minute = 30 }
+stdout_path = "~/Library/Logs/daybreak-sync.out.log"
+stderr_path = "~/Library/Logs/daybreak-sync.err.log"
+
 [bootstrap.macos.launchd.agents.woodblock-wallpaper]
 program = "~/.local/share/dotfiles/launch-woodblock-wallpaper"
 run_at_load = true
