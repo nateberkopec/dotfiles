@@ -35,7 +35,8 @@
     "openai/gpt-6.1-terra:medium",
     "vercel-ai-gateway/deepseek/deepseek-v4.1-flash-1017",
     "claude-code/claude-opus-5-5",
-    "claude-code/claude-fable-5-1"
+    "claude-code/claude-fable-5-1",
+    "claude-code/claude-fable-5-2"
   ],
   "subagents": {
     "defaultSubagentOnlyExtensions": ["~/.pi/agent/npm/node_modules/pi-mcp-adapter/index.ts"],
