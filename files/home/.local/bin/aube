@@ -15,5 +15,6 @@ if [ "${1-}" = "__aube-shim" ] && [ "${2-}" = "npm" ]; then
   done
 fi
 
-aube_binary=$(BASH_ENV='' mise -C "$HOME" which aube)
+user_home=$(eval "printf '%s' ~$(id -un)")
+aube_binary=$(HOME="$user_home" BASH_ENV='' mise -C "$user_home" which aube)
 exec "$aube_binary" "$@"

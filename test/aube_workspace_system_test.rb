@@ -80,6 +80,13 @@ class AubeWorkspaceSystemTest < Minitest::Test
     assert_equal 0, status, output
   end
 
+  def test_launcher_finds_aube_when_a_caller_overrides_home
+    @env["HOME"] = Dir.mktmpdir("fake-home", @directory)
+    output, status = run_command("npm", "--version")
+    assert_equal 0, status, output
+    refute_includes output, "not a mise bin"
+  end
+
   def test_mise_exec_preserves_the_guard
     output, status = run_command("mise", "exec", "--", File.join(@env.fetch("AUBE_SHIM_DIR"), "npm"), "run", "build", "--workspace=@test/child")
     assert_equal 64, status, output
