@@ -22,7 +22,7 @@ hooks {
       }
     }
   }
-  ["pre-commit"] {
+  ["pre-push"] {
     steps = checks
   }
   ["check"] {
