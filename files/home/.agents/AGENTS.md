@@ -44,7 +44,7 @@ For each piece of AI or human generated feedback:
 
 ## Git, Github
 
-If the `server-1` MCP is present, you must use `gh-agent` Executor app on server-1 for all GitHub interactions. Given an issue/PR URL (or `/pull/5`), discover and call its GitHub tools through Executor, not `gh` CLI or web search. If it's broken or you need something else, ask user.
+If the `server-1` MCP is present, you must use `gh-agent` Executor app on server-1 for all GitHub interactions. Given an issue/PR URL (or `/pull/5`), call its GitHub tools through Executor, not `gh` CLI or web search. Executor apps are not MCP tools, so `mcp` search misses them: find them with server-1 `execute` running `return await tools.search({ query: "gh-agent <task>" })`, then call the returned path. If it's broken or you need something else, ask user.
 
 Every `gh-agent` write requires `model`: provide the actual writing model's runtime ID (`PI_MODEL` in Pi). Missing, blank, and placeholder model names are rejected. This requirement applies only to `gh-agent`, not other integrations.
 
