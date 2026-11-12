@@ -2,12 +2,15 @@ amends "package://github.com/jdx/hk/releases/download/v2.11.1/hk@2.11.1#/Config.
 
 fail_fast = false
 
+local function tailOnFailure(name: String, command: String): String =
+  #"log="$(git rev-parse --git-dir)/hk/\#(name).log"; mkdir -p "${log%/*}"; \#(command) > "$log" 2>&1 || { tail -n 40 "$log"; echo "Full output: $log"; exit 1; }"#
+
 local checks = new Mapping<String, Step> {
   ["lint"] {
-    check = "mise run lint"
+    check = tailOnFailure("lint", "mise run lint")
   }
   ["test"] {
-    check = "mise run test"
+    check = tailOnFailure("test", "mise run test")
   }
 }
 
