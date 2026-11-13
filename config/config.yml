@@ -33,7 +33,6 @@ brew_casks:
   - steam
   - tailscale-app
   - telegram
-  - thebrowsercompany-dia
   - visual-studio-code
   - whatsapp
   - zoom

@@ -211,12 +211,6 @@ minHeight = 120.0
 minWidth = 500.0
 
 [[appRules]]
-bundleId = "company.thebrowser.dia"
-id = "C21156B1-0224-4998-97E3-8F4FA65B9F3B"
-minHeight = 420.0
-minWidth = 500.0
-
-[[appRules]]
 bundleId = "com.spotify.client"
 id = "2DE9390B-0DB4-4D0C-9ABA-06F76F1D4EA9"
 minHeight = 600.0
