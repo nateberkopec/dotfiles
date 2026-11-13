@@ -23,7 +23,7 @@ class PostDotfilesHookTest < Minitest::Test
       mise_trace = File.join(dir, "mise.log")
       ruby_trace = File.join(dir, "ruby.log")
       bin = File.join(dir, "bin")
-      hook_source = File.join(home, ".dotfiles/files/home/.git-hooks/pre-push")
+      hook_source = File.join(home, ".dotfiles/files/home/.git-hooks/commit-msg")
       sync_script = File.join(home, ".dotfiles/bin/lib/sync-git-hooks.sh")
 
       FileUtils.mkdir_p([File.dirname(plist), File.dirname(hook_source), File.dirname(sync_script), bin])
@@ -58,7 +58,7 @@ class PostDotfilesHookTest < Minitest::Test
       assert_equal admin, File.exist?(omniwm_plist)
       refute File.exist?(mise_trace)
       assert_equal "#{home}/.dotfiles/bin/lib/sync-paseo-models.rb\n", File.read(ruby_trace)
-      assert_equal "managed hook", File.read(File.join(home, ".git-hooks/pre-push"))
+      assert_equal "managed hook", File.read(File.join(home, ".git-hooks/commit-msg"))
     end
   end
 

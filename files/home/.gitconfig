@@ -42,7 +42,6 @@
 [core]
         excludesfile = ~/.gitignore
 	editor = code -w
-	hooksPath = ~/.git-hooks
 [pull]
         rebase = false
 [init]
@@ -58,17 +57,8 @@
 [hook "ai-assisted"]
 	command = test ! -x ~/.git-hooks/commit-msg || ~/.git-hooks/commit-msg
 	event = commit-msg
-[hook "hk-commit-msg"]
-	command = test \"${HK:-1}\" = \"0\" || ~/.local/bin/mise x hk -- hk run commit-msg --from-hook
-	event = commit-msg
-[hook "hk-pre-commit"]
-	command = test \"${HK:-1}\" = \"0\" || ~/.local/bin/mise x hk -- hk run pre-commit --from-hook --staged
-	event = pre-commit
-[hook "hk-pre-push"]
-	command = test \"${HK:-1}\" = \"0\" || ~/.local/bin/mise x hk -- hk run pre-push --from-hook
-	event = pre-push
-[hook "hk-prepare-commit-msg"]
-	command = test \"${HK:-1}\" = \"0\" || ~/.local/bin/mise x hk -- hk run prepare-commit-msg --from-hook
-	event = prepare-commit-msg
+[hook "client-checkout-guard"]
+	command = test ! -x ~/.git-hooks/reference-transaction || ~/.git-hooks/reference-transaction
+	event = reference-transaction
 [include]
 	path = ~/.gitconfig.local
