@@ -86,8 +86,8 @@ class Dotfiles::Step::InstallBrewCasksStep < Dotfiles::Step
   def installed_packages(type)
     @installed_packages ||= {}
     @installed_packages[type] ||= begin
-      output, status = brew_quiet("list", "--#{type}", "--versions")
-      (status == 0) ? output.lines.map { |line| line.split.first }.compact : []
+      output, status = brew_quiet("list", "--#{type}", "-1")
+      (status == 0) ? output.lines.map(&:strip).reject(&:empty?) : []
     end
   end
 
