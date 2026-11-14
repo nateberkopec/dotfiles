@@ -10,18 +10,18 @@ class InstallBrewCasksStepTest < StepTestCase
   def test_installs_only_missing_casks_for_admin_user
     stub_admin
     write_config(:brew, "brew_casks" => ["ghostty", "firefox"])
-    @fake_system.stub_command(list_command("cask"), "ghostty 1.0")
+    @fake_system.stub_command(list_command("cask"), "ghostty")
     @fake_system.stub_command(update_command, "")
     @fake_system.stub_command(install_command("cask", "firefox"), "")
 
     assert_should_run
-    assert_equal 1, @fake_system.operations.count { |operation| Dotfiles::Command.display(operation[1]).include?("brew list --cask --versions") }
+    assert_equal 1, @fake_system.operations.count { |operation| Dotfiles::Command.display(operation[1]).include?("brew list --cask -1") }
     step.run
 
     assert_executed!(update_command)
     assert_cask_installed(install_command("cask", "firefox"))
     refute_executed(install_command("cask", "ghostty"))
-    @fake_system.stub_command(list_command("cask"), "ghostty 1.0\nfirefox 2.0\n")
+    @fake_system.stub_command(list_command("cask"), "ghostty\nfirefox\n")
     assert_complete
     refute_should_run
   end
@@ -36,7 +36,7 @@ class InstallBrewCasksStepTest < StepTestCase
 
     assert_executed(list_command("cask"))
     assert_cask_installed(install_command("cask", "homebrew/cask/ghostty"))
-    @fake_system.stub_command(list_command("cask"), "ghostty 1.0")
+    @fake_system.stub_command(list_command("cask"), "ghostty")
     assert_complete
   end
 
@@ -182,7 +182,7 @@ class InstallBrewCasksStepTest < StepTestCase
   end
 
   def list_command(type)
-    "HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 brew list --#{type} --versions 2>&1"
+    "HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 brew list --#{type} -1 2>&1"
   end
 
   def install_command(type, name, private_appdir: false)
