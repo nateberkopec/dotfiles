@@ -26,7 +26,7 @@ End any turn that reports on long-running or delegated work with a short status:
 
 I use fish. When writing shell scripts intended for the user, use fish. For temporary stuff or stuff for your own use, you can use any shell you like, such as bash or zsh. If a project we're working already uses bash extensively, don't introduce fish.
 
-`find` is capped at a 2 second timeout by an agent harness hook.
+Always pass an explicit `timeout` on shell tool calls. Without one, a harness hook applies 10s; `find` is capped at 2s.
 
 The bash tool runs bash. Use fish syntax only inside `fish -c '…'`.
 
