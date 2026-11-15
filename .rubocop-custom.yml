@@ -22,6 +22,7 @@ Dotfiles/BanFileSystemClasses:
     - 'test/agent_resources_system_test.rb'
     - 'test/aube_workspace_system_test.rb'
     - 'test/orbstack_cli_system_test.rb'
+    - 'test/homebrew_path_system_test.rb'
     - 'test/support/agent_resource_system_fixture.rb'
     - 'test/e2e/**/*'
     - 'test/dotfiles/hooks/datasafe_claude_test.rb'
