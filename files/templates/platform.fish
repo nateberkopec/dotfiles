@@ -6,20 +6,18 @@ if not test -d /opt/homebrew; and test -d $HOME/.homebrew
   fish_add_path -g -m $HOME/.homebrew/bin $HOME/.homebrew/sbin
 end
 
-if status is-interactive
-  if test -d /opt/homebrew
-    set -gx HOMEBREW_PREFIX /opt/homebrew
-    set -gx HOMEBREW_CELLAR /opt/homebrew/Cellar
-    set -gx HOMEBREW_REPOSITORY /opt/homebrew
-    fish_add_path -g -m /opt/homebrew/bin /opt/homebrew/sbin
+if test -d /opt/homebrew
+  set -gx HOMEBREW_PREFIX /opt/homebrew
+  set -gx HOMEBREW_CELLAR /opt/homebrew/Cellar
+  set -gx HOMEBREW_REPOSITORY /opt/homebrew
+  fish_add_path -g -m /opt/homebrew/bin /opt/homebrew/sbin
 
-    if test -x /opt/workbrew/bin/brew
-      fish_add_path -g -m /opt/workbrew/bin
-    end
+  if test -x /opt/workbrew/bin/brew
+    fish_add_path -g -m /opt/workbrew/bin
+  end
 
-    if test -d /opt/homebrew/share/info
-      contains /opt/homebrew/share/info $INFOPATH; or set -gx INFOPATH /opt/homebrew/share/info $INFOPATH
-    end
+  if status is-interactive; and test -d /opt/homebrew/share/info
+    contains /opt/homebrew/share/info $INFOPATH; or set -gx INFOPATH /opt/homebrew/share/info $INFOPATH
   end
 end
 
