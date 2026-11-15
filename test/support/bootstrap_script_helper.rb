@@ -17,6 +17,7 @@ module BootstrapScriptHelper
     {
       "HOME" => home_dir,
       "PATH" => "#{bin_dir}:/usr/bin:/bin",
+      "BASH_ENV" => nil,
       "CI" => nil,
       "NONINTERACTIVE" => nil,
       "HOMEBREW_INSTALL_ENV_LOG" => File.join(tmpdir, "homebrew-install-env"),
