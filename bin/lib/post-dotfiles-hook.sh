@@ -11,6 +11,8 @@ bash "$HOME/.dotfiles/bin/lib/sync-git-hooks.sh"
 
 ruby "$HOME/.dotfiles/bin/lib/sync-paseo-models.rb"
 
+bash "$HOME/.dotfiles/bin/lib/link-homebrew-gpg.sh"
+
 [ "$(uname -s)" = "Darwin" ] || exit 0
 
 legacy_wallpaper_label="com.user.woodblock-wallpaper"

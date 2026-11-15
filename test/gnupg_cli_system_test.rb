@@ -1,41 +1,51 @@
 require "test_helper"
 require "tmpdir"
-require "toml-rb"
 
 class GnupgCliSystemTest < Minitest::Test
-  def test_deploys_the_package_managed_gpg_only_on_macos
-    config = TomlRB.load_file(File.expand_path("../files/home/.config/mise/config.toml", __dir__))
-    entry = config.fetch("dotfiles").fetch("~/.local/bin/gpg")
-    assert_equal "/opt/homebrew/bin/gpg", entry.fetch("source")
-    assert_equal "latest", config.dig("bootstrap", "packages", "brew:gnupg")
-    mise = ENV.fetch("PATH").split(File::PATH_SEPARATOR).map { |path| File.join(path, "mise") }.find { |path| File.executable?(path) }
-
-    Dir.mktmpdir("gnupg-cli") do |directory|
-      package_bin = File.join(directory, "package/bin/gpg")
-      FileUtils.mkdir_p(File.dirname(package_bin))
-      File.write(package_bin, "#!/bin/sh\nprintf '%s\\n' 'package-managed gpg'\n")
-      File.chmod(0o755, package_bin)
-      config_path = File.join(directory, "config.toml")
-      File.write(config_path, TomlRB.dump({"dotfiles" => {"~/.local/bin/gpg" => entry.merge("source" => package_bin)}}))
-      env = {"HOME" => directory, "PATH" => "/usr/bin:/bin", "MISE_GLOBAL_CONFIG_FILE" => config_path,
-             "MISE_CONFIG_DIR" => File.join(directory, "config"), "MISE_DATA_DIR" => File.join(directory, "data"),
-             "MISE_STATE_DIR" => File.join(directory, "state"), "MISE_CACHE_DIR" => File.join(directory, "cache"),
-             "MISE_TRUSTED_CONFIG_PATHS" => directory, "BASH_ENV" => ""}
-      2.times do
-        output, status = Open3.capture2e(env, mise, "dotfiles", "apply", chdir: directory, unsetenv_others: true)
+  def test_exposes_homebrew_gpg_without_replacing_user_commands
+    Dir.mktmpdir("gnupg-cli") do |home|
+      env = {"HOME" => home, "PATH" => "/usr/bin:/bin", "BASH_ENV" => ""}
+      target = File.join(home, ".local/bin/gpg")
+      run_hook(env)
+      if RUBY_PLATFORM.include?("darwin") && File.executable?("/opt/homebrew/bin/gpg")
+        assert_equal "/opt/homebrew/bin/gpg", File.readlink(target)
+        File.unlink(target)
+        File.symlink("/missing/old/gpg", target)
+        2.times { run_hook(env) }
+        assert_equal "/opt/homebrew/bin/gpg", File.readlink(target)
+        output, status = Open3.capture2e(env.merge("PATH" => "#{home}/.local/bin:/usr/bin:/bin"),
+          "/bin/bash", "-c", "command -v gpg && gpg --version", unsetenv_others: true)
         assert status.success?, output
-      end
-      link = File.join(directory, ".local/bin/gpg")
-      if RUBY_PLATFORM.include?("darwin")
-        assert_equal package_bin, File.readlink(link)
-        output, status = Open3.capture2e(env.merge("PATH" => "#{directory}/.local/bin:/usr/bin:/bin"),
-          "/bin/bash", "-c", "command -v gpg && gpg --version", chdir: directory, unsetenv_others: true)
-        assert status.success?, output
-        assert_equal "#{link}\npackage-managed gpg\n", output
+        assert_equal target, output.lines.first.strip
+        assert_includes output, "gpg (GnuPG)"
+        File.unlink(target)
       else
-        refute File.exist?(link)
-        refute File.symlink?(link)
+        refute File.exist?(target)
+        refute File.symlink?(target)
       end
+      FileUtils.mkdir_p(File.dirname(target))
+      File.write(target, "user-owned gpg")
+      run_hook(env)
+      assert_equal "user-owned gpg", File.read(target)
+      refute File.symlink?(target)
     end
+  end
+
+  def test_does_not_link_homebrew_gpg_on_other_platforms
+    Dir.mktmpdir("gnupg-cli") do |home|
+      bin = File.join(home, "bin")
+      FileUtils.mkdir_p(bin)
+      File.write(File.join(bin, "uname"), "#!/bin/sh\nprintf '%s\\n' Linux\n")
+      File.chmod(0o755, File.join(bin, "uname"))
+      run_hook({"HOME" => home, "PATH" => "#{bin}:/usr/bin:/bin", "BASH_ENV" => ""})
+      refute File.symlink?(File.join(home, ".local/bin/gpg"))
+    end
+  end
+
+  private
+
+  def run_hook(env)
+    output, status = Open3.capture2e(env, "/bin/bash", File.expand_path("../bin/lib/link-homebrew-gpg.sh", __dir__), unsetenv_others: true)
+    assert status.success?, output
   end
 end

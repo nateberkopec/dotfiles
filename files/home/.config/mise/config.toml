@@ -164,7 +164,6 @@ sudo /usr/local/libexec/dotfiles-spotlight-controller audit
 "~/.config/ghostty/config.platform" = { source = "~/.dotfiles/files/templates/ghostty-config.platform", mode = "template" }
 "~/.agents/mcp/mcp.json" = { source = "~/.dotfiles/files/templates/mcp.json.tera", mode = "template" }
 "~/.local/bin/dotf" = { source = "~/.dotfiles/bin/dotf", mode = "symlink" }
-"~/.local/bin/gpg" = { source = "/opt/homebrew/bin/gpg", mode = "symlink", variants = [{ os = "macos" }] }
 "~/.local/share/yknotify/yknotify.sh" = { source = "~/.dotfiles/files/yknotify/yknotify.sh", mode = "copy" }
 "~/.local/share/yknotify/yubikey-icon.png" = { source = "~/.dotfiles/files/yknotify/yubikey-icon.png", mode = "copy" }
 "~/.claude/CLAUDE.md" = { source = "~/.dotfiles/files/home/.agents/AGENTS.md", mode = "symlink" }

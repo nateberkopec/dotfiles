@@ -32,6 +32,7 @@ class PostDotfilesHookTest < Minitest::Test
       File.write(omniwm_plist, "managed")
       File.write(hook_source, "managed hook")
       FileUtils.cp(File.expand_path("../bin/lib/sync-git-hooks.sh", __dir__), sync_script)
+      FileUtils.cp(File.expand_path("../bin/lib/link-homebrew-gpg.sh", __dir__), File.join(File.dirname(sync_script), "link-homebrew-gpg.sh"))
       write_command(bin, "uname", "echo Darwin")
       write_command(bin, "id", 'if [ "$1" = "-Gn" ]; then echo ' + (admin ? '"staff admin"' : '"staff"') + '; else /usr/bin/id "$@"; fi')
       write_command(bin, "mise", '[ "$*" = "hook-env -s bash" ] || echo "$*" >> "$MISE_TRACE"')
