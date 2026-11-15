@@ -1,3 +1,4 @@
 # Managed by dotfiles. Harden npm installs that flow through aube.
 paranoid = true
 allowedUnpopularPackages = ["pi-context-view"]
+trustPolicyIgnoreAfter = 43200
