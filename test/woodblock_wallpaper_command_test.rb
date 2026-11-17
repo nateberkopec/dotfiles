@@ -6,19 +6,32 @@ require "open3"
 require "tmpdir"
 
 class WoodblockWallpaperCommandTest < Minitest::Test
-  def test_prints_command_for_first_wallpaper_from_a_whitelisted_museum
+  def test_prints_command_for_a_wallpaper_from_a_whitelisted_museum
     photos = [
       {id: "rejected", user: {username: "moonshadowpress"}},
-      {id: "accepted", user: {username: "thewalters"}},
-      {id: "also-accepted", user: {username: "artchicago"}}
+      {id: "accepted", user: {username: "thewalters"}}
     ]
 
-    run_command(photos, "--user", "moonshadowpress") do |result, curl_trace|
+    run_command(photos) do |result, curl_trace|
       stdout, stderr, status = result
 
       assert status.success?, stderr
       assert_equal "splash --plain --id accepted --no-cache\n", stdout
-      assert_equal expected_curl_arguments, File.readlines(curl_trace, chomp: true)
+      assert_search_arguments File.readlines(curl_trace, chomp: true)
+    end
+  end
+
+  def test_skips_recently_used_wallpapers
+    photos = [
+      {id: "recent", user: {username: "thewalters"}},
+      {id: "fresh", user: {username: "artchicago"}}
+    ]
+
+    run_command(photos, history: ["recent"]) do |result, _curl_trace|
+      stdout, stderr, status = result
+
+      assert status.success?, stderr
+      assert_equal "splash --plain --id fresh --no-cache\n", stdout
     end
   end
 
@@ -44,12 +57,14 @@ class WoodblockWallpaperCommandTest < Minitest::Test
 
   private
 
-  def run_command(photos, *arguments)
+  def run_command(photos, history: [])
     Dir.mktmpdir do |home|
       bin = File.join(home, "bin")
       FileUtils.mkdir_p(bin)
       fixture = File.join(home, "photos.json")
-      File.write(fixture, JSON.generate(photos))
+      File.write(fixture, JSON.generate({total_pages: 1, results: photos}))
+      FileUtils.mkdir_p(File.join(home, "state/woodblock-wallpaper"))
+      File.write(File.join(home, "state/woodblock-wallpaper/history"), history.map { "#{it}\n" }.join)
       curl_trace = File.join(home, "curl.trace")
       write_command(bin, "curl", <<~SH)
         printf '%s\n' "$@" > "$CURL_TRACE"
@@ -59,10 +74,11 @@ class WoodblockWallpaperCommandTest < Minitest::Test
       env = {
         "PATH" => "#{bin}:#{ENV.fetch("PATH")}",
         "UNSPLASH_CLIENT_ID" => "client",
+        "XDG_STATE_HOME" => File.join(home, "state"),
         "FIXTURE" => fixture,
         "CURL_TRACE" => curl_trace
       }
-      yield Open3.capture3(env, command_source, *arguments), curl_trace
+      yield Open3.capture3(env, command_source), curl_trace
     end
   end
 
@@ -72,15 +88,17 @@ class WoodblockWallpaperCommandTest < Minitest::Test
     FileUtils.chmod(0o755, path)
   end
 
-  def expected_curl_arguments
-    [
+  def assert_search_arguments(arguments)
+    assert_includes ["query=woodblock print", "query=japanese print"], arguments[7]
+    assert_equal [
       "--fail", "--silent", "--show-error", "--get",
       "--data-urlencode", "client_id=client",
-      "--data-urlencode", "query=woodblock print",
+      "--data-urlencode",
       "--data-urlencode", "orientation=landscape",
-      "--data-urlencode", "count=30",
-      "https://api.unsplash.com/photos/random"
-    ]
+      "--data-urlencode", "per_page=30",
+      "--data-urlencode", "page=1",
+      "https://api.unsplash.com/search/photos"
+    ], arguments.values_at(0..6, 8..)
   end
 
   def command_source

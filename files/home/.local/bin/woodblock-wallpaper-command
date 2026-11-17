@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 
+require "fileutils"
 require "json"
 require "open3"
 
@@ -30,29 +31,54 @@ MUSEUM_ACCOUNTS = %w[
   thewalters
 ].freeze
 
+QUERIES = ["woodblock print", "japanese print"].freeze
+PAGE_ATTEMPTS = 4
+HISTORY_SIZE = 100
+
 client_id = ENV["UNSPLASH_CLIENT_ID"]
 abort "UNSPLASH_CLIENT_ID must be set" if client_id.nil? || client_id.empty?
 
-response, error, status = Open3.capture3(
-  "curl", "--fail", "--silent", "--show-error", "--get",
-  "--data-urlencode", "client_id=#{client_id}",
-  "--data-urlencode", "query=woodblock print",
-  "--data-urlencode", "orientation=landscape",
-  "--data-urlencode", "count=30",
-  "https://api.unsplash.com/photos/random"
-)
+history_path = File.join(ENV.fetch("XDG_STATE_HOME", File.join(Dir.home, ".local/state")), "woodblock-wallpaper/history")
+history = File.exist?(history_path) ? File.readlines(history_path, chomp: true) : []
+query = QUERIES.sample
 
-unless status.success?
-  warn error
-  exit status.exitstatus
+search = lambda do |page|
+  response, error, status = Open3.capture3(
+    "curl", "--fail", "--silent", "--show-error", "--get",
+    "--data-urlencode", "client_id=#{client_id}",
+    "--data-urlencode", "query=#{query}",
+    "--data-urlencode", "orientation=landscape",
+    "--data-urlencode", "per_page=30",
+    "--data-urlencode", "page=#{page}",
+    "https://api.unsplash.com/search/photos"
+  )
+  unless status.success?
+    warn error
+    exit status.exitstatus
+  end
+  JSON.parse(response)
 end
 
-photo = JSON.parse(response).find do |candidate|
-  MUSEUM_ACCOUNTS.include?(candidate.dig("user", "username"))
+eligible = lambda do |results|
+  results.select do |candidate|
+    MUSEUM_ACCOUNTS.include?(candidate.dig("user", "username")) && !history.include?(candidate["id"])
+  end
 end
+
+first_page = search.call(1)
+total_pages = first_page.fetch("total_pages")
+photo = PAGE_ATTEMPTS.times.lazy.filter_map do
+  page = rand(1..[total_pages, 1].max)
+  results = (page == 1) ? first_page : search.call(page)
+  eligible.call(results.fetch("results")).sample
+end.first
+photo ||= eligible.call(first_page.fetch("results")).sample
 abort "No woodblock prints found from whitelisted museum accounts" unless photo
 
 photo_id = photo.fetch("id")
 abort "Unsplash returned an invalid photo ID" unless photo_id.match?(/\A[A-Za-z0-9_-]+\z/)
+
+FileUtils.mkdir_p(File.dirname(history_path))
+File.write(history_path, (history << photo_id).last(HISTORY_SIZE).join("\n") + "\n")
 
 puts "splash --plain --id #{photo_id} --no-cache"
