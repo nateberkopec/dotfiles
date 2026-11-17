@@ -438,12 +438,12 @@ url = "https://github.com/nateberkopec/print-label/releases/download/v0.5.1/prin
 signer = "sigstore-oidc:https://github.com/nateberkopec/print-label/.github/workflows/release.yml"
 
 [[tools."packslip:github.com/nateberkopec/woodblock"]]
-version = "0.1.0"
+version = "0.2.0"
 backend = "packslip:github.com/nateberkopec/woodblock"
 
 [tools."packslip:github.com/nateberkopec/woodblock"."platforms.macos-arm64"]
-checksum = "sha256:4def58be5f57dfcff5cbff87c682352ba97ddccf41379b45b4b63d68624c8c4d"
-url = "https://github.com/nateberkopec/woodblock/releases/download/v0.1.0/woodblock_Darwin_arm64.tar.gz"
+checksum = "sha256:93d2be3c0a53b85380b286772233ad057009d6a3f8609581f748e7870bd9c924"
+url = "https://github.com/nateberkopec/woodblock/releases/download/v0.2.0/woodblock_Darwin_arm64.tar.gz"
 signer = "sigstore-oidc:https://github.com/nateberkopec/woodblock/.github/workflows/release.yml"
 
 [[tools.pipx]]

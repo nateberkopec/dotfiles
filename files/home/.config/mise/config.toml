@@ -24,7 +24,7 @@ uv = "0.13.7"
 "github:aldanial/cloc" = { version = "2.10", asset_pattern = "cloc-{{version}}.pl", bin = "cloc" }
 "github:pkgforge-dev/ghostty-appimage[bin=ghostty]" = { version = "1.4.0", os = ["linux"] }
 "packslip:github.com/nateberkopec/print-label" = "0.5.1"
-"packslip:github.com/nateberkopec/woodblock" = { version = "0.1.0", os = ["macos"], minimum_release_age = "0d" }
+"packslip:github.com/nateberkopec/woodblock" = { version = "0.2.0", os = ["macos"], minimum_release_age = "0d" }
 "github:abue-ammar/tinycast" = { version = "0.12.8", asset_pattern = "Tinycast-{{version}}.zip", bin_path = "Tinycast.app/Contents/MacOS", os = ["macos"] }
 "github:steipete/CodexBar" = { version = "0.83.0", asset_pattern = "CodexBar-macos-universal-{{version}}.zip", bin_path = "CodexBar.app/Contents/MacOS", os = ["macos"] }
 "aqua:dotfiles/orbstack" = { version = "2.2.5-21124", os = ["macos"], arch = ["arm64"], symlink_bins = true, postinstall = { when = "always", run = 'mkdir -p "$MISE_TOOL_INSTALL_PATH/.mise-bins" && for cli in orb orbctl; do ln -sfn "$HOME/.orbstack/bin/$cli" "$MISE_TOOL_INSTALL_PATH/.mise-bins/$cli" || exit; done' } }
