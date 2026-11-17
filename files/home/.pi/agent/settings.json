@@ -29,8 +29,8 @@
     "npm"
   ],
   "enabledModels": [
-    "openai/gpt-6.1-sol:medium",
-    "openai/gpt-6-astra:low",
+    "openai/gpt-6.2-sol:medium",
+    "openai/gpt-6.2-astra:low",
     "openai/gpt-6-luna:xhigh",
     "openai/gpt-6.1-terra:medium",
     "vercel-ai-gateway/deepseek/deepseek-v4.1-flash-1017",
@@ -43,34 +43,34 @@
     "agentOverrides": {
       "delegate": {
         "tools": ["read", "grep", "find", "ls", "bash", "edit", "write", "contact_supervisor", "mcp"],
-        "model": "openai/gpt-6.1-sol",
+        "model": "openai/gpt-6.2-sol",
         "thinking": "medium"
       },
       "reviewer": {
-        "model": "openai/gpt-6-astra",
+        "model": "openai/gpt-6.2-astra",
         "thinking": "xhigh"
       },
       "oracle": {
         "tools": ["read", "grep", "find", "ls", "bash", "mcp"],
-        "model": "openai/gpt-6-astra",
+        "model": "openai/gpt-6.2-astra",
         "thinking": "xhigh"
       },
       "advisor": {
-        "model": "openai/gpt-6-astra",
+        "model": "openai/gpt-6.2-astra",
         "thinking": "xhigh"
       },
       "scout": {
         "tools": ["read", "grep", "find", "ls", "bash", "write", "contact_supervisor", "mcp"],
-        "model": "openai/gpt-6.1-sol",
+        "model": "openai/gpt-6.2-sol",
         "thinking": "low"
       },
       "worker": {
         "tools": ["read", "grep", "find", "ls", "bash", "edit", "write", "contact_supervisor", "mcp"],
-        "model": "openai/gpt-6.1-sol",
+        "model": "openai/gpt-6.2-sol",
         "thinking": "medium"
       },
       "researcher": {
-        "model": "openai/gpt-6.1-sol",
+        "model": "openai/gpt-6.2-sol",
         "thinking": "low"
       }
     }
