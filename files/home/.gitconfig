@@ -49,7 +49,9 @@
 [branch]
 	sort = -committerdate
 [commit]
-	gpgsign = true
+	gpgsign = false
+[tag]
+	gpgsign = false
 [gpg]
 	program = gpg
 [diff]

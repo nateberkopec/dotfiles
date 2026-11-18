@@ -52,8 +52,6 @@ Everything you post to GitHub starts its body with `_This is AI-assisted. Model:
 
 A global git `commit-msg` hook adds an `AI-assisted` trailer to every commit you author. Never commit with `--no-verify`.
 
-GPG sign is on by default, but you should always use --no-gpg-sign unless otherwise instructed.
-
 For commits which only change markdown or docs, with no code changes, add `[ci skip]` to the commit message. Check first re workflows if CI must run in order for the PR to be mergable.
 
 ## Nate's Macbook Pro specific instructions.
