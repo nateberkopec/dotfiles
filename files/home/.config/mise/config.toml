@@ -123,7 +123,6 @@ sudo /usr/local/libexec/dotfiles-spotlight-controller audit
 "brew:libpq" = "latest"
 "brew:librsvg" = "latest"
 "brew:libyaml" = "latest"
-"brew:llm" = "latest"
 "brew:pinentry-mac" = "latest"
 "brew:pkgconf" = "latest"
 "brew:terminal-notifier" = "latest"
