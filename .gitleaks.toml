@@ -29,6 +29,7 @@ paths = [
 [[allowlists]]
 description = "Git GPG signing key fingerprints"
 condition = "AND"
+regexTarget = "line"
 paths = [
   '''(^|/)\.gitconfig$''',
   '''(^|/)files/home/\.gitconfig$''',
