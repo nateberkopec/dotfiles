@@ -48,13 +48,13 @@ These rules apply to all client work:
 
 Provider-specific verification dates are noted below. This only reflects providers I actually use.
 
-| Provider | Operator | US inference | No-training basis | Status |
+| Provider | Operator | Inference region | No-training basis | Status |
 |---|---|---|---|---|
 | openai (API key) | OpenAI, US | first-party | [API data not used for training since March 2023](https://developers.openai.com/api/docs/guides/your-data) | compliant |
 | openai (Sign in with ChatGPT, ChatGPT Pro) | OpenAI, US | first-party | ["Improve the model for everyone"](https://help.openai.com/en/articles/7730893-data-controls-faq) off, confirmed 2026-09-24 | compliant |
 | claude-code (Claude Max) | Anthropic, US | first-party | [model improvement setting](https://privacy.claude.com/en/articles/10023580-is-my-data-used-for-model-training) off, confirmed 2026-09-24 | compliant |
 | google-vertex | Google Cloud, US | US multi-region endpoint | [Cloud Data Processing Addendum, Section 17 training restriction](https://docs.cloud.google.com/gemini-enterprise-agent-platform/resources/zero-data-retention) | compliant |
-| baseten |
+| baseten (Model APIs) | Baseten Labs, Inc., US | [Shared endpoint, multi-cloud, regions can change](https://docs.baseten.co/inference/model-apis/overview); US-only requires a support-enabled Model APIs compliance policy | [Terms §6.3](https://www.baseten.co/terms-and-conditions/) prohibits training on Customer Content, including Model Outputs; [Security Practices](https://www.baseten.co/security-practices/) commit Model APIs to ZDR for all inputs and outputs. Reviewed 2026-11-20. | compliant, ZDR |
 | exa (web tools) | Exa, US | US company | Account ZDR enabled, confirmed by account owner 2026-09-27. [ZDR availability](https://exa.ai/docs/admin/security/zero-data-retention) covers Search and Contents, but explicitly excludes Answer; Research is not listed. Without ZDR, [Exa's privacy policy](https://exa.ai/privacy-policy) permits use of query data to train models. | Search and Contents: `usa-no-train`; Answer and Research: not usable |
 
 If you're a Speedshop customer, in the absence of any other agreement between us, I only use the compliant providers and tools above to work on your project.
