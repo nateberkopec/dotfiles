@@ -46,11 +46,6 @@ brew_formula_installed() {
     brew_bin="$(find_brew_bin)" || return 1
     "$brew_bin" list --formula "$1" >/dev/null 2>&1
 }
-brew_cask_installed() {
-    local brew_bin
-    brew_bin="$(find_brew_bin)" || return 1
-    "$brew_bin" list --cask "$1" >/dev/null 2>&1
-}
 debian_package_installed() { dpkg -s "$1" >/dev/null 2>&1; }
 mise_tool_installed() {
     local mise_bin
@@ -82,7 +77,6 @@ check_ci_packages() {
     local phase="$1" assert_function="$2"
     if [ "$(uname -s)" = "Darwin" ]; then
         check_env_packages "Homebrew formula" BREW_CI_PACKAGES brew_formula_installed "$assert_function"
-        check_env_packages "Homebrew cask" BREW_CI_CASKS brew_cask_installed "$assert_function"
     elif [ "$(uname -s)" = "Linux" ]; then
         check_env_packages "Debian package" DEBIAN_CI_PACKAGES debian_package_installed "$assert_function"
     fi

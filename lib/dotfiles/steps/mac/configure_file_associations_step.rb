@@ -8,7 +8,7 @@ class Dotfiles::Step::ConfigureFileAssociationsStep < Dotfiles::Step
   end
 
   def self.depends_on
-    [Dotfiles::Step::InstallBrewCasksStep]
+    [Dotfiles::Step::InstallBrewFormulaeStep, Dotfiles::Step::InstallVendorAppsStep]
   end
 
   def should_run?

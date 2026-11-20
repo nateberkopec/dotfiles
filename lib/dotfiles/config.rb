@@ -31,10 +31,6 @@ class Dotfiles
       select_named(apps, env_csv("DEBIAN_CI_DESKTOP_APPS"))
     end
 
-    def brew_casks
-      env_csv("BREW_CI_CASKS") || config.fetch("brew_casks", [])
-    end
-
     private
 
     def select_named(entries, names)

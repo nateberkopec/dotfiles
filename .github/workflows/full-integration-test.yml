@@ -98,7 +98,6 @@ jobs:
         GITHUB_TOKEN: ${{ github.token }}
         MISE_CI_TOOLS: ${{ matrix.mise_ci_tools }}
         BREW_CI_PACKAGES: "duti"
-        BREW_CI_CASKS: ""
         DEBIAN_CI_PACKAGES: "trash-cli"
         DEBIAN_CI_DESKTOP_APPS: ""
       run: bash tools/ci/run_dotfiles_integration.sh "${GITHUB_WORKSPACE}"
@@ -226,7 +225,6 @@ jobs:
         GITHUB_TOKEN: ${{ github.token }}
         MISE_CI_TOOLS: "gum,github:aubepkg/aube,npm:@earendil-works/pi-coding-agent,fzf,aqua:fish-shell/fish-shell,python,pipx,pipx:playwright,github:abue-ammar/tinycast,github:steipete/CodexBar,github:anomalyco/hex,aqua:dotfiles/orbstack,github:trycua/cua"
         BREW_CI_PACKAGES: "duti"
-        BREW_CI_CASKS: ""
       run: |
         set -euo pipefail
 
@@ -243,7 +241,6 @@ jobs:
           GITHUB_TOKEN="${GITHUB_TOKEN}" \
           MISE_CI_TOOLS="${MISE_CI_TOOLS}" \
           BREW_CI_PACKAGES="${BREW_CI_PACKAGES}" \
-          BREW_CI_CASKS="${BREW_CI_CASKS}" \
           bash "${home_dir}/dotfiles/tools/ci/run_dotfiles_integration.sh" "${home_dir}/dotfiles"
 
     - name: Verify externally managed git hooks were skipped

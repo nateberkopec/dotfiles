@@ -16,20 +16,10 @@ class ConfigTest < Minitest::Test
     assert_empty Dotfiles::Config.new("/nonexistent/dir").debian_desktop_apps
   end
 
-  def test_loads_brew_casks_from_yaml
-    config = Dotfiles::Config.new(@fixtures_dir)
-
-    assert_equal ["firefox", "ghostty"], config.brew_casks
-  end
-
-  def test_brew_casks_default_to_empty
-    assert_empty Dotfiles::Config.new("/nonexistent/dir").brew_casks
-  end
-
   def test_fetch_returns_config_value
     config = Dotfiles::Config.new(@fixtures_dir)
 
-    assert_equal ["firefox", "ghostty"], config.fetch("brew_casks")
+    assert_equal ["fish/config.fish", "fish/functions/"], config.fetch("config_directory_items")
   end
 
   def test_fetch_returns_default_for_missing_key
@@ -41,20 +31,6 @@ class ConfigTest < Minitest::Test
   def test_bracket_accessor_returns_config_value
     config = Dotfiles::Config.new(@fixtures_dir)
 
-    assert_equal ["firefox", "ghostty"], config["brew_casks"]
-  end
-
-  def test_brew_ci_casks_overrides_config
-    with_env("BREW_CI_CASKS" => "ghostty, cursor") do
-      config = Dotfiles::Config.new(@fixtures_dir)
-
-      assert_equal ["ghostty", "cursor"], config.brew_casks
-    end
-  end
-
-  def test_brew_ci_casks_empty_string_returns_empty_array
-    with_env("BREW_CI_CASKS" => "") do
-      assert_empty Dotfiles::Config.new(@fixtures_dir).brew_casks
-    end
+    assert_equal ["fish/config.fish", "fish/functions/"], config["config_directory_items"]
   end
 end

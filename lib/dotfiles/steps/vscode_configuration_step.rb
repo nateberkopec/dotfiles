@@ -10,7 +10,7 @@ class Dotfiles::Step::VSCodeConfigurationStep < Dotfiles::Step
   end
 
   def self.depends_on
-    [Dotfiles::Step::InstallBrewCasksStep]
+    [Dotfiles::Step::InstallVendorAppsStep]
   end
 
   def run
