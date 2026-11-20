@@ -1,12 +1,10 @@
 require_relative "e2e_helper"
 
 class ApplicationsTest < Minitest::Test
-  def test_every_cask_app_is_installed_and_signed
-    casks = E2E.config.fetch("brew_casks")
-    info = JSON.parse(E2E.fish!("brew info --cask --json=v2 #{casks.join(" ")}")).fetch("casks")
-    info = info.reject { |cask| pkg_cask?(cask) } unless E2E.admin?
-    problems = info.flat_map { |cask| cask_apps(cask) }.filter_map { |app| problem(app) }
-    assert_empty problems
+  def test_every_vendor_app_is_installed_and_signed
+    apps = E2E.config.fetch("vendor_apps")
+    apps = apps.reject { |app| app["admin_only"] } unless E2E.admin?
+    assert_empty apps.filter_map { |app| problem(app) }
   end
 
   def test_non_admin_uses_only_its_home
@@ -20,24 +18,16 @@ class ApplicationsTest < Minitest::Test
 
   private
 
-  def pkg_cask?(cask)
-    cask.fetch("artifacts").any? { |artifact| artifact.key?("pkg") }
-  end
-
-  def cask_apps(cask)
-    cask.fetch("artifacts").filter_map { |artifact| artifact["app"]&.first }.map do |app|
-      File.join(app_dir, app.is_a?(Hash) ? app.fetch("target") : app)
-    end
-  end
-
   def app_dir
     E2E.admin? ? "/Applications" : File.join(E2E.home, "Applications")
   end
 
   def problem(app)
-    return "#{app} is missing" unless File.directory?(app)
+    path = File.join(app_dir, "#{app.fetch("name")}.app")
+    return "#{path} is missing" unless File.directory?(path)
 
-    _stdout, stderr, status = Open3.capture3("/usr/bin/codesign", "--verify", app)
-    "#{app} fails codesign: #{stderr.strip}" unless status.success?
+    requirement = %(anchor apple generic and certificate leaf[subject.OU] = "#{app.fetch("team_id")}")
+    _stdout, stderr, status = Open3.capture3("/usr/bin/codesign", "--verify", "-R=#{requirement}", path)
+    "#{path} fails codesign: #{stderr.strip}" unless status.success?
   end
 end

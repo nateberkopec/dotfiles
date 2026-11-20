@@ -1,7 +1,4 @@
 ---
-brew_casks:
-  - firefox
-  - ghostty
 debian_desktop_apps:
   - name: example
     package: example-app

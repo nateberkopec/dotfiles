@@ -26,7 +26,7 @@ Inventory the current manifests before looking up releases:
 | VS Code sources | `vscode_extension_sources` in `config/config.yml`, including matching tag and asset names |
 | CI/tooling pins | Action SHAs and version comments in `.github/workflows`, plus the hk schema version in `hk.pkl` |
 
-Keep duplicate tools in project and machine manifests distinct in the inventory and report; update them together when compatible. Discover additional pinned manifests from the tracked tree rather than assuming this table is exhaustive. Preserve the deliberately floating `git:github.com/nateberkopec/agent-stuff@main` Pi source. Record floating or non-stable entries as observation-only, not automatic upgrades. Self-updating casks and macOS releases are outside this batch; do not introduce notification baselines or downgrade them.
+Keep duplicate tools in project and machine manifests distinct in the inventory and report; update them together when compatible. Discover additional pinned manifests from the tracked tree rather than assuming this table is exhaustive. Preserve the deliberately floating `git:github.com/nateberkopec/agent-stuff@main` Pi source. Record floating or non-stable entries as observation-only, not automatic upgrades. Self-updating vendor apps and macOS releases are outside this batch; do not introduce notification baselines or downgrade them.
 
 Done when every pinned surface has a recorded current version or revision and source identity.
 

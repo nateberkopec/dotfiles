@@ -25,16 +25,6 @@ class PackageProbeTest < Minitest::Test
     end
   end
 
-  def test_non_admin_checks_casks_in_private_homebrew
-    with_probe do |env|
-      install_private_brew(env)
-
-      assert_probe env, "assert_installed Homebrew ghostty brew_cask_installed"
-
-      assert_equal "private list --cask ghostty\n", File.read(env.fetch("PROBE_LOG"))
-    end
-  end
-
   def test_admin_uses_system_homebrew_even_with_a_private_prefix
     with_probe do |env|
       install_private_brew(env)
