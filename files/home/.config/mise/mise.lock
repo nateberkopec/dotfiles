@@ -224,6 +224,19 @@ checksum = "sha256:bf59272455172108072a0a106379f7509fd4349bdcfd85203bac038ccd286
 url = "https://github.com/AlDanial/cloc/releases/download/v2.10/cloc-2.10.pl"
 url_api = "https://api.github.com/repos/AlDanial/cloc/releases/assets/466555197"
 
+[[tools."github:anomalyco/hex"]]
+version = "3.4.0"
+backend = "github:anomalyco/hex"
+
+[tools."github:anomalyco/hex".options]
+asset_pattern = "hex-{version}-macos-arm64.zip"
+
+[tools."github:anomalyco/hex"."platforms.macos-arm64"]
+checksum = "sha256:1ab0242dc3bb011c88568903cbf1e9d30310867a46f5168309853d6f8b4ca650"
+checksum_source = "mise-versions"
+url = "https://github.com/anomalyco/hex/releases/download/v3.4.0/hex-3.4.0-macos-arm64.zip"
+url_api = "https://api.github.com/repos/anomalyco/hex/releases/assets/734129438"
+
 [[tools."github:aubepkg/aube"]]
 version = "2.9.0"
 backend = "github:aubepkg/aube"

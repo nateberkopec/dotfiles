@@ -1,6 +1,6 @@
 class Dotfiles::Step::InstallMiseAppsStep < Dotfiles::Step
   DESCRIPTION = "Installs mise-managed macOS apps into Applications.".freeze
-  APPS = {"Tinycast" => "github:abue-ammar/tinycast", "CodexBar" => "github:steipete/CodexBar", "OrbStack" => "aqua:dotfiles/orbstack", "CuaDriver" => "github:trycua/cua"}.freeze
+  APPS = {"Tinycast" => "github:abue-ammar/tinycast", "CodexBar" => "github:steipete/CodexBar", "Hex" => "github:anomalyco/hex", "OrbStack" => "aqua:dotfiles/orbstack", "CuaDriver" => "github:trycua/cua"}.freeze
 
   macos_only
 
