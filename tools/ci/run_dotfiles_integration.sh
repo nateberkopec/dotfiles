@@ -87,15 +87,16 @@ find_fish_bin() {
 check_fish() {
     echo "Starting fish shell to check for initialization errors..."
 
+    local check='functions -q try; and command try --version'
     if command -v mise >/dev/null 2>&1 && mise --cd "$HOME" where aqua:fish-shell/fish-shell >/dev/null 2>&1; then
-        mise --cd "$HOME" x aqua:fish-shell/fish-shell -- fish -c 'echo "Fish shell initialized successfully"' 2>&1 | tee "$fish_log"
+        mise --cd "$HOME" x aqua:fish-shell/fish-shell -- fish -c "$check" 2>&1 | tee "$fish_log"
     else
         local fish_bin
         fish_bin="$(find_fish_bin)" || {
             echo "❌ Fish shell not found"
             return 1
         }
-        "$fish_bin" -c 'echo "Fish shell initialized successfully"' 2>&1 | tee "$fish_log"
+        "$fish_bin" -c "$check" 2>&1 | tee "$fish_log"
     fi
 
     echo "✅ Fish shell started without errors"

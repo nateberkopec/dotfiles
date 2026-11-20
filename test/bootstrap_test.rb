@@ -64,52 +64,13 @@ class BootstrapTest < Minitest::Test
     end
   end
 
-  def test_bootstrap_mise_pins_its_version_and_retries_backend_setup
+  def test_bootstrap_mise_replaces_an_outdated_version
     with_bootstrap_stub do |env|
       write_self_managed_mise_stub(env, "0.0.0")
 
       run_bootstrap_mise(env)
 
       assert_match(/\A#{Regexp.escape(mise_version)} /, File.read(env.fetch("MISE_INSTALL_LOG")))
-    end
-    ["spinel-source", "spinel"].each do |plugin|
-      with_bootstrap_stub do |env|
-        write_self_managed_mise_stub(env, mise_version)
-        path = File.join(env.fetch("HOME"), ".local", "bin", "mise")
-        File.open(path, "a") do |file|
-          file.write(<<~BASH)
-            if [[ "$*" == *"plugins ls" ]]; then
-              printf '%s\\n' #{Shellwords.escape(plugin)}
-            fi
-          BASH
-        end
-
-        run_bootstrap_mise(env)
-
-        installs = logged_mise_commands(env).count { |command| command.include?("plugins install spinel-source --yes") }
-        assert_equal((plugin == "spinel-source") ? 0 : 1, installs)
-      end
-    end
-    [0, 1, 3].each do |failures|
-      with_bootstrap_stub do |env|
-        write_self_managed_mise_stub(env, mise_version)
-        attempts = File.join(env.fetch("HOME"), "plugin-attempts")
-        path = File.join(env.fetch("HOME"), ".local", "bin", "mise")
-        File.open(path, "a") do |file|
-          file.write(<<~BASH)
-            if [[ "$*" == *"plugins install spinel-source --yes" ]]; then
-              printf '%s\\n' attempt >> #{Shellwords.escape(attempts)}
-              [ "$(wc -l < #{Shellwords.escape(attempts)})" -gt #{failures} ] || exit 23
-            fi
-          BASH
-        end
-        command = "source #{Shellwords.escape(bootstrap_path)}; bootstrap_mise"
-        _output, status = Open3.capture2e(env, "bash", "-c", command)
-        assert_equal((failures == 3) ? 23 : 0, status.exitstatus)
-        actual = File.exist?(attempts) ? File.readlines(attempts).size : 0
-        assert_equal [failures + 1, 3].min, actual
-        refute File.exist?(env.fetch("MISE_INSTALL_LOG"))
-      end
     end
   end
 

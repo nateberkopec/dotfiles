@@ -573,9 +573,24 @@ checksum = "sha256:56affdd8de5527894dca6dc3d7e0a99a873b0f004d7aabc30ae407d3f48b0
 url = "https://github.com/koalaman/shellcheck/releases/download/v0.11.0/shellcheck-v0.11.0.darwin.aarch64.tar.xz"
 url_api = "https://api.github.com/repos/koalaman/shellcheck/releases/assets/279056932"
 
-[[tools."spinel-source:tobi/try"]]
+[[tools.spinel]]
+version = "1c84866b3acaaa6c568c3f239d3f4836f43c5bbb"
+backend = "http:spinel"
+
+[tools.spinel.options]
+strip_components = "1"
+
+[tools.spinel."platforms.linux-x64"]
+checksum = "sha256:89708966ddab17a55437637d669e0a3dbe381f88b4b0dca6d884d0160fe7b115"
+url = "https://github.com/matz/spinel/archive/1c84866b3acaaa6c568c3f239d3f4836f43c5bbb.tar.gz"
+
+[tools.spinel."platforms.macos-arm64"]
+checksum = "sha256:89708966ddab17a55437637d669e0a3dbe381f88b4b0dca6d884d0160fe7b115"
+url = "https://github.com/matz/spinel/archive/1c84866b3acaaa6c568c3f239d3f4836f43c5bbb.tar.gz"
+
+[[tools."spinel:tobi/try"]]
 version = "1.10.1"
-backend = "spinel-source:tobi/try"
+backend = "spinel:tobi/try"
 
 [[tools.starship]]
 version = "1.27.0"
