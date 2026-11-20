@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>PayloadDisplayName</key>
+  <string>Hex (dotfiles)</string>
+  <key>PayloadIdentifier</key>
+  <string>com.nateberkopec.dotfiles.hex</string>
+  <key>PayloadScope</key>
+  <string>User</string>
+  <key>PayloadType</key>
+  <string>Configuration</string>
+  <key>PayloadUUID</key>
+  <string>6E1F3C52-7A0B-4E3D-9C1A-2B8F5D4E7A10</string>
+  <key>PayloadVersion</key>
+  <integer>1</integer>
+  <key>PayloadContent</key>
+  <array>
+    <dict>
+      <key>PayloadType</key>
+      <string>anomaly.hex</string>
+      <key>PayloadIdentifier</key>
+      <string>com.nateberkopec.dotfiles.hex.settings</string>
+      <key>PayloadUUID</key>
+      <string>6E1F3C52-7A0B-4E3D-9C1A-2B8F5D4E7A11</string>
+      <key>PayloadVersion</key>
+      <integer>1</integer>
+      <key>DisableUpdates</key>
+      <true/>
+    </dict>
+  </array>
+</dict>
+</plist>

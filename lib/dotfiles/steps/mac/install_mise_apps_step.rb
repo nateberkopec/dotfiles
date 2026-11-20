@@ -1,6 +1,6 @@
 class Dotfiles::Step::InstallMiseAppsStep < Dotfiles::Step
   DESCRIPTION = "Installs mise-managed macOS apps into Applications.".freeze
-  APPS = {"Tinycast" => "github:abue-ammar/tinycast", "CodexBar" => "github:steipete/CodexBar", "OrbStack" => "aqua:dotfiles/orbstack", "CuaDriver" => "github:trycua/cua"}.freeze
+  APPS = {"Tinycast" => "github:abue-ammar/tinycast", "CodexBar" => "github:steipete/CodexBar", "Hex" => "github:anomalyco/hex", "OrbStack" => "aqua:dotfiles/orbstack", "CuaDriver" => "github:trycua/cua"}.freeze
 
   macos_only
 
@@ -68,7 +68,7 @@ class Dotfiles::Step::InstallMiseAppsStep < Dotfiles::Step
 
   def current_app?(name, destination)
     return false unless app_bundle?(destination)
-    return true unless ["CuaDriver", "OrbStack"].include?(name)
+    return true unless ["CuaDriver", "Hex", "OrbStack"].include?(name)
 
     source = app_source(name, APPS.fetch(name))
     !source.empty? && @system.read_file(File.join(source, "Contents", "Info.plist")) == @system.read_file(File.join(destination, "Contents", "Info.plist"))
