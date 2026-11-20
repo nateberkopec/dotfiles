@@ -33,13 +33,13 @@ jobs:
         persist-credentials: false
 
     - name: Set up Ruby
-      uses: ruby/setup-ruby@de492cf36cbab201753d720ce4f4e336cd688c94 # v1.336.0
+      uses: ruby/setup-ruby@b3aaceaef7e0ee231b499e7b5f49c03fc1d32199 # v1.338.0
       with:
         ruby-version: 'ruby'
         bundler-cache: true
 
     - name: Install mise-managed Node, Pi runtime, and TypeScript
-      uses: jdx/mise-action@f5be966e4a917d54244728e6a5fdcd1d93a35e6c # v5.2.6
+      uses: jdx/mise-action@236a21c3b91f5db6d4e174b348674a0f0caac06d # v5.2.9
       with:
         cache: true
         experimental: true
