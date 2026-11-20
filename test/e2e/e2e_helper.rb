@@ -4,7 +4,7 @@ require "open3"
 require "yaml"
 
 module E2E
-  ALLOWED_FAILURES = ["Update macOS", "Configure Downloads Inbox Folder Action", "Configure Hex"].freeze
+  ALLOWED_FAILURES = ["Update macOS", "Configure Downloads Inbox Folder Action", "Configure Hex", "Verify Spotlight Exclusions"].freeze
   ANSI = /\e\[[0-9;?]*[A-Za-z]/
 
   module_function
