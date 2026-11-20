@@ -59,7 +59,7 @@ function pi
     end
   end
 
-  set -l mode usa-no-train
+  set -l mode allowlist
   if string match -qr '^[1-9][0-9]*$' -- "$PI_SUBAGENT_DEPTH"; and test -n "$PI_DATASAFE_MODE"
     set mode $PI_DATASAFE_MODE
   end

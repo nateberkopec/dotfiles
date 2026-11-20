@@ -18,7 +18,7 @@ Prompt injection and careless agents are real risks too, but they come second.
 
 Watching an agent helps me catch mistakes. It does not stop malware. Once bad code runs, it's too late.
 
-I trust AI model providers only under the terms in [ADR 0009](docs/adr/0009-require-no-training-terms-and-us-inference-from-model-providers.md).
+I trust AI model providers only under the terms in [ADR 0009](docs/adr/0009-allowlist-no-training-model-providers.md).
 
 ## My rules
 

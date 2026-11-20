@@ -13,7 +13,7 @@ class PiProfilesTest < Minitest::Test
 
   def test_launchers_choose_mode_without_changing_agent_directory
     with_functions do |dir, source|
-      assert_equal "usa-no-train|shared|--print hello\n", run_fish(dir, source, "pi --print hello")
+      assert_equal "allowlist|shared|--print hello\n", run_fish(dir, source, "pi --print hello")
       assert_equal "unrestricted|shared|--print hello\n", run_fish(dir, source, "pi-unsafe --print hello")
     end
   end
@@ -22,7 +22,7 @@ class PiProfilesTest < Minitest::Test
     with_functions do |dir, source|
       assert_equal "unrestricted|shared|--list-models\n",
         run_fish(dir, source, "pi --list-models", "PI_SUBAGENT_DEPTH" => "1", "PI_DATASAFE_MODE" => "unrestricted")
-      assert_equal "usa-no-train|shared|--list-models\n",
+      assert_equal "allowlist|shared|--list-models\n",
         run_fish(dir, source, "pi --list-models", "PI_SUBAGENT_DEPTH" => "0", "PI_DATASAFE_MODE" => "unrestricted")
       assert_equal "invalid|shared|--list-models\n",
         run_fish(dir, source, "pi --list-models", "PI_SUBAGENT_DEPTH" => "1", "PI_DATASAFE_MODE" => "invalid")
