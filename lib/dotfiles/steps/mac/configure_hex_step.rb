@@ -11,6 +11,10 @@ class Dotfiles::Step::ConfigureHexStep < Dotfiles::Step
     [Dotfiles::Step::InstallMiseAppsStep]
   end
 
+  def should_run?
+    !ENV["CI"] && super
+  end
+
   def run
     request_profile unless profile_installed?
     return add_notice(title: "Hex setup", message: "Open Hex, finish onboarding, then run dotf again to apply its settings.") unless hex_running?
@@ -21,6 +25,8 @@ class Dotfiles::Step::ConfigureHexStep < Dotfiles::Step
   end
 
   def complete?
+    return true if ENV["CI"]
+
     super
     add_error("Hex update lock profile is not installed", fix: "System Settings → General → Device Management → Hex (dotfiles) → Install") unless profile_installed?
     add_error("Hex settings do not match files/hex/settings.json") unless settings_current?
