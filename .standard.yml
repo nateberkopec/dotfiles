@@ -1,7 +1,0 @@
-ignore:
-  - '.bundle/**/*'
-  - '.claude/worktrees/**/*'
-  - '.ruby-lsp/**/*'
-
-extend_config:
-  - .rubocop-custom.yml

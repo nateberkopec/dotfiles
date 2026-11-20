@@ -1,6 +1,0 @@
-{
-  "ignorePatterns": ["node_modules/**", "vendor/**", "tmp/**", ".claude/worktrees/**", ".pi-subagents/**"],
-  "rules": {
-    "oxc/no-accumulating-spread": "error"
-  }
-}

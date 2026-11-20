@@ -1,6 +1,0 @@
-# Public API and framework hooks that debride cannot see statically.
-/^on_/
-down
-log_file
-print_steps
-run_if_existing_machine
