@@ -23,7 +23,6 @@ class Dotfiles
       require "step"
       require "step/defaultable"
       require "step/sudoable"
-      require "step/launchctl"
       require "migration"
     end
 
