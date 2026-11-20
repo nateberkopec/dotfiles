@@ -1,10 +1,24 @@
 class Dotfiles::Step::SetupSSHKeysStep < Dotfiles::Step
-  DESCRIPTION = "Configures SSH to use the 1Password SSH agent, except for hosts that use a key outside it.".freeze
+  DESCRIPTION = "Configures SSH to sign with the 1Password SSH agent.".freeze
 
   macos_only
 
   SSH_CONFIG_PATH = File.expand_path("~/.ssh/config")
   OP_AGENT_PATH = "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
+  DEFAULT_AGENT = %(Host *\n  IdentityAgent "#{OP_AGENT_PATH}"\n)
+  HOMELAB_KEY = "~/.ssh/sfactory_ed25519"
+  LEGACY_BLOCK = <<~SSH
+    Host sfactory server-1 server-2
+      IdentityFile #{HOMELAB_KEY}
+      IdentitiesOnly yes
+      IdentityAgent none
+  SSH
+  AGENT_BLOCK = <<~SSH
+    Host sfactory server-1 server-2
+      IdentityFile #{HOMELAB_KEY}.pub
+      IdentitiesOnly yes
+      IdentityAgent "#{OP_AGENT_PATH}"
+  SSH
 
   def self.display_name
     "Setup SSH Keys"
@@ -15,11 +29,25 @@ class Dotfiles::Step::SetupSSHKeysStep < Dotfiles::Step
   end
 
   def run
-    debug "Setting up 1Password SSH agent..."
+    exists = @system.file_exist?(SSH_CONFIG_PATH)
+    original = exists ? @system.read_file(SSH_CONFIG_PATH) : ""
+    content = original.dup
+    if content.include?(LEGACY_BLOCK)
+      unless homelab_agent_signs?
+        add_warning(title: "Homelab SSH config unchanged", message: import_notice)
+        return
+      end
+      content.gsub!(LEGACY_BLOCK, AGENT_BLOCK)
+    end
+    unless content.include?(DEFAULT_AGENT)
+      content << "\n\n" unless content.empty?
+      content << DEFAULT_AGENT
+      add_notice(title: "1Password SSH Agent Setup", message: "Enable the SSH agent in 1Password Settings → Developer.")
+    end
+    return if content == original
     @system.mkdir_p(File.dirname(SSH_CONFIG_PATH))
-    agent_configured = configure_ssh_agent
-    add_host_blocks
-    show_setup_notice if agent_configured
+    @system.write_file(SSH_CONFIG_PATH, content)
+    @system.chmod(0o600, SSH_CONFIG_PATH) unless exists
   end
 
   def complete?
@@ -30,8 +58,8 @@ class Dotfiles::Step::SetupSSHKeysStep < Dotfiles::Step
       return false
     end
     content = @system.read_file(SSH_CONFIG_PATH)
-    validate_ssh_config(content)
-    missing_host_blocks(content).each { |block| add_error("SSH config missing #{block.lines.first.strip}") }
+    add_error("SSH config missing default 1Password agent") unless content.include?(DEFAULT_AGENT)
+    add_error("Homelab SSH still uses a private key file", fix: import_notice) if content.include?(LEGACY_BLOCK)
     @errors.empty?
   end
 
@@ -41,53 +69,12 @@ class Dotfiles::Step::SetupSSHKeysStep < Dotfiles::Step
     Dotfiles::Step::Sudoable.ci_or_noninteractive?
   end
 
-  def configure_ssh_agent
-    @system.file_exist?(SSH_CONFIG_PATH) ? append_agent_config : create_ssh_config
+  def import_notice
+    "Import #{HOMELAB_KEY} into 1Password, keep its matching .pub file and allow the SSH agent to sign, then rerun setup."
   end
 
-  def append_agent_config
-    return false if @system.read_file(SSH_CONFIG_PATH).include?("IdentityAgent")
-    @system.write_file(SSH_CONFIG_PATH, @system.read_file(SSH_CONFIG_PATH) + agent_config_block)
-    debug "Added 1Password SSH agent to #{SSH_CONFIG_PATH}"
-    true
-  end
-
-  def create_ssh_config
-    @system.write_file(SSH_CONFIG_PATH, "Host *\n  IdentityAgent \"#{OP_AGENT_PATH}\"\n")
-    @system.chmod(0o600, SSH_CONFIG_PATH)
-    debug "Created #{SSH_CONFIG_PATH} with 1Password SSH agent"
-    true
-  end
-
-  def agent_config_block
-    "\n\nHost *\n  IdentityAgent \"#{OP_AGENT_PATH}\"\n"
-  end
-
-  def add_host_blocks
-    content = @system.read_file(SSH_CONFIG_PATH)
-    missing = missing_host_blocks(content)
-    return if missing.empty?
-    agent_block = content.index(/^Host \*$/) || content.length
-    @system.write_file(SSH_CONFIG_PATH, content.dup.insert(agent_block, missing.join))
-    debug "Added #{missing.length} host blocks to #{SSH_CONFIG_PATH}"
-  end
-
-  def missing_host_blocks(content)
-    host_blocks.reject { |block| content.include?(block) }
-  end
-
-  def host_blocks
-    @config.fetch("ssh_agentless_hosts", []).map do |entry|
-      "Host #{entry.fetch("hosts").join(" ")}\n  IdentityFile #{entry.fetch("identity_file")}\n  IdentitiesOnly yes\n  IdentityAgent none\n\n"
-    end
-  end
-
-  def show_setup_notice
-    add_notice(title: "ℹ️  1Password SSH Agent Setup Required", message: "To complete SSH setup:\n1. Open 1Password app\n2. Go to Settings → Developer\n3. Enable 'Use the SSH agent'")
-  end
-
-  def validate_ssh_config(content)
-    add_error("SSH config missing IdentityAgent setting") unless content.include?("IdentityAgent")
-    add_error("SSH config missing 1Password agent reference") unless content.include?("1password")
+  def homelab_agent_signs?
+    command_succeeds?(env_command({"SSH_AUTH_SOCK" => expand_path_with_home(OP_AGENT_PATH)},
+      "ssh-add", "-T", expand_path_with_home("#{HOMELAB_KEY}.pub")))
   end
 end

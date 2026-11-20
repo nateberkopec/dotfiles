@@ -39,14 +39,23 @@ class SetupSSHKeysStepTest < Minitest::Test
 
   def test_appends_to_existing_ssh_config
     ssh_config_path = Dotfiles::Step::SetupSSHKeysStep::SSH_CONFIG_PATH
-    @fake_system.stub_file_content(ssh_config_path, "Host github.com\n  User git\n")
-
+    original = "Host github.com\n  User git\n\nHost sfactory server-1 server-2\n  IdentityFile ~/.ssh/sfactory_ed25519\n  IdentitiesOnly yes\n  IdentityAgent none\n"
+    @fake_system.stub_file_content(ssh_config_path, original)
+    socket = File.join(@home, "Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock")
+    probe = [{"SSH_AUTH_SOCK" => socket}, "ssh-add", "-T", File.join(@home, ".ssh/sfactory_ed25519.pub")]
+    @fake_system.stub_command(probe, "agent refused operation", 1)
     step = create_step(Dotfiles::Step::SetupSSHKeysStep)
     step.run
+    assert_equal original, @fake_system.read_file(ssh_config_path)
+    refute step.complete?
 
+    @fake_system.stub_command(probe, "", 0)
+    step.run
     config = @fake_system.read_file(ssh_config_path)
-    assert_includes config, "Host github.com"
-    assert_includes config, "IdentityAgent"
+    assert_includes config, "Host github.com\n  User git"
+    assert_includes config, "IdentityFile ~/.ssh/sfactory_ed25519.pub\n"
+    refute_includes config, "IdentityAgent none"
+    assert step.complete?
   end
 
   def test_adds_notice_when_setup_needed
