@@ -1,7 +1,8 @@
 ObjC.import("AppKit");
 ObjC.import("Foundation");
 
-const defaults = $.NSUserDefaults.alloc.initWithSuiteName("com.tinycast.app");
+const bundleId = "com.abueammar.tinycast";
+const defaults = $.NSUserDefaults.alloc.initWithSuiteName(bundleId);
 const stored = defaults.dataForKey("customCommands");
 const commands = stored.isNil()
 	? []
@@ -46,7 +47,7 @@ if (
 	!defaults.boolForKey("customCommandsEnabled") ||
 	!defaults.boolForKey("customCommandsShowInLauncher")
 ) {
-	const apps = $.NSRunningApplication.runningApplicationsWithBundleIdentifier("com.tinycast.app");
+	const apps = $.NSRunningApplication.runningApplicationsWithBundleIdentifier(bundleId);
 	for (let index = 0; index < apps.count; index++) {
 		const app = apps.objectAtIndex(index);
 		if (!app.terminate) throw new Error("Could not quit Tinycast to update its launchers.");
