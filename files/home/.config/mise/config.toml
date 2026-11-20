@@ -1,7 +1,4 @@
 # Managed by dotfiles. This file is the source of truth for machine-wide mise tools.
-[plugins]
-spinel-source = "https://github.com/nateberkopec/mise-backend-spinel#907d04d88bc2938b6fd152743d12265d40b44db2"
-
 [tools]
 ruby = "4.0.9"
 python = { version = "3.15.2", postinstall = "python -m pip install --upgrade pip==26.3" }
@@ -55,12 +52,22 @@ gitleaks = "8.30.1"
 "1password-cli" = "2.42.0"
 heroku = { version = "11.12.1", depends = ["github:aubepkg/aube"], aube_args = "--deny-build=cpu-features --deny-build=protobufjs --deny-build=ssh2 --deny-build=yarn" }
 
-[tools."spinel-source:tobi/try"]
+[tool_alias.spinel]
+backend = "http:spinel"
+
+[tools.spinel]
+version = "1c84866b3acaaa6c568c3f239d3f4836f43c5bbb"
+url = "https://github.com/matz/spinel/archive/{{ version }}.tar.gz"
+checksum = "sha256:89708966ddab17a55437637d669e0a3dbe381f88b4b0dca6d884d0160fe7b115"
+strip_components = 1
+bin_path = "bin"
+postinstall = 'cd "$MISE_TOOL_INSTALL_PATH" && make deps && make -j2'
+
+[tools."spinel:tobi/try"]
 version = "1.10.1"
 entrypoint = "try.rb"
 bin = "try"
 source_ref = "be566829856ca6bd22963e38a28ffb5efa24c7de"
-spinel_ref = "1c84866b3acaaa6c568c3f239d3f4836f43c5bbb"
 tag_prefix = "v"
 
 [settings]

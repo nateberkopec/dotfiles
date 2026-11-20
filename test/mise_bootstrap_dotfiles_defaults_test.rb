@@ -42,15 +42,15 @@ class MiseBootstrapDotfilesDefaultsTest < Minitest::Test
     refute defaults.key?("com.raycast.macos")
   end
 
-  def test_builds_native_try_with_pinned_spinel_backend
-    tool = config.fetch("tools").fetch("spinel-source:tobi/try")
+  def test_builds_native_try_with_pinned_spinel_compiler
+    tool = config.fetch("tools").fetch("spinel:tobi/try")
 
-    assert_match %r{\Ahttps://github\.com/nateberkopec/mise-backend-spinel#[0-9a-f]{40}\z}, config.fetch("plugins").fetch("spinel-source")
+    assert_equal "http:spinel", config.dig("tool_alias", "spinel", "backend")
     assert_equal "1.10.1", tool.fetch("version")
     assert_equal "try", tool.fetch("bin")
     assert_equal "try.rb", tool.fetch("entrypoint")
     assert_equal "be566829856ca6bd22963e38a28ffb5efa24c7de", tool.fetch("source_ref")
-    assert_equal "1c84866b3acaaa6c568c3f239d3f4836f43c5bbb", tool.fetch("spinel_ref")
+    assert_equal "1c84866b3acaaa6c568c3f239d3f4836f43c5bbb", config.fetch("tools").fetch("spinel").fetch("version")
   end
 
   def test_installs_native_tinycast_release
