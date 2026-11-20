@@ -1,0 +1,8 @@
+{
+  "transformations": ["baseten-cleanup"],
+  "labs": ["vocabulary_biasing"],
+  "vocabulary": {
+    "Berkopec": ["Berkavec", "Perkapec", "Berkapec", "Burkopec", "Berkovec", "Berkapek", "Berkopek", "Perkopec", "Burkavec", "Berko pec"],
+    "Nate Berkopec": ["Nate Berkavec", "Nate Perkapec", "Nate Berkapec", "Nate Burkopec", "Nate Berkovec"]
+  }
+}
