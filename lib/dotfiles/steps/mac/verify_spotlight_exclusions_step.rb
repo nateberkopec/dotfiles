@@ -1,7 +1,10 @@
 require "json"
 
 class Dotfiles::Step::VerifySpotlightExclusionsStep < Dotfiles::Step
+  VOLUME_CONFIGURATION = "/System/Volumes/Data/.Spotlight-V100/VolumeConfiguration.plist".freeze
   DESCRIPTION = "Verifies that Spotlight Search Privacy excludes the declared folders.".freeze
+
+  prepend Dotfiles::Step::Sudoable
 
   macos_only
 
@@ -29,11 +32,7 @@ class Dotfiles::Step::VerifySpotlightExclusionsStep < Dotfiles::Step
   end
 
   def excluded_paths
-    output, status = execute(command("plutil", "-extract", "Exclusions", "json", "-o", "-", preferences_path))
+    output, status = execute(command("plutil", "-extract", "Exclusions", "json", "-o", "-", VOLUME_CONFIGURATION), sudo: true)
     (status == 0) ? JSON.parse(output) : []
-  end
-
-  def preferences_path
-    File.join(@home, "Library", "Preferences", "com.apple.Spotlight.plist")
   end
 end
