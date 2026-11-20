@@ -27,7 +27,7 @@ test("Paseo launches only Pi with the default datasafe policy and a PATH-resolve
 	const providers = config.agents.providers;
 	assert.deepEqual(providers.pi.command, ["pi"]);
 	assert.deepEqual(providers.pi.env, {
-		PI_DATASAFE_MODE: "usa-no-train",
+		PI_DATASAFE_MODE: "allowlist",
 		NONINTERACTIVE: "1",
 		PI_SKIP_VERSION_CHECK: "1",
 	});
