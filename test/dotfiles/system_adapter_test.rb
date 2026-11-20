@@ -3,7 +3,6 @@ require "rbconfig"
 require "stringio"
 require "tmpdir"
 
-# standard:disable Dotfiles/BanFileSystemClasses
 class SystemAdapterTest < Minitest::Test
   class TestSystemAdapter < Dotfiles::SystemAdapter
     attr_reader :calls
@@ -327,4 +326,3 @@ class SystemAdapterTest < Minitest::Test
     nil
   end
 end
-# standard:enable Dotfiles/BanFileSystemClasses

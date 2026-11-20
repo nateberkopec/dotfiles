@@ -1,4 +1,3 @@
-# standard:disable Dotfiles/BanFileSystemClasses -- black-box script test requires real temporary files
 require "test_helper"
 require "fileutils"
 require "open3"
@@ -53,4 +52,3 @@ class WallpaperLauncherTest < Minitest::Test
     File.expand_path("../files/home/.local/share/dotfiles/launch-woodblock-wallpaper", __dir__)
   end
 end
-# standard:enable Dotfiles/BanFileSystemClasses

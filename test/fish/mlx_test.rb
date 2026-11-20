@@ -3,7 +3,6 @@ require "open3"
 require "shellwords"
 require "tmpdir"
 
-# standard:disable Dotfiles/BanFileSystemClasses
 class MlxTest < Minitest::Test
   FUNCTION_PATH = File.expand_path("../../files/home/.config/fish/functions/mlx.fish", __dir__)
 
@@ -69,4 +68,3 @@ class MlxTest < Minitest::Test
     SH
   end
 end
-# standard:enable Dotfiles/BanFileSystemClasses

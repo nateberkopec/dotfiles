@@ -3,7 +3,6 @@ require "fileutils"
 require "open3"
 require "tmpdir"
 
-# standard:disable Dotfiles/BanFileSystemClasses
 class IntegrationChangeDetectionTest < Minitest::Test
   SCRIPT = File.expand_path("../tools/ci/detect_optional_integration.sh", __dir__)
 
@@ -143,4 +142,3 @@ class IntegrationChangeDetectionTest < Minitest::Test
     output
   end
 end
-# standard:enable Dotfiles/BanFileSystemClasses

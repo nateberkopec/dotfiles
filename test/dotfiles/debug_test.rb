@@ -1,7 +1,6 @@
 require "test_helper"
 require "tmpdir"
 
-# standard:disable Dotfiles/BanFileSystemClasses
 class DotfilesDebugTest < Minitest::Test
   TIMESTAMPED_LINE = /\A\[\d{2}:\d{2}:\d{2}\.\d{3}\] /
 
@@ -62,4 +61,3 @@ class DotfilesDebugTest < Minitest::Test
     end
   end
 end
-# standard:enable Dotfiles/BanFileSystemClasses

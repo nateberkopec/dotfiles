@@ -3,7 +3,6 @@ require "open3"
 require "test_helper"
 require "tmpdir"
 
-# standard:disable Dotfiles/BanFileSystemClasses -- black-box wrapper test requires real temporary executables
 class PiNpmTest < Minitest::Test
   def test_translates_peer_flags_without_bypassing_aube_or_its_scanner
     with_tools('printf "%s\\n" "$AUBE_SECURITY_SCANNER" >&2; printf "%s\\n" "$@"') do |env, command|
@@ -59,4 +58,3 @@ class PiNpmTest < Minitest::Test
     File.chmod(0o755, path)
   end
 end
-# standard:enable Dotfiles/BanFileSystemClasses

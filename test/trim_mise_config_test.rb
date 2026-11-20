@@ -1,7 +1,6 @@
 require "test_helper"
 require "toml-rb"
 
-# standard:disable Dotfiles/BanFileSystemClasses
 class TrimMiseConfigTest < Minitest::Test
   def test_trims_ci_managed_tables_and_removes_launchd
     Dir.mktmpdir do |dir|
@@ -73,4 +72,3 @@ class TrimMiseConfigTest < Minitest::Test
     File.expand_path("../tools/ci/trim_mise_config.rb", __dir__)
   end
 end
-# standard:enable Dotfiles/BanFileSystemClasses

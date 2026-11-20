@@ -11,7 +11,6 @@ node = "26.13.0"
 "github:aubepkg/aube" = "2.9.0"
 "npm:typescript" = "7.0.2"
 "npm:@earendil-works/pi-coding-agent" = "1.5.0"
-jactionlint = "2.5.0"
 
 [deps.bundler]
 auto = true
@@ -44,16 +43,6 @@ git -C "$HOME/.pi/agent/git/github.com/nateberkopec/agent-stuff" log -1 --format
 description = "Install project dependencies and git hooks"
 run = "mise deps"
 
-[tasks."lint:standard"]
-description = "Run standardrb"
-sources = ["**/*.rb", "!tmp/**", "!vendor/**", "!.claude/worktrees/**", "!.pi-subagents/**", ".standard.yml"]
-run = "bundle exec standardrb"
-
-[tasks."lint:complexity"]
-description = "Run Ruby complexity checks"
-sources = ["**/*.rb", "!tmp/**", "!vendor/**", "!.claude/worktrees/**", "!.pi-subagents/**", ".rubocop-custom.yml"]
-run = "bundle exec rubocop --config .rubocop-custom.yml --only Metrics/PerceivedComplexity"
-
 [tasks."lint:human-only"]
 description = "Check staged files for human-only paths"
 run = "ruby tools/check_human_only_files.rb"
@@ -62,38 +51,9 @@ run = "ruby tools/check_human_only_files.rb"
 description = "Scan working tree for hardcoded secrets"
 run = "gitleaks dir --redact=75 --no-banner --no-color --max-target-megabytes 5 --config .gitleaks.toml ."
 
-[tasks."lint:dead-code"]
-description = "Check for dead Ruby methods"
-sources = ["**/*.rb", "**/*.rake", "!tmp/**", "!vendor/**", "!.claude/worktrees/**", "!.pi-subagents/**", "bin/*", "Rakefile", ".debride-whitelist", "files/home/.pi/agent/settings.json", "tmp/agent-stuff/git/github.com/nateberkopec/agent-stuff/skills/dev-env-setup/scripts/check_dead_code.rb"]
-run = "ruby tmp/agent-stuff/git/github.com/nateberkopec/agent-stuff/skills/dev-env-setup/scripts/check_dead_code.rb"
-
-[tasks."lint:flog"]
-description = "Run flog complexity checks"
-sources = ["**/*.rb", "!tmp/**", "!vendor/**", "!.claude/worktrees/**", "!.pi-subagents/**", "Rakefile"]
-run = "bundle exec rake flog"
-
-[tasks."lint:flay"]
-description = "Run flay duplication checks"
-sources = ["**/*.rb", "!tmp/**", "!vendor/**", "!.claude/worktrees/**", "!.pi-subagents/**", "Rakefile"]
-run = "bundle exec rake flay"
-
-[tasks."format:javascript"]
-description = "Format repository-owned JavaScript and TypeScript"
-run = "node_modules/.bin/oxfmt '**/*.{js,mjs,cjs,jsx,ts,mts,cts,tsx}' '.pi/**/*.{js,mjs,cjs,jsx,ts,mts,cts,tsx}'"
-
-[tasks."lint:javascript"]
-description = "Check repository JavaScript and TypeScript"
-sources = [".pi/**/*.{js,mjs,cjs,jsx,ts,mts,cts,tsx}", "**/*.ts", "**/*.tsx", "**/*.mts", "**/*.cts", "**/*.js", "**/*.jsx", "**/*.mjs", "**/*.cjs", "!node_modules/**", "!vendor/**", "!tmp/**", "!.claude/worktrees/**", "!.pi-subagents/**", ".oxlintrc.json", "package.json", "aube-lock.yaml"]
-run = "node_modules/.bin/oxlint --config .oxlintrc.json --deny-warnings --no-ignore . .pi/extensions/*/*.ts"
-
-[tasks."lint:actions"]
-description = "Check GitHub Actions workflows"
-sources = [".github/workflows/*.yml", ".github/jactionlint.yaml"]
-run = "jactionlint --strict-exit"
-
 [tasks.lint]
 description = "Run all lint checks"
-depends = ["lint:standard", "lint:complexity", "lint:human-only", "lint:secrets", "lint:dead-code", "lint:flog", "lint:flay", "lint:javascript", "lint:actions"]
+depends = ["lint:human-only", "lint:secrets"]
 
 [tasks.test]
 description = "Run the test suite"

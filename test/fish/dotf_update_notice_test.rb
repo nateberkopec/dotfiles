@@ -2,7 +2,6 @@ require "test_helper"
 require "open3"
 require "tmpdir"
 
-# standard:disable Dotfiles/BanFileSystemClasses
 class DotfUpdateNoticeTest < Minitest::Test
   GIT_ENV = ENV.keys.grep(/\AGIT_/).to_h { |name| [name, nil] }.freeze
   CONFIG_PATH = File.expand_path("../../files/home/.config/fish/config.fish", __dir__)
@@ -194,4 +193,3 @@ class DotfUpdateNoticeTest < Minitest::Test
     output
   end
 end
-# standard:enable Dotfiles/BanFileSystemClasses

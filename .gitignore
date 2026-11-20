@@ -8,7 +8,6 @@ mise.lock
 !files/home/.config/mise/mise.lock
 mise.local.lock
 logs/
-.rubocop_cache/
 .bundle/
 .claude/settings.local.json
 .claude/worktrees/

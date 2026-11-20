@@ -3,7 +3,6 @@ require "fileutils"
 require "open3"
 require "tmpdir"
 
-# standard:disable Dotfiles/BanFileSystemClasses
 class PackageProbeTest < Minitest::Test
   SCRIPT = File.expand_path("../tools/ci/package_probe.sh", __dir__)
 
@@ -75,4 +74,3 @@ class PackageProbeTest < Minitest::Test
     assert status.success?, output
   end
 end
-# standard:enable Dotfiles/BanFileSystemClasses

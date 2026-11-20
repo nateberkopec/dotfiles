@@ -2,7 +2,6 @@ require "test_helper"
 require "open3"
 require "tmpdir"
 
-# standard:disable Dotfiles/BanFileSystemClasses
 class SafetyEnvironmentTest < Minitest::Test
   SCRIPT = File.expand_path("../../files/home/.config/bash/safety.bash", __dir__)
 
@@ -77,4 +76,3 @@ class SafetyEnvironmentTest < Minitest::Test
     FileUtils.chmod("u+x", path)
   end
 end
-# standard:enable Dotfiles/BanFileSystemClasses

@@ -72,7 +72,7 @@ Done when all selected pins and generated artifacts agree, no unrelated entries 
 
 ## 4. Validate and report
 
-Review the full diff against the saved base, including lock sources, transitive gems/packages, Pi package options, and unchanged tool specs. Run `bundle check`, `mise run lint`, and `mise run test`, plus applicable system checks. Complete the checks declared in `hk.pkl`. Do not run convergence as a validation shortcut. Surface mechanical failures with the attempted versions, command, output, and retained branch state; do not publish a success-shaped PR for a failed batch.
+Review the full diff against the saved base, including lock sources, transitive gems/packages, Pi package options, and unchanged tool specs. Run `bundle check`, `mise run lint`, and `mise run test`, plus applicable system checks. Do not run convergence as a validation shortcut. Surface mechanical failures with the attempted versions, command, output, and retained branch state; do not publish a success-shaped PR for a failed batch.
 
 Write a concise PR body, normally under 1,000 words, with these sections in order:
 

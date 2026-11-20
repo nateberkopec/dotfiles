@@ -1,7 +1,6 @@
 require "test_helper"
 require "open3"
 
-# standard:disable Dotfiles/BanFileSystemClasses
 class DotfNoninteractiveTest < Minitest::Test
   def test_noninteractive_defers_privileged_work_and_preserves_existing_markers
     %w[1 true].each { |mode| assert_partial_run(mode, existing: true) }
@@ -74,4 +73,3 @@ class DotfNoninteractiveTest < Minitest::Test
     end
   end
 end
-# standard:enable Dotfiles/BanFileSystemClasses

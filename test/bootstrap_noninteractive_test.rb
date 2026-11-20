@@ -2,7 +2,6 @@ require "test_helper"
 require "open3"
 require_relative "support/bootstrap_script_helper"
 
-# standard:disable Dotfiles/BanFileSystemClasses
 class BootstrapNoninteractiveTest < Minitest::Test
   include BootstrapScriptHelper
 
@@ -74,4 +73,3 @@ class BootstrapNoninteractiveTest < Minitest::Test
     end
   end
 end
-# standard:enable Dotfiles/BanFileSystemClasses

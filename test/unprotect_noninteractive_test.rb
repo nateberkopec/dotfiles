@@ -2,7 +2,6 @@ require "test_helper"
 require "open3"
 require "tmpdir"
 
-# standard:disable Dotfiles/BanFileSystemClasses
 class UnprotectNoninteractiveTest < Minitest::Test
   def test_noninteractive_reports_immutable_files_without_elevating
     Dir.mktmpdir do |home|
@@ -28,4 +27,3 @@ class UnprotectNoninteractiveTest < Minitest::Test
     end
   end
 end
-# standard:enable Dotfiles/BanFileSystemClasses

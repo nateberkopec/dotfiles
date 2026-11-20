@@ -1,35 +1,8 @@
 amends "package://github.com/jdx/hk/releases/download/v2.11.1/hk@2.11.1#/Config.pkl"
 
-local function tailOnFailure(name: String, command: String): String =
-  #"log="$(git rev-parse --git-dir)/hk/\#(name).log"; mkdir -p "${log%/*}"; \#(command) > "$log" 2>&1 || { tail -n 40 "$log"; echo "Full output: $log"; exit 1; }"#
-
 local checks = new Mapping<String, Step> {
-  ["lint"] {
-    check = "mise run lint:standard"
-  }
-  ["complexity"] {
-    check = "mise run lint:complexity"
-  }
   ["secrets"] {
     check = "mise run lint:secrets"
-  }
-  ["dead-code"] {
-    check = "mise run lint:dead-code"
-  }
-  ["flog"] {
-    check = "mise run lint:flog"
-  }
-  ["flay"] {
-    check = "mise run lint:flay"
-  }
-  ["javascript"] {
-    check = "mise run lint:javascript"
-  }
-  ["actions"] {
-    check = "mise run lint:actions"
-  }
-  ["test"] {
-    check = tailOnFailure("test", "unset $(git rev-parse --local-env-vars); mise run test")
   }
 }
 

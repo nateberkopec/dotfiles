@@ -9,7 +9,7 @@ I make changes to this repository exclusively through GitHub pull requests. Push
 - CI usually takes about 10 minutes to finish running.
 - Never use `[ci skip]`, `[skip ci]`, or similar commit-message skip markers in this repository, including for docs-only changes. GitHub skips required workflows entirely.
 
-Lints enforced on this codebase via `hk`, see `hk.pkl`.
+The pre-commit hook (`hk`, see `hk.pkl`) scans for secrets and blocks protected documentation edits.
 
 ## Protected documentation
 

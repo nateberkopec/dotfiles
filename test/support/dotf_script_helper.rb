@@ -1,4 +1,3 @@
-# standard:disable Dotfiles/BanFileSystemClasses
 require "fileutils"
 require "shellwords"
 require "tmpdir"
@@ -41,4 +40,3 @@ module DotfScriptHelper
     Dir.children(logs_dir).grep(/\Adotf_.*\.log\z/)
   end
 end
-# standard:enable Dotfiles/BanFileSystemClasses

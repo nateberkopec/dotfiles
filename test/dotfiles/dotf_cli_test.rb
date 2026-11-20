@@ -1,7 +1,6 @@
 require "test_helper"
 require "open3"
 
-# standard:disable Dotfiles/BanFileSystemClasses
 class DotfCliTest < Minitest::Test
   def test_init_logging_keeps_only_last_thirty_dotf_logs
     with_dotf_script do |tmpdir, script_path, logs_dir|
@@ -320,4 +319,3 @@ class DotfCliTest < Minitest::Test
     BASH
   end
 end
-# standard:enable Dotfiles/BanFileSystemClasses

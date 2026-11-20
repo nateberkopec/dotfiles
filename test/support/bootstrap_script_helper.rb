@@ -1,4 +1,3 @@
-# standard:disable Dotfiles/BanFileSystemClasses
 require "fileutils"
 require "shellwords"
 require "tmpdir"
@@ -140,4 +139,3 @@ module BootstrapScriptHelper
     File.expand_path("../../bin/bootstrap", __dir__)
   end
 end
-# standard:enable Dotfiles/BanFileSystemClasses

@@ -2,7 +2,6 @@ require "test_helper"
 require "toml-rb"
 
 # Inspect repository fixtures, not the live home directory.
-# standard:disable Dotfiles/BanFileSystemClasses
 class AgentCompatibilityPathsTest < Minitest::Test
   ROOT = File.expand_path("..", __dir__)
 
@@ -44,4 +43,3 @@ class AgentCompatibilityPathsTest < Minitest::Test
     assert_equal relative_source, resources.fetch(destination.delete_prefix("~/"))
   end
 end
-# standard:enable Dotfiles/BanFileSystemClasses

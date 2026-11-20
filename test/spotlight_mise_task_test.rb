@@ -1,4 +1,3 @@
-# standard:disable Dotfiles/BanFileSystemClasses -- black-box mise task test requires real temporary files
 require "test_helper"
 require "open3"
 require "tmpdir"
@@ -38,4 +37,3 @@ class SpotlightMiseTaskTest < Minitest::Test
     TomlRB.load_file(File.join(__dir__, "..", "files", "home", ".config", "mise", "config.toml"))
   end
 end
-# standard:enable Dotfiles/BanFileSystemClasses

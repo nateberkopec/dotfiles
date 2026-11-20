@@ -1,4 +1,3 @@
-# standard:disable Dotfiles/BanFileSystemClasses -- black-box controller test requires real temporary files
 require "test_helper"
 require "open3"
 require "timeout"
@@ -191,4 +190,3 @@ class SpotlightControllerTest < Minitest::Test
     end
   end
 end
-# standard:enable Dotfiles/BanFileSystemClasses

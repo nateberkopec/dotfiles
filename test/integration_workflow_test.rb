@@ -1,7 +1,6 @@
 require "test_helper"
 require "open3"
 
-# standard:disable Dotfiles/BanFileSystemClasses
 class IntegrationWorkflowTest < Minitest::Test
   RESULT_CHECKER = File.expand_path("../tools/ci/check_integration_results.sh", __dir__)
   WORKFLOW = File.expand_path("../.github/workflows/full-integration-test.yml", __dir__)
@@ -62,4 +61,3 @@ class IntegrationWorkflowTest < Minitest::Test
     refute status.success?
   end
 end
-# standard:enable Dotfiles/BanFileSystemClasses

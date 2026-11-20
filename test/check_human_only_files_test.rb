@@ -3,7 +3,6 @@ require "fileutils"
 require "open3"
 require "tmpdir"
 
-# standard:disable Dotfiles/BanFileSystemClasses
 class CheckHumanOnlyFilesTest < Minitest::Test
   def test_allows_default_empty_index
     with_git_repo do |repo|
@@ -104,4 +103,3 @@ class CheckHumanOnlyFilesTest < Minitest::Test
     system("git", "-C", repo, "add", relative_path, out: File::NULL, err: File::NULL)
   end
 end
-# standard:enable Dotfiles/BanFileSystemClasses

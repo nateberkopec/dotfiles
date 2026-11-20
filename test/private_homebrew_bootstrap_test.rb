@@ -1,7 +1,6 @@
 require "test_helper"
 require_relative "support/bootstrap_script_helper"
 
-# standard:disable Dotfiles/BanFileSystemClasses
 class PrivateHomebrewBootstrapTest < Minitest::Test
   include BootstrapScriptHelper
 
@@ -39,4 +38,3 @@ class PrivateHomebrewBootstrapTest < Minitest::Test
     BASH
   end
 end
-# standard:enable Dotfiles/BanFileSystemClasses

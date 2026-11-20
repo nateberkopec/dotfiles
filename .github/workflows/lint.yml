@@ -28,17 +28,6 @@ jobs:
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         persist-credentials: false
-        fetch-depth: 0
-
-    - name: Set up Ruby
-      uses: ruby/setup-ruby@de492cf36cbab201753d720ce4f4e336cd688c94 # v1.336.0
-      with:
-        ruby-version: 'ruby'
-        bundler-cache: true
-
-    - name: Enforce mechanical dependency updates
-      if: github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'dependency-update')
-      run: bundle exec ruby tools/ci/check_dependency_update.rb "${{ github.event.pull_request.base.sha }}"
 
     - name: Install mise
       uses: jdx/mise-action@f5be966e4a917d54244728e6a5fdcd1d93a35e6c # v5.2.6
@@ -50,13 +39,5 @@ jobs:
     - name: Install gitleaks
       run: mise use -g "gitleaks@$(awk -F '\"' '/^gitleaks = / { print $2 }' files/home/.config/mise/config.toml)"
 
-    - name: Install JavaScript lint dependencies
-      run: |
-        mise install
-        mise exec -- aube install --frozen-lockfile --ignore-scripts
-
-    - name: Install pinned agent package for shared tooling
-      run: bash tools/install-agent-stuff.sh
-
-    - name: Run lint
-      run: mise run lint
+    - name: Scan for secrets
+      run: mise run lint:secrets

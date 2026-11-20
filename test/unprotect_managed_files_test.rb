@@ -1,4 +1,3 @@
-# standard:disable Dotfiles/BanFileSystemClasses -- black-box script test requires real temporary files
 require "test_helper"
 require "fileutils"
 require "open3"
@@ -43,4 +42,3 @@ class UnprotectManagedFilesTest < Minitest::Test
     FileUtils.chmod(0o755, path)
   end
 end
-# standard:enable Dotfiles/BanFileSystemClasses
