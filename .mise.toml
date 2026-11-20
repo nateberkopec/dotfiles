@@ -59,8 +59,11 @@ description = "Check staged files for human-only paths"
 run = "ruby tools/check_human_only_files.rb"
 
 [tasks."lint:secrets"]
-description = "Scan working tree for hardcoded secrets"
-run = "gitleaks dir --redact=75 --no-banner --no-color --max-target-megabytes 5 --config .gitleaks.toml ."
+description = "Scan git history and staged changes for hardcoded secrets"
+run = """
+gitleaks git --redact=75 --no-banner --no-color --max-target-megabytes 5 --config .gitleaks.toml .
+gitleaks git --pre-commit --staged --redact=75 --no-banner --no-color --max-target-megabytes 5 --config .gitleaks.toml .
+"""
 
 [tasks."lint:dead-code"]
 description = "Check for dead Ruby methods"
