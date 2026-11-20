@@ -40,15 +40,24 @@ class SetupSSHKeysStepTest < Minitest::Test
   def test_appends_to_existing_ssh_config
     ssh_config_path = Dotfiles::Step::SetupSSHKeysStep::SSH_CONFIG_PATH
     original = "Host github.com\n  User git\n\nHost sfactory server-1 server-2\n  IdentityFile ~/.ssh/sfactory_ed25519\n  IdentitiesOnly yes\n  IdentityAgent none\n"
-    @fake_system.stub_file_content(ssh_config_path, original)
     socket = File.join(@home, "Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock")
     probe = [{"SSH_AUTH_SOCK" => socket}, "ssh-add", "-T", File.join(@home, ".ssh/sfactory_ed25519.pub")]
-    @fake_system.stub_command(probe, "agent refused operation", 1)
+    @fake_system.stub_command(probe, "no such file", 1)
+    @fake_system.stub_file_content(ssh_config_path, original)
     step = create_step(Dotfiles::Step::SetupSSHKeysStep)
+    step.run
+    assert step.complete?
+    refute_includes @fake_system.read_file(ssh_config_path), "IdentityFile ~/.ssh/sfactory_ed25519"
+    refute step.should_run?
+
+    @fake_system.stub_file_content(ssh_config_path, original)
+    @fake_system.stub_file_content(File.join(@home, ".ssh/sfactory_ed25519"), "key")
+    @fake_system.stub_command(probe, "agent refused operation", 1)
     step.run
     assert_equal original, @fake_system.read_file(ssh_config_path)
     refute step.complete?
 
+    @fake_system.stub_file_content(File.join(@home, ".ssh/sfactory_ed25519.pub"), "public key")
     @fake_system.stub_command(probe, "", 0)
     step.run
     config = @fake_system.read_file(ssh_config_path)

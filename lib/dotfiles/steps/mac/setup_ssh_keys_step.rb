@@ -32,13 +32,7 @@ class Dotfiles::Step::SetupSSHKeysStep < Dotfiles::Step
     exists = @system.file_exist?(SSH_CONFIG_PATH)
     original = exists ? @system.read_file(SSH_CONFIG_PATH) : ""
     content = original.dup
-    if content.include?(LEGACY_BLOCK)
-      unless homelab_agent_signs?
-        add_warning(title: "Homelab SSH config unchanged", message: import_notice)
-        return
-      end
-      content.gsub!(LEGACY_BLOCK, AGENT_BLOCK)
-    end
+    return unless migrate_homelab_block(content)
     unless content.include?(DEFAULT_AGENT)
       content << "\n\n" unless content.empty?
       content << DEFAULT_AGENT
@@ -67,6 +61,19 @@ class Dotfiles::Step::SetupSSHKeysStep < Dotfiles::Step
 
   def unattended?
     Dotfiles::Step::Sudoable.ci_or_noninteractive?
+  end
+
+  def migrate_homelab_block(content)
+    return true unless content.include?(LEGACY_BLOCK)
+    if [HOMELAB_KEY, "#{HOMELAB_KEY}.pub"].none? { |path| @system.file_exist?(expand_path_with_home(path)) }
+      content.gsub!(LEGACY_BLOCK, LEGACY_BLOCK.lines.first)
+    elsif homelab_agent_signs?
+      content.gsub!(LEGACY_BLOCK, AGENT_BLOCK)
+    else
+      add_warning(title: "Homelab SSH config unchanged", message: import_notice)
+      return false
+    end
+    true
   end
 
   def import_notice
