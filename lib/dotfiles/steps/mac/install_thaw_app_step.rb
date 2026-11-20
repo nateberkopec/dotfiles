@@ -1,7 +1,7 @@
 class Dotfiles::Step::InstallThawAppStep < Dotfiles::Step
   DESCRIPTION = "Installs the pinned Thaw release on admin macOS machines.".freeze
-  VERSION = "2.0.1".freeze
-  SHA256 = "5e4a17c39075a9d27b0c9c31619cee875880befa79021d8ddc9ae6d90e345cbf".freeze
+  VERSION = "3.0.0-beta.6".freeze
+  SHA256 = "bc77604fb0af7427b6468a6bce307f5edee790172b1f28a65b8e616deff80602".freeze
   URL = "https://github.com/thaw-app/Thaw/releases/download/#{VERSION}/Thaw.dmg".freeze
 
   macos_only
@@ -18,7 +18,7 @@ class Dotfiles::Step::InstallThawAppStep < Dotfiles::Step
     image = temp_path("thaw-release.dmg")
     download_image(image)
     install_app(image)
-    add_notice(title: "Thaw setup", message: "Open Thaw, grant Accessibility, and choose your layout and launch-at-login settings. Thaw keeps your profiles and preferences locally.")
+    add_notice(title: "Thaw setup", message: "Open Thaw, grant Accessibility, and turn on launch at login. Dotfiles sync your menu bar profile.")
   ensure
     @system.rm_rf(image) if image
   end
