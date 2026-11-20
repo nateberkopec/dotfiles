@@ -36,15 +36,9 @@ brew_casks:
   - visual-studio-code
   - whatsapp
   - zoom
-spotlight_settings:
-  enabled: true
-  volumes:
-  - "/"
-  - "/System/Volumes/Data"
-  exclusions:
-  - "~/Documents/Code.nosync"
-  - "~/src"
-  check_interval_seconds: 60
+spotlight_exclusions:
+- "~/Documents/Code.nosync"
+- "~/src"
 time_machine_settings:
   auto_backup: true
   auto_backup_interval_seconds: 86400
