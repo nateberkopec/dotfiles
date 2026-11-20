@@ -40,4 +40,4 @@ jobs:
       run: mise use -g "gitleaks@$(awk -F '\"' '/^gitleaks = / { print $2 }' files/home/.config/mise/config.toml)"
 
     - name: Scan for secrets
-      run: mise run lint:secrets
+      run: mise exec -- gitleaks dir --redact=75 --no-banner --no-color --max-target-megabytes 5 --config .gitleaks.toml .
