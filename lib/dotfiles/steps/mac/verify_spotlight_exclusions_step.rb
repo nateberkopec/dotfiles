@@ -30,7 +30,7 @@ class Dotfiles::Step::VerifySpotlightExclusionsStep < Dotfiles::Step
   end
 
   def excluded_paths
-    output, status = execute(shell_script("mdutil -P /System/Volumes/Data | plutil -extract Exclusions json -o - -"), sudo: true)
+    output, status = execute(shell_script("mdutil -P /System/Volumes/Data | sed -n '/^<?xml/,$p' | plutil -extract Exclusions json -o - -"), sudo: true)
     (status == 0) ? JSON.parse(output) : []
   end
 end
