@@ -69,6 +69,19 @@ end
 function pi-unsafe --description 'Start Pi without data-safety restrictions'
   set -l node_root (mise -C "$HOME" where node); or return
   set -lx PATH "$node_root/bin" $PATH
+
+  if test -x /usr/bin/security
+    set -l account (id -un); or return
+    for variable in AI_GATEWAY_API_KEY OPENROUTER_API_KEY
+      set -l service "pi-unsafe.$variable"
+      if set -l key (/usr/bin/security find-generic-password -a "$account" -s "$service" -w 2>/dev/null); and test -n "$key"
+        set -fx $variable "$key"
+      else if status is-interactive; and test -z "$$variable"
+        printf 'pi-unsafe: could not load Keychain item %s\n' "$service" >&2
+      end
+    end
+  end
+
   NONINTERACTIVE=1 PI_DATASAFE_MODE=unrestricted PI_SKIP_VERSION_CHECK=1 command pi $argv
 end
 
