@@ -35,6 +35,7 @@ class SetupSSHKeysStepTest < Minitest::Test
     config = @fake_system.read_file(Dotfiles::Step::SetupSSHKeysStep::SSH_CONFIG_PATH)
     assert_includes config, "IdentityAgent"
     assert_includes config, "1password"
+    assert_includes config, "ControlPersist 12h"
   end
 
   def test_appends_to_existing_ssh_config

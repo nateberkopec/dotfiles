@@ -19,6 +19,12 @@ class Dotfiles::Step::SetupSSHKeysStep < Dotfiles::Step
       IdentitiesOnly yes
       IdentityAgent "#{OP_AGENT_PATH}"
   SSH
+  CONTROL_BLOCK = <<~SSH
+    Host sfactory server-1 server-2
+      ControlMaster auto
+      ControlPath ~/.ssh/cm-%C
+      ControlPersist 12h
+  SSH
 
   def self.display_name
     "Setup SSH Keys"
@@ -38,6 +44,10 @@ class Dotfiles::Step::SetupSSHKeysStep < Dotfiles::Step
       content << DEFAULT_AGENT
       add_notice(title: "1Password SSH Agent Setup", message: "Enable the SSH agent in 1Password Settings → Developer.")
     end
+    unless content.include?(CONTROL_BLOCK)
+      content << "\n" unless content.end_with?("\n\n")
+      content << CONTROL_BLOCK
+    end
     return if content == original
     @system.mkdir_p(File.dirname(SSH_CONFIG_PATH))
     @system.write_file(SSH_CONFIG_PATH, content)
@@ -53,6 +63,7 @@ class Dotfiles::Step::SetupSSHKeysStep < Dotfiles::Step
     end
     content = @system.read_file(SSH_CONFIG_PATH)
     add_error("SSH config missing default 1Password agent") unless content.include?(DEFAULT_AGENT)
+    add_error("SSH config missing homelab connection reuse") unless content.include?(CONTROL_BLOCK)
     add_error("Homelab SSH still uses a private key file", fix: import_notice) if content.include?(LEGACY_BLOCK)
     @errors.empty?
   end
