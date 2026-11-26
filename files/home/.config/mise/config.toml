@@ -48,6 +48,7 @@ zoxide = "0.10.0"
 pkl = "0.33.0"
 pitchfork = "2.35.0"
 claude = "2.1.326"
+agy = { version = "1.5.18", minimum_release_age = "0d" }
 gitleaks = "8.30.1"
 "1password-cli" = "2.42.0"
 heroku = { version = "11.13.0", depends = ["github:aubepkg/aube"], aube_args = "--deny-build=cpu-features --deny-build=protobufjs --deny-build=ssh2 --deny-build=yarn" }

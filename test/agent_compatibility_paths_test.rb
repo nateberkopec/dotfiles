@@ -7,7 +7,7 @@ class AgentCompatibilityPathsTest < Minitest::Test
   ROOT = File.expand_path("..", __dir__)
 
   def test_all_harnesses_share_canonical_skills
-    %w[~/.agents/skills ~/.claude/skills ~/.codex/skills ~/.pi/agent/skills/claude].each do |destination|
+    %w[~/.agents/skills ~/.claude/skills ~/.codex/skills ~/.gemini/config/skills ~/.pi/agent/skills/claude].each do |destination|
       assert_canonical_link destination, "skills"
     end
     assert File.file?(File.join(ROOT, "tmp/agent-stuff/git/github.com/nateberkopec/agent-stuff/skills/dev-env-setup/SKILL.md"))

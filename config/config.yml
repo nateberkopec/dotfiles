@@ -3,6 +3,7 @@ agent_resources:
   .agents/skills: skills
   .claude/skills: skills
   .codex/skills: skills
+  .gemini/config/skills: skills
   .pi/agent/skills/claude: skills
   .pi/agent/agents/reviewer.md: agents/reviewer.md
   .agents/researcher.md: agents/researcher.md
