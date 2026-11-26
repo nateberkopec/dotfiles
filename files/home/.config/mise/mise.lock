@@ -10,6 +10,28 @@ url = "https://cache.agilebits.com/dist/1P/op2/pkg/v2.42.0/op_linux_amd64_v2.42.
 [tools.1password-cli."platforms.macos-arm64"]
 url = "https://cache.agilebits.com/dist/1P/op2/pkg/v2.42.0/op_darwin_arm64_v2.42.0.zip"
 
+[[tools.agy]]
+version = "1.5.18"
+backend = "aqua:google-antigravity/antigravity-cli"
+
+[tools.agy."platforms.linux-x64"]
+checksum = "sha256:a4960723ed9cf5b5ac72ed541db8df4d62741795261eb93a4681006ccb23d5ad"
+checksum_source = "mise-versions"
+url = "https://github.com/google-antigravity/antigravity-cli/releases/download/1.5.18/agy_cli_linux_x64.tar.gz"
+url_api = "https://api.github.com/repos/google-antigravity/antigravity-cli/releases/assets/794515272"
+
+[tools.agy."platforms.macos-arm64"]
+checksum = "sha256:f154fdbe81885c36565b74615a9ef6c7c92fb9c2bc29acb0a300bc5990691871"
+checksum_source = "mise-versions"
+url = "https://github.com/google-antigravity/antigravity-cli/releases/download/1.5.18/agy_cli_mac_arm64.tar.gz"
+url_api = "https://api.github.com/repos/google-antigravity/antigravity-cli/releases/assets/794515564"
+
+[tools.agy."platforms.macos-x64"]
+checksum = "sha256:113e058df8c3e488c90f64ebb1dbdf7763ca01af7027ecfd73ae189f3c530366"
+checksum_source = "mise-versions"
+url = "https://github.com/google-antigravity/antigravity-cli/releases/download/1.5.18/agy_cli_mac_x64.tar.gz"
+url_api = "https://api.github.com/repos/google-antigravity/antigravity-cli/releases/assets/794515264"
+
 [[tools."aqua:dotfiles/orbstack"]]
 version = "2.2.5-21124"
 backend = "aqua:dotfiles/orbstack"
