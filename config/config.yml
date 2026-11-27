@@ -63,7 +63,6 @@ time_machine_settings:
   - "~/.npm"
   - "~/Library/pnpm"
   - "~/.local/share/mise"
-  - "~/.unsloth"
   - "~/Library/Application Support/com.apple.wallpaper/aerials/videos"
 file_associations:
   com.microsoft.VSCode:
